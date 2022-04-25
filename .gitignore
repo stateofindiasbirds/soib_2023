@@ -1,0 +1,87 @@
+# History files
+.Rhistory
+.Rapp.history
+
+# Session data files
+#/*.RData
+
+# Example code in package build process
+*-Ex.R
+
+# Output files from R CMD build
+/*.tar.gz
+
+# Output files from R CMD check
+/*.Rcheck/
+
+# RStudio files
+.Rproj.user/
+
+# produced vignettes
+vignettes/*.html
+vignettes/*.pdf
+
+# OAuth2 token, see https://github.com/hadley/httr/releases/tag/v0.3
+.httr-oauth
+
+# knitr and R markdown default cache directories
+/*_cache/
+/cache/
+
+# Temporary files created by R markdown
+*.utf8.md
+*.knit.md
+
+# Shiny token, see https://shiny.rstudio.com/articles/shinyapps.html
+rsconnect/
+.Rproj.user
+
+# raw data files
+/*.txt
+/*.gif
+/*.jpeg
+/*.tiff
+/*.tif
+/*.png
+/*.svg
+/*.xlsx
+/*.pdf
+
+# random files
+/*.ini
+
+# zipped files
+/*.zip
+
+# RStudio project files
+/*.Rproj
+
+# all shapefile related files
+#/*.dbf
+#/*.sbn
+#/*.sbx
+#/*.shp
+#/*.shp.xml
+#/*.shx
+#/*.cpg
+#/*.prj
+
+# specific folders in Ashwin's GitHub
+#India/
+#India Districts/
+#India States/
+All Trends/
+All Maps/
+All Trend Graphs/
+#Chennai/
+#New Delhi/
+#Mumbai/
+#Kolkata/
+#Hyderabad/
+#Bangalore/
+snippets/
+#NE_places/
+#NE_box/
+#NE_graticules/
+#NE_countries/
+#Division@Range6/
