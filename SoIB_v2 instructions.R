@@ -8,7 +8,7 @@
 ## creates grids at 25, 50, 100, 200 resolutions and lists of 4 and 8 nearest neighbours
 ## writes 'maps.RData' and 'neighbours.RData' to the home folder (called in other functions)
 
-source('E:/Abhinandan/BCI/soib_v2/SoIB_v2 functions.R')
+source('SoIB_v2 functions.R')
 createmaps()
 
 ### Sequence of steps to clean data starting from .txt file
@@ -20,7 +20,7 @@ createmaps()
 ## writes 'indiaspecieslist.csv' (common and scientific names of all species)
 ## writes 'rawdata.RData' to the home folder
 
-source('E:/Abhinandan/BCI/soib_v2/SoIB_v2 functions.R')
+source('SoIB_v2 functions.R')
 readcleanrawdata("ebd_IN_relMar-2022.txt","ebd_sensitive_relDec-2021_IN.txt") 
 
 ## add map and grid variables to the dataset (dataframe)
@@ -29,7 +29,7 @@ readcleanrawdata("ebd_IN_relMar-2022.txt","ebd_sensitive_relDec-2021_IN.txt")
 ## data.RData and maps.RData files MUST BE in the working directory
 ## writes 'data.RData' to the home folder
 
-source('E:/Abhinandan/BCI/soib_v2/SoIB_v2 functions.R')
+source('SoIB_v2 functions.R')
 addmapvars()
 
 ## clean up and filter data for analyses
@@ -42,7 +42,7 @@ addmapvars()
 ## amount of data in each temporal bin, full species list (with all attribute columns) 
 ## and selected species list, data
 
-source('E:/Abhinandan/BCI/soib_v2/SoIB_v2 functions.R')
+source('SoIB_v2 functions.R')
 dataspeciesfilter(locationlimit = 15,gridlimit = 4)
 
 
@@ -63,7 +63,7 @@ dataspeciesfilter(locationlimit = 15,gridlimit = 4)
 ## returns a dataframe with occupancy values
 
 
-source('E:/Abhinandan/BCI/soib_v2/SoIB_v2 functions.R')
+source('SoIB_v2 functions.R')
 occ = SoIBoccupancy(data,species,areag=areag1)
 
 ## for the final run, species = specieslist$COMMON.NAME (or this incrementally)
@@ -77,7 +77,7 @@ occ = SoIBoccupancy(data,species,areag=areag1)
 ## returns a dataframe with trend values
 ## with error = F, errors are not computed, function runs faster
 
-source('E:/Abhinandan/BCI/soib_v2/SoIB_v2 functions.R')
+source('SoIB_v2 functions.R')
 load("dataforanalyses.RData")
 species = "House Sparrow"
 start = Sys.time()
@@ -108,7 +108,7 @@ tre = freqtrendsrestricted(data,species,restrictedspecieslist)
 #  }
 #}
 
-source('E:/Abhinandan/BCI/soib_v2/SoIB_v2 functions.R')
+source('SoIB_v2 functions.R')
 load("dataforanalyses.RData")
 #load("finaloccupancy.RData")
 
@@ -150,7 +150,7 @@ for (i in 1:length(restrictedspecieslist$COMMON.NAME))
 ## no data files called in the function
 ## returns a single composite trend
 
-source('E:/Abhinandan/BCI/soib_v2/SoIB_v2 functions.R')
+source('SoIB_v2 functions.R')
 
 ## all information to be added as columns to trend file
 ## create separate composite data frames and merge
@@ -191,7 +191,7 @@ rm(list=setdiff(ls(envir = .GlobalEnv), c("trends")), pos = ".GlobalEnv")
 save.image("AllTrends.RData")
 #rm(list = ls(all.names = TRUE))
 
-source('E:/Abhinandan/BCI/soib_v2/SoIB_v2 functions.R')
+source('SoIB_v2 functions.R')
 load("dataforanalyses.RData")
 load("AllTrends.RData")
 
@@ -236,7 +236,7 @@ write.csv(glmr,"glmr.csv",row.names = F)
 
 ## to plot trends for up to 8 species
 load("AllTrends.RData")
-source('E:/Abhinandan/BCI/soib_v2/SoIB_v2 functions.R')
+source('SoIB_v2 functions.R')
 library(tidyverse)
 
 plottrends(trends, selectspecies = c("Ashy Prinia","House Sparrow","Red-necked Falcon"))
