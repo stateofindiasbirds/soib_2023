@@ -598,11 +598,15 @@ dataspeciesfilter = function(datapath = "data.RData",
   
   data = data %>%
     mutate(timegroups = as.character(year)) %>%
-    mutate(timegroups = ifelse(year <= 1999, "before 2000", timegroups)) %>%
-    #mutate(timegroups = ifelse(year >= 1990 & year <= 1999, "1990-1999", timegroups)) %>%
+    mutate(timegroups = ifelse(year <= 1990, "before 1990", timegroups)) %>%
+    mutate(timegroups = ifelse(year > 1990 & year <= 1999, "1990-1999", timegroups)) %>%
     mutate(timegroups = ifelse(year > 1999 & year <= 2006, "2000-2006", timegroups)) %>%
-    mutate(timegroups = ifelse(year > 2006 & year <= 2010, "2007-2010", timegroups)) %>%
-    mutate(timegroups = ifelse(year > 2010 & year <= 2012, "2011-2012", timegroups)) %>%
+    mutate(timegroups = ifelse(year == 2007, "2007", timegroups)) %>%
+    mutate(timegroups = ifelse(year == 2008, "2008", timegroups)) %>%
+    mutate(timegroups = ifelse(year == 2009, "2009", timegroups)) %>%
+    mutate(timegroups = ifelse(year == 2010, "2010", timegroups)) %>%
+    mutate(timegroups = ifelse(year == 2011, "2011", timegroups)) %>%
+    mutate(timegroups = ifelse(year == 2012, "2012", timegroups)) %>%
     mutate(timegroups = ifelse(year == 2013, "2013", timegroups)) %>%
     mutate(timegroups = ifelse(year == 2014, "2014", timegroups)) %>%
     mutate(timegroups = ifelse(year == 2015, "2015", timegroups)) %>%
@@ -635,9 +639,9 @@ dataspeciesfilter = function(datapath = "data.RData",
              "filter 1 usable observations")
   x8 = paste(length(unique(data[data$ALL.SPECIES.REPORTED == 1,]$group.id)),
              "filter 2 unique complete checklists")
-  x9 = paste(length(unique(data[data$timegroups == "before 2000" &
+  x9 = paste(length(unique(data[data$timegroups == "before 1990" &
                           data$ALL.SPECIES.REPORTED == 1,]$group.id)),
-             "pre-2000 checklists")
+             "pre-1990 checklists")
   
   databins = data %>%
     filter(ALL.SPECIES.REPORTED == 1) %>%
@@ -693,7 +697,7 @@ dataspeciesfilter = function(datapath = "data.RData",
     tempresth1 = tempresth1 %>%
       group_by(timegroups) %>% summarize(n = n_distinct(group.id)) %>%
       filter(n > 50)
-    if (length(tempresth1$timegroups) == 10 & length(tempresth2$timegroups) == 10)
+    if (length(tempresth1$timegroups) == 13 & length(tempresth2$timegroups) == 13)
       speciesresth$validh[speciesresth$species == speciesresth$species[i]] = 1
   }
   
@@ -890,7 +894,7 @@ expandbyspecies = function(data, species)
   expanded = left_join(expanded,data)
   expanded = expanded %>%
     dplyr::select(-c("COMMON.NAME","gridg2","gridg4","OBSERVER.ID",
-                     "ALL.SPECIES.REPORTED","group.id","year"))
+                     "ALL.SPECIES.REPORTED","group.id","year","timegroups1"))
   
   ## deal with NAs
   
@@ -898,14 +902,12 @@ expandbyspecies = function(data, species)
   
   
   expanded = expanded %>%
-    mutate(OBSERVATION.NUMBER=OBSERVATION.COUNT,
-           OBSERVATION.COUNT=replace(OBSERVATION.COUNT, OBSERVATION.COUNT != "0", "1"))
+    mutate(OBSERVATION.COUNT=replace(OBSERVATION.COUNT, OBSERVATION.COUNT != "0", "1"))
   
   
   
   expanded$OBSERVATION.COUNT = as.numeric(expanded$OBSERVATION.COUNT)
-  expanded$OBSERVATION.NUMBER = as.numeric(expanded$OBSERVATION.NUMBER)
-  
+
   return(expanded)
 }
 
@@ -929,23 +931,25 @@ freqtrends = function(data,species,specieslist,
   data$gridg4 = as.factor(data$gridg4)
   #data$region = as.factor(data$region)
   
-  specieslist = specieslist %>%
+  specieslist1 = specieslist %>%
     filter(COMMON.NAME == species)
   
   ## filters data based on whether the species has been selected for long-term trends (ht) 
   ## or short-term trends (rt) 
   
-  if (is.na(specieslist$ht) & !is.na(specieslist$rt))
+  if (is.na(specieslist1$ht) & !is.na(specieslist1$rt))
   {
     g1 = data.frame(timegroups = unique(data$timegroups))
     g1$se = g1$freq = NA
-    g1$timegroups = factor(g1$timegroups, levels = c("before 2000","2000-2006","2007-2010",
-                                                     "2011-2012","2013","2014","2015","2016",
+    g1$timegroups = factor(g1$timegroups, levels = c("before 1990","1990-1999","2000-2006","2007",
+                                                     "2008","2009","2010","2011",
+                                                     "2012","2013","2014","2015","2016",
                                                      "2017","2018","2019","2020","2021"))
     g1 = g1[order(g1$timegroups),]
     names(g1)[1] = "timegroupsf"
-    mp = data.frame(timegroupsf = c("before 2000","2000-2006","2007-2010",
-                                    "2011-2012","2013","2014","2015","2016",
+    mp = data.frame(timegroupsf = c("before 1990","1990-1999","2000-2006","2007",
+                                    "2008","2009","2010","2011",
+                                    "2012","2013","2014","2015","2016",
                                     "2017","2018","2019","2020","2021"), 
                     timegroups = as.numeric(databins))
     g1 = left_join(g1,mp)
@@ -957,17 +961,19 @@ freqtrends = function(data,species,specieslist,
       filter(year >= 2017)
   }
   
-  if (is.na(specieslist$ht) & is.na(specieslist$rt))
+  if (is.na(specieslist1$ht) & is.na(specieslist1$rt))
   {
     f1 = data.frame(timegroups = unique(data$timegroups))
     f1$se = f1$freq = NA
-    f1$timegroups = factor(f1$timegroups, levels = c("before 2000","2000-2006","2007-2010",
-                                                     "2011-2012","2013","2014","2015","2016",
+    f1$timegroups = factor(f1$timegroups, levels = c("before 1990","1990-1999","2000-2006","2007",
+                                                     "2008","2009","2010","2011",
+                                                     "2012","2013","2014","2015","2016",
                                                      "2017","2018","2019","2020","2021"))
     f1 = f1[order(f1$timegroups),]
     names(f1)[1] = "timegroupsf"
-    mp = data.frame(timegroupsf = c("before 2000","2000-2006","2007-2010",
-                                    "2011-2012","2013","2014","2015","2016",
+    mp = data.frame(timegroupsf = c("before 1990","1990-1999","2000-2006","2007",
+                                    "2008","2009","2010","2011",
+                                    "2012","2013","2014","2015","2016",
                                     "2017","2018","2019","2020","2021"), 
                     timegroups = as.numeric(databins))
     f1 = left_join(f1,mp)
@@ -1077,19 +1083,21 @@ freqtrends = function(data,species,specieslist,
   }
   
   
-  f1$timegroups = factor(f1$timegroups, levels = c("before 2000","2000-2006","2007-2010",
-                                                   "2011-2012","2013","2014","2015","2016",
+  f1$timegroups = factor(f1$timegroups, levels = c("before 1990","1990-1999","2000-2006","2007",
+                                                   "2008","2009","2010","2011",
+                                                   "2012","2013","2014","2015","2016",
                                                    "2017","2018","2019","2020","2021"))
   f1 = f1[order(f1$timegroups),]
   names(f1)[1] = "timegroupsf"
-  mp = data.frame(timegroupsf = c("before 2000","2000-2006","2007-2010",
-                                  "2011-2012","2013","2014","2015","2016",
+  mp = data.frame(timegroupsf = c("before 1990","1990-1999","2000-2006","2007",
+                                  "2008","2009","2010","2011",
+                                  "2012","2013","2014","2015","2016",
                                   "2017","2018","2019","2020","2021"), 
                   timegroups = as.numeric(databins))
   f1 = left_join(f1,mp)
   f1$species = species
   
-  if (is.na(specieslist$ht) & !is.na(specieslist$rt))
+  if (is.na(specieslist1$ht) & !is.na(specieslist1$rt))
   {
     f1 = rbind(g1,f1)
   }
@@ -2212,12 +2220,16 @@ freqtrendsr = function(data,species,specieslist,
   {
     g1 = data.frame(timegroups = unique(data$timegroups))
     g1$se = g1$freq = NA
-    g1$timegroups = factor(g1$timegroups, levels = c("before 2000","2000-2006","2007-2010",
-                                                     "2011-2012","2013","2014","2015","2016","2017","2018"))
+    g1$timegroups = factor(g1$timegroups, levels = c("before 1990","1990-1999","2000-2006","2007",
+                                                     "2008","2009","2010","2011",
+                                                     "2012","2013","2014","2015","2016",
+                                                     "2017","2018","2019","2020","2021"))
     g1 = g1[order(g1$timegroups),]
     names(g1)[1] = "timegroupsf"
-    mp = data.frame(timegroupsf = c("before 2000","2000-2006","2007-2010",
-                                    "2011-2012","2013","2014","2015","2016","2017","2018"), 
+    mp = data.frame(timegroupsf = c("before 1990","1990-1999","2000-2006","2007",
+                                    "2008","2009","2010","2011",
+                                    "2012","2013","2014","2015","2016",
+                                    "2017","2018","2019","2020","2021"), 
                     timegroups = as.numeric(databins))
     g1 = left_join(g1,mp)
     g1$species = species
@@ -2232,12 +2244,16 @@ freqtrendsr = function(data,species,specieslist,
   {
     f1 = data.frame(timegroups = unique(data$timegroups))
     f1$se = f1$freq = NA
-    f1$timegroups = factor(f1$timegroups, levels = c("before 2000","2000-2006","2007-2010",
-                                                     "2011-2012","2013","2014","2015","2016","2017","2018"))
+    f1$timegroups = factor(f1$timegroups, levels = c("before 1990","1990-1999","2000-2006","2007",
+                                                     "2008","2009","2010","2011",
+                                                     "2012","2013","2014","2015","2016",
+                                                     "2017","2018","2019","2020","2021"))
     f1 = f1[order(f1$timegroups),]
     names(f1)[1] = "timegroupsf"
-    mp = data.frame(timegroupsf = c("before 2000","2000-2006","2007-2010",
-                                    "2011-2012","2013","2014","2015","2016","2017","2018"), 
+    mp = data.frame(timegroupsf = c("before 1990","1990-1999","2000-2006","2007",
+                                    "2008","2009","2010","2011",
+                                    "2012","2013","2014","2015","2016",
+                                    "2017","2018","2019","2020","2021"), 
                     timegroups = as.numeric(databins))
     f1 = left_join(f1,mp)
     f1$species = species
@@ -2370,12 +2386,16 @@ freqtrendsr = function(data,species,specieslist,
   }
   
   
-  f1$timegroups = factor(f1$timegroups, levels = c("before 2000","2000-2006","2007-2010",
-                                                   "2011-2012","2013","2014","2015","2016","2017","2018"))
+  f1$timegroups = factor(f1$timegroups, levels = c("before 1990","1990-1999","2000-2006","2007",
+                                                   "2008","2009","2010","2011",
+                                                   "2012","2013","2014","2015","2016",
+                                                   "2017","2018","2019","2020","2021"))
   f1 = f1[order(f1$timegroups),]
   names(f1)[1] = "timegroupsf"
-  mp = data.frame(timegroupsf = c("before 2000","2000-2006","2007-2010",
-                                  "2011-2012","2013","2014","2015","2016","2017","2018"), 
+  mp = data.frame(timegroupsf = c("before 1990","1990-1999","2000-2006","2007",
+                                  "2008","2009","2010","2011",
+                                  "2012","2013","2014","2015","2016",
+                                  "2017","2018","2019","2020","2021"), 
                   timegroups = as.numeric(databins))
   f1 = left_join(f1,mp)
   f1$species = species
@@ -2413,12 +2433,16 @@ freqtrendsrestricted = function(data,species,specieslist,
   {
     g1 = data.frame(timegroups = unique(data$timegroups))
     g1$se = g1$freq = NA
-    g1$timegroups = factor(g1$timegroups, levels = c("before 2000","2000-2006","2007-2010",
-                                                     "2011-2012","2013","2014","2015","2016","2017","2018"))
+    g1$timegroups = factor(g1$timegroups, levels = c("before 1990","1990-1999","2000-2006","2007",
+                                                     "2008","2009","2010","2011",
+                                                     "2012","2013","2014","2015","2016",
+                                                     "2017","2018","2019","2020","2021"))
     g1 = g1[order(g1$timegroups),]
     names(g1)[1] = "timegroupsf"
-    mp = data.frame(timegroupsf = c("before 2000","2000-2006","2007-2010",
-                                    "2011-2012","2013","2014","2015","2016","2017","2018"), 
+    mp = data.frame(timegroupsf = c("before 1990","1990-1999","2000-2006","2007",
+                                    "2008","2009","2010","2011",
+                                    "2012","2013","2014","2015","2016",
+                                    "2017","2018","2019","2020","2021"), 
                     timegroups = as.numeric(databins))
     g1 = left_join(g1,mp)
     g1$species = species
@@ -2433,12 +2457,16 @@ freqtrendsrestricted = function(data,species,specieslist,
   {
     f1 = data.frame(timegroups = unique(data$timegroups))
     f1$se = f1$freq = NA
-    f1$timegroups = factor(f1$timegroups, levels = c("before 2000","2000-2006","2007-2010",
-                                                     "2011-2012","2013","2014","2015","2016","2017","2018"))
+    f1$timegroups = factor(f1$timegroups, levels = c("before 1990","1990-1999","2000-2006","2007",
+                                                     "2008","2009","2010","2011",
+                                                     "2012","2013","2014","2015","2016",
+                                                     "2017","2018","2019","2020","2021"))
     f1 = f1[order(f1$timegroups),]
     names(f1)[1] = "timegroupsf"
-    mp = data.frame(timegroupsf = c("before 2000","2000-2006","2007-2010",
-                                    "2011-2012","2013","2014","2015","2016","2017","2018"), 
+    mp = data.frame(timegroupsf = c("before 1990","1990-1999","2000-2006","2007",
+                                    "2008","2009","2010","2011",
+                                    "2012","2013","2014","2015","2016",
+                                    "2017","2018","2019","2020","2021"), 
                     timegroups = as.numeric(databins))
     f1 = left_join(f1,mp)
     f1$species = species
@@ -2542,12 +2570,16 @@ freqtrendsrestricted = function(data,species,specieslist,
 
   
   
-  f1$timegroups = factor(f1$timegroups, levels = c("before 2000","2000-2006","2007-2010",
-                                                   "2011-2012","2013","2014","2015","2016","2017","2018"))
+  f1$timegroups = factor(f1$timegroups, levels = c("before 1990","1990-1999","2000-2006","2007",
+                                                   "2008","2009","2010","2011",
+                                                   "2012","2013","2014","2015","2016",
+                                                   "2017","2018","2019","2020","2021"))
   f1 = f1[order(f1$timegroups),]
   names(f1)[1] = "timegroupsf"
-  mp = data.frame(timegroupsf = c("before 2000","2000-2006","2007-2010",
-                                  "2011-2012","2013","2014","2015","2016","2017","2018"), 
+  mp = data.frame(timegroupsf = c("before 1990","1990-1999","2000-2006","2007",
+                                  "2008","2009","2010","2011",
+                                  "2012","2013","2014","2015","2016",
+                                  "2017","2018","2019","2020","2021"), 
                   timegroups = as.numeric(databins))
   f1 = left_join(f1,mp)
   f1$species = species
