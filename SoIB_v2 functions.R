@@ -3,8 +3,8 @@
 ## read and clean raw data and add important columns like group id, seaonality variables
 ## place raw txt file (India download) in working directory 
 
-readcleanrawdata = function(rawpath = "ebd_IN_relMar-2022.txt", 
-                            sensitivepath = "ebd_sensitive_relDec-2021_IN.txt")
+readcleanrawdata = function(rawpath = "ebd_IN_relJun-2022.txt", 
+                            sensitivepath = "ebd_sensitive_relMay-2022_IN.txt")
 {
   require(lubridate)
   require(tidyverse)
@@ -47,9 +47,7 @@ readcleanrawdata = function(rawpath = "ebd_IN_relMar-2022.txt",
 
   sesp = read.delim(sensitivepath, colClasses = nms1, sep = "\t", header = T, quote = "", 
                     stringsAsFactors = F, na.strings = c(""," ",NA))
-  # remove later
-  sesp = add_column(sesp, EXOTIC.CODE = NA, .before = 4)
-  
+
   # read sensitive species data
   
   

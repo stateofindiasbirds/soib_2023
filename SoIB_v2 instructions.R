@@ -47,7 +47,7 @@ dataspeciesfilter(locationlimit = 15,gridlimit = 4)
 
 
 
-###################                       PART 2                     ###################################
+  ###################                       PART 2                     ###################################
 ## provide "dataforanalyses.RData", "neighbours.RData", "indiaspecieslist.csv" and 
 ## "Migratory Status - Migratory Status.csv"
 
