@@ -1,9 +1,9 @@
 ---
 title: "**Determining historical spread of eBird India data**"
-author: "Karthik Thrikkadeeri"
-date: "2022-08-07"
+# author: "Karthik Thrikkadeeri"
+# date: "2022-08-07"
 output: 
-  pdf_document:
+  word_document:
     toc: FALSE
 # linestretch: 1.5
 fontsize: 12pt
@@ -200,7 +200,7 @@ Quick analysis to determine whether or not historical eBird data in the country 
 
 # Maps of spatial spread
 
-Firstly, are there any immediate biases that pop up when historical lists are plotted on a map of the country? How does the spread of the data look when the historical period is split into two, compared to without the split? (Zoom in for cell-level detail.)
+Firstly, are there any immediate biases that pop up when historical lists are plotted on a map of the country? How does the spread of the data look when the historical period is split into two, compared to without the split? (Link to high-res.)
 
 ```{r out.width="1000px", fig.asp=1}
 
@@ -222,7 +222,7 @@ ggplot(data = data0, aes(CELL.LONG, CELL.LAT)) +
 
 While sheer numbers of lists naturally differ considerably, there doesn't seem to be much of a spatial bias in pre-2000 birding, i.e., concentrations of birding effort across the country before 2000 were not very different from the current scenario, except for central India and West Bengal which lose a large spread of data.
 
-Since sheer numbers are meaningless here, we calculate the proportion of birding in each cell and standardise it to the most active cell (cell with highest number of lists). This standardised proportion allows meaningful comparison of *concentrations* of birding across *both time periods*: here the actual values are not so important, but comparing the locations of light-coloured cells will tell us if spatial concentrations changed.
+Since sheer numbers are meaningless here, we calculate the proportion of birding in each cell and standardise it to the most active cell (cell with highest number of lists). This standardised proportion allows meaningful comparison of *concentrations* of birding across *both time periods*: here the actual values are not so important, but comparing the locations of light-coloured cells will tell us if spatial concentrations changed. (Link to high-res.)
 
 ```{r out.width="1000px", fig.asp=1}
 
@@ -312,7 +312,7 @@ Once again, there is a slight discrepancy, but there are 5 distinct humps in all
 
 # Data across geographical regions
 
-```{r out.width="600px", fig.asp=2}
+```{r fig.height=8}
 
 ggplot(data2, 
        aes(reorder(REGION, -PROP.LISTS), PROP.LISTS)) +
