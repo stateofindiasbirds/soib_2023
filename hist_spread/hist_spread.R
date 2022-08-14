@@ -2,7 +2,7 @@
 # spatially biased, at two levels: 
 # - pre-2000 
 # - pre-1990 & 1990-2000
-# 
+
 # All these analyses are using the base dataset, without any of the SoIB filters, 
 # but with removal of duplicate lists.
 
@@ -25,67 +25,67 @@ theme_set(theme_classic() +
 
 ### uncomment below if first time setting up. else, just load .RData (lines below commented)
 
-# filtering data for this analysis
-load("ebd_IN_relJun-2022.RData")
-
-data_hist <- data %>%
-  filter(YEAR < 2000) %>%
-  # slicing to original checklist-level
-  group_by(GROUP.ID) %>%
-  slice(1) %>%
-  mutate(PERIOD1 = "pre-2000",
-         PERIOD2 = case_when(YEAR %in% 1990:1999 ~ "1990-1999",
-                             YEAR < 1990 ~ "pre-1990"))
-
-data_cur <- data %>%
-  filter(YEAR == 2021) %>%
-  # slicing to original checklist-level
-  group_by(GROUP.ID) %>%
-  slice(1) %>%
-  mutate(PERIOD1 = "2021",
-         PERIOD2 = "2021")
-
-# for line graph
-timeline <- data %>%
-  # slicing to original checklist-level
-  group_by(GROUP.ID) %>%
-  slice(1) %>%
-  mutate(PERIOD = case_when(YEAR < 1990 ~ "pre-1990",
-                            YEAR %in% 1990:1999 ~ "1990-1999",
-                            YEAR %in% 2000:2006 ~ "2000-2006",
-                            YEAR %in% 2007:2010 ~ "2007-2010",
-                            YEAR > 2010 ~ as.character(YEAR)))
-
-# 24x24 raster info to get cell ID (from https://github.com/rikudoukarthik/covid-ebirding)
-load(here("explor/rast_SoIB.RData"))
-
-# Ashwin's maps data (https://github.com/ashwinv2005/state-of-indias-birds)
-load(here("explor/maps.RData"))
-
-# cropping grid to india boundary
-temp1 <- as(indiamap, "sf") %>% sf::st_buffer(dist = 0)
-# to calculate total number of grids of each size
-indiagrid <- sf::st_intersection(as(gridmapg1,"sf"), temp1)
-
-
-save(data_hist, data_cur, indiagrid, timeline, file = "explor/hist_spread.RData")
-rm(data)
+# # filtering data for this analysis
+# load("ebd_IN_relJun-2022.RData")
+# 
+# data_hist <- data %>%
+#   filter(YEAR < 2000) %>%
+#   # slicing to original checklist-level
+#   group_by(GROUP.ID) %>%
+#   slice(1) %>%
+#   mutate(PERIOD1 = "pre-2000",
+#          PERIOD2 = case_when(YEAR %in% 1990:1999 ~ "1990-1999",
+#                              YEAR < 1990 ~ "pre-1990"))
+# 
+# data_cur <- data %>%
+#   filter(YEAR == 2021) %>%
+#   # slicing to original checklist-level
+#   group_by(GROUP.ID) %>%
+#   slice(1) %>%
+#   mutate(PERIOD1 = "2021",
+#          PERIOD2 = "2021")
+# 
+# # for line graph
+# timeline <- data %>%
+#   # slicing to original checklist-level
+#   group_by(GROUP.ID) %>%
+#   slice(1) %>%
+#   mutate(PERIOD = case_when(YEAR < 1990 ~ "pre-1990",
+#                             YEAR %in% 1990:1999 ~ "1990-1999",
+#                             YEAR %in% 2000:2006 ~ "2000-2006",
+#                             YEAR %in% 2007:2010 ~ "2007-2010",
+#                             YEAR > 2010 ~ as.character(YEAR)))
+# 
+# # 24x24 raster info to get cell ID (from https://github.com/rikudoukarthik/covid-ebirding)
+# load("hist_spread/rast_SoIB.RData")
+# 
+# # Ashwin's maps data (https://github.com/ashwinv2005/state-of-indias-birds)
+# load("hist_spread/maps.RData")
+# 
+# # cropping grid to india boundary
+# temp1 <- as(indiamap, "sf") %>% sf::st_buffer(dist = 0)
+# # to calculate total number of grids of each size
+# indiagrid <- sf::st_intersection(as(gridmapg1,"sf"), temp1)
+# 
+# 
+# save(data_hist, data_cur, indiagrid, timeline, file = "hist_spread/hist_spread.RData")
+# rm(data)
 
 
 ### if .RData already created (else, comment below and run above lines)
 
 # 24x24 raster info to get cell ID (from rikudoukarthik/covid-ebirding)
-load(here("explor/rast_SoIB.RData"))
+load("hist_spread/rast_SoIB.RData")
 
 # Ashwin's maps data
-load(here("explor/maps.RData"))
+load("hist_spread/maps.RData")
 
-load(here("explor/hist_spread.RData"))
+load("hist_spread/hist_spread.RData")
 
 
 
 # region data (from ashwinv2005/state-of-indias-birds)
-regions <- read_csv(here("explor/districtlist.csv")) %>% 
+regions <- read_csv("hist_spread/districtlist.csv") %>% 
   rename(REGION = region,
          STATE = ST_NM,
          COUNTY = DISTRICT)
