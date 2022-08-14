@@ -120,10 +120,7 @@ soib_levels <- c("2021", "pre-2000", "1990-1999", "pre-1990")
 gridmapg1_tidy <- gridmapg1 %>% 
   broom::tidy() %>% 
   # removing the "g" in order to later join by GRIDG1 column
-  mutate(id2 = as.character(str_remove(id, "g")))
-
-gridmapg1_tidy <- gridmapg1_tidy %>% 
-  mutate(id2 = as.numeric(id2))
+  mutate(id2 = as.numeric(str_remove(id, "g")))
 
 ##### grid-level ####
 
