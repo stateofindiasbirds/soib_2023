@@ -395,7 +395,9 @@ addmapvars = function(datapath = "rawdata.RData", mappath = "maps.RData")
   proj4string(temp) = "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
   
   temp = sp::over(temp, districtmap) %>% # returns only ATTRIBUTES of districtmap (DISTRICT and ST_NM)
-    dplyr::select(DISTRICT, ST_NM) %>% 
+    dplyr::select(1, 2) %>% 
+    rename(DISTRICT = dtname,
+           ST_NM = stname) %>% 
     rownames_to_column("group.id") 
   
   data = left_join(temp, data)
