@@ -15,7 +15,6 @@
 library(tidyverse)
 library(raster)
 library(sf)
-library(here) # helpful to make relative paths consistent between .R run and .Rmd knit
 library(patchwork)
 
 # ggplot theme
@@ -25,61 +24,79 @@ theme_set(theme_classic() +
                   plot.title = element_text(size = 16, face = "bold"),
                   panel.border = element_blank()))
 
-### Data ####
+### Data: initial setup (skip if latest hist_spread.RData exists) ####
 
-### uncomment below if first time setting up. else, just load .RData (lines below commented)
+### uncomment below if first time setting up. else, just load .RData (comment/skip lines below)
 
-# filtering data for this analysis
-load("ebd_IN_relJun-2022.RData")
+# # filtering data for this analysis
+# load("ebd_IN_relJun-2022.RData")
+# 
+# tictoc::tic("distinct() over slice()") # total 64 secs
+# timeline <- data %>%
+#   # filtering for complete lists
+#   filter(ALL.SPECIES.REPORTED == 1 & PROTOCOL.TYPE != "Incidental") %>%
+#   # slicing to original checklist-level (GROUP.ID) 
+#   distinct(GROUP.ID,
+#            LOCALITY.ID, LOCALITY, LOCALITY.TYPE, STATE, COUNTY, LATITUDE, LONGITUDE, # space
+#            OBSERVATION.DATE, YEAR, MONTH, DAY.M, TIME.OBSERVATIONS.STARTED, # time
+#            PROTOCOL.TYPE, DURATION.MINUTES, EFFORT.DISTANCE.KM, NUMBER.OBSERVERS, # effort
+#            TRIP.COMMENTS) %>%  # done in 41 seconds on server (faster than slice)
+#   # have to group-slice again as space, time, effort can vary btwn observers in each GROUP.ID
+#   group_by(GROUP.ID) %>% 
+#   slice(1) %>% 
+#   ungroup() %>% 
+#   mutate(TIME.SOIB1 = case_when(YEAR < 1990 ~ "pre-1990",
+#                                 YEAR %in% 1990:1999 ~ "1990-1999",
+#                                 YEAR %in% 2000:2006 ~ "2000-2006",
+#                                 YEAR %in% 2007:2010 ~ "2007-2010",
+#                                 YEAR > 2010 ~ as.character(YEAR)),
+#          # coarser periods: without splitting historical and 2011-13
+#          TIME.SOIB2 = case_when(YEAR < 2000 ~ "pre-2000",
+#                                 YEAR %in% 2000:2006 ~ "2000-2006",
+#                                 YEAR %in% 2007:2010 ~ "2007-2010",
+#                                 YEAR %in% 2011:2013 ~ "2011-2013",
+#                                 YEAR > 2013 ~ as.character(YEAR)),
+#          # for main paper looking at past, middle and present broadly
+#          TIME.BROAD = case_when(YEAR < 2000 ~ "pre-2000",
+#                                 YEAR %in% 2000:2015 ~ "2000-2015",
+#                                 YEAR > 2015 ~ "2016-present"))
+# tictoc::toc()
+# 
+# 
+# data_hist <- timeline %>% filter(YEAR < 2000)
+# 
+# data_cur <- timeline %>% filter(YEAR == 2021)
+# 
+# # 24x24 raster info to get cell ID (from https://github.com/rikudoukarthik/covid-ebirding)
+# load("hist_spread/rast_SoIB.RData")
+# 
+# # Ashwin's maps data (https://github.com/ashwinv2005/state-of-indias-birds)
+# load("hist_spread/maps.RData")
+# 
+# # cropping grid to india boundary
+# temp1 <- as(indiamap, "sf") %>% sf::st_buffer(dist = 0)
+# # to calculate total number of grids of each size
+# tictoc::tic("Intersecting 25*25 grids with IN polygon") # 154 secs on server
+# indiagrid <- sf::st_intersection(as(gridmapg1,"sf"), temp1)
+# tictoc::toc()
+# 
+# 
+# save(data_hist, data_cur, indiagrid, timeline, file = "hist_spread/hist_spread.RData")
+# rm(data)
+# 
+# 
+# # region data (from ashwinv2005/state-of-indias-birds)
+# regions <- read_csv("hist_spread/districtlist.csv") %>%
+#   rename(REGION = region,
+#          STATE = ST_NM,
+#          COUNTY = DISTRICT)
 
-tictoc::tic("distinct() over slice()")
-timeline <- data %>%
-  # filtering for complete lists
-  filter(ALL.SPECIES.REPORTED == 1 & PROTOCOL.TYPE != "Incidental") %>%
-  # slicing to original checklist-level (GROUP.ID)
-  distinct(GROUP.ID, 
-           LOCALITY.ID, LOCALITY, LOCALITY.TYPE, STATE, COUNTY, LATITUDE, LONGITUDE, # space
-           OBSERVATION.DATE, YEAR, MONTH, DAY.M, TIME.OBSERVATIONS.STARTED, # time
-           PROTOCOL.TYPE, DURATION.MINUTES, EFFORT.DISTANCE.KM, NUMBER.OBSERVERS, # effort
-           TRIP.COMMENTS) %>% 
-  mutate(TIME.SOIB1 = case_when(YEAR < 1990 ~ "pre-1990",
-                                YEAR %in% 1990:1999 ~ "1990-1999",
-                                YEAR %in% 2000:2006 ~ "2000-2006",
-                                YEAR %in% 2007:2010 ~ "2007-2010",
-                                YEAR > 2010 ~ as.character(YEAR)),
-         # coarser periods: without splitting historical and 2011-13
-         TIME.SOIB2 = case_when(YEAR < 2000 ~ "pre-2000",
-                                YEAR %in% 2000:2006 ~ "2000-2006",
-                                YEAR %in% 2007:2010 ~ "2007-2010",
-                                YEAR %in% 2011:2013 ~ "2011-2013",
-                                YEAR > 2013 ~ as.character(YEAR)),
-         # for main paper looking at past, middle and present broadly
-         TIME.BROAD = case_when(YEAR < 2000 ~ "pre-2000",
-                                YEAR %in% 2000:2015 ~ "2000-2015",
-                                YEAR > 2015 ~ "2016-present"))
-tictoc::toc()
 
 
-data_hist <- data %>%
-  filter(YEAR < 2000) %>%
-  # filtering for complete lists
-  filter(ALL.SPECIES.REPORTED == 1 & PROTOCOL.TYPE != "Incidental") %>%
-  # slicing to original checklist-level
-  group_by(GROUP.ID) %>%
-  slice(1) %>%
-  mutate(PERIOD1 = "pre-2000",
-         PERIOD2 = case_when(YEAR %in% 1990:1999 ~ "1990-1999",
-                             YEAR < 1990 ~ "pre-1990"))
 
-data_cur <- data %>%
-  filter(YEAR == 2021) %>%
-  # filtering for complete lists
-  filter(ALL.SPECIES.REPORTED == 1 & PROTOCOL.TYPE != "Incidental") %>%
-  # slicing to original checklist-level
-  group_by(GROUP.ID) %>%
-  slice(1) %>%
-  mutate(PERIOD1 = "2021",
-         PERIOD2 = "2021")
+### Data: load .RData files (skip if above section run) ####
+
+### if latest hist_spread.RData does not exist, comment below and run above section
 
 # 24x24 raster info to get cell ID (from https://github.com/rikudoukarthik/covid-ebirding)
 load("hist_spread/rast_SoIB.RData")
@@ -87,27 +104,8 @@ load("hist_spread/rast_SoIB.RData")
 # Ashwin's maps data (https://github.com/ashwinv2005/state-of-indias-birds)
 load("hist_spread/maps.RData")
 
-# cropping grid to india boundary
-temp1 <- as(indiamap, "sf") %>% sf::st_buffer(dist = 0)
-# to calculate total number of grids of each size
-indiagrid <- sf::st_intersection(as(gridmapg1,"sf"), temp1)
-
-
-save(data_hist, data_cur, indiagrid, timeline, file = "hist_spread/hist_spread.RData")
-rm(data)
-
-
-### if .RData already created (else, comment below and run above lines)
-
-# 24x24 raster info to get cell ID (from rikudoukarthik/covid-ebirding)
-load("hist_spread/rast_SoIB.RData")
-
-# Ashwin's maps data
-load("hist_spread/maps.RData")
-
+# latest .RData with required objects (created in previous section)
 load("hist_spread/hist_spread.RData")
-
-
 
 # region data (from ashwinv2005/state-of-indias-birds)
 regions <- read_csv("hist_spread/districtlist.csv") %>% 
