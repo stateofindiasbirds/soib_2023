@@ -86,8 +86,7 @@ snippets/
 #NE_countries/
 #Division@Range6/
 
-# folders in Karthik's system
+# folders and specific files in Karthik's system
 Literature/
-explor/hist_spread.RData
-explor/maps.RData
-explor/hist_spread.docx
+hist_spread/*.RData
+ebd_IN_relJun-2022.RData

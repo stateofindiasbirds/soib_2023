@@ -1,17 +1,12 @@
----
-title: "**Determining historical spread of eBird India data**"
-# author: "Karthik Thrikkadeeri"
-# date: "2022-08-07"
-output: 
-  word_document:
-    toc: FALSE
-# linestretch: 1.5
-fontsize: 12pt
-editor_options: 
-  chunk_output_type: console
----
+# Quick analysis to determine whether or not historical eBird data in the country is 
+# spatially biased, at two levels: 
+# - pre-2000 
+# - pre-1990 & 1990-2000
+# 
+# All these analyses are using the base dataset, without any of the SoIB filters, 
+# but with removal of duplicate lists.
 
-```{r setup, include=FALSE}
+### Setup ####
 
 library(tidyverse)
 library(raster)
@@ -26,43 +21,58 @@ theme_set(theme_classic() +
                   plot.title = element_text(size = 16, face = "bold"),
                   panel.border = element_blank()))
 
-knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE,
-                      fig.align = 'center')
+### Data ####
 
-```
+### uncomment below if first time setting up. else, just load .RData (lines below commented)
 
-```{r data}
+# filtering data for this analysis
+load("ebd_IN_relJun-2022.RData")
 
-# # filtering data for this analysis
-# load("ebd_IN_relJun-2022.RData")
-# 
-# data_hist <- data %>%
-#   filter(YEAR < 2000) %>%
-#   # slicing to original checklist-level
-#   group_by(GROUP.ID) %>%
-#   slice(1) %>% 
-#   mutate(PERIOD1 = "pre-2000",
-#          PERIOD2 = case_when(YEAR %in% 1990:1999 ~ "1990-1999",
-#                              YEAR < 1990 ~ "pre-1990"))
-# 
-# data_cur <- data %>%
-#   filter(YEAR == 2021) %>%
-#   # slicing to original checklist-level
-#   group_by(GROUP.ID) %>%
-#   slice(1) %>% 
-#   mutate(PERIOD1 = "2021",
-#          PERIOD2 = "2021")
-# 
-# # for line graph 
-# timeline <- data %>%
-#   # slicing to original checklist-level
-#   group_by(GROUP.ID) %>%
-#   slice(1) %>%
-#   mutate(PERIOD = case_when(YEAR < 1990 ~ "pre-1990",
-#                             YEAR %in% 1990:1999 ~ "1990-1999",
-#                             YEAR %in% 2000:2006 ~ "2000-2006",
-#                             YEAR %in% 2007:2010 ~ "2007-2010",
-#                             YEAR > 2010 ~ as.character(YEAR)))
+data_hist <- data %>%
+  filter(YEAR < 2000) %>%
+  # slicing to original checklist-level
+  group_by(GROUP.ID) %>%
+  slice(1) %>%
+  mutate(PERIOD1 = "pre-2000",
+         PERIOD2 = case_when(YEAR %in% 1990:1999 ~ "1990-1999",
+                             YEAR < 1990 ~ "pre-1990"))
+
+data_cur <- data %>%
+  filter(YEAR == 2021) %>%
+  # slicing to original checklist-level
+  group_by(GROUP.ID) %>%
+  slice(1) %>%
+  mutate(PERIOD1 = "2021",
+         PERIOD2 = "2021")
+
+# for line graph
+timeline <- data %>%
+  # slicing to original checklist-level
+  group_by(GROUP.ID) %>%
+  slice(1) %>%
+  mutate(PERIOD = case_when(YEAR < 1990 ~ "pre-1990",
+                            YEAR %in% 1990:1999 ~ "1990-1999",
+                            YEAR %in% 2000:2006 ~ "2000-2006",
+                            YEAR %in% 2007:2010 ~ "2007-2010",
+                            YEAR > 2010 ~ as.character(YEAR)))
+
+# 24x24 raster info to get cell ID (from https://github.com/rikudoukarthik/covid-ebirding)
+load(here("explor/rast_SoIB.RData"))
+
+# Ashwin's maps data (https://github.com/ashwinv2005/state-of-indias-birds)
+load(here("explor/maps.RData"))
+
+# cropping grid to india boundary
+temp1 <- as(indiamap, "sf") %>% sf::st_buffer(dist = 0)
+# to calculate total number of grids of each size
+indiagrid <- sf::st_intersection(as(gridmapg1,"sf"), temp1)
+
+
+save(data_hist, data_cur, indiagrid, timeline, file = "explor/hist_spread.RData")
+rm(data)
+
+
+### if .RData already created (else, comment below and run above lines)
 
 # 24x24 raster info to get cell ID (from rikudoukarthik/covid-ebirding)
 load(here("explor/rast_SoIB.RData"))
@@ -70,16 +80,9 @@ load(here("explor/rast_SoIB.RData"))
 # Ashwin's maps data
 load(here("explor/maps.RData"))
 
-# # cropping grid to india boundary
-# temp1 <- as(indiamap, "sf") %>% sf::st_buffer(dist = 0)
-# # to calculate total number of grids of each size
-# indiagrid <- sf::st_intersection(as(gridmapg1,"sf"), temp1)
-# 
-# 
-# save(data_hist, data_cur, indiagrid, timeline, file = "explor/hist_spread.RData")
-# rm(data)
-
 load(here("explor/hist_spread.RData"))
+
+
 
 # region data (from ashwinv2005/state-of-indias-birds)
 regions <- read_csv(here("explor/districtlist.csv")) %>% 
@@ -87,9 +90,7 @@ regions <- read_csv(here("explor/districtlist.csv")) %>%
          STATE = ST_NM,
          COUNTY = DISTRICT)
 
-```
-
-```{r data2, cache=TRUE}
+### Preparing data for analyses ####
 
 temp <- data_hist %>% 
   bind_rows(data_cur) %>% 
@@ -181,28 +182,9 @@ data3 <- timeline %>%
   mutate(PERIOD = factor(PERIOD, 
                          levels = c("pre-1990", "1990-1999", "2000-2006", "2007-2010",
                                     as.character(2011:2021))))
+### 1. Maps of spatial spread ####
 
-```
-
-
-Quick analysis to determine whether or not historical eBird data in the country is spatially biased, at two levels: 
-
-  - pre-2000 
-  - pre-1990 & 1990-2000
-  
-*All these analyses are using the base dataset, without any of the SoIB filters, but with removal of duplicate lists.*
-
-<br>
-
-\tableofcontents
-
-\newpage
-
-# Maps of spatial spread
-
-Firstly, are there any immediate biases that pop up when historical lists are plotted on a map of the country? How does the spread of the data look when the historical period is split into two, compared to without the split? (Link to high-res.)
-
-```{r out.width="1000px", fig.asp=1}
+### Number
 
 ggplot(data = data0, aes(CELL.LONG, CELL.LAT)) +
   facet_wrap(~ PERIOD, ncol = 2) +
@@ -218,13 +200,7 @@ ggplot(data = data0, aes(CELL.LONG, CELL.LAT)) +
         axis.ticks = element_blank(),
         legend.position = "bottom")
 
-```
-
-While sheer numbers of lists naturally differ considerably, there doesn't seem to be much of a spatial bias in pre-2000 birding, i.e., concentrations of birding effort across the country before 2000 were not very different from the current scenario, except for central India and West Bengal which lose a large spread of data.
-
-Since sheer numbers are meaningless here, we calculate the proportion of birding in each cell and standardise it to the most active cell (cell with highest number of lists). This standardised proportion allows meaningful comparison of *concentrations* of birding across *both time periods*: here the actual values are not so important, but comparing the locations of light-coloured cells will tell us if spatial concentrations changed. (Link to high-res.)
-
-```{r out.width="1000px", fig.asp=1}
+### Standardised proportion
 
 ggplot(data = data0, aes(CELL.LONG, CELL.LAT)) +
   facet_wrap(~ PERIOD, ncol = 2) +
@@ -267,15 +243,9 @@ ggplot(data = data0, aes(CELL.LONG, CELL.LAT)) +
 #         axis.ticks = element_blank(),
 #         legend.position = "bottom")
 
-```
+### 2. Histograms ####
 
-After splitting, some of the data spread remains consistent, especially in Western India. However, a majority of the data in Central India and southern Western Ghats (Kerala, Karnataka) are restricted to 1990-99, while Jammu Kashmir data is pre-1990.
-
-# Histograms
-
-How do the histograms of birding intensity look across the two time periods? 
-
-```{r fig.height=8}
+### 
 
 ggplot(data = data0) +
   facet_wrap(~ PERIOD, ncol = 1) +
@@ -288,12 +258,7 @@ ggplot(data = data0) +
   labs(title = "Distribution of birding intensities",
        x = "log(no. of lists per grid cell)")
 
-
-```
-
-Bar heights are obviously different, but overall shapes are largely similar, except for a minor discrepancy (highlighted in red).
-
-```{r fig.height=8}
+### 
 
 ggplot(data = data0) +
   facet_wrap(~ PERIOD, ncol = 1) +
@@ -306,13 +271,7 @@ ggplot(data = data0) +
   labs(title = "Distribution of spatial spread",
        x = "Cell ID")
 
-```
-
-Once again, there is a slight discrepancy, but there are 5 distinct humps in all periods. 
-
-# Data across geographical regions
-
-```{r fig.height=8}
+### 3. Data across geographical regions ####
 
 ggplot(data2, 
        aes(reorder(REGION, -PROP.LISTS), PROP.LISTS)) +
@@ -321,41 +280,27 @@ ggplot(data2,
   labs(title = "Distribution of birding across geographical regions",
        x = "Region", y = "Proportion of lists")
 
-```
-
-Due to updated districts, our region information is not complete: there are several districts that do not map to any region. But ignoring the NAs, concentrations of birding across the various regions do not seem notably different. A slight difference is that the concentration in WG and coastal regions was lower in pre-2000s, with more focus instead in desert, Himalayan, island and northeast regions.
-
-# Progression of data with time periods
-
-```{r fig.height=6}
+### 4. Data progression with time periods ####
 
 (ggplot(data3, 
         aes(x = MEDIAN.YEAR, y = NO.CELLS)) +
-  geom_point(size = 2) +
-  geom_line(size = 1) +
-  geom_hline(yintercept = 1000, linetype = "dotted") +
-  scale_x_continuous(breaks = unique(data3$MEDIAN.YEAR),
-                     labels = unique(data3$PERIOD)) +
-  scale_y_continuous() +
-  labs(x = "", y = "Number of grid cells with lists") +
-(ggplot(data3, 
-        aes(x = MEDIAN.YEAR, y = NO.LISTS/1000))) +
-  geom_point(size = 2) +
-  geom_line(size = 1) +
-  geom_hline(yintercept = 2, linetype = "dotted") +
-  scale_x_continuous(breaks = unique(data3$MEDIAN.YEAR),
-                     labels = unique(data3$PERIOD)) +
-  scale_y_continuous(labels = function(x) paste(x, "K"), 
-                     n.breaks = 4, breaks = waiver()) +
-  labs(x = "Time period", y = "Number of lists (in thousands)")) &
-theme(axis.text.x = element_text(size = 6, angle = 45, vjust = 0.5)) &
-plot_layout(ncol = 1) &
-plot_annotation(title = "How much data in each time period?")
-
-```
-
-All time periods have more than the minimum (2000, the dotted line) number of lists, but since this is before all the filters, it is likely not a good idea to split historical lists. Similarly, 2011-2013 should also be kept unsplit. It is a similar story with spatial spread: pre-1990 does not even have 1000 cells (dotted line) with data, before filtering. 
-
-# Conclusion
-
-It seems that we are currently **not** at the point where we can split historical data (pre-2000) into finer time intervals, due to insufficient data. However, **keeping all pre-2000 observations together**, there seems to be **no major bias** in spatial spread of the data. 
+   geom_point(size = 2) +
+   geom_line(size = 1) +
+   geom_hline(yintercept = 1000, linetype = "dotted") +
+   scale_x_continuous(breaks = unique(data3$MEDIAN.YEAR),
+                      labels = unique(data3$PERIOD)) +
+   scale_y_continuous() +
+   labs(x = "", y = "Number of grid cells with lists") +
+   (ggplot(data3, 
+           aes(x = MEDIAN.YEAR, y = NO.LISTS/1000))) +
+   geom_point(size = 2) +
+   geom_line(size = 1) +
+   geom_hline(yintercept = 2, linetype = "dotted") +
+   scale_x_continuous(breaks = unique(data3$MEDIAN.YEAR),
+                      labels = unique(data3$PERIOD)) +
+   scale_y_continuous(labels = function(x) paste(x, "K"), 
+                      n.breaks = 4, breaks = waiver()) +
+   labs(x = "Time period", y = "Number of lists (in thousands)")) &
+  theme(axis.text.x = element_text(size = 6, angle = 45, vjust = 0.5)) &
+  plot_layout(ncol = 1) &
+  plot_annotation(title = "How much data in each time period?")
