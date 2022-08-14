@@ -1,4 +1,4 @@
-####################################################################################
+### readcleanrawdata ########################################
 
 ## read and clean raw data and add important columns like group id, seaonality variables
 ## place raw txt file (India download) in working directory 
@@ -218,7 +218,7 @@ readcleanrawdata = function(rawpath = "ebd_IN_relJun-2022.txt",
   rm(data, pos = ".GlobalEnv")
 }
 
-##########################################################################################
+### createmaps ########################################
 
 
 ## requires shapefiles and several packages - path1 = India; path2 = India States; 
@@ -364,7 +364,7 @@ createmaps = function(g1=25,g2=50,g3=100,g4=200,path1="India",name1="India_2011"
 }
 
 
-######################################################################################
+### addmapvars ########################################
 
 
 ## prepare data for analyses, add map variables, grids
@@ -373,73 +373,85 @@ createmaps = function(g1=25,g2=50,g3=100,g4=200,path1="India",name1="India_2011"
 addmapvars = function(datapath = "rawdata.RData", mappath = "maps.RData")
 {
   require(tidyverse)
-  require(data.table)
+  # require(data.table)
   require(sp)
   require(rgeos)
   
   load(datapath)
   
-  ## add map details to eBird data
-  
+  # map details to add to eBird data
   load(mappath)
   
-  # add columns with DISTRICT and ST_NM to main data 
+  # single object at group ID level (same group ID, same grid/district/state)
+  temp0 = data %>% group_by(group.id) %>% slice(1) 
   
-  temp = data %>% group_by(group.id) %>% slice(1) # same group ID, same grid/district/state 
+  
+  ### add columns with DISTRICT and ST_NM to main data 
+  
+  temp = temp0 # separate object to prevent repeated slicing (intensive step)
   
   rownames(temp) = temp$group.id # only to setup adding the group.id column for the future left_join
-  coordinates(temp) = ~LONGITUDE + LATITUDE # convert to SPDF?
+  coordinates(temp) = ~LONGITUDE + LATITUDE # convert to SPDF
   proj4string(temp) = "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
-  temp = over(temp,districtmap) # returns only ATTRIBUTES of districtmap (DISTRICT and ST_NM)
-  temp = data.frame(temp) # convert into data frame for left_join
-  temp = temp[,1:2]
-  temp$group.id = rownames(temp) # add column to join with the main data
-  names(temp)[1:2] = c("DISTRICT","ST_NM")
-  data = left_join(temp,data)
   
-  # add columns with GRID ATTRIBUTES to main data
+  temp = sp::over(temp, districtmap) %>% # returns only ATTRIBUTES of districtmap (DISTRICT and ST_NM)
+    dplyr::select(DISTRICT, ST_NM) %>% 
+    rownames_to_column("group.id") 
   
-  temp = data %>% group_by(group.id) %>% slice(1)
+  data = left_join(temp, data)
   
-  rownames(temp) = temp$group.id
-  coordinates(temp) = ~LONGITUDE + LATITUDE
-  temp = over(temp,gridmapg1)
-  temp = data.frame(temp)
-  temp$group.id = rownames(temp)
-  data = left_join(temp,data)
-  names(data)[1] = "gridg1"
-
-  temp = data %>% group_by(group.id) %>% slice(1)
+  
+  ### add columns with GRID ATTRIBUTES to main data
+  
+  temp = temp0
   
   rownames(temp) = temp$group.id
   coordinates(temp) = ~LONGITUDE + LATITUDE
-  temp = over(temp,gridmapg2)
-  temp = data.frame(temp)
-  temp$group.id = rownames(temp)
-  data = left_join(temp,data)
-  names(data)[1] = "gridg2"
-
-  temp = data %>% group_by(group.id) %>% slice(1)
+  
+  temp = sp::over(temp, gridmapg1) %>% 
+    rownames_to_column("group.id") %>% 
+    rename(gridg1 = id)
+  
+  data = left_join(temp, data)
+  
+  
+  temp = temp0
   
   rownames(temp) = temp$group.id
   coordinates(temp) = ~LONGITUDE + LATITUDE
-  temp = over(temp,gridmapg3)
-  temp = data.frame(temp)
-  temp$group.id = rownames(temp)
-  data = left_join(temp,data)
-  names(data)[1] = "gridg3"
-
-  temp = data %>% group_by(group.id) %>% slice(1)
+  
+  temp = sp::over(temp, gridmapg2) %>% 
+    rownames_to_column("group.id") %>% 
+    rename(gridg2 = id)
+  
+  data = left_join(temp, data)
+  
+  
+  temp = temp0
   
   rownames(temp) = temp$group.id
   coordinates(temp) = ~LONGITUDE + LATITUDE
-  temp = over(temp,gridmapg4)
-  temp = data.frame(temp)
-  temp$group.id = rownames(temp)
-  data = left_join(temp,data)
-  names(data)[1] = "gridg4"
-
-  ## 
+  
+  temp = sp::over(temp, gridmapg3) %>% 
+    rownames_to_column("group.id") %>% 
+    rename(gridg3 = id)
+  
+  data = left_join(temp, data)
+  
+  
+  temp = temp0
+  
+  rownames(temp) = temp$group.id
+  coordinates(temp) = ~LONGITUDE + LATITUDE
+  
+  temp = sp::over(temp, gridmapg4) %>% 
+    rownames_to_column("group.id") %>% 
+    rename(gridg4 = id)
+  
+  data = left_join(temp, data)
+  
+  
+  ### 
   
   assign("area",area,.GlobalEnv)
   assign("areag1",areag1,.GlobalEnv)
@@ -457,7 +469,7 @@ addmapvars = function(datapath = "rawdata.RData", mappath = "maps.RData")
 }
 
 
-########################################################################################
+### completelistcheck ########################################
 
 ## remove all probable errors
 ## type can be "trends" or "range"
@@ -512,7 +524,7 @@ completelistcheck = function(data)
     select(-speed,-sut,-hr,-min,-end)
 }
 
-################################################
+### removevagrants ########################################
 
 ## remove vagrants
 ## to use in dataspeciesfilter()
@@ -546,7 +558,7 @@ removevagrants = function(data)
 
 
 
-#################################################################
+### dataspeciesfilter ########################################
 
 ## select species for State of India's Birds, and species for historical and recent trends
 ## includes all diurnal endemics (endemicity) and essential species (SelectSpecies)
@@ -848,8 +860,7 @@ dataspeciesfilter = function(datapath = "data.RData",
 }
 
 
-######################################################################################
-################################################################
+### expandbyspecies ########################################
 
 
 ## ensure that the working directory has list of India's birds with scientific names 
@@ -911,7 +922,7 @@ expandbyspecies = function(data, species)
 
 
 
-#######################################################################################
+### freqtrends ########################################
 
 freqtrends = function(data,species,specieslist,
                        databins=c(1993,2004,2009,2012,2013,2014,2015,2016,2017,2018,
@@ -1105,7 +1116,7 @@ freqtrends = function(data,species,specieslist,
 
 
 
-###########################################################
+### error operations ########################################
 
 errordiv = function(x1,x2,se1,se2)
 {
@@ -1127,7 +1138,7 @@ erroradd = function(vec)
 
 
 
-#################################################################################
+### stdtrends ########################################
 
 ## standardize trends
 
@@ -1158,7 +1169,7 @@ stdtrends = function(trends)
   return(recenttrends)
 }
 
-###################################################################################
+### composite ########################################
 
 ## calculate geometric means for composite trends
 
@@ -1191,16 +1202,13 @@ composite = function(trends, name = "unnamed group")
 
 
 
-########################################################################################
+### plottrends (to plot either a comparison of species trends or methods) ########################################
 
-################## to plot either a comparison of species trends or methods #############
 ## trends can be recent or historical
 ## input a list of species or a single species
 ## input a method
 ## returns a ggplot object
 ## MAXIMUM of 8 species
-
-
 
 plottrends = function(trends,selectspecies,leg = T,rem = F,al = 0.3,deft = T)
 {
@@ -1485,9 +1493,7 @@ plottrends = function(trends,selectspecies,leg = T,rem = F,al = 0.3,deft = T)
   }
 }
 
-
-
-#####################################################
+### plotcompositetrends ########################################
 
 
 # plot composite trends
@@ -1754,9 +1760,9 @@ plotcompositetrends = function(trends,specieslist,name="composite",g1=NA,g2=NA,g
   
 }
 
+### calculatetrendslope ########################################
 
-## funtion to calculate slope from trends
-
+## function to calculate slope from trends
 
 calculatetrendslope = function(trends, species, specieslist, composite = F)
 {
@@ -1822,7 +1828,7 @@ calculatetrendslope = function(trends, species, specieslist, composite = F)
 }
 
 
-############################################################
+### occupancy ########################################
 
 ## occupancy analyses for bird abundance/range, reports area in units of 10000 sq. km.
 ## Requires tidyverse, reshape2, data.table and unmarked
@@ -2189,7 +2195,7 @@ SoIBoccupancy = function(data,species,areag)
   return(a)
 }
 
-#####################################
+### freqtrendsr ########################################
 
 ## including regions
 
@@ -2407,7 +2413,7 @@ freqtrendsr = function(data,species,specieslist,
 }
 
 
-#######################################################################################
+### freqtrendsrestricted ########################################
 
 freqtrendsrestricted = function(data,species,specieslist,
                       databins=c(1993,2004,2009,2012,2013,2014,2015,2016,2017,2018),nsim=1000)
@@ -2591,10 +2597,7 @@ freqtrendsrestricted = function(data,species,specieslist,
 }
 
 
-
-
-
-#######################################################################################
+### freqtrendssparrow ########################################
 
 freqtrendssparrow = function(data,species,specieslist,
                       databins=c(1999,2012,2017),
