@@ -116,6 +116,15 @@ regions <- read_csv("hist_spread/districtlist.csv") %>%
 # comparisons for SoIB
 soib_levels <- c("2021", "pre-2000", "1990-1999", "pre-1990")
 
+# tidy version of 25*25 grid to which values of interest can be joined
+gridmapg1_tidy <- gridmapg1 %>% 
+  broom::tidy() %>% 
+  # removing the "g" in order to later join by GRIDG1 column
+  mutate(id2 = as.character(str_remove(id, "g")))
+
+gridmapg1_tidy <- gridmapg1_tidy %>% 
+  mutate(id2 = as.numeric(id2))
+
 ##### grid-level ####
 
 temp1 <- data_hist %>% 
@@ -186,6 +195,15 @@ data0 <- temp1 %>%
            fill = list(NO.LISTS = 0, TOT.LISTS = 0, STAN.LISTS = 0, CS.LISTS = 0, PROP.LISTS = 0)) %>% 
   left_join(grid_cov) %>% 
   ungroup() 
+
+data0grid <- gridmapg1_tidy %>% 
+  left_join(data0, by = c("id2" = "GRIDG1")) %>% 
+  # removing NA PERIOD formed from join
+  filter(!is.na(PERIOD)) %>% 
+  # converting metrics to NA when number of lists = 0
+  mutate(across(c(STAN.LISTS, CS.LISTS, PROP.LISTS),
+         ~ if_else(NO.LISTS == 0, as.numeric(NA_integer_), .x))) %>% 
+  dplyr::select(-c(TOT.LISTS, CELLS.1, CELLS.10, CELLS.20, CELLS.50))
 
 data0_change_no <- data0 %>%
   pivot_wider(names_from = PERIOD, values_from = NO.LISTS) %>%
@@ -277,13 +295,16 @@ data_reg <- temp1 %>%
 
 ### Number
 
-ggplot(data = data0, aes(CELL.LONG, CELL.LAT)) +
+map1_nolists <- ggplot(data = data0, aes(LONGITUDE, LATITUDE)) +
   facet_wrap(~ PERIOD, ncol = 2) +
-  geom_polygon(data = indiamap, aes(long, lat, group = group), 
-               fill = "#F0F0F0", colour = "black", size = 0.2) +
-  geom_tile(aes(fill = log(NO.LISTS))) +
-  scale_fill_viridis_c() +
-  labs(title = "Birding intensity across grid cells",
+  geom_polygon(data = indiamap,
+               aes(long, lat, group = group),
+               colour = "black", fill = NA, size = 0.2) +
+  geom_polygon(data = data0grid, 
+               aes(long, lat, group = group, fill = log(NO.LISTS))) +
+  scale_fill_viridis_c(na.value = "#CCCCCC") +
+  labs(title = "Birding intensity in grid cells across the country",
+       subtitle = "Fill: log-transformed no. of lists per grid cell per time period (grey: zero lists).",
        fill = "log(no. of lists)") +
   theme(axis.line = element_blank(), 
         axis.title = element_blank(), 
@@ -291,52 +312,55 @@ ggplot(data = data0, aes(CELL.LONG, CELL.LAT)) +
         axis.ticks = element_blank(),
         legend.position = "bottom")
 
-### Standardised proportion
+ggsave("hist_spread/figs/map1_nolists.png", map1_nolists,
+       width = 10, height = 10, units = "in", dpi = 300)
 
-ggplot(data = data0, aes(CELL.LONG, CELL.LAT)) +
+### Total proportion
+
+map2_proplists <- ggplot(data = data0, aes(LONGITUDE, LATITUDE)) +
   facet_wrap(~ PERIOD, ncol = 2) +
-  geom_polygon(data = indiamap, aes(long, lat, group = group), 
-               fill = "#F0F0F0", colour = "black", size = 0.2) +
-  geom_tile(aes(fill = STAN.LISTS)) +
-  scale_fill_viridis_c() + 
+  geom_polygon(data = indiamap,
+               aes(long, lat, group = group),
+               colour = "black", fill = NA, size = 0.2) +
+  geom_polygon(data = data0grid, 
+               aes(long, lat, group = group, fill = PROP.LISTS*100)) +
+  scale_fill_viridis_c(na.value = "#CCCCCC") +
   labs(title = "How was birding spatially concentrated in different periods?",
-       fill = "Stand. prop. of lists") +
+       subtitle = "Fill: proportion of total nationwide lists from each grid cell (grey: zero lists).",
+       fill = "Prop. of lists (%)") +
   theme(axis.line = element_blank(), 
         axis.title = element_blank(), 
         axis.text = element_blank(),
         axis.ticks = element_blank(),
         legend.position = "bottom")
 
-# x <- data0 %>% 
-#   ungroup() %>% 
-#   dplyr::select(CS.LISTS) %>% 
-#   arrange(CS.LISTS) %>% 
-#   rownames_to_column("INDEX")
-# 
-# legend <- c(seq(min(data0$CS.LISTS), median(data0$CS.LISTS), 
-#                 length.out = (max(data0$CS.LISTS) - min(data0$CS.LISTS))/2),
-#             seq(median(data0$CS.LISTS), quantile(data0$CS.LISTS, 0.75), 
-#                 length.out = (max(data0$CS.LISTS) - min(data0$CS.LISTS))/4),
-#             seq(quantile(data0$CS.LISTS, 0.75), max(data0$CS.LISTS),
-#                 length.out = (max(data0$CS.LISTS) - min(data0$CS.LISTS))/4))
-#   
-# ggplot(data = data0, aes(CELL.LONG, CELL.LAT)) +
-#   facet_wrap(~ PERIOD, ncol = 2) +
-#   geom_polygon(data = indiamap, aes(long, lat, group = group), 
-#                fill = "#F0F0F0", colour = "black", size = 0.2) +
-#   geom_tile(aes(fill = CS.LISTS)) +
-#   scale_fill_viridis_c(values = summary(legend)) +
-#   scale_y_continuous(name = "Cent.+stand. number of lists)") +
-#   labs(title = "Where was birding concentrated in different time periods?") +
-#   theme(axis.line = element_blank(), 
-#         axis.title = element_blank(), 
-#         axis.text = element_blank(),
-#         axis.ticks = element_blank(),
-#         legend.position = "bottom")
+ggsave("hist_spread/figs/map2_proplists.png", map2_proplists,
+       width = 10, height = 10, units = "in", dpi = 300)
+
+### Standardised proportion
+
+map3_stanlists <- ggplot(data = data0, aes(LONGITUDE, LATITUDE)) +
+  facet_wrap(~ PERIOD, ncol = 2) +
+  geom_polygon(data = indiamap,
+               aes(long, lat, group = group),
+               colour = "black", fill = NA, size = 0.2) +
+  geom_polygon(data = data0grid, 
+               aes(long, lat, group = group, fill = STAN.LISTS*100)) +
+  scale_fill_viridis_c(na.value = "#CCCCCC") +
+  labs(title = "How was birding spatially concentrated in different periods?",
+       subtitle = "Fill: no. of lists in proportion to highest lists/cell value (grey: zero lists).",
+       fill = "Standardised prop. of lists (%)") +
+  theme(axis.line = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        legend.position = "bottom")
+
+ggsave("hist_spread/figs/map3_stanlists.png", map3_stanlists,
+       width = 10, height = 10, units = "in", dpi = 300)
+
 
 ### 2. Histograms ####
-
-### 
 
 ggplot(data = data0) +
   facet_wrap(~ PERIOD, ncol = 1) +
