@@ -2,16 +2,18 @@
 # spatially biased, at two levels: 
 # - pre-2000 
 # - pre-1990 & 1990-2000
-# 
+
 # All these analyses are using the base dataset, without any of the SoIB filters, 
 # but with removal of duplicate lists.
+
+### Dependencies in the sections "Setup" and "Data:" ###
+
 
 ### Setup ####
 
 library(tidyverse)
 library(raster)
 library(sf)
-library(here) # helpful to make relative paths consistent between .R run and .Rmd knit
 library(patchwork)
 
 # ggplot theme
@@ -21,178 +23,285 @@ theme_set(theme_classic() +
                   plot.title = element_text(size = 16, face = "bold"),
                   panel.border = element_blank()))
 
-### Data ####
+# functions for historical spread analyses
+source("hist_spread/hist_spread_functions.R")
 
-### uncomment below if first time setting up. else, just load .RData (lines below commented)
+### Data: initial setup (SKIP if latest hist_spread.RData exists) ####
 
-# filtering data for this analysis
-load("ebd_IN_relJun-2022.RData")
+### uncomment below if first time setting up. else, just load .RData (comment/skip lines below)
 
-data_hist <- data %>%
-  filter(YEAR < 2000) %>%
-  # slicing to original checklist-level
-  group_by(GROUP.ID) %>%
-  slice(1) %>%
-  mutate(PERIOD1 = "pre-2000",
-         PERIOD2 = case_when(YEAR %in% 1990:1999 ~ "1990-1999",
-                             YEAR < 1990 ~ "pre-1990"))
+# # filtering data for this analysis
+# load("ebd_IN_relJun-2022.RData")
+# 
+# tictoc::tic("distinct() over slice()") # total 64 secs
+# timeline <- data %>%
+#   # filtering for complete lists
+#   filter(ALL.SPECIES.REPORTED == 1 & PROTOCOL.TYPE != "Incidental") %>%
+#   # slicing to original checklist-level (GROUP.ID)
+#   distinct(GROUP.ID,
+#            LOCALITY.ID, LOCALITY, LOCALITY.TYPE, STATE, COUNTY, LATITUDE, LONGITUDE, # space
+#            OBSERVATION.DATE, YEAR, MONTH, DAY.M, TIME.OBSERVATIONS.STARTED, # time
+#            PROTOCOL.TYPE, DURATION.MINUTES, EFFORT.DISTANCE.KM, NUMBER.OBSERVERS, # effort
+#            TRIP.COMMENTS) %>%  # done in 41 seconds on server (faster than slice)
+#   # have to group-slice again as space, time, effort can vary btwn observers in each GROUP.ID
+#   group_by(GROUP.ID) %>%
+#   slice(1) %>%
+#   ungroup() %>%
+#   mutate(TIME.SOIB1 = case_when(YEAR < 1990 ~ "pre-1990",
+#                                 YEAR %in% 1990:1999 ~ "1990-1999",
+#                                 YEAR %in% 2000:2006 ~ "2000-2006",
+#                                 YEAR %in% 2007:2010 ~ "2007-2010",
+#                                 YEAR > 2010 ~ as.character(YEAR)),
+#          # coarser periods: without splitting historical and 2011-13
+#          TIME.SOIB2 = case_when(YEAR < 2000 ~ "pre-2000",
+#                                 YEAR %in% 2000:2006 ~ "2000-2006",
+#                                 YEAR %in% 2007:2010 ~ "2007-2010",
+#                                 YEAR %in% 2011:2013 ~ "2011-2013",
+#                                 YEAR > 2013 ~ as.character(YEAR)),
+#          # for main paper looking at past, middle and present broadly
+#          TIME.BROAD = case_when(YEAR < 2000 ~ "pre-2000",
+#                                 YEAR %in% 2000:2015 ~ "2000-2015",
+#                                 YEAR > 2015 ~ "2016-present")) %>%
+#   mutate(TIME.SOIB1 = factor(TIME.SOIB1,
+#                              levels = c("pre-1990", "1990-1999", "2000-2006", "2007-2010",
+#                                         as.character(2011:2021))),
+#          TIME.SOIB2 = factor(TIME.SOIB2,
+#                              levels = c("pre-2000", "2000-2006", "2007-2010", "2011-2013",
+#                                         as.character(2014:2021))),
+#          TIME.BROAD = factor(TIME.BROAD,
+#                              levels = c("pre-2000", "2000-2015",
+#                                         as.character(2016:2021))))
+# tictoc::toc()
+# 
+# 
+# # adding map variables to main data
+# load("maps.RData") # Ashwin's maps data 
+# timeline <- joinmapvars(timeline)
+# 
+# 
+# data_hist <- timeline %>% filter(YEAR < 2000)
+# data_cur <- timeline %>% filter(YEAR == 2021)
+# 
+# 
+# save(data_hist, data_cur, timeline, file = "hist_spread/hist_spread.RData")
+# rm(data)
+# 
+# 
+# # region data (from ashwinv2005/state-of-indias-birds)
+# regions <- read_csv("hist_spread/districtlist.csv") %>%
+#   rename(REGION = region,
+#          STATE = ST_NM,
+#          COUNTY = DISTRICT)
 
-data_cur <- data %>%
-  filter(YEAR == 2021) %>%
-  # slicing to original checklist-level
-  group_by(GROUP.ID) %>%
-  slice(1) %>%
-  mutate(PERIOD1 = "2021",
-         PERIOD2 = "2021")
 
-# for line graph
-timeline <- data %>%
-  # slicing to original checklist-level
-  group_by(GROUP.ID) %>%
-  slice(1) %>%
-  mutate(PERIOD = case_when(YEAR < 1990 ~ "pre-1990",
-                            YEAR %in% 1990:1999 ~ "1990-1999",
-                            YEAR %in% 2000:2006 ~ "2000-2006",
-                            YEAR %in% 2007:2010 ~ "2007-2010",
-                            YEAR > 2010 ~ as.character(YEAR)))
+### Data: load .RData files (SKIP if above section run) ####
 
-# 24x24 raster info to get cell ID (from https://github.com/rikudoukarthik/covid-ebirding)
-load(here("explor/rast_SoIB.RData"))
-
-# Ashwin's maps data (https://github.com/ashwinv2005/state-of-indias-birds)
-load(here("explor/maps.RData"))
-
-# cropping grid to india boundary
-temp1 <- as(indiamap, "sf") %>% sf::st_buffer(dist = 0)
-# to calculate total number of grids of each size
-indiagrid <- sf::st_intersection(as(gridmapg1,"sf"), temp1)
-
-
-save(data_hist, data_cur, indiagrid, timeline, file = "explor/hist_spread.RData")
-rm(data)
-
-
-### if .RData already created (else, comment below and run above lines)
-
-# 24x24 raster info to get cell ID (from rikudoukarthik/covid-ebirding)
-load(here("explor/rast_SoIB.RData"))
+### if latest hist_spread.RData does not exist, comment below and run above section
 
 # Ashwin's maps data
-load(here("explor/maps.RData"))
+load("maps.RData")
 
-load(here("explor/hist_spread.RData"))
-
-
+# latest .RData with required objects (created in previous section)
+load("hist_spread/hist_spread.RData")
 
 # region data (from ashwinv2005/state-of-indias-birds)
-regions <- read_csv(here("explor/districtlist.csv")) %>% 
+regions <- read_csv("hist_spread/districtlist.csv") %>% 
   rename(REGION = region,
          STATE = ST_NM,
          COUNTY = DISTRICT)
 
+
 ### Preparing data for analyses ####
 
-temp <- data_hist %>% 
-  bind_rows(data_cur) %>% 
-  mutate(CELL.ID = raster::cellFromXY(rast_SoIB, cbind(LONGITUDE, LATITUDE)),
-         CELL.LONG = raster::xyFromCell(rast_SoIB, CELL.ID)[,"x"],
-         CELL.LAT = raster::xyFromCell(rast_SoIB, CELL.ID)[,"y"]) %>%
-  group_by(PERIOD1, CELL.ID, CELL.LONG, CELL.LAT) %>% 
-  summarise(NO.LISTS = n_distinct(GROUP.ID)) %>% 
-  group_by(PERIOD1) %>% 
-  mutate(MAX.LISTS = max(NO.LISTS),
-         MED.LISTS = median(NO.LISTS)) %>% 
-  group_by(PERIOD1, CELL.ID, CELL.LONG, CELL.LAT) %>% 
-  # standardising listspercell by value in cell with highest lists
-  summarise(NO.LISTS = NO.LISTS,
-            STAN.LISTS = NO.LISTS/MAX.LISTS,
-            CS.LISTS = (NO.LISTS - MED.LISTS)/MED.LISTS)
+# comparisons for SoIB
+soib_levels <- c("2021", "pre-2000", "1990-1999", "pre-1990")
 
-data0 <- data_hist %>% 
-  mutate(CELL.ID = raster::cellFromXY(rast_SoIB, cbind(LONGITUDE, LATITUDE)),
-         CELL.LONG = raster::xyFromCell(rast_SoIB, CELL.ID)[,"x"],
-         CELL.LAT = raster::xyFromCell(rast_SoIB, CELL.ID)[,"y"]) %>%
-  group_by(PERIOD2, CELL.ID, CELL.LONG, CELL.LAT) %>% 
+# tidy version of 25*25 grid to which values of interest can be joined
+gridmapg1_tidy <- gridmapg1 %>% 
+  broom::tidy() %>% 
+  # removing the "g" in order to later join by GRIDG1 column
+  mutate(id2 = as.numeric(str_remove(id, "g")))
+
+##### grid-level ####
+
+temp1 <- data_hist %>% 
+  bind_rows(data_cur) %>% 
+  group_by(TIME.SOIB1) %>% 
+  mutate(TOT.LISTS = n_distinct(GROUP.ID)) %>% 
+  group_by(TIME.SOIB1, TOT.LISTS, GRIDG1) %>% 
   summarise(NO.LISTS = n_distinct(GROUP.ID)) %>% 
-  group_by(PERIOD2) %>% 
+  group_by(TIME.SOIB1) %>% 
   mutate(MAX.LISTS = max(NO.LISTS),
          MED.LISTS = median(NO.LISTS)) %>% 
-  group_by(PERIOD2, CELL.ID, CELL.LONG, CELL.LAT) %>% 
-  # standardising listspercell by value in cell with highest lists
+  group_by(TIME.SOIB1, TOT.LISTS, GRIDG1) %>% 
   summarise(NO.LISTS = NO.LISTS,
-            STAN.LISTS = NO.LISTS/MAX.LISTS,
-            CS.LISTS = (NO.LISTS - MED.LISTS)/MED.LISTS) %>% 
+            STAN.LISTS = NO.LISTS/MAX.LISTS, # standardise by max lists/cell (cell with highest activity)
+            CS.LISTS = (NO.LISTS - MED.LISTS)/MED.LISTS, # centre&standardise to median lists/cell
+            PROP.LISTS = NO.LISTS/TOT.LISTS) %>%  # prop. of total Indian birding happening in this cell
   ungroup() %>% 
-  rename(PERIOD = PERIOD2) %>% 
-  bind_rows(temp %>% rename(PERIOD = PERIOD1)) %>% 
-  mutate(PERIOD = factor(PERIOD, levels = c("2021", "pre-2000", "1990-1999", "pre-1990")))
+  rename(PERIOD = TIME.SOIB1)
 
-# data1 <- data0 %>%
-#   group_by(PERIOD) %>%
-#   tidyr::complete(CELL.ID = 1:raster::ncell(rast_SoIB),
-#                   fill = list(NO.LISTS = 0, STAN.LISTS = 0)) %>%
-#   mutate(CELL.LONG = raster::xyFromCell(rast_SoIB, CELL.ID)[,"x"],
-#          CELL.LAT = raster::xyFromCell(rast_SoIB, CELL.ID)[,"y"]) %>%
-#   ungroup() %>%
-#   pivot_wider(names_from = PERIOD1, values_from = STAN.LISTS) %>%
-#   group_by(CELL.ID, CELL.LONG, CELL.LAT) %>%
-#   summarise(CHANGE = `pre-2000` - `2021`)
+temp2 <- data_hist %>% 
+  group_by(TIME.SOIB2) %>% 
+  mutate(TOT.LISTS = n_distinct(GROUP.ID)) %>% 
+  group_by(TIME.SOIB2, TOT.LISTS, GRIDG1) %>% 
+  summarise(NO.LISTS = n_distinct(GROUP.ID)) %>% 
+  group_by(TIME.SOIB2) %>% 
+  mutate(MAX.LISTS = max(NO.LISTS),
+         MED.LISTS = median(NO.LISTS)) %>% 
+  group_by(TIME.SOIB2, TOT.LISTS, GRIDG1) %>% 
+  summarise(NO.LISTS = NO.LISTS,
+            STAN.LISTS = NO.LISTS/MAX.LISTS,
+            CS.LISTS = (NO.LISTS - MED.LISTS)/MED.LISTS, 
+            PROP.LISTS = NO.LISTS/TOT.LISTS) %>% 
+  ungroup() %>% 
+  rename(PERIOD = TIME.SOIB2) %>% 
+  # removing 2021 since temp1 already has
+  filter(PERIOD != "2021")
 
-temp <- data_hist %>% 
+grid_cov <- temp1 %>% 
+  bind_rows(temp2) %>% 
+  mutate(PERIOD = factor(PERIOD, levels = soib_levels)) %>% 
+  group_by(PERIOD) %>% 
+  # number of cells with at least 1 list
+  mutate(CELLS.1 = n_distinct(GRIDG1)) %>% 
+  # number of cells with at least 10 lists
+  filter(NO.LISTS >= 10) %>% 
+  mutate(CELLS.10 = n_distinct(GRIDG1)) %>% 
+  # number of cells with at least 20 lists
+  filter(NO.LISTS >= 20) %>% 
+  mutate(CELLS.20 = n_distinct(GRIDG1)) %>% 
+  # number of cells with at least 50 lists
+  filter(NO.LISTS >= 50) %>% 
+  mutate(CELLS.50 = n_distinct(GRIDG1)) %>% 
+  distinct(CELLS.1, CELLS.10, CELLS.20, CELLS.50) %>% 
+  arrange(PERIOD) %>% 
+  ungroup()
+
+# all grids across the different time periods under consideration (not all grids in India)
+# this is enough to show difference/change; other grids will be blank
+all_grids <- temp1 %>% 
+  bind_rows(temp2) %>% 
+  distinct(GRIDG1)
+  
+data0 <- temp1 %>% 
+  bind_rows(temp2) %>% 
+  mutate(PERIOD = factor(PERIOD, levels = soib_levels)) %>% 
+  group_by(PERIOD) %>% 
+  complete(GRIDG1 = all_grids$GRIDG1, 
+           fill = list(NO.LISTS = 0, TOT.LISTS = 0, STAN.LISTS = 0, CS.LISTS = 0, PROP.LISTS = 0)) %>% 
+  left_join(grid_cov) %>% 
+  ungroup() 
+
+data0grid <- gridmapg1_tidy %>% 
+  left_join(data0, by = c("id2" = "GRIDG1")) %>% 
+  # removing NA PERIOD formed from join
+  filter(!is.na(PERIOD)) %>% 
+  # converting metrics to NA when number of lists = 0
+  mutate(across(c(STAN.LISTS, CS.LISTS, PROP.LISTS),
+         ~ if_else(NO.LISTS == 0, as.numeric(NA_integer_), .x))) %>% 
+  dplyr::select(-c(TOT.LISTS, CELLS.1, CELLS.10, CELLS.20, CELLS.50))
+
+data0_change_no <- data0 %>%
+  pivot_wider(names_from = PERIOD, values_from = NO.LISTS) %>%
+  group_by(GRIDG1) %>%
+  summarise(CHANGE.A = `2021` - `pre-2000`,
+            CHANGE.B = `2021` - `1990-1999`,
+            CHANGE.C = `2021` - `pre-1990`)
+
+data0_change_prop <- data0 %>%
+  pivot_wider(names_from = PERIOD, values_from = PROP.LISTS) %>%
+  group_by(GRIDG1) %>%
+  summarise(CHANGE.A = `2021` - `pre-2000`,
+            CHANGE.B = `2021` - `1990-1999`,
+            CHANGE.C = `2021` - `pre-1990`)
+
+data0_change_stan <- data0 %>%
+  pivot_wider(names_from = PERIOD, values_from = STAN.LISTS) %>%
+  group_by(GRIDG1) %>%
+  summarise(CHANGE.A = `2021` - `pre-2000`,
+            CHANGE.B = `2021` - `1990-1999`,
+            CHANGE.C = `2021` - `pre-1990`)
+
+##### full timeline (for data progression line graph) ####
+
+temp1 <- timeline %>%
+  filter(YEAR != 2022) %>% 
+  group_by(TIME.SOIB1) %>% 
+  summarise(NO.LISTS = n_distinct(GROUP.ID),
+            CELLS.1 = n_distinct(GRIDG1),
+            # for axis tick position
+            MEDIAN.YEAR = median(YEAR)) %>% 
+  arrange(TIME.SOIB1)
+
+temp2 <- timeline %>%
+  filter(YEAR != 2022) %>% 
+  group_by(TIME.SOIB2) %>% 
+  summarise(NO.LISTS = n_distinct(GROUP.ID),
+            CELLS.1 = n_distinct(GRIDG1),
+            # for axis tick position
+            MEDIAN.YEAR = median(YEAR)) %>% 
+  arrange(TIME.SOIB2) 
+
+data_prog <- temp1 %>% 
+  full_join(temp2) %>% 
+  arrange(MEDIAN.YEAR) %>% 
+  mutate(PERIOD = if_else(is.na(as.character(TIME.SOIB1)), 
+                          as.character(TIME.SOIB2), 
+                          as.character(TIME.SOIB1))) %>% 
+  mutate(PERIOD = factor(PERIOD,
+                         levels = if_else(is.na(as.character(TIME.SOIB1)), 
+                                          as.character(TIME.SOIB2), 
+                                          as.character(TIME.SOIB1))))
+
+##### region-level ####
+
+temp1 <- data_hist %>% 
   bind_rows(data_cur) %>% 
   left_join(regions) %>% 
-  group_by(PERIOD1) %>% 
+  group_by(TIME.SOIB1) %>% 
   mutate(TOT.LISTS = n_distinct(GROUP.ID)) %>% 
-  group_by(PERIOD1, REGION) %>% 
-  summarise(NO.LISTS = n_distinct(GROUP.ID),
-            TOT.LISTS = min(TOT.LISTS),
-            PROP.LISTS = 100*NO.LISTS/TOT.LISTS)
-
-data2 <- data_hist %>% 
-  left_join(regions) %>% 
-  group_by(PERIOD2) %>% 
-  mutate(TOT.LISTS = n_distinct(GROUP.ID)) %>% 
-  group_by(PERIOD2, REGION) %>% 
+  group_by(TIME.SOIB1, REGION) %>% 
   summarise(NO.LISTS = n_distinct(GROUP.ID),
             TOT.LISTS = min(TOT.LISTS),
             PROP.LISTS = 100*NO.LISTS/TOT.LISTS) %>% 
   ungroup() %>% 
-  rename(PERIOD = PERIOD2) %>% 
-  bind_rows(temp %>% rename(PERIOD = PERIOD1)) %>% 
-  mutate(PERIOD = factor(PERIOD, levels = c("2021", "pre-2000", "1990-1999", "pre-1990"))) %>% 
+  rename(PERIOD = TIME.SOIB1)
+
+temp2 <- data_hist %>% 
+  left_join(regions) %>% 
+  group_by(TIME.SOIB2) %>% 
+  mutate(TOT.LISTS = n_distinct(GROUP.ID)) %>% 
+  group_by(TIME.SOIB2, REGION) %>% 
+  summarise(NO.LISTS = n_distinct(GROUP.ID),
+            TOT.LISTS = min(TOT.LISTS),
+            PROP.LISTS = 100*NO.LISTS/TOT.LISTS) %>% 
+  ungroup() %>% 
+  rename(PERIOD = TIME.SOIB2) %>% 
+  # removing 2021 since temp1 already has
+  filter(PERIOD != "2021")
+
+data_reg <- temp1 %>% 
+  bind_rows(temp2) %>% 
+  mutate(PERIOD = factor(PERIOD, levels = soib_levels)) %>% 
   # removing NA districts
   filter(!is.na(REGION))
 
-# 
-# x <- data_hist %>% 
-#   bind_rows(data_cur) %>% 
-#   ungroup() %>% 
-#   left_join(regions) %>% 
-#   filter(is.na(REGION)) %>% 
-#   distinct(STATE, COUNTY, REGION)
 
-data3 <- timeline %>%
-  filter(YEAR != 2022) %>% 
-  mutate(CELL.ID = raster::cellFromXY(rast_SoIB, cbind(LONGITUDE, LATITUDE))) %>% 
-  group_by(PERIOD) %>% 
-  summarise(NO.LISTS = n_distinct(GROUP.ID),
-            NO.CELLS = n_distinct(CELL.ID),
-            # for axis tick position
-            MEDIAN.YEAR = median(YEAR)) %>% 
-  mutate(PERIOD = factor(PERIOD, 
-                         levels = c("pre-1990", "1990-1999", "2000-2006", "2007-2010",
-                                    as.character(2011:2021))))
 ### 1. Maps of spatial spread ####
 
 ### Number
 
-ggplot(data = data0, aes(CELL.LONG, CELL.LAT)) +
+map1_nolists <- ggplot(data = data0, aes(LONGITUDE, LATITUDE)) +
   facet_wrap(~ PERIOD, ncol = 2) +
-  geom_polygon(data = indiamap, aes(long, lat, group = group), 
-               fill = "#F0F0F0", colour = "black", size = 0.2) +
-  geom_tile(aes(fill = log(NO.LISTS))) +
-  scale_fill_viridis_c() +
-  labs(title = "Birding intensity across grid cells",
+  geom_polygon(data = indiamap,
+               aes(long, lat, group = group),
+               colour = "black", fill = NA, size = 0.2) +
+  geom_polygon(data = data0grid, 
+               aes(long, lat, group = group, fill = log(NO.LISTS))) +
+  scale_fill_viridis_c(na.value = "#CCCCCC") +
+  labs(title = "Birding intensity in grid cells across the country",
+       subtitle = "Fill: log-transformed no. of lists per grid cell per time period (grey: zero lists).",
        fill = "log(no. of lists)") +
   theme(axis.line = element_blank(), 
         axis.title = element_blank(), 
@@ -200,52 +309,55 @@ ggplot(data = data0, aes(CELL.LONG, CELL.LAT)) +
         axis.ticks = element_blank(),
         legend.position = "bottom")
 
-### Standardised proportion
+ggsave("hist_spread/figs/map1_nolists.png", map1_nolists,
+       width = 10, height = 10, units = "in", dpi = 300)
 
-ggplot(data = data0, aes(CELL.LONG, CELL.LAT)) +
+### Total proportion
+
+map2_proplists <- ggplot(data = data0, aes(LONGITUDE, LATITUDE)) +
   facet_wrap(~ PERIOD, ncol = 2) +
-  geom_polygon(data = indiamap, aes(long, lat, group = group), 
-               fill = "#F0F0F0", colour = "black", size = 0.2) +
-  geom_tile(aes(fill = STAN.LISTS)) +
-  scale_fill_viridis_c() + 
+  geom_polygon(data = indiamap,
+               aes(long, lat, group = group),
+               colour = "black", fill = NA, size = 0.2) +
+  geom_polygon(data = data0grid, 
+               aes(long, lat, group = group, fill = PROP.LISTS*100)) +
+  scale_fill_viridis_c(na.value = "#CCCCCC") +
   labs(title = "How was birding spatially concentrated in different periods?",
-       fill = "Stand. prop. of lists") +
+       subtitle = "Fill: proportion of total nationwide lists from each grid cell (grey: zero lists).",
+       fill = "Prop. of lists (%)") +
   theme(axis.line = element_blank(), 
         axis.title = element_blank(), 
         axis.text = element_blank(),
         axis.ticks = element_blank(),
         legend.position = "bottom")
 
-# x <- data0 %>% 
-#   ungroup() %>% 
-#   dplyr::select(CS.LISTS) %>% 
-#   arrange(CS.LISTS) %>% 
-#   rownames_to_column("INDEX")
-# 
-# legend <- c(seq(min(data0$CS.LISTS), median(data0$CS.LISTS), 
-#                 length.out = (max(data0$CS.LISTS) - min(data0$CS.LISTS))/2),
-#             seq(median(data0$CS.LISTS), quantile(data0$CS.LISTS, 0.75), 
-#                 length.out = (max(data0$CS.LISTS) - min(data0$CS.LISTS))/4),
-#             seq(quantile(data0$CS.LISTS, 0.75), max(data0$CS.LISTS),
-#                 length.out = (max(data0$CS.LISTS) - min(data0$CS.LISTS))/4))
-#   
-# ggplot(data = data0, aes(CELL.LONG, CELL.LAT)) +
-#   facet_wrap(~ PERIOD, ncol = 2) +
-#   geom_polygon(data = indiamap, aes(long, lat, group = group), 
-#                fill = "#F0F0F0", colour = "black", size = 0.2) +
-#   geom_tile(aes(fill = CS.LISTS)) +
-#   scale_fill_viridis_c(values = summary(legend)) +
-#   scale_y_continuous(name = "Cent.+stand. number of lists)") +
-#   labs(title = "Where was birding concentrated in different time periods?") +
-#   theme(axis.line = element_blank(), 
-#         axis.title = element_blank(), 
-#         axis.text = element_blank(),
-#         axis.ticks = element_blank(),
-#         legend.position = "bottom")
+ggsave("hist_spread/figs/map2_proplists.png", map2_proplists,
+       width = 10, height = 10, units = "in", dpi = 300)
+
+### Standardised proportion
+
+map3_stanlists <- ggplot(data = data0, aes(LONGITUDE, LATITUDE)) +
+  facet_wrap(~ PERIOD, ncol = 2) +
+  geom_polygon(data = indiamap,
+               aes(long, lat, group = group),
+               colour = "black", fill = NA, size = 0.2) +
+  geom_polygon(data = data0grid, 
+               aes(long, lat, group = group, fill = STAN.LISTS*100)) +
+  scale_fill_viridis_c(na.value = "#CCCCCC") +
+  labs(title = "How was birding spatially concentrated in different periods?",
+       subtitle = "Fill: no. of lists in proportion to highest lists/cell value (grey: zero lists).",
+       fill = "Standardised prop. of lists (%)") +
+  theme(axis.line = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        legend.position = "bottom")
+
+ggsave("hist_spread/figs/map3_stanlists.png", map3_stanlists,
+       width = 10, height = 10, units = "in", dpi = 300)
+
 
 ### 2. Histograms ####
-
-### 
 
 ggplot(data = data0) +
   facet_wrap(~ PERIOD, ncol = 1) +
@@ -267,7 +379,7 @@ ggplot(data = data0) +
   annotate("rect", 
            xmin = 12000, xmax = 17000, ymin = 0, ymax = +Inf, 
            fill = "#ff0000", col = NA, alpha = 0.1) +
-  geom_histogram(aes(CELL.ID), bins = 60) +
+  geom_histogram(aes(GRIDG1), bins = 60) +
   labs(title = "Distribution of spatial spread",
        x = "Cell ID")
 

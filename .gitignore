@@ -89,4 +89,5 @@ snippets/
 # folders and specific files in Karthik's system
 Literature/
 hist_spread/*.RData
+hist_spread/figs/
 ebd_IN_relJun-2022.RData
