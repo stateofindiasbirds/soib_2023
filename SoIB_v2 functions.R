@@ -922,7 +922,7 @@ expandbyspecies = function(data, species)
 ### freqtrends ########################################
 
 freqtrends = function(data,species,specieslist,
-                       databins=c(1993,2004,2009,2011,2013,2014,2015,2016,2017,2018,
+                       databins=c(1992,2004,2009,2012,2013,2014,2015,2016,2017,2018,
                                   2019,2020,2021),
                        error=T,nsim = 1000)
 {
@@ -1202,7 +1202,7 @@ composite = function(trends, name = "unnamed group")
 ## returns a ggplot object
 ## MAXIMUM of 8 species
 
-plottrends = function(trends,selectspecies,leg = T,rem = F,al = 0.3,deft = T)
+plottrends = function(trends,selectspecies,leg = T,al = 0.3,deft = T)
 {
   require(tidyverse)
   require(ggthemes)
@@ -1211,33 +1211,6 @@ plottrends = function(trends,selectspecies,leg = T,rem = F,al = 0.3,deft = T)
   
   recenttrends = trends %>%
     filter(species %in% selectspecies)
-  
-  if (rem)
-  {
-    map = read.csv("Map to Other Lists - map.csv")
-    map = map %>%
-      filter(!eBird.English.Name.2018 %in% c("Sykes's Short-toed Lark","Green Warbler","Sykes's Warbler",
-                                             "Taiga Flycatcher","Chestnut Munia","Desert Whitethroat",
-                                             "Hume's Whitethroat","Changeable Hawk-Eagle")) %>%
-      select(eBird.English.Name.2018,India.Checklist.Name)
-    
-    lists = read.csv("stateofindiasbirds.csv")
-    lists = left_join(lists,map,by = c("Common.Name" = "India.Checklist.Name"))
-    lists = lists %>% select(-Common.Name) %>% mutate(species = eBird.English.Name.2018) %>% 
-      select(-eBird.English.Name.2018) %>% filter(!is.na(species))
-    
-    
-    for (i in 1:length(selectspecies))
-    {
-      if (lists$Long.Term.Status[lists$species == selectspecies[i]] == "Uncertain")
-      {
-        recenttrends$freq[recenttrends$species == selectspecies[i] &
-                            recenttrends$timegroups %in% c(1993,2004,2009,2012,2013,2014,2015,2016)] = NA
-        recenttrends$freq[recenttrends$species == selectspecies[i] &
-                            recenttrends$timegroups %in% c(1993,2004,2009,2012,2013,2014,2015,2016)] = NA
-      }
-    }
-  }
   
   if (names(recenttrends)[2] != "nmfreqbyspec")
   {
@@ -1262,8 +1235,8 @@ plottrends = function(trends,selectspecies,leg = T,rem = F,al = 0.3,deft = T)
   xbreaks = temp$timegroups[c(1:4,6,8,10)]
   lbreaks = temp$timegroupsf[c(1:4,6,8,10)]
   
-  xbreaksl = temp$timegroups[c(1:3,6,8,10)]
-  lbreaksl = temp$timegroupsf[c(1:3,6,8,10)]
+  xbreaksl = temp$timegroups[c(1:3,5,7,9,11,13)]
+  lbreaksl = temp$timegroupsf[c(1:3,5,7,9,11,13)]
   
   require(extrafont)
   #loadfonts(device = "win")
@@ -1299,12 +1272,13 @@ plottrends = function(trends,selectspecies,leg = T,rem = F,al = 0.3,deft = T)
       #geom_line(aes(group = species),size = 1.5) +
       #geom_hline(yintercept = 300, linetype = "dotted", size = 0.5) +
       #geom_hline(yintercept = 200, linetype = "dotted", size = 0.5) +
-      geom_hline(yintercept = 150, linetype = "dotted", size = 0.5) +
+      #geom_hline(yintercept = 150, linetype = "dotted", size = 0.5) +
       geom_hline(yintercept = 125, linetype = "dotted", size = 0.5) +
       geom_hline(yintercept = 100, linetype = "dotted", size = 0.5) +
       geom_hline(yintercept = 75, linetype = "dotted", size = 0.5) +
       geom_hline(yintercept = 50, linetype = "dotted", size = 0.5) +
-      #geom_hline(yintercept = 0, linetype = "dotted", size = 0.5) +
+      geom_hline(yintercept = 25, linetype = "dotted", size = 0.5) +
+      geom_hline(yintercept = 0, linetype = "dotted", size = 0.5) +
       geom_ribbon(aes(x = timegroups, ymin = (nmfreqbyspec - nmsebyspec*1.96),
                       ymax = (nmfreqbyspec + nmsebyspec*1.96), fill = species), colour = NA, alpha = al) +
       #geom_errorbar(aes(x = timegroups, ymin = (nmfreqbyspec - nmsebyspec*1.96),
@@ -1312,7 +1286,7 @@ plottrends = function(trends,selectspecies,leg = T,rem = F,al = 0.3,deft = T)
       #position = pd,
       #size = 0.5) +
       xlab("years") +
-      ylab("change in frequency of reporting")
+      ylab("change in abundance index")
     
     ggp1 = ggp +
       theme(axis.title.x = element_text(size = 16), axis.text.x = element_text(size = 12),
@@ -1326,15 +1300,16 @@ plottrends = function(trends,selectspecies,leg = T,rem = F,al = 0.3,deft = T)
                         labels = lbs1,
                         values = cols1) +
       scale_x_continuous(breaks = xbreaksl,
-                         #limits = c(1993,2018),
+                         #limits = c(1993,2021),
                          labels = lbreaksl) +
-      scale_y_continuous(breaks = c(50,75,100,125,150), 
+      scale_y_continuous(breaks = c(0,25,50,75,100,125), 
                          #limits = c(liml,limu),
                          labels = c(
-                           #"-100%","-75%",
+                           "-100%","-75%",
                            "-50%","-25%",
                            "0%",
-                           "+25%","+50%"
+                           "+25%"
+                           #,"+50%"
                            #,"+100%","+200%"
                            )
       )
@@ -1359,9 +1334,9 @@ plottrends = function(trends,selectspecies,leg = T,rem = F,al = 0.3,deft = T)
     #tiff('plot1.tiff', units="in", width=10, height=7, res=1000)
     #grid_arrange_shared_legend(ggp1)
     #dev.off()
-    name = paste(selectspecies[1],".png",sep="")
+    name = paste(selectspecies[1],".jpg",sep="")
     
-    png(name, units="in", width=10, height=7, res=1000)
+    jpeg(name, units="in", width=10, height=7, res=1000)
     grid_arrange_shared_legend(ggp1)
     dev.off()
   }
@@ -1390,9 +1365,9 @@ plottrends = function(trends,selectspecies,leg = T,rem = F,al = 0.3,deft = T)
       xlab("years") +
       ylab("change in frequency of reporting")
     
-    xbreaks1 = temp$timegroups[1:10]
-    lbreaks1 = temp$timegroupsf[1:10]
-    lbreaks1[c(5,7,9)] = ""
+    xbreaks1 = temp$timegroups[1:13]
+    lbreaks1 = temp$timegroupsf[1:13]
+    lbreaks1[c(4,6,8,10,12)] = ""
     
     ggp1 = ggp +
       theme(axis.title.x = element_text(size = 16), axis.text.x = element_text(size = 12),
@@ -2192,7 +2167,8 @@ SoIBoccupancy = function(data,species,areag)
 ## including regions
 
 freqtrendsr = function(data,species,specieslist,
-                       databins=c(1993,2004,2009,2011,2013,2014,2015,2016,2017,2018,2019,2020,2021),
+                       databins=c(1992,2004,2009,2012,2013,2014,2015,2016,2017,2018,
+                                  2019,2020,2021),
                        error=T,nsim = 1000)
 {
   require(tidyverse)
@@ -2402,7 +2378,8 @@ freqtrendsr = function(data,species,specieslist,
 ### freqtrendsrestricted ########################################
 
 freqtrendsrestricted = function(data,species,specieslist,
-                      databins=c(1993,2004,2009,2011,2013,2014,2015,2016,2017,2018,2019,2020,2021),
+                      databins=c(1992,2004,2009,2012,2013,2014,2015,2016,2017,2018,
+                                 2019,2020,2021),
                       nsim=1000)
 {
   require(tidyverse)

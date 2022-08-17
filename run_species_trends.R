@@ -29,13 +29,8 @@ data0 = data
 
 ## the loop across all species for a subset of specieslist
 
-specieslist = specieslist %>% filter(COMMON.NAME %in% c("White-rumped Vulture","Indian Vulture",
-                                                        "Red-headed Vulture",
-                                                        "Egyptian Vulture","Eurasian Griffon",
-                                                        "Cinereous Vulture","Himalayan Griffon",
-                                                        "Bearded Vulture"))
-species = specieslist$COMMON.NAME[6]
-
+specieslist = specieslist %>% filter(COMMON.NAME %in% c("Red-necked Falcon","Ashy Prinia",
+                                                        "House Sparrow"))
 c = 0
 
 for (species in specieslist$COMMON.NAME)
@@ -208,5 +203,3 @@ for (species in specieslist$COMMON.NAME)
     trends = rbind(trends,tre)
   }
 }
-
-write.csv(trends,"vulture_trends_1.csv",row.names = F)
