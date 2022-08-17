@@ -8,7 +8,7 @@ load("dataforanalyses.RData")
 
 databins=c(1993,2004,2009,2011,2013,2014,2015,2016,2017,2018,2019,2020,2021)
 error=T
-nsim = 100
+nsim = 1000
 
 data$gridg1 = as.factor(data$gridg1)
 data$gridg2 = as.factor(data$gridg2)
