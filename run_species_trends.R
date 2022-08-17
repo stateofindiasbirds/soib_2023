@@ -33,6 +33,7 @@ specieslist = specieslist %>% filter(COMMON.NAME %in% c("Red-necked Falcon","Ash
                                                         "House Sparrow"))
 c = 0
 
+start = Sys.time()
 for (species in specieslist$COMMON.NAME)
 {
   c = c + 1
@@ -203,3 +204,7 @@ for (species in specieslist$COMMON.NAME)
     trends = rbind(trends,tre)
   }
 }
+
+end = Sys.time()
+print(end-start)
+
