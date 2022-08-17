@@ -6,10 +6,9 @@ require(parallel)
 source('SoIB_v2 functions.R')
 load("dataforanalyses.RData")
 
-databins=c(1985,1995,2004,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,
-           2019,2020,2021)
+databins=c(1993,2004,2009,2011,2013,2014,2015,2016,2017,2018,2019,2020,2021)
 error=T
-nsim = 1000
+nsim = 100
 
 data$gridg1 = as.factor(data$gridg1)
 data$gridg2 = as.factor(data$gridg2)
@@ -26,17 +25,23 @@ data$month = as.factor(data$month)
 data$timegroups = as.factor(data$timegroups)
 data$gridg = data$gridg3
 
+data0 = data
+
 ## the loop across all species for a subset of specieslist
 
-specieslist = specieslist %>% filter(COMMON.NAME %in% c("White-rumped Vulture","Ashy Prinia",
-                                                        "House Sparrow","Red-necked Falcon",
-                                                        "Pacific Golden-Plover"))
+specieslist = specieslist %>% filter(COMMON.NAME %in% c("White-rumped Vulture","Indian Vulture",
+                                                        "Red-headed Vulture",
+                                                        "Egyptian Vulture","Eurasian Griffon",
+                                                        "Cinereous Vulture","Himalayan Griffon",
+                                                        "Bearded Vulture"))
+species = specieslist$COMMON.NAME[6]
 
 c = 0
 
 for (species in specieslist$COMMON.NAME)
 {
   c = c + 1
+  data = data0
   
   specieslist1 = specieslist %>%
     filter(COMMON.NAME == species)
@@ -48,15 +53,13 @@ for (species in specieslist$COMMON.NAME)
   {
     g1 = data.frame(timegroups = unique(data$timegroups))
     g1$se = g1$freq = NA
-    g1$timegroups = factor(g1$timegroups, levels = c("before 1990","1990-1999","2000-2006","2007",
-                                                     "2008","2009","2010","2011",
-                                                     "2012","2013","2014","2015","2016",
+    g1$timegroups = factor(g1$timegroups, levels = c("before 2000","2000-2006","2007-2010",
+                                                     "2011-2012","2013","2014","2015","2016",
                                                      "2017","2018","2019","2020","2021"))
     g1 = g1[order(g1$timegroups),]
     names(g1)[1] = "timegroupsf"
-    mp = data.frame(timegroupsf = c("before 1990","1990-1999","2000-2006","2007",
-                                    "2008","2009","2010","2011",
-                                    "2012","2013","2014","2015","2016",
+    mp = data.frame(timegroupsf = c("before 2000","2000-2006","2007-2010",
+                                    "2011-2012","2013","2014","2015","2016",
                                     "2017","2018","2019","2020","2021"), 
                     timegroups = as.numeric(databins))
     g1 = left_join(g1,mp)
@@ -72,21 +75,18 @@ for (species in specieslist$COMMON.NAME)
   {
     f1 = data.frame(timegroups = unique(data$timegroups))
     f1$se = f1$freq = NA
-    f1$timegroups = factor(f1$timegroups, levels = c("before 1990","1990-1999","2000-2006","2007",
-                                                     "2008","2009","2010","2011",
-                                                     "2012","2013","2014","2015","2016",
+    f1$timegroups = factor(f1$timegroups, levels = c("before 2000","2000-2006","2007-2010",
+                                                     "2011-2012","2013","2014","2015","2016",
                                                      "2017","2018","2019","2020","2021"))
     f1 = f1[order(f1$timegroups),]
     names(f1)[1] = "timegroupsf"
-    mp = data.frame(timegroupsf = c("before 1990","1990-1999","2000-2006","2007",
-                                    "2008","2009","2010","2011",
-                                    "2012","2013","2014","2015","2016",
+    mp = data.frame(timegroupsf = c("before 2000","2000-2006","2007-2010",
+                                    "2011-2012","2013","2014","2015","2016",
                                     "2017","2018","2019","2020","2021"), 
                     timegroups = as.numeric(databins))
     f1 = left_join(f1,mp)
     f1$species = species
     f1 = f1 %>% filter(!is.na(f1$timegroups))
-    return(f1)
   }
   
 
@@ -139,11 +139,12 @@ for (species in specieslist$COMMON.NAME)
       predict(m1,ltemp, re.form = NA, allow.new.levels=TRUE)
     }
     
-    cr = max(1, detectCores()/2)
-    cl = makeCluster(cr)
-    clusterEvalQ(cl, library(lme4))
+    cr = max(1, detectCores())
+    cl = makeCluster(rep("localhost", cr), outfile = 'log.txt')
+    #showConnections(all = T)
+    #clusterEvalQ(cl, library(lme4))
     
-    pred = bootMer(m1, nsim = nsim, FUN = predFun, parallel = "snow", seed = 1000,
+    pred = bootMer(m1, nsim = nsim, FUN = predFun, parallel = "multicore",
                    use.u = FALSE, type = "parametric", ncpus = cr, cl = cl)
     
     stopCluster(cl)
@@ -176,15 +177,13 @@ for (species in specieslist$COMMON.NAME)
   }
   
   
-  f1$timegroups = factor(f1$timegroups, levels = c("before 1990","1990-1999","2000-2006","2007",
-                                                   "2008","2009","2010","2011",
-                                                   "2012","2013","2014","2015","2016",
+  f1$timegroups = factor(f1$timegroups, levels = c("before 2000","2000-2006","2007-2010",
+                                                   "2011-2012","2013","2014","2015","2016",
                                                    "2017","2018","2019","2020","2021"))
   f1 = f1[order(f1$timegroups),]
   names(f1)[1] = "timegroupsf"
-  mp = data.frame(timegroupsf = c("before 1990","1990-1999","2000-2006","2007",
-                                  "2008","2009","2010","2011",
-                                  "2012","2013","2014","2015","2016",
+  mp = data.frame(timegroupsf = c("before 2000","2000-2006","2007-2010",
+                                  "2011-2012","2013","2014","2015","2016",
                                   "2017","2018","2019","2020","2021"), 
                   timegroups = as.numeric(databins))
   f1 = left_join(f1,mp)
@@ -210,3 +209,4 @@ for (species in specieslist$COMMON.NAME)
   }
 }
 
+write.csv(trends,"vulture_trends_1.csv",row.names = F)
