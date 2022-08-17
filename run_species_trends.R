@@ -6,7 +6,7 @@ require(parallel)
 source('SoIB_v2 functions.R')
 load("dataforanalyses.RData")
 
-databins=c(1993,2004,2009,2011,2013,2014,2015,2016,2017,2018,2019,2020,2021)
+databins=c(1992,2003,2009,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021)
 error=T
 nsim = 1000
 

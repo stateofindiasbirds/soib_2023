@@ -922,8 +922,7 @@ expandbyspecies = function(data, species)
 ### freqtrends ########################################
 
 freqtrends = function(data,species,specieslist,
-                       databins=c(1992,2004,2009,2012,2013,2014,2015,2016,2017,2018,
-                                  2019,2020,2021),
+                       databins=c(1992,2003,2009,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021),
                        error=T,nsim = 1000)
 {
   require(tidyverse)
@@ -2167,8 +2166,7 @@ SoIBoccupancy = function(data,species,areag)
 ## including regions
 
 freqtrendsr = function(data,species,specieslist,
-                       databins=c(1992,2004,2009,2012,2013,2014,2015,2016,2017,2018,
-                                  2019,2020,2021),
+                       databins=c(1992,2003,2009,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021),
                        error=T,nsim = 1000)
 {
   require(tidyverse)
@@ -2378,8 +2376,7 @@ freqtrendsr = function(data,species,specieslist,
 ### freqtrendsrestricted ########################################
 
 freqtrendsrestricted = function(data,species,specieslist,
-                      databins=c(1992,2004,2009,2012,2013,2014,2015,2016,2017,2018,
-                                 2019,2020,2021),
+                      databins=c(1992,2003,2009,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021),
                       nsim=1000)
 {
   require(tidyverse)
