@@ -8,7 +8,7 @@ load("dataforanalyses.RData")
 
 databins=c(1992,2003,2009,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021)
 error=T
-nsim = 1000
+nsim = 100
 
 data$gridg1 = as.factor(data$gridg1)
 data$gridg2 = as.factor(data$gridg2)
@@ -29,8 +29,7 @@ data0 = data
 
 ## the loop across all species for a subset of specieslist
 
-specieslist = specieslist %>% filter(COMMON.NAME %in% c("Red-necked Falcon","Ashy Prinia",
-                                                        "House Sparrow"))
+specieslist = specieslist %>% filter(COMMON.NAME %in% c("House Sparrow"))
 c = 0
 
 start = Sys.time()
@@ -135,20 +134,104 @@ for (species in specieslist$COMMON.NAME)
       predict(m1,ltemp, re.form = NA, allow.new.levels=TRUE)
     }
     
-    cr = max(1, detectCores())
+    cr = max(1, floor(detectCores()/2))
     cl = makeCluster(rep("localhost", cr), outfile = 'log.txt')
     #showConnections(all = T)
-    #clusterEvalQ(cl, library(lme4))
-    
-    pred = bootMer(m1, nsim = nsim, FUN = predFun, parallel = "multicore",
+    clusterEvalQ(cl, library(lme4))
+    clusterExport(cl, varlist = c("ltemp"))
+    pred1 = bootMer(m1, nsim = nsim, FUN = predFun, parallel = "snow",
                    use.u = FALSE, type = "parametric", ncpus = cr, cl = cl)
-    
+    print(cr)
     stopCluster(cl)
+    
+    cl = makeCluster(rep("localhost", cr), outfile = 'log.txt')
+    #showConnections(all = T)
+    clusterEvalQ(cl, library(lme4))
+    clusterExport(cl, varlist = c("ltemp"))
+    pred2 = bootMer(m1, nsim = nsim, FUN = predFun, parallel = "snow",
+                    use.u = FALSE, type = "parametric", ncpus = cr, cl = cl)
+    print(cr)
+    stopCluster(cl)
+    
+    cl = makeCluster(rep("localhost", cr), outfile = 'log.txt')
+    #showConnections(all = T)
+    clusterEvalQ(cl, library(lme4))
+    clusterExport(cl, varlist = c("ltemp"))
+    pred3 = bootMer(m1, nsim = nsim, FUN = predFun, parallel = "snow",
+                    use.u = FALSE, type = "parametric", ncpus = cr, cl = cl)
+    print(cr)
+    stopCluster(cl)
+    
+    cl = makeCluster(rep("localhost", cr), outfile = 'log.txt')
+    #showConnections(all = T)
+    clusterEvalQ(cl, library(lme4))
+    clusterExport(cl, varlist = c("ltemp"))
+    pred4 = bootMer(m1, nsim = nsim, FUN = predFun, parallel = "snow",
+                    use.u = FALSE, type = "parametric", ncpus = cr, cl = cl)
+    print(cr)
+    stopCluster(cl)
+    
+    
+    cl = makeCluster(rep("localhost", cr), outfile = 'log.txt')
+    #showConnections(all = T)
+    clusterEvalQ(cl, library(lme4))
+    clusterExport(cl, varlist = c("ltemp"))
+    pred5 = bootMer(m1, nsim = nsim, FUN = predFun, parallel = "snow",
+                    use.u = FALSE, type = "parametric", ncpus = cr, cl = cl)
+    print(cr)
+    stopCluster(cl)
+    
+    cl = makeCluster(rep("localhost", cr), outfile = 'log.txt')
+    #showConnections(all = T)
+    clusterEvalQ(cl, library(lme4))
+    clusterExport(cl, varlist = c("ltemp"))
+    pred6 = bootMer(m1, nsim = nsim, FUN = predFun, parallel = "snow",
+                    use.u = FALSE, type = "parametric", ncpus = cr, cl = cl)
+    print(cr)
+    stopCluster(cl)
+    
+    cl = makeCluster(rep("localhost", cr), outfile = 'log.txt')
+    #showConnections(all = T)
+    clusterEvalQ(cl, library(lme4))
+    clusterExport(cl, varlist = c("ltemp"))
+    pred7 = bootMer(m1, nsim = nsim, FUN = predFun, parallel = "snow",
+                    use.u = FALSE, type = "parametric", ncpus = cr, cl = cl)
+    print(cr)
+    stopCluster(cl)
+    
+    cl = makeCluster(rep("localhost", cr), outfile = 'log.txt')
+    #showConnections(all = T)
+    clusterEvalQ(cl, library(lme4))
+    clusterExport(cl, varlist = c("ltemp"))
+    pred8 = bootMer(m1, nsim = nsim, FUN = predFun, parallel = "snow",
+                    use.u = FALSE, type = "parametric", ncpus = cr, cl = cl)
+    print(cr)
+    stopCluster(cl)
+    
+    cl = makeCluster(rep("localhost", cr), outfile = 'log.txt')
+    #showConnections(all = T)
+    clusterEvalQ(cl, library(lme4))
+    clusterExport(cl, varlist = c("ltemp"))
+    pred9 = bootMer(m1, nsim = nsim, FUN = predFun, parallel = "snow",
+                    use.u = FALSE, type = "parametric", ncpus = cr, cl = cl)
+    print(cr)
+    stopCluster(cl)
+    
+    cl = makeCluster(rep("localhost", cr), outfile = 'log.txt')
+    #showConnections(all = T)
+    clusterEvalQ(cl, library(lme4))
+    clusterExport(cl, varlist = c("ltemp"))
+    pred10 = bootMer(m1, nsim = nsim, FUN = predFun, parallel = "snow",
+                    use.u = FALSE, type = "parametric", ncpus = cr, cl = cl)
+    print(cr)
+    stopCluster(cl)
+    
+    pred = rbind(pred1$t,pred2$t,pred3$t,pred4$t,pred5$t,pred6$t,pred7$t,pred8$t,pred9$t,pred10$t)
     
     for (i in 1:length(ltemp$no.sp))
     {
-      f2$freq[i] = median(na.omit(pred$t[,i]))
-      f2$se[i] = sd(na.omit(pred$t[,i]))
+      f2$freq[i] = median(na.omit(pred[,i]))
+      f2$se[i] = sd(na.omit(pred[,i]))
     }
     
     f2$freqt = clogloglink(f2$freq,inverse = T)
@@ -208,3 +291,4 @@ for (species in specieslist$COMMON.NAME)
 end = Sys.time()
 print(end-start)
 
+write.csv(trends, "House_Sparrow_trend.csv", row.names = F)
