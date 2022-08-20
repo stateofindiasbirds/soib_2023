@@ -29,7 +29,8 @@ data0 = data
 
 ## the loop across all species for a subset of specieslist
 
-specieslist = specieslist %>% filter(COMMON.NAME %in% c("House Sparrow"))
+specieslist = specieslist %>% filter(COMMON.NAME %in% c("Red-necked Falcon","Ashy Prinia",
+                                                        "Indian Courser","Indian Peafowl"))
 c = 0
 
 start = Sys.time()
