@@ -294,5 +294,5 @@ for (species in specieslist1$COMMON.NAME)
 end = Sys.time()
 print(end-start)
 
-write.csv(trends, "assorted_trends_1.csv", row.names = F)
+write.csv(trends, "assorted_trends_2.csv", row.names = F)
 # at assorted 1
