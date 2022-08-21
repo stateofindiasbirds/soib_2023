@@ -29,23 +29,25 @@ data0 = data
 
 ## the loop across all species for a subset of specieslist
 
-specieslist = specieslist %>% filter(COMMON.NAME %in% c("Red-necked Falcon","Ashy Prinia",
-                                                        "Indian Courser","Indian Peafowl"))
+specieslist1 = specieslist %>% filter(COMMON.NAME %in% c("Indian Bushlark","Great Gray Shrike",
+                                                        "Forest Wagtail","Black-capped Kingfisher",
+                                                        "Pacific Golden-Plover","Curlew Sandpiper",
+                                                        "Small Minivet","Malabar Gray Hornbill"))
 c = 0
 
 start = Sys.time()
-for (species in specieslist$COMMON.NAME)
+for (species in specieslist1$COMMON.NAME)
 {
   c = c + 1
   data = data0
   
-  specieslist1 = specieslist %>%
+  specieslist2 = specieslist1 %>%
     filter(COMMON.NAME == species)
   
   ## filters data based on whether the species has been selected for long-term trends (ht) 
   ## or short-term trends (rt) 
   
-  if (is.na(specieslist1$ht) & !is.na(specieslist1$rt))
+  if (is.na(specieslist2$ht) & !is.na(specieslist2$rt))
   {
     g1 = data.frame(timegroups = unique(data$timegroups))
     g1$se = g1$freq = NA
@@ -67,7 +69,7 @@ for (species in specieslist$COMMON.NAME)
       filter(year >= 2017)
   }
   
-  if (is.na(specieslist1$ht) & is.na(specieslist1$rt))
+  if (is.na(specieslist2$ht) & is.na(specieslist2$rt))
   {
     f1 = data.frame(timegroups = unique(data$timegroups))
     f1$se = f1$freq = NA
@@ -269,7 +271,7 @@ for (species in specieslist$COMMON.NAME)
   f1 = left_join(f1,mp)
   f1$species = species
   
-  if (is.na(specieslist1$ht) & !is.na(specieslist1$rt))
+  if (is.na(specieslist2$ht) & !is.na(specieslist2$rt))
   {
     f1 = rbind(g1,f1)
   }
@@ -292,4 +294,5 @@ for (species in specieslist$COMMON.NAME)
 end = Sys.time()
 print(end-start)
 
-write.csv(trends, "House_Sparrow_trend.csv", row.names = F)
+write.csv(trends, "assorted_trends_1.csv", row.names = F)
+# at assorted 1
