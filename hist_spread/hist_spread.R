@@ -416,3 +416,19 @@ ggplot(data2,
   theme(axis.text.x = element_text(size = 6, angle = 45, vjust = 0.5)) &
   plot_layout(ncol = 1) &
   plot_annotation(title = "How much data in each time period?")
+
+
+### dev: Ecoregions2017 ####
+
+sf_use_s2(FALSE)
+
+temp <- st_read(dsn = "hist_spread/Ecoregions2017", layer = "Ecoregions2017")
+
+indiamap <- indiamap %>% st_as_sf() %>% dplyr::select(geometry)
+st_crs(indiamap) <- st_crs(temp)
+
+ecoregions <- temp %>% 
+  dplyr::select("ECO_NAME") %>% 
+  st_intersection(indiamap)
+plot(ecoregions)
+
