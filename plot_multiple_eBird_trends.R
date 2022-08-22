@@ -6,9 +6,11 @@ library(cowplot)
 library(extrafont)
 
 
-trends = read.csv("vulture_trends_1.csv")
-trends = trends %>% filter(species %in% c("White-rumped Vulture","Indian Vulture","Egyptian Vulture",
-                                          "Red-headed Vulture"))
+trends1 = read.csv("assorted_trends_1.csv")
+trends2 = read.csv("House_Sparrow_trend.csv")
+trends = rbind(trends1,trends2)
+trends = trends %>% filter(species %in% c("Ashy Prinia","Red-necked Falcon","House Sparrow"))
+trends$species = factor(trends$species, levels = c("House Sparrow","Ashy Prinia","Red-necked Falcon"))
 
 temp = stdtrends(trends)
 #loadfonts(device = "win")
@@ -21,8 +23,8 @@ ns = length(unique(trends$species))
 
 
 cols1 = cols[c(1:ns)]
-bks1 = unique(trends$species)
-lbs1 = unique(trends$species)
+bks1 = sort(unique(trends$species))
+lbs1 = sort(unique(trends$species))
 
 maxci = temp$nmfreqbyspec + temp$nmsebyspec*1.96
 minci = temp$nmfreqbyspec - temp$nmsebyspec*1.96

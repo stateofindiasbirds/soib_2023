@@ -6,7 +6,8 @@ library(cowplot)
 library(extrafont)
 
 
-trends = read.csv("Black_Redstart_trend.csv")
+trends = read.csv("assorted_trends_2.csv")
+trends = trends %>% filter(species %in% c("Great Gray Shrike"))
 
 scol = "#869B27"
 temp = stdtrends(trends)
