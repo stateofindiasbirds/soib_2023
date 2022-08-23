@@ -387,7 +387,17 @@ ggsave("hist_spread/figs/map3_stanlists.png", map3_stanlists,
 
 ### 2. Histograms ####
 
-ggplot(data = data0) +
+hist_grids <- ggplot(filter(data0, NO.LISTS != 0)) +
+  facet_wrap(~ PERIOD, ncol = 1) +
+  scale_y_continuous(expand = c(0, 0)) +
+  geom_histogram(aes(GRIDG1), bins = 60) +
+  labs(x = "Cell ID")
+
+ggsave("hist_spread/figs/hist_grids.png", hist_grids,
+       width = 7, height = 12, units = "in", dpi = 300)
+
+
+hist_lists <- ggplot(filter(data0, NO.LISTS != 0)) +
   facet_wrap(~ PERIOD, ncol = 1) +
   scale_y_continuous(expand = c(0, 0)) +
   # the discrepancy
@@ -395,21 +405,10 @@ ggplot(data = data0) +
            xmin = 2.2, xmax = 2.9, ymin = 0, ymax = +Inf, 
            fill = "#ff0000", col = NA, alpha = 0.1) +
   geom_histogram(aes(log(NO.LISTS))) +
-  labs(title = "Distribution of birding intensities",
-       x = "log(no. of lists per grid cell)")
+  labs(x = "log(no. of lists per grid cell)")
 
-### 
-
-ggplot(data = data0) +
-  facet_wrap(~ PERIOD, ncol = 1) +
-  scale_y_continuous(expand = c(0, 0)) +
-  # the discrepancy
-  annotate("rect", 
-           xmin = 12000, xmax = 17000, ymin = 0, ymax = +Inf, 
-           fill = "#ff0000", col = NA, alpha = 0.1) +
-  geom_histogram(aes(GRIDG1), bins = 60) +
-  labs(title = "Distribution of spatial spread",
-       x = "Cell ID")
+ggsave("hist_spread/figs/hist_lists.png", hist_lists,
+       width = 7, height = 12, units = "in", dpi = 300)
 
 ### 3. Data across geographical regions ####
 
