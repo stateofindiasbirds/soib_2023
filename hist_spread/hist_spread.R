@@ -282,41 +282,100 @@ grid_cov_timeline <- temp1 %>%
   #                                         as.character(TIME.SOIB2), 
   #                                         as.character(TIME.SOIB1))))
 
-##### region-level ####
+##### region-level (excluding marine) ####
+
+# Ecoregions2017 https://ecoregions.appspot.com/
+
+sf_use_s2(FALSE)
+
+temp <- st_read(dsn = "hist_spread/Ecoregions2017", layer = "Ecoregions2017")
+
+indiamap <- indiamap %>% st_as_sf() %>% dplyr::select(geometry)
+st_crs(indiamap) <- st_crs(temp)
+
+ecoregions <- temp %>% 
+  dplyr::select("ECO_NAME") %>% 
+  st_intersection(indiamap)
+plot(ecoregions)
+
+
+# getting info of all grid cells per region
+eco_grids <- gridmapg1 %>% 
+  st_as_sf() %>% 
+  st_set_crs(st_crs(ecoregions)) %>% 
+  st_join(ecoregions) %>% 
+  left_join(reclassed) %>% 
+  rename(GRIDG1 = id) %>% 
+  group_by(ECO_RECLASS2) %>% 
+  summarise(TOT.CELLS = n_distinct(GRIDG1))
+
 
 temp1 <- data_hist %>% 
   bind_rows(data_cur) %>% 
-  left_join(regions) %>% 
+  st_as_sf(coords = c("LONGITUDE", "LATITUDE")) %>% 
+  st_set_crs(st_crs(ecoregions)) %>% 
+  st_join(ecoregions) %>% 
+  left_join(reclassed) %>% 
   group_by(TIME.SOIB1) %>% 
   mutate(TOT.LISTS = n_distinct(GROUP.ID)) %>% 
-  group_by(TIME.SOIB1, REGION) %>% 
+  group_by(TIME.SOIB1, ECO_RECLASS2) %>% 
+  left_join(eco_grids) %>% 
   summarise(NO.LISTS = n_distinct(GROUP.ID),
             TOT.LISTS = min(TOT.LISTS),
-            PROP.LISTS = 100*NO.LISTS/TOT.LISTS) %>% 
+            PROP.LISTS = 100*NO.LISTS/TOT.LISTS,
+            NO.CELLS = n_distinct(GRIDG1),
+            TOT.CELLS = min(TOT.CELLS),
+            PROP.CELLS = 100*NO.CELLS/TOT.CELLS) %>% 
   ungroup() %>% 
   rename(PERIOD = TIME.SOIB1)
 
-temp2 <- data_hist %>% 
-  left_join(regions) %>% 
-  group_by(TIME.SOIB2) %>% 
-  mutate(TOT.LISTS = n_distinct(GROUP.ID)) %>% 
-  group_by(TIME.SOIB2, REGION) %>% 
-  summarise(NO.LISTS = n_distinct(GROUP.ID),
-            TOT.LISTS = min(TOT.LISTS),
-            PROP.LISTS = 100*NO.LISTS/TOT.LISTS) %>% 
-  ungroup() %>% 
-  rename(PERIOD = TIME.SOIB2) %>% 
-  # removing 2021 since temp1 already has
-  filter(PERIOD != "2021")
+# temp2 <- data_hist %>% 
+#   left_join(regions) %>% 
+#   group_by(TIME.SOIB2) %>% 
+#   mutate(TOT.LISTS = n_distinct(GROUP.ID)) %>% 
+#   group_by(TIME.SOIB2, REGION) %>% 
+#   summarise(NO.LISTS = n_distinct(GROUP.ID),
+#             TOT.LISTS = min(TOT.LISTS),
+#             PROP.LISTS = 100*NO.LISTS/TOT.LISTS) %>% 
+#   ungroup() %>% 
+#   rename(PERIOD = TIME.SOIB2) %>% 
+#   # removing 2021 since temp1 already has
+#   filter(PERIOD != "2021")
 
 data_reg <- temp1 %>% 
   bind_rows(temp2) %>% 
   mutate(PERIOD = factor(PERIOD, levels = soib_levels)) %>% 
-  # removing NA districts
-  filter(!is.na(REGION))
+  # removing NA regions (marine)
+  filter(!is.na(ECO_RECLASS2)) %>% 
+  # converting metrics to NA when number of lists = 0 (to visualise non-overlap)
+  mutate(PROP.LISTS = if_else(NO.LISTS == 0, as.numeric(NA_integer_), .x),
+         PROP.CELLS = if_else(NO.CELLS == 0, as.numeric(NA_integer_), .x)) %>% 
+  dplyr::select(-c(TOT.LISTS, CELLS.1, CELLS.10, CELLS.20, CELLS.50))
+
+data_reg_change1 <- data_reg %>%
+  pivot_wider(names_from = PERIOD, values_from = NO.LISTS) %>%
+  group_by(ECO_RECLASS2) %>%
+  summarise(CHANGE1 = `2021` - `pre-2000`,
+            CHANGE2 = `2021` - `1990-1999`,
+            CHANGE3 = `2021` - `pre-1990`)
+
+data_reg_change2 <- data_reg %>%
+  pivot_wider(names_from = PERIOD, values_from = PROP.LISTS) %>%
+  group_by(ECO_RECLASS2) %>%
+  summarise(CHANGE1 = `2021` - `pre-2000`,
+            CHANGE2 = `2021` - `1990-1999`,
+            CHANGE3 = `2021` - `pre-1990`)
+
+data_reg_change3 <- data_reg %>%
+  pivot_wider(names_from = PERIOD, values_from = PROP.CELLS) %>%
+  group_by(ECO_RECLASS2) %>%
+  summarise(CHANGE1 = `2021` - `pre-2000`,
+            CHANGE2 = `2021` - `1990-1999`,
+            CHANGE3 = `2021` - `pre-1990`)
 
 
-### 1. Maps of spatial spread ####
+
+### 1a. Maps of spatial spread ####
 
 ### Number
 
@@ -385,7 +444,7 @@ ggsave("hist_spread/figs/map3_stanlists.png", map3_stanlists,
        width = 10, height = 10, units = "in", dpi = 300)
 
 
-### 2. Histograms ####
+### 1b. Histograms ####
 
 hist_grids <- ggplot(filter(data0, NO.LISTS != 0)) +
   facet_wrap(~ PERIOD, ncol = 1) +
@@ -410,7 +469,9 @@ hist_lists <- ggplot(filter(data0, NO.LISTS != 0)) +
 ggsave("hist_spread/figs/hist_lists.png", hist_lists,
        width = 7, height = 12, units = "in", dpi = 300)
 
-### 3. Data across geographical regions ####
+### 2a. Regions: change in representation (maps) ####
+
+### 2d. Data across geographical regions ####
 
 ggplot(data2, 
        aes(reorder(REGION, -PROP.LISTS), PROP.LISTS)) +
@@ -480,18 +541,4 @@ dataprog_lists <- ggplot(grid_cov_timeline,
 ggsave("hist_spread/figs/dataprog_lists.png", dataprog_lists,
        width = 11, height = 6, units = "in", dpi = 300)
 
-
-### dev: Ecoregions2017 ####
-
-sf_use_s2(FALSE)
-
-temp <- st_read(dsn = "hist_spread/Ecoregions2017", layer = "Ecoregions2017")
-
-indiamap <- indiamap %>% st_as_sf() %>% dplyr::select(geometry)
-st_crs(indiamap) <- st_crs(temp)
-
-ecoregions <- temp %>% 
-  dplyr::select("ECO_NAME") %>% 
-  st_intersection(indiamap)
-plot(ecoregions)
 
