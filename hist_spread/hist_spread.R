@@ -13,6 +13,7 @@ library(tidyverse)
 library(raster)
 library(sf)
 library(patchwork)
+library(glue)
 
 # ggplot theme
 theme_set(theme_classic() +
@@ -471,7 +472,7 @@ ggsave("hist_spread/figs/hist_lists.png", hist_lists,
 
 ### 2a. Regions: change in representation (maps) ####
 
-### 2d. Data across geographical regions ####
+### 2b. Regions: contribution to national dataset ####
 
 ggplot(data2, 
        aes(reorder(REGION, -PROP.LISTS), PROP.LISTS)) +
@@ -480,10 +481,18 @@ ggplot(data2,
   labs(title = "Distribution of birding across geographical regions",
        x = "Region", y = "Proportion of lists")
 
-### 4. Data progression with time periods ####
+### 3. Data progression with time periods ####
 
-dataprog_grids <- ((ggplot(filter(grid_cov_timeline, RESOLUTION == 1), 
-         aes(x = MEDIAN.YEAR)) +
+temp1 <- grid_cov_timeline %>% filter(RESOLUTION == 1)
+temp2 <- grid_cov_timeline %>% filter(RESOLUTION == 2)
+
+dataprog_grids <- ((ggplot(temp1, aes(x = MEDIAN.YEAR)) +
+    annotate("rect", 
+             xmin = 1981.5, xmax = 1995.5, ymin = 0, ymax = +Inf, 
+             fill = "#EBEAEC", col = NA, alpha = 0.75) +
+    annotate("rect", 
+             xmin = 2010.5, xmax = 2013.5, ymin = 0, ymax = +Inf, 
+             fill = "#EBEAEC", col = NA, alpha = 0.75) +
     geom_line(aes(y = CELLS.1, col = "1"), size = 1) +
     geom_line(aes(y = CELLS.10, col = "10"), size = 1) +
     geom_line(aes(y = CELLS.20, col = "20"), size = 1) +
@@ -491,14 +500,22 @@ dataprog_grids <- ((ggplot(filter(grid_cov_timeline, RESOLUTION == 1),
     geom_point(aes(y = CELLS.10), size = 2) +
     geom_point(aes(y = CELLS.20), size = 2) +
     geom_hline(yintercept = 1000, linetype = "dotted") +
-    scale_x_continuous(breaks = data_prog$MEDIAN.YEAR,
-                       labels = data_prog$PERIOD) +
-    scale_y_continuous(breaks = seq(0, 5000, 500)) +
+    scale_x_continuous(breaks = temp1$MEDIAN.YEAR,
+                       labels = temp1$PERIOD, 
+                       limits = c(1980, 2021)) +
+    scale_y_continuous(breaks = seq(0, 5000, 500), 
+                       expand = c(0, 0),
+                       limits = c(0, 3500)) +
     labs(x = "", y = "Number of grid cells with threshold lists",
          title = "At finer temporal resolution",
          col = c("Threshold lists per cell"))) +
-  (ggplot(filter(grid_cov_timeline, RESOLUTION == 2), 
-          aes(x = MEDIAN.YEAR)) +
+  (ggplot(temp2, aes(x = MEDIAN.YEAR)) +
+     annotate("rect", 
+              xmin = 1981.5, xmax = 1995.5, ymin = 0, ymax = +Inf, 
+              fill = "#EBEAEC", col = NA, alpha = 0.75) +
+     annotate("rect", 
+              xmin = 2010.5, xmax = 2013.5, ymin = 0, ymax = +Inf, 
+              fill = "#EBEAEC", col = NA, alpha = 0.75) +
      geom_line(aes(y = CELLS.1, col = "1"), size = 1) +
      geom_line(aes(y = CELLS.10, col = "10"), size = 1) +
      geom_line(aes(y = CELLS.20, col = "20"), size = 1) +
@@ -506,9 +523,12 @@ dataprog_grids <- ((ggplot(filter(grid_cov_timeline, RESOLUTION == 1),
      geom_point(aes(y = CELLS.10), size = 2) +
      geom_point(aes(y = CELLS.20), size = 2) +
      geom_hline(yintercept = 1000, linetype = "dotted") +
-     scale_x_continuous(breaks = data_prog$MEDIAN.YEAR,
-                        labels = data_prog$PERIOD) +
-     scale_y_continuous(breaks = seq(0, 5000, 500)) +
+     scale_x_continuous(breaks = temp2$MEDIAN.YEAR,
+                        labels = temp2$PERIOD, 
+                        limits = c(1980, 2021)) +
+     scale_y_continuous(breaks = seq(0, 5000, 500), 
+                        expand = c(0, 0),
+                        limits = c(0, 3500)) +
      labs(x = "", y = "Number of grid cells with threshold lists",
           title = "At coarser temporal resolution",
           col = c("Threshold lists per cell")))) &
@@ -520,25 +540,38 @@ ggsave("hist_spread/figs/dataprog_grids.png", dataprog_grids,
        width = 11, height = 10, units = "in", dpi = 300)
 
 
+axislabels <- grid_cov_timeline %>% 
+  dplyr::select(MEDIAN.YEAR, PERIOD) %>% 
+  mutate(LAG.YEAR = lag(MEDIAN.YEAR),
+         LEAD.YEAR = lead(MEDIAN.YEAR)) %>% 
+  mutate(LABELS = case_when((PERIOD != lag(PERIOD) & MEDIAN.YEAR == LAG.YEAR) ~ 
+                              glue("{PERIOD}\n{lag(PERIOD)}"),
+                            (PERIOD != lead(PERIOD) & MEDIAN.YEAR == LEAD.YEAR) ~ 
+                              glue("{PERIOD}\n{lead(PERIOD)}"),
+                            TRUE ~ PERIOD)) %>% 
+  group_by(MEDIAN.YEAR) %>% 
+  slice(1) %>% 
+  ungroup()
+
 dataprog_lists <- ggplot(grid_cov_timeline, 
-        aes(x = MEDIAN.YEAR, y = log(TOT.LISTS/1000), col = as.factor(RESOLUTION))) +
-    geom_point(size = 2) +
-    geom_line(size = 1) +
-    scale_colour_manual(values = c("goldenrod", "dark green"), 
-                        name = "Temporal resolution",
-                        labels = c("Fine", "Coarse")) +
-    geom_hline(yintercept = 2, linetype = "dotted") +
-    annotate("text", x = 1982, y = 2.1, label = "2K lists") +
-    scale_x_continuous(breaks = data_prog$MEDIAN.YEAR,
-                       labels = data_prog$PERIOD) +
-    scale_y_continuous(breaks = log(seq(0, 500, 50)),
-                       labels = paste(seq(0, 500, 50), "K")) +
-    labs(x = "Time period", y = "Number of lists (in thousands)",
-         title = "How much data in each time period?",
-         subtitle = " ") +
-  theme(axis.text.x = element_text(size = 6, angle = 45, vjust = 0.5))
+                         aes(x = MEDIAN.YEAR, y = log(TOT.LISTS/1000), col = as.factor(RESOLUTION))) +
+  geom_point(size = 2) +
+  geom_line(size = 1) +
+  scale_colour_manual(values = c("goldenrod", "dark green"), 
+                      name = "Temporal resolution",
+                      labels = c("Fine", "Coarse")) +
+  geom_hline(yintercept = log(2), linetype = "dotted") +
+  annotate("text", x = 1981, y = (log(2)+0.1), label = "2K lists") +
+  scale_x_continuous(breaks = axislabels$MEDIAN.YEAR,
+                     labels = axislabels$LABELS,
+                     limits = c(1980, 2021)) +
+  scale_y_continuous(breaks = log(seq(0, 500, 50)),
+                     labels = paste(seq(0, 500, 50), "K")) +
+  labs(x = "Time period", y = "Number of lists (in thousands)",
+       title = "How much data in each time period?",
+       subtitle = " ") +
+  theme(axis.text.x = element_text(size = 5, angle = 45, vjust = 0.5))
 
 ggsave("hist_spread/figs/dataprog_lists.png", dataprog_lists,
        width = 11, height = 6, units = "in", dpi = 300)
-
 
