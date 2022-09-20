@@ -7,7 +7,7 @@ library(extrafont)
 
 
 trends = read.csv("assorted_trends_2.csv")
-trends = trends %>% filter(species %in% c("Great Gray Shrike"))
+trends = trends %>% filter(species %in% c("Small Minivet"))
 
 scol = "#869B27"
 temp = stdtrends(trends)

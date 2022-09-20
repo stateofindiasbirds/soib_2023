@@ -6,9 +6,9 @@ library(cowplot)
 library(extrafont)
 
 
-trends1 = read.csv("assorted_trends_1.csv")
-trends2 = read.csv("House_Sparrow_trend.csv")
-trends = rbind(trends1,trends2)
+trends1 = read.csv("assorted_trends_2.csv")
+#trends2 = read.csv("House_Sparrow_trend.csv")
+#trends = rbind(trends1,trends2)
 trends = trends %>% filter(species %in% c("Ashy Prinia","Red-necked Falcon","House Sparrow"))
 trends$species = factor(trends$species, levels = c("House Sparrow","Ashy Prinia","Red-necked Falcon"))
 
