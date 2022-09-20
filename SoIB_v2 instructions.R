@@ -21,7 +21,7 @@ createmaps()
 ## writes 'rawdata.RData' to the home folder
 
 source('SoIB_v2 functions.R')
-readcleanrawdata("ebd_IN_relJun-2022.txt","ebd_sensitive_relMay-2022_IN.txt") 
+readcleanrawdata("ebd_IN_relJul-2022.txt","ebd_sensitive_relMay-2022_IN.txt") 
 
 ## add map and grid variables to the dataset (dataframe)
 ## has to be run after the previous step

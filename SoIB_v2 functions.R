@@ -64,6 +64,12 @@ readcleanrawdata = function(rawpath = "ebd_IN_relJun-2022.txt",
   
   write.csv(temp,"indiaspecieslist.csv", row.names=FALSE)
   
+  ## create location file for LULC
+  
+  locdat = data %>% distinct(LOCALITY.ID,LATITUDE,LONGITUDE)
+  write.csv(locdat,"eBird_location_data.csv", row.names=FALSE)
+  
+  
   ## choosing important columns required for further analyses
   
   imp = c("CATEGORY","COMMON.NAME","OBSERVATION.COUNT",
@@ -209,7 +215,6 @@ readcleanrawdata = function(rawpath = "ebd_IN_relJun-2022.txt",
   data = data %>% filter(year < 2022)
   
   ## remove probable mistakes
-  
   
   assign("data",data,.GlobalEnv)
   
