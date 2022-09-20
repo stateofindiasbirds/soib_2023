@@ -353,6 +353,9 @@ data_reg <- temp1 %>%
          PROP.CELL.COV = if_else(NO.CELLS == 0, as.numeric(NA_integer_), PROP.CELL.COV)) %>% 
   dplyr::select(-TOT.LISTS)
 
+
+# for change in representation of regions
+
 data_reg_change1 <- data_reg %>%
   st_drop_geometry() %>% 
   dplyr::select(ECO_RECLASS2, PERIOD, NO.LISTS) %>% 
@@ -365,7 +368,14 @@ data_reg_change1 <- data_reg %>%
   # proportional change (not percent)
   summarise(CHANGE1 = `2021` / `pre-2000`,
             CHANGE2 = `2021` / `1990-1999`,
-            CHANGE3 = `2021` / `pre-1990`)
+            CHANGE3 = `2021` / `pre-1990`) %>% 
+  pivot_longer(cols = contains("CHANGE"), 
+               names_to = "COMPARISON", names_transform = ~ str_remove(.x, "CHANGE"),
+               values_to = "CHANGE") %>% 
+  mutate(COMPARISON.LAB = case_when(COMPARISON == 1 ~ "pre-2000 to 2021",
+                                    COMPARISON == 2 ~ "1990-1999 to 2021",
+                                    COMPARISON == 3 ~ "pre-1990 to 2021")) %>% 
+  left_join(ecoregions)
 
 data_reg_change2 <- data_reg %>%
   st_drop_geometry() %>% 
@@ -380,7 +390,13 @@ data_reg_change2 <- data_reg %>%
   summarise(CHANGE1 = `2021` / `pre-2000`,
             CHANGE2 = `2021` / `1990-1999`,
             CHANGE3 = `2021` / `pre-1990`) %>% 
-  mutate(across(2:4, ~ round(.x, 4)))
+  pivot_longer(cols = contains("CHANGE"), 
+               names_to = "COMPARISON", names_transform = ~ str_remove(.x, "CHANGE"),
+               values_to = "CHANGE") %>% 
+  mutate(COMPARISON.LAB = case_when(COMPARISON == 1 ~ "pre-2000 to 2021",
+                                    COMPARISON == 2 ~ "1990-1999 to 2021",
+                                    COMPARISON == 3 ~ "pre-1990 to 2021")) %>% 
+  left_join(ecoregions)
 
 data_reg_change3 <- data_reg %>%
   st_drop_geometry() %>% 
@@ -395,7 +411,13 @@ data_reg_change3 <- data_reg %>%
   summarise(CHANGE1 = `2021` / `pre-2000`,
             CHANGE2 = `2021` / `1990-1999`,
             CHANGE3 = `2021` / `pre-1990`) %>% 
-  mutate(across(2:4, ~ round(.x, 4)))
+  pivot_longer(cols = contains("CHANGE"), 
+               names_to = "COMPARISON", names_transform = ~ str_remove(.x, "CHANGE"),
+               values_to = "CHANGE") %>% 
+  mutate(COMPARISON.LAB = case_when(COMPARISON == 1 ~ "pre-2000 to 2021",
+                                    COMPARISON == 2 ~ "1990-1999 to 2021",
+                                    COMPARISON == 3 ~ "pre-1990 to 2021")) %>% 
+  left_join(ecoregions)
 
 
 
@@ -505,6 +527,59 @@ ggsave("hist_spread/figs/hist_lists.png", hist_lists,
        width = 7, height = 12, units = "in", dpi = 300)
 
 ### 2a. Regions: change in representation (maps) ####
+
+
+map4_nolists <- gg_map(data = data_reg_change1, sf = 1, 
+                       facetvar = COMPARISON.LAB, ncol = 3,
+                       poly1 = indiamap, 
+                       mainvar = CHANGE, 
+                       title = "Change in absolute birding intensity in grid cells across the country",
+                       subtitle = "Fill: proportional change in percentage contribution of grid cells to total lists per time period (grey: zero lists).",
+                       legend_title = "Proportional change")
+
+ggsave("hist_spread/figs/map4_nolists.png", map4_nolists,
+       width = 10, height = 10, units = "in", dpi = 300)
+
+
+reg_map2_proplists <- ggplot(data = data0, aes(LONGITUDE, LATITUDE)) +
+  facet_wrap(~ PERIOD, ncol = 2) +
+  geom_polygon(data = indiamap,
+               aes(long, lat, group = group),
+               colour = "black", fill = NA, size = 0.2) +
+  geom_polygon(data = data0grid, 
+               aes(long, lat, group = group, fill = log(NO.LISTS))) +
+  scale_fill_viridis_c(na.value = "#CCCCCC") +
+  labs(title = "Birding intensity in grid cells across the country",
+       subtitle = "Fill: log-transformed no. of lists per grid cell per time period (grey: zero lists).",
+       fill = "log(no. of lists)") +
+  theme(axis.line = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        legend.position = "bottom")
+
+ggsave("hist_spread/figs/map1_nolists.png", map1_nolists,
+       width = 10, height = 10, units = "in", dpi = 300)
+
+reg_map3_cellcov <- ggplot(data = data0, aes(LONGITUDE, LATITUDE)) +
+  facet_wrap(~ PERIOD, ncol = 2) +
+  geom_polygon(data = indiamap,
+               aes(long, lat, group = group),
+               colour = "black", fill = NA, size = 0.2) +
+  geom_polygon(data = data0grid, 
+               aes(long, lat, group = group, fill = log(NO.LISTS))) +
+  scale_fill_viridis_c(na.value = "#CCCCCC") +
+  labs(title = "Birding intensity in grid cells across the country",
+       subtitle = "Fill: log-transformed no. of lists per grid cell per time period (grey: zero lists).",
+       fill = "log(no. of lists)") +
+  theme(axis.line = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        legend.position = "bottom")
+
+ggsave("hist_spread/figs/map1_nolists.png", map1_nolists,
+       width = 10, height = 10, units = "in", dpi = 300)
 
 ### 2b. Regions: contribution to national dataset ####
 

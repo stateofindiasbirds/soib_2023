@@ -101,3 +101,64 @@ joinmapvars = function(data, admin = T, grids = T){
 }
 
 
+
+### creating maps with ggplot ########################################
+
+# Indirectly referring to variables:
+# https://ggplot2-book.org/programming.html#indirectly-referring-to-variables
+
+# The key to calling a tidy evaluation function inside of another function is to 
+# quote (with enquo()) and unquote (with !!).
+# from https://www.tidyverse.org/blog/2018/07/ggplot2-tidy-evaluation/
+
+gg_map <- function(data, datalong, datalat, sf = 1, facetvar, ncol = 2,
+                   poly1, poly1long = long, poly1lat = lat,
+                   poly2, poly2long = long, poly2lat = lat,
+                   mainvar, na_fill = "#CCCCCC",
+                   title, subtitle, legend_title) {
+  
+  # if the data object provided is an sf object, it should also be used in the geom_sf() call
+  if (sf == 1) {
+    data_sf <- data
+  }
+  
+  # "enquoting" the data-vars for tidyeval
+  
+  facetvar <- enquo(facetvar)
+  mainvar <- enquo(mainvar)
+  # na_fill <- enquo(na_fill)
+  # title <- enquo(title)
+  # subtitle <- enquo(subtitle)
+  # legend_title <- enquo(legend_title)
+  
+  datalong <- enquo(datalong)
+  datalat <- enquo(datalat)
+  poly1long <- enquo(poly1long)
+  poly1lat <- enquo(poly1lat)
+  poly2long <- enquo(poly2long)
+  poly2lat <- enquo(poly2lat)
+  
+  
+  # plotting
+  
+  ggplot(data, aes(!!datalong, !!datalat)) +
+    facet_wrap(vars(!!facetvar), ncol = ncol) +
+    geom_polygon(data = poly1,
+                 aes(!!poly1long, !!poly1lat, group = group),
+                 colour = "black", fill = NA, size = 0.2) +
+    # geom_polygon(data = poly2,
+    #              aes(!!poly2long, !!poly2lat, group = group, fill = !!mainvar)) +
+    {if (sf == 1) {
+      geom_sf(data = data_sf, aes(geometry = geometry))
+    }} +
+    scale_fill_viridis_c(na.value = na_fill) +
+    labs(title = title,
+         subtitle = subtitle,
+         fill = legend_title) +
+    theme(axis.line = element_blank(),
+          axis.title = element_blank(),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          legend.position = "bottom")
+  
+}
