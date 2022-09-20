@@ -5,9 +5,9 @@
 sf_use_s2(FALSE)
 temp <- st_read(dsn = "hist_spread/Ecoregions2017", layer = "Ecoregions2017")
 
-indiamap <- indiamap %>% st_as_sf() %>% dplyr::select(geometry)
-st_crs(indiamap) <- st_crs(temp)
+indiamap2 <- indiamap %>% st_as_sf() %>% dplyr::select(geometry)
+st_crs(indiamap2) <- st_crs(temp)
 
 ecoregions <- temp %>% 
   dplyr::select("ECO_NAME") %>% 
-  st_intersection(indiamap)
+  st_intersection(indiamap2)

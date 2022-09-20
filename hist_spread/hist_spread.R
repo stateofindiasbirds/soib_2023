@@ -288,16 +288,17 @@ grid_cov_timeline <- temp1 %>%
 
 ##### region-level (excluding marine) ####
 
-
 # getting info of all grid cells per region
+# (produces NAs because lots of cells outside)
 eco_grids <- gridmapg1 %>% 
   st_as_sf() %>% 
   st_set_crs(st_crs(ecoregions)) %>% 
   st_join(ecoregions) %>% 
-  left_join(reclassed) %>% 
   rename(GRIDG1 = id) %>% 
   group_by(ECO_RECLASS2) %>% 
-  summarise(TOT.CELLS = n_distinct(GRIDG1))
+  summarise(TOT.CELLS = n_distinct(GRIDG1)) %>% 
+  filter(!is.na(ECO_RECLASS2)) %>% 
+  st_drop_geometry() # we only need this to later join using ECO_RECLASS2
 
 
 temp1 <- data_hist %>% 
@@ -305,63 +306,96 @@ temp1 <- data_hist %>%
   st_as_sf(coords = c("LONGITUDE", "LATITUDE")) %>% 
   st_set_crs(st_crs(ecoregions)) %>% 
   st_join(ecoregions) %>% 
-  left_join(reclassed) %>% 
   group_by(TIME.SOIB1) %>% 
   mutate(TOT.LISTS = n_distinct(GROUP.ID)) %>% 
   group_by(TIME.SOIB1, ECO_RECLASS2) %>% 
   left_join(eco_grids) %>% 
   summarise(NO.LISTS = n_distinct(GROUP.ID),
             TOT.LISTS = min(TOT.LISTS),
+            # out of total lists in country in time period, how many in this region?
             PROP.LISTS = 100*NO.LISTS/TOT.LISTS,
             NO.CELLS = n_distinct(GRIDG1),
             TOT.CELLS = min(TOT.CELLS),
-            PROP.CELLS = 100*NO.CELLS/TOT.CELLS) %>% 
+            # out of total cells in region, how many covered?
+            PROP.CELL.COV = 100*NO.CELLS/TOT.CELLS) %>% 
   ungroup() %>% 
   rename(PERIOD = TIME.SOIB1)
 
-# temp2 <- data_hist %>% 
-#   left_join(regions) %>% 
-#   group_by(TIME.SOIB2) %>% 
-#   mutate(TOT.LISTS = n_distinct(GROUP.ID)) %>% 
-#   group_by(TIME.SOIB2, REGION) %>% 
-#   summarise(NO.LISTS = n_distinct(GROUP.ID),
-#             TOT.LISTS = min(TOT.LISTS),
-#             PROP.LISTS = 100*NO.LISTS/TOT.LISTS) %>% 
-#   ungroup() %>% 
-#   rename(PERIOD = TIME.SOIB2) %>% 
-#   # removing 2021 since temp1 already has
-#   filter(PERIOD != "2021")
+temp2 <- data_hist %>% 
+  bind_rows(data_cur) %>% 
+  st_as_sf(coords = c("LONGITUDE", "LATITUDE")) %>% 
+  st_set_crs(st_crs(ecoregions)) %>% 
+  st_join(ecoregions) %>% 
+  group_by(TIME.SOIB2) %>% 
+  mutate(TOT.LISTS = n_distinct(GROUP.ID)) %>% 
+  group_by(TIME.SOIB2, ECO_RECLASS2) %>% 
+  left_join(eco_grids) %>% 
+  summarise(NO.LISTS = n_distinct(GROUP.ID),
+            TOT.LISTS = min(TOT.LISTS),
+            # out of total lists in country in time period, how many in this region?
+            PROP.LISTS = 100*NO.LISTS/TOT.LISTS,
+            NO.CELLS = n_distinct(GRIDG1),
+            TOT.CELLS = min(TOT.CELLS),
+            # out of total cells in region, how many covered?
+            PROP.CELL.COV = 100*NO.CELLS/TOT.CELLS) %>% 
+  ungroup() %>%
+  rename(PERIOD = TIME.SOIB2) %>%
+  # removing 2021 since temp1 already has
+  filter(PERIOD != "2021")
 
 data_reg <- temp1 %>% 
   bind_rows(temp2) %>% 
   mutate(PERIOD = factor(PERIOD, levels = soib_levels)) %>% 
-  # removing NA regions (marine)
+  # removing NA regions in ecoregions name but where data exists (i.e., marine regions)
   filter(!is.na(ECO_RECLASS2)) %>% 
   # converting metrics to NA when number of lists = 0 (to visualise non-overlap)
-  mutate(PROP.LISTS = if_else(NO.LISTS == 0, as.numeric(NA_integer_), .x),
-         PROP.CELLS = if_else(NO.CELLS == 0, as.numeric(NA_integer_), .x)) %>% 
-  dplyr::select(-c(TOT.LISTS, CELLS.1, CELLS.10, CELLS.20, CELLS.50))
+  mutate(PROP.LISTS = if_else(NO.LISTS == 0, as.numeric(NA_integer_), PROP.LISTS),
+         PROP.CELL.COV = if_else(NO.CELLS == 0, as.numeric(NA_integer_), PROP.CELL.COV)) %>% 
+  dplyr::select(-TOT.LISTS)
 
 data_reg_change1 <- data_reg %>%
+  st_drop_geometry() %>% 
+  dplyr::select(ECO_RECLASS2, PERIOD, NO.LISTS) %>% 
   pivot_wider(names_from = PERIOD, values_from = NO.LISTS) %>%
+  # filling zeros for region-period combinations
+  mutate(across(2:5, ~ replace_na(.x, 0))) %>% 
+  # adding 1 to all to allow calculation of proportional change
+  mutate(across(2:5, ~ .x + 1)) %>% 
   group_by(ECO_RECLASS2) %>%
-  summarise(CHANGE1 = `2021` - `pre-2000`,
-            CHANGE2 = `2021` - `1990-1999`,
-            CHANGE3 = `2021` - `pre-1990`)
+  # proportional change (not percent)
+  summarise(CHANGE1 = `2021` / `pre-2000`,
+            CHANGE2 = `2021` / `1990-1999`,
+            CHANGE3 = `2021` / `pre-1990`)
 
 data_reg_change2 <- data_reg %>%
+  st_drop_geometry() %>% 
+  dplyr::select(ECO_RECLASS2, PERIOD, PROP.LISTS) %>% 
   pivot_wider(names_from = PERIOD, values_from = PROP.LISTS) %>%
+  # filling zeros for region-period combinations
+  mutate(across(2:5, ~ replace_na(.x, 0))) %>% 
+  # adding 10^(-6) to all to allow calculation of proportional change
+  mutate(across(2:5, ~ .x + 10^(-6))) %>% 
   group_by(ECO_RECLASS2) %>%
-  summarise(CHANGE1 = `2021` - `pre-2000`,
-            CHANGE2 = `2021` - `1990-1999`,
-            CHANGE3 = `2021` - `pre-1990`)
+  # proportional change (not percent)
+  summarise(CHANGE1 = `2021` / `pre-2000`,
+            CHANGE2 = `2021` / `1990-1999`,
+            CHANGE3 = `2021` / `pre-1990`) %>% 
+  mutate(across(2:4, ~ round(.x, 4)))
 
 data_reg_change3 <- data_reg %>%
-  pivot_wider(names_from = PERIOD, values_from = PROP.CELLS) %>%
+  st_drop_geometry() %>% 
+  dplyr::select(ECO_RECLASS2, PERIOD, PROP.CELL.COV) %>% 
+  pivot_wider(names_from = PERIOD, values_from = PROP.CELL.COV) %>%
+  # filling zeros for region-period combinations
+  mutate(across(2:5, ~ replace_na(.x, 0))) %>% 
+  # adding 10^(-6) to all to allow calculation of proportional change
+  mutate(across(2:5, ~ .x + 10^(-6))) %>% 
   group_by(ECO_RECLASS2) %>%
-  summarise(CHANGE1 = `2021` - `pre-2000`,
-            CHANGE2 = `2021` - `1990-1999`,
-            CHANGE3 = `2021` - `pre-1990`)
+  # proportional change (not percent)
+  summarise(CHANGE1 = `2021` / `pre-2000`,
+            CHANGE2 = `2021` / `1990-1999`,
+            CHANGE3 = `2021` / `pre-1990`) %>% 
+  mutate(across(2:4, ~ round(.x, 4)))
 
 
 
@@ -436,10 +470,21 @@ ggsave("hist_spread/figs/map3_stanlists.png", map3_stanlists,
 
 ### 1b. Histograms ####
 
+
+# for grids histogram, converting true CELL.ID to continuous values 
+# (i.e., removing grid cells falling outside country boundary) so that
+# histogram can be more intuitive because x axis will be serial
+serial <- data0 %>% 
+  summarise(GRIDG1 = unique(GRIDG1)) %>% 
+  rownames_to_column("GRIDG1.SERIAL") %>% 
+  mutate(GRIDG1.SERIAL = as.integer(GRIDG1.SERIAL))
+data0 <- data0 %>% left_join(serial)
+
+# turns out, this isn't very informative because 2021 has so much that nothing is visible
 hist_grids <- ggplot(filter(data0, NO.LISTS != 0)) +
   facet_wrap(~ PERIOD, ncol = 1) +
   scale_y_continuous(expand = c(0, 0)) +
-  geom_histogram(aes(GRIDG1), bins = 60) +
+  geom_histogram(aes(as.vector(GRIDG1.SERIAL)), bins = 60) +
   labs(x = "Cell ID")
 
 ggsave("hist_spread/figs/hist_grids.png", hist_grids,
