@@ -89,11 +89,11 @@ source("hist_spread/hist_spread_functions.R")
 # rm(data)
 # 
 # 
-# # region data (from ashwinv2005/state-of-indias-birds)
-# regions <- read_csv("hist_spread/districtlist.csv") %>%
-#   rename(REGION = region,
-#          STATE = ST_NM,
-#          COUNTY = DISTRICT)
+# # ecoregions
+# source("hist_spread/ecoregions.R")
+# # reclassification of ecoregion data (from discussion with group)
+# reclass <- read_csv("hist_spread/Ecoregions2017_reclassification.csv")
+# ecoregions <- ecoregions %>% left_join(reclass)
 
 
 ### Data: load .RData files (SKIP if above section run) ####
@@ -106,11 +106,11 @@ load("maps.RData")
 # latest .RData with required objects (created in previous section)
 load("hist_spread/hist_spread.RData")
 
-# region data (from ashwinv2005/state-of-indias-birds)
-regions <- read_csv("hist_spread/districtlist.csv") %>% 
-  rename(REGION = region,
-         STATE = ST_NM,
-         COUNTY = DISTRICT)
+# ecoregions
+source("hist_spread/ecoregions.R")
+# reclassification of ecoregion data (from discussion with group)
+reclass <- read_csv("hist_spread/Ecoregions2017_reclassification.csv")
+ecoregions <- ecoregions %>% left_join(reclass)
 
 
 ### Preparing data for analyses ####
