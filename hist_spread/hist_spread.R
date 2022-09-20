@@ -45,22 +45,25 @@ source("hist_spread/hist_spread_functions.R")
 #   # have to group-slice again as space, time, effort can vary btwn observers in each GROUP.ID
 #   group_by(GROUP.ID) %>%
 #   slice(1) %>%
-#   ungroup() %>%
-#   mutate(TIME.SOIB1 = case_when(YEAR < 1990 ~ "pre-1990",
-#                                 YEAR %in% 1990:1999 ~ "1990-1999",
-#                                 YEAR %in% 2000:2006 ~ "2000-2006",
-#                                 YEAR %in% 2007:2010 ~ "2007-2010",
-#                                 YEAR > 2010 ~ as.character(YEAR)),
+#   ungroup() %>% 
+#   # adding migratory year column
+#   mutate(M.YEAR = if_else(MONTH > 5, YEAR, YEAR -1), # from June to May
+#          M.MONTH = if_else(MONTH > 5, MONTH-5, 12-(5-MONTH))) %>%
+#   mutate(TIME.SOIB1 = case_when(M.YEAR < 1990 ~ "pre-1990",
+#                                 M.YEAR %in% 1990:1999 ~ "1990-1999",
+#                                 M.YEAR %in% 2000:2006 ~ "2000-2006",
+#                                 M.YEAR %in% 2007:2010 ~ "2007-2010",
+#                                 M.YEAR > 2010 ~ as.character(M.YEAR)),
 #          # coarser periods: without splitting historical and 2011-13
-#          TIME.SOIB2 = case_when(YEAR < 2000 ~ "pre-2000",
-#                                 YEAR %in% 2000:2006 ~ "2000-2006",
-#                                 YEAR %in% 2007:2010 ~ "2007-2010",
-#                                 YEAR %in% 2011:2013 ~ "2011-2013",
-#                                 YEAR > 2013 ~ as.character(YEAR)),
+#          TIME.SOIB2 = case_when(M.YEAR < 2000 ~ "pre-2000",
+#                                 M.YEAR %in% 2000:2006 ~ "2000-2006",
+#                                 M.YEAR %in% 2007:2010 ~ "2007-2010",
+#                                 M.YEAR %in% 2011:2013 ~ "2011-2013",
+#                                 M.YEAR > 2013 ~ as.character(M.YEAR)),
 #          # for main paper looking at past, middle and present broadly
-#          TIME.BROAD = case_when(YEAR < 2000 ~ "pre-2000",
-#                                 YEAR %in% 2000:2015 ~ "2000-2015",
-#                                 YEAR > 2015 ~ "2016-present")) %>%
+#          TIME.BROAD = case_when(M.YEAR < 2000 ~ "pre-2000",
+#                                 M.YEAR %in% 2000:2015 ~ "2000-2015",
+#                                 M.YEAR > 2015 ~ "2016-present")) %>%
 #   mutate(TIME.SOIB1 = factor(TIME.SOIB1,
 #                              levels = c("pre-1990", "1990-1999", "2000-2006", "2007-2010",
 #                                         as.character(2011:2021))),
@@ -74,12 +77,12 @@ source("hist_spread/hist_spread_functions.R")
 # 
 # 
 # # adding map variables to main data
-# load("maps.RData") # Ashwin's maps data 
+# load("maps.RData") # Ashwin's maps data
 # timeline <- joinmapvars(timeline)
 # 
 # 
-# data_hist <- timeline %>% filter(YEAR < 2000)
-# data_cur <- timeline %>% filter(YEAR == 2021)
+# data_hist <- timeline %>% filter(M.YEAR < 2000)
+# data_cur <- timeline %>% filter(M.YEAR == 2021)
 # 
 # 
 # save(data_hist, data_cur, timeline, file = "hist_spread/hist_spread.RData")
@@ -229,12 +232,12 @@ data0_change_stan <- data0 %>%
 ##### full timeline (for data progression line graph) ####
 
 temp1 <- timeline %>%
-  filter(YEAR != 2022) %>% 
+  filter(M.YEAR != 2022) %>% 
   group_by(TIME.SOIB1) %>% 
   mutate(TOT.LISTS = n_distinct(GROUP.ID),
          # for axis tick position
-         MEDIAN.YEAR = median(YEAR)) %>% 
-  group_by(TIME.SOIB1, TOT.LISTS, MEDIAN.YEAR, GRIDG1) %>% 
+         MEDIAN.M.YEAR = median(M.YEAR)) %>% 
+  group_by(TIME.SOIB1, TOT.LISTS, MEDIAN.M.YEAR, GRIDG1) %>% 
   summarise(NO.LISTS = n_distinct(GROUP.ID),
             CELLS.1 = if_else(NO.LISTS >= 1, 1, 0),
             CELLS.10 = if_else(NO.LISTS >= 10, 1, 0),
@@ -251,12 +254,12 @@ temp1 <- timeline %>%
   mutate(RESOLUTION = 1)
 
 temp2 <- timeline %>%
-  filter(YEAR != 2022) %>% 
+  filter(M.YEAR != 2022) %>% 
   group_by(TIME.SOIB2) %>% 
   mutate(TOT.LISTS = n_distinct(GROUP.ID),
          # for axis tick position
-         MEDIAN.YEAR = median(YEAR)) %>% 
-  group_by(TIME.SOIB2, TOT.LISTS, MEDIAN.YEAR, GRIDG1) %>% 
+         MEDIAN.M.YEAR = median(M.YEAR)) %>% 
+  group_by(TIME.SOIB2, TOT.LISTS, MEDIAN.M.YEAR, GRIDG1) %>% 
   summarise(NO.LISTS = n_distinct(GROUP.ID),
             CELLS.1 = if_else(NO.LISTS >= 1, 1, 0),
             CELLS.10 = if_else(NO.LISTS >= 10, 1, 0),
@@ -274,7 +277,7 @@ temp2 <- timeline %>%
 
 grid_cov_timeline <- temp1 %>% 
   full_join(temp2) %>% 
-  arrange(MEDIAN.YEAR) %>% 
+  arrange(MEDIAN.M.YEAR) %>% 
   mutate(PERIOD = if_else(is.na(as.character(TIME.SOIB1)), 
                           as.character(TIME.SOIB2), 
                           as.character(TIME.SOIB1))) 
@@ -284,20 +287,6 @@ grid_cov_timeline <- temp1 %>%
   #                                         as.character(TIME.SOIB1))))
 
 ##### region-level (excluding marine) ####
-
-# Ecoregions2017 https://ecoregions.appspot.com/
-
-sf_use_s2(FALSE)
-
-temp <- st_read(dsn = "hist_spread/Ecoregions2017", layer = "Ecoregions2017")
-
-indiamap <- indiamap %>% st_as_sf() %>% dplyr::select(geometry)
-st_crs(indiamap) <- st_crs(temp)
-
-ecoregions <- temp %>% 
-  dplyr::select("ECO_NAME") %>% 
-  st_intersection(indiamap)
-plot(ecoregions)
 
 
 # getting info of all grid cells per region
@@ -486,7 +475,7 @@ ggplot(data2,
 temp1 <- grid_cov_timeline %>% filter(RESOLUTION == 1)
 temp2 <- grid_cov_timeline %>% filter(RESOLUTION == 2)
 
-dataprog_grids <- ((ggplot(temp1, aes(x = MEDIAN.YEAR)) +
+dataprog_grids <- ((ggplot(temp1, aes(x = MEDIAN.M.YEAR)) +
     annotate("rect", 
              xmin = 1981.5, xmax = 1995.5, ymin = 0, ymax = +Inf, 
              fill = "#EBEAEC", col = NA, alpha = 0.75) +
@@ -500,7 +489,7 @@ dataprog_grids <- ((ggplot(temp1, aes(x = MEDIAN.YEAR)) +
     geom_point(aes(y = CELLS.10), size = 2) +
     geom_point(aes(y = CELLS.20), size = 2) +
     geom_hline(yintercept = 1000, linetype = "dotted") +
-    scale_x_continuous(breaks = temp1$MEDIAN.YEAR,
+    scale_x_continuous(breaks = temp1$MEDIAN.M.YEAR,
                        labels = temp1$PERIOD, 
                        limits = c(1980, 2021)) +
     scale_y_continuous(breaks = seq(0, 5000, 500), 
@@ -509,7 +498,7 @@ dataprog_grids <- ((ggplot(temp1, aes(x = MEDIAN.YEAR)) +
     labs(x = "", y = "Number of grid cells with threshold lists",
          title = "At finer temporal resolution",
          col = c("Threshold lists per cell"))) +
-  (ggplot(temp2, aes(x = MEDIAN.YEAR)) +
+  (ggplot(temp2, aes(x = MEDIAN.M.YEAR)) +
      annotate("rect", 
               xmin = 1981.5, xmax = 1995.5, ymin = 0, ymax = +Inf, 
               fill = "#EBEAEC", col = NA, alpha = 0.75) +
@@ -523,7 +512,7 @@ dataprog_grids <- ((ggplot(temp1, aes(x = MEDIAN.YEAR)) +
      geom_point(aes(y = CELLS.10), size = 2) +
      geom_point(aes(y = CELLS.20), size = 2) +
      geom_hline(yintercept = 1000, linetype = "dotted") +
-     scale_x_continuous(breaks = temp2$MEDIAN.YEAR,
+     scale_x_continuous(breaks = temp2$MEDIAN.M.YEAR,
                         labels = temp2$PERIOD, 
                         limits = c(1980, 2021)) +
      scale_y_continuous(breaks = seq(0, 5000, 500), 
@@ -541,20 +530,20 @@ ggsave("hist_spread/figs/dataprog_grids.png", dataprog_grids,
 
 
 axislabels <- grid_cov_timeline %>% 
-  dplyr::select(MEDIAN.YEAR, PERIOD) %>% 
-  mutate(LAG.YEAR = lag(MEDIAN.YEAR),
-         LEAD.YEAR = lead(MEDIAN.YEAR)) %>% 
-  mutate(LABELS = case_when((PERIOD != lag(PERIOD) & MEDIAN.YEAR == LAG.YEAR) ~ 
+  dplyr::select(MEDIAN.M.YEAR, PERIOD) %>% 
+  mutate(LAG.M.YEAR = lag(MEDIAN.M.YEAR),
+         LEAD.M.YEAR = lead(MEDIAN.M.YEAR)) %>% 
+  mutate(LABELS = case_when((PERIOD != lag(PERIOD) & MEDIAN.M.YEAR == LAG.M.YEAR) ~ 
                               glue("{PERIOD}\n{lag(PERIOD)}"),
-                            (PERIOD != lead(PERIOD) & MEDIAN.YEAR == LEAD.YEAR) ~ 
+                            (PERIOD != lead(PERIOD) & MEDIAN.M.YEAR == LEAD.M.YEAR) ~ 
                               glue("{PERIOD}\n{lead(PERIOD)}"),
                             TRUE ~ PERIOD)) %>% 
-  group_by(MEDIAN.YEAR) %>% 
+  group_by(MEDIAN.M.YEAR) %>% 
   slice(1) %>% 
   ungroup()
 
 dataprog_lists <- ggplot(grid_cov_timeline, 
-                         aes(x = MEDIAN.YEAR, y = log(TOT.LISTS/1000), col = as.factor(RESOLUTION))) +
+                         aes(x = MEDIAN.M.YEAR, y = log(TOT.LISTS/1000), col = as.factor(RESOLUTION))) +
   geom_point(size = 2) +
   geom_line(size = 1) +
   scale_colour_manual(values = c("goldenrod", "dark green"), 
@@ -562,7 +551,7 @@ dataprog_lists <- ggplot(grid_cov_timeline,
                       labels = c("Fine", "Coarse")) +
   geom_hline(yintercept = log(2), linetype = "dotted") +
   annotate("text", x = 1981, y = (log(2)+0.1), label = "2K lists") +
-  scale_x_continuous(breaks = axislabels$MEDIAN.YEAR,
+  scale_x_continuous(breaks = axislabels$MEDIAN.M.YEAR,
                      labels = axislabels$LABELS,
                      limits = c(1980, 2021)) +
   scale_y_continuous(breaks = log(seq(0, 500, 50)),
