@@ -111,15 +111,21 @@ joinmapvars = function(data, admin = T, grids = T){
 # quote (with enquo()) and unquote (with !!).
 # from https://www.tidyverse.org/blog/2018/07/ggplot2-tidy-evaluation/
 
-gg_map <- function(data, datalong, datalat, sf = 1, facetvar, ncol = 2,
+gg_map <- function(data, datalong, datalat, sf = TRUE, facetvar, ncol = 2,
                    poly1, poly1long = long, poly1lat = lat,
-                   poly2, poly2long = long, poly2lat = lat,
+                   poly2, poly2long = long, poly2lat = lat, poly2type = "grid",
                    mainvar, na_fill = "#CCCCCC",
                    title, subtitle, legend_title) {
   
   # if the data object provided is an sf object, it should also be used in the geom_sf() call
-  if (sf == 1) {
+  if (sf == TRUE) {
     data_sf <- data
+  }
+  # if polygon to be plotted within India is grid, size should be bigger than for regions
+  if (poly2type == "grid") {
+    poly2size <- 0.2
+  } else if (poly2type == "region") {
+    poly2size <- 0.1
   }
   
   # "enquoting" the data-vars for tidyeval
@@ -148,10 +154,11 @@ gg_map <- function(data, datalong, datalat, sf = 1, facetvar, ncol = 2,
                  colour = "black", fill = NA, size = 0.2) +
     # geom_polygon(data = poly2,
     #              aes(!!poly2long, !!poly2lat, group = group, fill = !!mainvar)) +
-    {if (sf == 1) {
-      geom_sf(data = data_sf, aes(geometry = geometry))
+    {if (sf == TRUE) {
+      geom_sf(data = data_sf, aes(geometry = geometry, fill = !!mainvar),
+              size = poly2size)
     }} +
-    scale_fill_viridis_c(na.value = na_fill) +
+    scale_fill_viridis_c(na.value = na_fill, option = "inferno", label = scales::comma) +
     labs(title = title,
          subtitle = subtitle,
          fill = legend_title) +

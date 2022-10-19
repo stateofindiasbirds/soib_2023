@@ -375,6 +375,10 @@ data_reg_change1 <- data_reg %>%
   mutate(COMPARISON.LAB = case_when(COMPARISON == 1 ~ "pre-2000 to 2021",
                                     COMPARISON == 2 ~ "1990-1999 to 2021",
                                     COMPARISON == 3 ~ "pre-1990 to 2021")) %>% 
+  mutate(COMPARISON.LAB = factor(COMPARISON.LAB, 
+                                 levels = c("pre-1990 to 2021", 
+                                            "1990-1999 to 2021", 
+                                            "pre-2000 to 2021"))) %>% 
   left_join(ecoregions)
 
 data_reg_change2 <- data_reg %>%
@@ -396,6 +400,10 @@ data_reg_change2 <- data_reg %>%
   mutate(COMPARISON.LAB = case_when(COMPARISON == 1 ~ "pre-2000 to 2021",
                                     COMPARISON == 2 ~ "1990-1999 to 2021",
                                     COMPARISON == 3 ~ "pre-1990 to 2021")) %>% 
+  mutate(COMPARISON.LAB = factor(COMPARISON.LAB, 
+                                 levels = c("pre-1990 to 2021", 
+                                            "1990-1999 to 2021", 
+                                            "pre-2000 to 2021"))) %>% 
   left_join(ecoregions)
 
 data_reg_change3 <- data_reg %>%
@@ -417,6 +425,10 @@ data_reg_change3 <- data_reg %>%
   mutate(COMPARISON.LAB = case_when(COMPARISON == 1 ~ "pre-2000 to 2021",
                                     COMPARISON == 2 ~ "1990-1999 to 2021",
                                     COMPARISON == 3 ~ "pre-1990 to 2021")) %>% 
+  mutate(COMPARISON.LAB = factor(COMPARISON.LAB, 
+                                 levels = c("pre-1990 to 2021", 
+                                            "1990-1999 to 2021", 
+                                            "pre-2000 to 2021"))) %>% 
   left_join(ecoregions)
 
 
@@ -528,58 +540,44 @@ ggsave("hist_spread/figs/hist_lists.png", hist_lists,
 
 ### 2a. Regions: change in representation (maps) ####
 
-
-map4_nolists <- gg_map(data = data_reg_change1, sf = 1, 
+map4_nolists <- gg_map(data = data_reg_change1, sf = T, 
                        facetvar = COMPARISON.LAB, ncol = 3,
-                       poly1 = indiamap, 
+                       poly1 = indiamap, poly2type = "region",
                        mainvar = CHANGE, 
-                       title = "Change in absolute birding intensity in grid cells across the country",
-                       subtitle = "Fill: proportional change in percentage contribution of grid cells to total lists per time period (grey: zero lists).",
-                       legend_title = "Proportional change")
+                       title = "Change in absolute birding intensity in ecoregions of the country",
+                       subtitle = "Fill: proportional change in number of lists from historical time to present day, over ecoregions (grey: zero lists).",
+                       # to signifiy "times" proportional change
+                       legend_title = "Proportional (-fold) change")
 
 ggsave("hist_spread/figs/map4_nolists.png", map4_nolists,
-       width = 10, height = 10, units = "in", dpi = 300)
+       width = 17, height = 8, units = "in", dpi = 500)
 
+# out of total lists in country in time period, how many in this region?
+map5_proplists <- gg_map(data = data_reg_change2, sf = T, 
+                         facetvar = COMPARISON.LAB, ncol = 3,
+                         poly1 = indiamap, poly2type = "region",
+                         mainvar = CHANGE, 
+                         title = "Change in proportional birding intensity in ecoregions of the country",
+                         subtitle = "Fill: proportional change in percentage contribution to total lists from historical time to present day, over ecoregions (grey: zero lists).",
+                         # to signifiy "times" proportional change
+                         legend_title = "Proportional (-fold) change")
 
-reg_map2_proplists <- ggplot(data = data0, aes(LONGITUDE, LATITUDE)) +
-  facet_wrap(~ PERIOD, ncol = 2) +
-  geom_polygon(data = indiamap,
-               aes(long, lat, group = group),
-               colour = "black", fill = NA, size = 0.2) +
-  geom_polygon(data = data0grid, 
-               aes(long, lat, group = group, fill = log(NO.LISTS))) +
-  scale_fill_viridis_c(na.value = "#CCCCCC") +
-  labs(title = "Birding intensity in grid cells across the country",
-       subtitle = "Fill: log-transformed no. of lists per grid cell per time period (grey: zero lists).",
-       fill = "log(no. of lists)") +
-  theme(axis.line = element_blank(), 
-        axis.title = element_blank(), 
-        axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        legend.position = "bottom")
+ggsave("hist_spread/figs/map5_proplists.png", map5_proplists,
+       width = 17, height = 8, units = "in", dpi = 500)
 
-ggsave("hist_spread/figs/map1_nolists.png", map1_nolists,
-       width = 10, height = 10, units = "in", dpi = 300)
+# out of total cells in region, how many covered?
+map6_cellscov <- gg_map(data = data_reg_change3, sf = T, 
+                        facetvar = COMPARISON.LAB, ncol = 3,
+                        poly1 = indiamap, poly2type = "region",
+                        mainvar = CHANGE, 
+                        title = "Change in spatial coverage within ecoregions of the country",
+                        subtitle = "Fill: proportional change in percentage coverage of 24km \u00d7 24km grid cells within ecoregions, from historical time to present day (grey: zero lists).",
+                        # to signifiy "times" proportional change
+                        legend_title = "Proportional (-fold) change")
 
-reg_map3_cellcov <- ggplot(data = data0, aes(LONGITUDE, LATITUDE)) +
-  facet_wrap(~ PERIOD, ncol = 2) +
-  geom_polygon(data = indiamap,
-               aes(long, lat, group = group),
-               colour = "black", fill = NA, size = 0.2) +
-  geom_polygon(data = data0grid, 
-               aes(long, lat, group = group, fill = log(NO.LISTS))) +
-  scale_fill_viridis_c(na.value = "#CCCCCC") +
-  labs(title = "Birding intensity in grid cells across the country",
-       subtitle = "Fill: log-transformed no. of lists per grid cell per time period (grey: zero lists).",
-       fill = "log(no. of lists)") +
-  theme(axis.line = element_blank(), 
-        axis.title = element_blank(), 
-        axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        legend.position = "bottom")
+ggsave("hist_spread/figs/map6_cellscov.png", map6_cellscov,
+       width = 17, height = 8, units = "in", dpi = 500)
 
-ggsave("hist_spread/figs/map1_nolists.png", map1_nolists,
-       width = 10, height = 10, units = "in", dpi = 300)
 
 ### 2b. Regions: contribution to national dataset ####
 
