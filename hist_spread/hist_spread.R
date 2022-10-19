@@ -4,8 +4,6 @@
 # All these analyses are using the base dataset of complete checklists, without any of the SoIB filters, 
 # but with removal of duplicate lists.
 
-### Dependencies in the sections "Setup" and "Data:" ###
-
 
 ### Setup ####
 
@@ -25,93 +23,8 @@ theme_set(theme_classic() +
 # functions for historical spread analyses
 source("hist_spread/hist_spread_functions.R")
 
-### Data: initial setup (SKIP if latest hist_spread.RData exists) ####
-
-### uncomment below if first time setting up. else, just load .RData (comment/skip lines below)
-
-# # filtering data for this analysis
-# load("ebd_IN_relJun-2022.RData")
-# 
-# tictoc::tic("distinct() over slice()") # total 64 secs
-# timeline <- data %>%
-#   # filtering for complete lists
-#   filter(ALL.SPECIES.REPORTED == 1 & PROTOCOL.TYPE != "Incidental") %>%
-#   # slicing to original checklist-level (GROUP.ID)
-#   distinct(GROUP.ID,
-#            LOCALITY.ID, LOCALITY, LOCALITY.TYPE, STATE, COUNTY, LATITUDE, LONGITUDE, # space
-#            OBSERVATION.DATE, YEAR, MONTH, DAY.M, TIME.OBSERVATIONS.STARTED, # time
-#            PROTOCOL.TYPE, DURATION.MINUTES, EFFORT.DISTANCE.KM, NUMBER.OBSERVERS, # effort
-#            TRIP.COMMENTS) %>%  # done in 41 seconds on server (faster than slice)
-#   # have to group-slice again as space, time, effort can vary btwn observers in each GROUP.ID
-#   group_by(GROUP.ID) %>%
-#   slice(1) %>%
-#   ungroup() %>% 
-#   # adding migratory year column
-#   mutate(M.YEAR = if_else(MONTH > 5, YEAR, YEAR -1), # from June to May
-#          M.MONTH = if_else(MONTH > 5, MONTH-5, 12-(5-MONTH))) %>%
-#   mutate(TIME.SOIB1 = case_when(M.YEAR < 1990 ~ "pre-1990",
-#                                 M.YEAR %in% 1990:1999 ~ "1990-1999",
-#                                 M.YEAR %in% 2000:2006 ~ "2000-2006",
-#                                 M.YEAR %in% 2007:2010 ~ "2007-2010",
-#                                 M.YEAR > 2010 ~ as.character(M.YEAR)),
-#          # coarser periods: without splitting historical and 2011-13
-#          TIME.SOIB2 = case_when(M.YEAR < 2000 ~ "pre-2000",
-#                                 M.YEAR %in% 2000:2006 ~ "2000-2006",
-#                                 M.YEAR %in% 2007:2010 ~ "2007-2010",
-#                                 M.YEAR %in% 2011:2013 ~ "2011-2013",
-#                                 M.YEAR > 2013 ~ as.character(M.YEAR)),
-#          # for main paper looking at past, middle and present broadly
-#          TIME.BROAD = case_when(M.YEAR < 2000 ~ "pre-2000",
-#                                 M.YEAR %in% 2000:2015 ~ "2000-2015",
-#                                 M.YEAR > 2015 ~ "2016-present")) %>%
-#   mutate(TIME.SOIB1 = factor(TIME.SOIB1,
-#                              levels = c("pre-1990", "1990-1999", "2000-2006", "2007-2010",
-#                                         as.character(2011:2021))),
-#          TIME.SOIB2 = factor(TIME.SOIB2,
-#                              levels = c("pre-2000", "2000-2006", "2007-2010", "2011-2013",
-#                                         as.character(2014:2021))),
-#          TIME.BROAD = factor(TIME.BROAD,
-#                              levels = c("pre-2000", "2000-2015",
-#                                         as.character(2016:2021))))
-# tictoc::toc()
-# 
-# 
-# # adding map variables to main data
-# load("maps.RData") # Ashwin's maps data
-# timeline <- joinmapvars(timeline)
-# 
-# 
-# data_hist <- timeline %>% filter(M.YEAR < 2000)
-# data_cur <- timeline %>% filter(M.YEAR == 2021)
-# 
-# 
-# save(data_hist, data_cur, timeline, file = "hist_spread/hist_spread.RData")
-# rm(data)
-# 
-# 
-# # ecoregions
-# source("hist_spread/ecoregions.R")
-# # reclassification of ecoregion data (from discussion with group)
-# reclass <- read_csv("hist_spread/Ecoregions2017_reclassification.csv")
-# ecoregions <- ecoregions %>% left_join(reclass)
-
-
-### Data: load .RData files (SKIP if above section run) ####
-
-### if latest hist_spread.RData does not exist, comment below and run above section
-
-# Ashwin's maps data
-load("maps.RData")
-
-# latest .RData with required objects (created in previous section)
-load("hist_spread/hist_spread.RData")
-
-# ecoregions
-source("hist_spread/ecoregions.R")
-# reclassification of ecoregion data (from discussion with group)
-reclass <- read_csv("hist_spread/Ecoregions2017_reclassification.csv")
-ecoregions <- ecoregions %>% left_join(reclass)
-
+# importing data
+import_hist_spread_data(init_setup = F)
 
 ### Preparing data for analyses ####
 
