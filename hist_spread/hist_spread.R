@@ -26,7 +26,6 @@ source("hist_spread/hist_spread_functions.R")
 # importing data
 import_hist_spread_data(init_setup = F)
 
-### Preparing data for analyses ####
 
 # comparisons for SoIB
 soib_levels <- c("2021", "pre-2000", "1990-1999", "pre-1990")
@@ -36,7 +35,8 @@ gridmapg1_sf <- gridmapg1 %>%
   st_as_sf() %>% 
   rename(GRIDG1 = id)
 
-##### grid-level data ####
+
+### 1. Grid-level ####
 
 # getting lists metrics (number, proportion, standardised proportion) for 
 # 25x25 cells across time periods
@@ -101,7 +101,7 @@ grid_cov <- temp1 %>%
 all_grids <- temp1 %>% 
   bind_rows(temp2) %>% 
   distinct(GRIDG1)
-  
+
 data0 <- temp1 %>% 
   bind_rows(temp2) %>% 
   mutate(PERIOD = factor(PERIOD, levels = soib_levels)) %>% 
@@ -117,7 +117,7 @@ data0grid <- gridmapg1_sf %>%
   filter(!is.na(PERIOD)) %>% 
   # converting metrics to NA when number of lists = 0 (to visualise non-overlap)
   mutate(across(c(STAN.LISTS, CS.LISTS, PROP.LISTS),
-         ~ if_else(NO.LISTS == 0, as.numeric(NA_integer_), .x))) %>% 
+                ~ if_else(NO.LISTS == 0, as.numeric(NA_integer_), .x))) %>% 
   dplyr::select(-c(TOT.LISTS, CELLS.1, CELLS.10, CELLS.20, CELLS.50))
 
 data0_change_no <- data0 %>%
@@ -141,64 +141,112 @@ data0_change_stan <- data0 %>%
             CHANGE.B = `2021` - `1990-1999`,
             CHANGE.C = `2021` - `pre-1990`)
 
-##### full timeline (for data progression line graph) ####
+### 1a. Maps of spatial spread ####
 
-temp1 <- timeline %>%
-  filter(M.YEAR != 2022) %>% 
-  group_by(TIME.SOIB1) %>% 
-  mutate(TOT.LISTS = n_distinct(GROUP.ID),
-         # for axis tick position
-         MEDIAN.M.YEAR = median(M.YEAR)) %>% 
-  group_by(TIME.SOIB1, TOT.LISTS, MEDIAN.M.YEAR, GRIDG1) %>% 
-  summarise(NO.LISTS = n_distinct(GROUP.ID),
-            CELLS.1 = if_else(NO.LISTS >= 1, 1, 0),
-            CELLS.10 = if_else(NO.LISTS >= 10, 1, 0),
-            CELLS.20 = if_else(NO.LISTS >= 20, 1, 0),
-            CELLS.50 = if_else(NO.LISTS >= 50, 1, 0),
-            CELLS.100 = if_else(NO.LISTS >= 100, 1, 0)) %>% 
-  summarise(CELLS.1 = sum(CELLS.1), # number of cells with at least 1 list
-            CELLS.10 = sum(CELLS.10), # number of cells with at least 10 lists
-            CELLS.20 = sum(CELLS.20), # number of cells with at least 20 lists
-            CELLS.50 = sum(CELLS.50), # number of cells with at least 50 lists
-            CELLS.100 = sum(CELLS.100)) %>% # number of cells with at least 100 lists
-  arrange(TIME.SOIB1) %>% 
-  ungroup() %>% 
-  mutate(RESOLUTION = 1)
+### Number
 
-temp2 <- timeline %>%
-  filter(M.YEAR != 2022) %>% 
-  group_by(TIME.SOIB2) %>% 
-  mutate(TOT.LISTS = n_distinct(GROUP.ID),
-         # for axis tick position
-         MEDIAN.M.YEAR = median(M.YEAR)) %>% 
-  group_by(TIME.SOIB2, TOT.LISTS, MEDIAN.M.YEAR, GRIDG1) %>% 
-  summarise(NO.LISTS = n_distinct(GROUP.ID),
-            CELLS.1 = if_else(NO.LISTS >= 1, 1, 0),
-            CELLS.10 = if_else(NO.LISTS >= 10, 1, 0),
-            CELLS.20 = if_else(NO.LISTS >= 20, 1, 0),
-            CELLS.50 = if_else(NO.LISTS >= 50, 1, 0),
-            CELLS.100 = if_else(NO.LISTS >= 100, 1, 0)) %>% 
-  summarise(CELLS.1 = sum(CELLS.1), # number of cells with at least 1 list
-            CELLS.10 = sum(CELLS.10), # number of cells with at least 10 lists
-            CELLS.20 = sum(CELLS.20), # number of cells with at least 20 lists
-            CELLS.50 = sum(CELLS.50), # number of cells with at least 50 lists
-            CELLS.100 = sum(CELLS.100)) %>% # number of cells with at least 100 lists
-  arrange(TIME.SOIB2) %>% 
-  ungroup() %>% 
-  mutate(RESOLUTION = 2)
+map1_nolists <- ggplot(data = data0, aes(LONGITUDE, LATITUDE)) +
+  facet_wrap(~ PERIOD, ncol = 2) +
+  geom_polygon(data = indiamap,
+               aes(long, lat, group = group),
+               colour = "black", fill = NA, size = 0.2) +
+  geom_polygon(data = data0grid, 
+               aes(long, lat, group = group, fill = log(NO.LISTS))) +
+  scale_fill_viridis_c(na.value = "#CCCCCC") +
+  labs(title = "Birding intensity in grid cells across the country",
+       subtitle = "Fill: log-transformed no. of lists per grid cell per time period (grey: zero lists).",
+       fill = "log(no. of lists)") +
+  theme(axis.line = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        legend.position = "bottom")
 
-grid_cov_timeline <- temp1 %>% 
-  full_join(temp2) %>% 
-  arrange(MEDIAN.M.YEAR) %>% 
-  mutate(PERIOD = if_else(is.na(as.character(TIME.SOIB1)), 
-                          as.character(TIME.SOIB2), 
-                          as.character(TIME.SOIB1))) 
-  # mutate(PERIOD = factor(PERIOD,
-  #                        levels = if_else(is.na(as.character(TIME.SOIB1)), 
-  #                                         as.character(TIME.SOIB2), 
-  #                                         as.character(TIME.SOIB1))))
+ggsave("hist_spread/figs/map1_nolists.png", map1_nolists,
+       width = 10, height = 10, units = "in", dpi = 300)
 
-##### region-level (excluding marine) ####
+### Total proportion
+
+map2_proplists <- ggplot(data = data0, aes(LONGITUDE, LATITUDE)) +
+  facet_wrap(~ PERIOD, ncol = 2) +
+  geom_polygon(data = indiamap,
+               aes(long, lat, group = group),
+               colour = "black", fill = NA, size = 0.2) +
+  geom_polygon(data = data0grid, 
+               aes(long, lat, group = group, fill = PROP.LISTS*100)) +
+  scale_fill_viridis_c(na.value = "#CCCCCC") +
+  labs(title = "How was birding spatially concentrated in different periods?",
+       subtitle = "Fill: proportion of total nationwide lists from each grid cell (grey: zero lists).",
+       fill = "Prop. of lists (%)") +
+  theme(axis.line = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        legend.position = "bottom")
+
+ggsave("hist_spread/figs/map2_proplists.png", map2_proplists,
+       width = 10, height = 10, units = "in", dpi = 300)
+
+### Standardised proportion
+
+map3_stanlists <- ggplot(data = data0, aes(LONGITUDE, LATITUDE)) +
+  facet_wrap(~ PERIOD, ncol = 2) +
+  geom_polygon(data = indiamap,
+               aes(long, lat, group = group),
+               colour = "black", fill = NA, size = 0.2) +
+  geom_polygon(data = data0grid, 
+               aes(long, lat, group = group, fill = STAN.LISTS*100)) +
+  scale_fill_viridis_c(na.value = "#CCCCCC") +
+  labs(title = "How was birding spatially concentrated in different periods?",
+       subtitle = "Fill: no. of lists in proportion to highest lists/cell value (grey: zero lists).",
+       fill = "Standardised prop. of lists (%)") +
+  theme(axis.line = element_blank(), 
+        axis.title = element_blank(), 
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        legend.position = "bottom")
+
+ggsave("hist_spread/figs/map3_stanlists.png", map3_stanlists,
+       width = 10, height = 10, units = "in", dpi = 300)
+
+
+### 1b. Histograms ####
+
+
+# for grids histogram, converting true CELL.ID to continuous values 
+# (i.e., removing grid cells falling outside country boundary) so that
+# histogram can be more intuitive because x axis will be serial
+serial <- data0 %>% 
+  summarise(GRIDG1 = unique(GRIDG1)) %>% 
+  rownames_to_column("GRIDG1.SERIAL") %>% 
+  mutate(GRIDG1.SERIAL = as.integer(GRIDG1.SERIAL))
+data0 <- data0 %>% left_join(serial)
+
+# turns out, this isn't very informative because 2021 has so much that nothing is visible
+hist_grids <- ggplot(filter(data0, NO.LISTS != 0)) +
+  facet_wrap(~ PERIOD, ncol = 1) +
+  scale_y_continuous(expand = c(0, 0)) +
+  geom_histogram(aes(as.vector(GRIDG1.SERIAL)), bins = 60) +
+  labs(x = "Cell ID")
+
+ggsave("hist_spread/figs/hist_grids.png", hist_grids,
+       width = 7, height = 12, units = "in", dpi = 300)
+
+
+hist_lists <- ggplot(filter(data0, NO.LISTS != 0)) +
+  facet_wrap(~ PERIOD, ncol = 1) +
+  scale_y_continuous(expand = c(0, 0)) +
+  # the discrepancy
+  annotate("rect", 
+           xmin = 2.2, xmax = 2.9, ymin = 0, ymax = +Inf, 
+           fill = "#ff0000", col = NA, alpha = 0.1) +
+  geom_histogram(aes(log(NO.LISTS))) +
+  labs(x = "log(no. of lists per grid cell)")
+
+ggsave("hist_spread/figs/hist_lists.png", hist_lists,
+       width = 7, height = 12, units = "in", dpi = 300)
+
+### 2. Region-level ####
 
 # getting info of all grid cells per region
 # (produces NAs because lots of cells outside)
@@ -341,113 +389,6 @@ data_reg_change3 <- data_reg %>%
                                             "pre-2000 to 2021"))) %>% 
   left_join(ecoregions)
 
-
-
-### 1a. Maps of spatial spread ####
-
-### Number
-
-map1_nolists <- ggplot(data = data0, aes(LONGITUDE, LATITUDE)) +
-  facet_wrap(~ PERIOD, ncol = 2) +
-  geom_polygon(data = indiamap,
-               aes(long, lat, group = group),
-               colour = "black", fill = NA, size = 0.2) +
-  geom_polygon(data = data0grid, 
-               aes(long, lat, group = group, fill = log(NO.LISTS))) +
-  scale_fill_viridis_c(na.value = "#CCCCCC") +
-  labs(title = "Birding intensity in grid cells across the country",
-       subtitle = "Fill: log-transformed no. of lists per grid cell per time period (grey: zero lists).",
-       fill = "log(no. of lists)") +
-  theme(axis.line = element_blank(), 
-        axis.title = element_blank(), 
-        axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        legend.position = "bottom")
-
-ggsave("hist_spread/figs/map1_nolists.png", map1_nolists,
-       width = 10, height = 10, units = "in", dpi = 300)
-
-### Total proportion
-
-map2_proplists <- ggplot(data = data0, aes(LONGITUDE, LATITUDE)) +
-  facet_wrap(~ PERIOD, ncol = 2) +
-  geom_polygon(data = indiamap,
-               aes(long, lat, group = group),
-               colour = "black", fill = NA, size = 0.2) +
-  geom_polygon(data = data0grid, 
-               aes(long, lat, group = group, fill = PROP.LISTS*100)) +
-  scale_fill_viridis_c(na.value = "#CCCCCC") +
-  labs(title = "How was birding spatially concentrated in different periods?",
-       subtitle = "Fill: proportion of total nationwide lists from each grid cell (grey: zero lists).",
-       fill = "Prop. of lists (%)") +
-  theme(axis.line = element_blank(), 
-        axis.title = element_blank(), 
-        axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        legend.position = "bottom")
-
-ggsave("hist_spread/figs/map2_proplists.png", map2_proplists,
-       width = 10, height = 10, units = "in", dpi = 300)
-
-### Standardised proportion
-
-map3_stanlists <- ggplot(data = data0, aes(LONGITUDE, LATITUDE)) +
-  facet_wrap(~ PERIOD, ncol = 2) +
-  geom_polygon(data = indiamap,
-               aes(long, lat, group = group),
-               colour = "black", fill = NA, size = 0.2) +
-  geom_polygon(data = data0grid, 
-               aes(long, lat, group = group, fill = STAN.LISTS*100)) +
-  scale_fill_viridis_c(na.value = "#CCCCCC") +
-  labs(title = "How was birding spatially concentrated in different periods?",
-       subtitle = "Fill: no. of lists in proportion to highest lists/cell value (grey: zero lists).",
-       fill = "Standardised prop. of lists (%)") +
-  theme(axis.line = element_blank(), 
-        axis.title = element_blank(), 
-        axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        legend.position = "bottom")
-
-ggsave("hist_spread/figs/map3_stanlists.png", map3_stanlists,
-       width = 10, height = 10, units = "in", dpi = 300)
-
-
-### 1b. Histograms ####
-
-
-# for grids histogram, converting true CELL.ID to continuous values 
-# (i.e., removing grid cells falling outside country boundary) so that
-# histogram can be more intuitive because x axis will be serial
-serial <- data0 %>% 
-  summarise(GRIDG1 = unique(GRIDG1)) %>% 
-  rownames_to_column("GRIDG1.SERIAL") %>% 
-  mutate(GRIDG1.SERIAL = as.integer(GRIDG1.SERIAL))
-data0 <- data0 %>% left_join(serial)
-
-# turns out, this isn't very informative because 2021 has so much that nothing is visible
-hist_grids <- ggplot(filter(data0, NO.LISTS != 0)) +
-  facet_wrap(~ PERIOD, ncol = 1) +
-  scale_y_continuous(expand = c(0, 0)) +
-  geom_histogram(aes(as.vector(GRIDG1.SERIAL)), bins = 60) +
-  labs(x = "Cell ID")
-
-ggsave("hist_spread/figs/hist_grids.png", hist_grids,
-       width = 7, height = 12, units = "in", dpi = 300)
-
-
-hist_lists <- ggplot(filter(data0, NO.LISTS != 0)) +
-  facet_wrap(~ PERIOD, ncol = 1) +
-  scale_y_continuous(expand = c(0, 0)) +
-  # the discrepancy
-  annotate("rect", 
-           xmin = 2.2, xmax = 2.9, ymin = 0, ymax = +Inf, 
-           fill = "#ff0000", col = NA, alpha = 0.1) +
-  geom_histogram(aes(log(NO.LISTS))) +
-  labs(x = "log(no. of lists per grid cell)")
-
-ggsave("hist_spread/figs/hist_lists.png", hist_lists,
-       width = 7, height = 12, units = "in", dpi = 300)
-
 ### 2a. Regions: change in representation (maps) ####
 
 map4_nolists <- gg_map(data = data_reg_change1, sf = T, 
@@ -499,6 +440,61 @@ ggplot(data2,
        x = "Region", y = "Proportion of lists")
 
 ### 3. Data progression with time periods ####
+
+temp1 <- timeline %>%
+  filter(M.YEAR != 2022) %>% 
+  group_by(TIME.SOIB1) %>% 
+  mutate(TOT.LISTS = n_distinct(GROUP.ID),
+         # for axis tick position
+         MEDIAN.M.YEAR = median(M.YEAR)) %>% 
+  group_by(TIME.SOIB1, TOT.LISTS, MEDIAN.M.YEAR, GRIDG1) %>% 
+  summarise(NO.LISTS = n_distinct(GROUP.ID),
+            CELLS.1 = if_else(NO.LISTS >= 1, 1, 0),
+            CELLS.10 = if_else(NO.LISTS >= 10, 1, 0),
+            CELLS.20 = if_else(NO.LISTS >= 20, 1, 0),
+            CELLS.50 = if_else(NO.LISTS >= 50, 1, 0),
+            CELLS.100 = if_else(NO.LISTS >= 100, 1, 0)) %>% 
+  summarise(CELLS.1 = sum(CELLS.1), # number of cells with at least 1 list
+            CELLS.10 = sum(CELLS.10), # number of cells with at least 10 lists
+            CELLS.20 = sum(CELLS.20), # number of cells with at least 20 lists
+            CELLS.50 = sum(CELLS.50), # number of cells with at least 50 lists
+            CELLS.100 = sum(CELLS.100)) %>% # number of cells with at least 100 lists
+  arrange(TIME.SOIB1) %>% 
+  ungroup() %>% 
+  mutate(RESOLUTION = 1)
+
+temp2 <- timeline %>%
+  filter(M.YEAR != 2022) %>% 
+  group_by(TIME.SOIB2) %>% 
+  mutate(TOT.LISTS = n_distinct(GROUP.ID),
+         # for axis tick position
+         MEDIAN.M.YEAR = median(M.YEAR)) %>% 
+  group_by(TIME.SOIB2, TOT.LISTS, MEDIAN.M.YEAR, GRIDG1) %>% 
+  summarise(NO.LISTS = n_distinct(GROUP.ID),
+            CELLS.1 = if_else(NO.LISTS >= 1, 1, 0),
+            CELLS.10 = if_else(NO.LISTS >= 10, 1, 0),
+            CELLS.20 = if_else(NO.LISTS >= 20, 1, 0),
+            CELLS.50 = if_else(NO.LISTS >= 50, 1, 0),
+            CELLS.100 = if_else(NO.LISTS >= 100, 1, 0)) %>% 
+  summarise(CELLS.1 = sum(CELLS.1), # number of cells with at least 1 list
+            CELLS.10 = sum(CELLS.10), # number of cells with at least 10 lists
+            CELLS.20 = sum(CELLS.20), # number of cells with at least 20 lists
+            CELLS.50 = sum(CELLS.50), # number of cells with at least 50 lists
+            CELLS.100 = sum(CELLS.100)) %>% # number of cells with at least 100 lists
+  arrange(TIME.SOIB2) %>% 
+  ungroup() %>% 
+  mutate(RESOLUTION = 2)
+
+grid_cov_timeline <- temp1 %>% 
+  full_join(temp2) %>% 
+  arrange(MEDIAN.M.YEAR) %>% 
+  mutate(PERIOD = if_else(is.na(as.character(TIME.SOIB1)), 
+                          as.character(TIME.SOIB2), 
+                          as.character(TIME.SOIB1))) 
+# mutate(PERIOD = factor(PERIOD,
+#                        levels = if_else(is.na(as.character(TIME.SOIB1)), 
+#                                         as.character(TIME.SOIB2), 
+#                                         as.character(TIME.SOIB1))))
 
 temp1 <- grid_cov_timeline %>% filter(RESOLUTION == 1)
 temp2 <- grid_cov_timeline %>% filter(RESOLUTION == 2)
