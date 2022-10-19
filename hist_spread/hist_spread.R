@@ -32,10 +32,9 @@ import_hist_spread_data(init_setup = F)
 soib_levels <- c("2021", "pre-2000", "1990-1999", "pre-1990")
 
 # tidy version of 25*25 grid to which values of interest can be joined (for spatial plotting)
-gridmapg1_tidy <- gridmapg1 %>% 
-  broom::tidy() %>% 
-  # removing the "g" in order to later join by GRIDG1 column
-  mutate(id2 = as.numeric(str_remove(id, "g")))
+gridmapg1_sf <- gridmapg1 %>% 
+  st_as_sf() %>% 
+  rename(CELL.ID = id)
 
 ##### grid-level data ####
 
@@ -112,8 +111,8 @@ data0 <- temp1 %>%
   left_join(grid_cov) %>% 
   ungroup() 
 
-data0grid <- gridmapg1_tidy %>% 
-  left_join(data0, by = c("id2" = "GRIDG1")) %>% 
+data0grid <- gridmapg1_sf %>% 
+  left_join(data0, by = c("CELL.ID" = "GRIDG1")) %>% 
   # removing NA PERIOD formed from join
   filter(!is.na(PERIOD)) %>% 
   # converting metrics to NA when number of lists = 0 (to visualise non-overlap)
@@ -203,8 +202,7 @@ grid_cov_timeline <- temp1 %>%
 
 # getting info of all grid cells per region
 # (produces NAs because lots of cells outside)
-eco_grids <- gridmapg1 %>% 
-  st_as_sf() %>% 
+eco_grids <- gridmapg1_sf %>% 
   st_set_crs(st_crs(ecoregions)) %>% 
   st_join(ecoregions) %>% 
   rename(GRIDG1 = id) %>% 
