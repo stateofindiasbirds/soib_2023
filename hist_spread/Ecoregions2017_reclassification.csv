@@ -1,52 +1,52 @@
-ID,ECO_NAME,ECO_RECLASS1,ECO_RECLASS2
-1,Andaman Islands rain forests,Moist forests,AN semi-evergreen forests
-27,Nicobar Islands rain forests,Moist forests,AN semi-evergreen forests
-4,Central Deccan Plateau dry deciduous forests,Dry deciduous forests,Dry forests
-6,Chhota-Nagpur dry deciduous forests,Dry deciduous forests,Dry forests
-20,Khathiar-Gir dry deciduous forests,Dry deciduous forests,Dry forests
-26,Narmada Valley dry deciduous forests,Dry deciduous forests,Dry forests
-33,North Deccan dry deciduous forests,Dry deciduous forests,Dry forests
-40,South Deccan Plateau dry deciduous forests,Dry deciduous forests,Dry forests
-10,East Deccan dry-evergreen forests,Dry evergreen forests,Dry forests
-28,North Tibetan Plateau-Kunlun Mountains alpine desert,Alpine desert,High altitude desert/tundra/steppe
-38,Pamir alpine desert and tundra,Alpine desert and tundra,High altitude desert/tundra/steppe
-5,Central Tibetan Plateau alpine steppe,Alpine steppe,High altitude desert/tundra/steppe
-19,Karakoram-West Tibetan Plateau alpine steppe,Alpine steppe,High altitude desert/tundra/steppe
-51,Yarlung Zanbo arid steppe,Arid steppe,High altitude desert/tundra/steppe
-13,Eastern Himalayan broadleaf forests,Broadleaf forests,Himalayan broadleaf forests
-16,Himalayan subtropical broadleaf forests,Broadleaf forests,Himalayan broadleaf forests
-49,Western Himalayan broadleaf forests,Broadleaf forests,Himalayan broadleaf forests
-17,Himalayan subtropical pine forests,Pine forests,Himalayan conifer forests
-31,Northeast India-Myanmar pine forests,Pine forests,Himalayan conifer forests
-14,Eastern Himalayan subalpine conifer forests,Subalpine conifer forests,Himalayan conifer forests
-32,Northeast Himalayan subalpine conifer forests,Subalpine conifer forests,Himalayan conifer forests
-50,Western Himalayan subalpine conifer forests,Subalpine conifer forests,Himalayan conifer forests
-24,Meghalaya subtropical forests,Subtropical forests,Himalayan conifer forests
-34,Northern Triangle temperate forests,Temperate forests,Himalayan conifer forests
-46,Thar desert,Desert,Low altitude desert/tundra/steppe
-39,Rann of Kutch seasonal salt marsh,Seasonal salt marsh,Low altitude desert/tundra/steppe
-2,Baluchistan xeric woodlands,Xeric woodlands,Low altitude desert/tundra/steppe
-15,Godavari-Krishna mangroves,Mangroves,Mangroves
-18,Indus River Delta-Arabian Sea mangroves,Mangroves,Mangroves
-44,Sundarbans mangroves,Mangroves,Mangroves
-43,Sundarbans freshwater swamp forests,Swamp forests,Mangroves
-23,Maldives-Lakshadweep-Chagos Archipelago tropical moist forests,Moist forests,MLC semi-evergreen forests
-11,East Deccan moist deciduous forests,Moist deciduous forests,Moist deciduous forests
-21,Lower Gangetic Plains moist deciduous forests,Moist deciduous forests,Moist deciduous forests
-29,North Western Ghats moist deciduous forests,Moist deciduous forests,Moist deciduous forests
-41,South Western Ghats moist deciduous forests,Moist deciduous forests,Moist deciduous forests
-47,Upper Gangetic Plains moist deciduous forests,Moist deciduous forests,Moist deciduous forests
-7,Chin Hills-Arakan Yoma montane forests,Montane forests,NE montane forests
-25,Mizoram-Manipur-Kachin rain forests,Moist forests,NE&EG semi-evergreen forests
-3,Brahmaputra Valley semi-evergreen forests,Semi-evergreen forests,NE&EG semi-evergreen forests
-37,Orissa semi-evergreen forests,Semi-evergreen forests,NE&EG semi-evergreen forests
-9,Rock and Ice,Rock and Ice,Rock and Ice
-45,Terai-Duar savanna and grasslands,Savanna and grasslands,Savanna and grasslands
-12,Eastern Himalayan alpine shrub and meadows,Alpine shrub and meadows,Shrub and meadows
-35,Northwestern Himalayan alpine shrub and meadows,Alpine shrub and meadows,Shrub and meadows
-48,Western Himalayan alpine shrub and meadows,Alpine shrub and meadows,Shrub and meadows
-36,Aravalli west thorn scrub forests,Thorn scrub forests,Thorn scrub forests
-8,Deccan thorn scrub forests,Thorn scrub forests,Thorn scrub forests
-30,North Western Ghats montane rain forests,Montane rain forests,WG montane forests
-42,South Western Ghats montane rain forests,Montane rain forests,WG montane forests
-22,Malabar Coast moist forests,Moist forests,WG semi-evergreen forests
+ID,ECO_NAME,ECO_RECLASS1,ECO_RECLASS2,PJ_RECLASS
+1,Andaman Islands rain forests,Moist forests,AN semi-evergreen forests,Andaman Islands rain forests
+36,Aravalli west thorn scrub forests,Thorn scrub forests,Thorn scrub forests,Aravalli west thorn scrub forests
+3,Brahmaputra Valley semi-evergreen forests,Semi-evergreen forests,NE&EG semi-evergreen forests,Brahmaputra valley
+8,Deccan thorn scrub forests,Thorn scrub forests,Thorn scrub forests,Deccan thorn scrub forests
+12,Eastern Himalayan alpine shrub and meadows,Alpine shrub and meadows,Shrub and meadows,E Himalayan alpine shrub and meadows
+13,Eastern Himalayan broadleaf forests,Broadleaf forests,Himalayan broadleaf forests,E Himalayan forests
+34,Northern Triangle temperate forests,Temperate forests,Himalayan conifer forests,E Himalayan forests
+14,Eastern Himalayan subalpine conifer forests,Subalpine conifer forests,Himalayan conifer forests,E Himalayan subalpine conifers
+32,Northeast Himalayan subalpine conifer forests,Subalpine conifer forests,Himalayan conifer forests,E Himalayan subalpine conifers
+11,East Deccan moist deciduous forests,Moist deciduous forests,Moist deciduous forests,East-Central moist forests
+37,Orissa semi-evergreen forests,Semi-evergreen forests,NE&EG semi-evergreen forests,East-Central moist forests
+10,East Deccan dry-evergreen forests,Dry evergreen forests,Dry forests,Eastern coastal plains
+15,Godavari-Krishna mangroves,Mangroves,Mangroves,Eastern coastal plains
+21,Lower Gangetic Plains moist deciduous forests,Moist deciduous forests,Moist deciduous forests,Gangetic plains
+47,Upper Gangetic Plains moist deciduous forests,Moist deciduous forests,Moist deciduous forests,Gangetic plains
+17,Himalayan subtropical pine forests,Pine forests,Himalayan conifer forests,Himalayan pine forest
+46,Thar desert,Desert,Low altitude desert/tundra/steppe,Low altitude desert/tundra/steppe
+39,Rann of Kutch seasonal salt marsh,Seasonal salt marsh,Low altitude desert/tundra/steppe,Low altitude desert/tundra/steppe
+2,Baluchistan xeric woodlands,Xeric woodlands,Low altitude desert/tundra/steppe,Low altitude desert/tundra/steppe
+23,Maldives-Lakshadweep-Chagos Archipelago tropical moist forests,Moist forests,MLC semi-evergreen forests,MLC semi-evergreen forests
+24,Meghalaya subtropical forests,Subtropical forests,Himalayan conifer forests,NE hill forests
+7,Chin Hills-Arakan Yoma montane forests,Montane forests,NE montane forests,NE hill forests
+25,Mizoram-Manipur-Kachin rain forests,Moist forests,NE&EG semi-evergreen forests,NE hill forests
+31,Northeast India-Myanmar pine forests,Pine forests,Himalayan conifer forests,NE hill pine forest
+27,Nicobar Islands rain forests,Moist forests,AN semi-evergreen forests,Nicobar Islands rain forests
+29,North Western Ghats moist deciduous forests,Moist deciduous forests,Moist deciduous forests,North WG forests
+30,North Western Ghats montane rain forests,Montane rain forests,WG montane forests,North WG forests
+4,Central Deccan Plateau dry deciduous forests,Dry deciduous forests,Dry forests,Peninsular dry deciduous forests
+6,Chhota-Nagpur dry deciduous forests,Dry deciduous forests,Dry forests,Peninsular dry deciduous forests
+20,Khathiar-Gir dry deciduous forests,Dry deciduous forests,Dry forests,Peninsular dry deciduous forests
+26,Narmada Valley dry deciduous forests,Dry deciduous forests,Dry forests,Peninsular dry deciduous forests
+33,North Deccan dry deciduous forests,Dry deciduous forests,Dry forests,Peninsular dry deciduous forests
+9,Rock and Ice,Rock and Ice,Rock and Ice,Rock and ice
+41,South Western Ghats moist deciduous forests,Moist deciduous forests,Moist deciduous forests,South WG Forests
+42,South Western Ghats montane rain forests,Montane rain forests,WG montane forests,South WG Forests
+40,South Deccan Plateau dry deciduous forests,Dry deciduous forests,Dry forests,Southern peninsular dry deciduous forests
+44,Sundarbans mangroves,Mangroves,Mangroves,Sundarbans
+43,Sundarbans freshwater swamp forests,Swamp forests,Mangroves,Sundarbans
+45,Terai-Duar savanna and grasslands,Savanna and grasslands,Savanna and grasslands,Terai savannah
+35,Northwestern Himalayan alpine shrub and meadows,Alpine shrub and meadows,Shrub and meadows,W Himalayan alpine shrub and meadows
+48,Western Himalayan alpine shrub and meadows,Alpine shrub and meadows,Shrub and meadows,W Himalayan alpine shrub and meadows
+16,Himalayan subtropical broadleaf forests,Broadleaf forests,Himalayan broadleaf forests,W Himalayan broadleaf forests
+49,Western Himalayan broadleaf forests,Broadleaf forests,Himalayan broadleaf forests,W Himalayan broadleaf forests
+28,North Tibetan Plateau-Kunlun Mountains alpine desert,Alpine desert,High altitude desert/tundra/steppe,W Himalayan desert/tundra/steppe
+38,Pamir alpine desert and tundra,Alpine desert and tundra,High altitude desert/tundra/steppe,W Himalayan desert/tundra/steppe
+5,Central Tibetan Plateau alpine steppe,Alpine steppe,High altitude desert/tundra/steppe,W Himalayan desert/tundra/steppe
+19,Karakoram-West Tibetan Plateau alpine steppe,Alpine steppe,High altitude desert/tundra/steppe,W Himalayan desert/tundra/steppe
+51,Yarlung Zanbo arid steppe,Arid steppe,High altitude desert/tundra/steppe,W Himalayan desert/tundra/steppe
+18,Indus River Delta-Arabian Sea mangroves,Mangroves,Mangroves,Western coastal plains
+22,Malabar Coast moist forests,Moist forests,WG semi-evergreen forests,Western coastal plains
+50,Western Himalayan subalpine conifer forests,Subalpine conifer forests,Himalayan conifer forests,Western Himalayan subalpine conifers

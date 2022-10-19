@@ -34,7 +34,7 @@ soib_levels <- c("2021", "pre-2000", "1990-1999", "pre-1990")
 # tidy version of 25*25 grid to which values of interest can be joined (for spatial plotting)
 gridmapg1_sf <- gridmapg1 %>% 
   st_as_sf() %>% 
-  rename(CELL.ID = id)
+  rename(GRIDG1 = id)
 
 ##### grid-level data ####
 
@@ -112,7 +112,7 @@ data0 <- temp1 %>%
   ungroup() 
 
 data0grid <- gridmapg1_sf %>% 
-  left_join(data0, by = c("CELL.ID" = "GRIDG1")) %>% 
+  left_join(data0) %>% 
   # removing NA PERIOD formed from join
   filter(!is.na(PERIOD)) %>% 
   # converting metrics to NA when number of lists = 0 (to visualise non-overlap)
@@ -205,11 +205,10 @@ grid_cov_timeline <- temp1 %>%
 eco_grids <- gridmapg1_sf %>% 
   st_set_crs(st_crs(ecoregions)) %>% 
   st_join(ecoregions) %>% 
-  rename(GRIDG1 = id) %>% 
-  group_by(ECO_RECLASS2) %>% 
+  group_by(PJ_RECLASS) %>% 
   summarise(TOT.CELLS = n_distinct(GRIDG1)) %>% 
-  filter(!is.na(ECO_RECLASS2)) %>% 
-  st_drop_geometry() # we only need this to later join using ECO_RECLASS2
+  filter(!is.na(PJ_RECLASS)) %>% 
+  st_drop_geometry() # we only need this to later join using PJ_RECLASS
 
 
 temp1 <- data_hist %>% 
@@ -219,7 +218,7 @@ temp1 <- data_hist %>%
   st_join(ecoregions) %>% 
   group_by(TIME.SOIB1) %>% 
   mutate(TOT.LISTS = n_distinct(GROUP.ID)) %>% 
-  group_by(TIME.SOIB1, ECO_RECLASS2) %>% 
+  group_by(TIME.SOIB1, PJ_RECLASS) %>% 
   left_join(eco_grids) %>% 
   summarise(NO.LISTS = n_distinct(GROUP.ID),
             TOT.LISTS = min(TOT.LISTS),
@@ -239,7 +238,7 @@ temp2 <- data_hist %>%
   st_join(ecoregions) %>% 
   group_by(TIME.SOIB2) %>% 
   mutate(TOT.LISTS = n_distinct(GROUP.ID)) %>% 
-  group_by(TIME.SOIB2, ECO_RECLASS2) %>% 
+  group_by(TIME.SOIB2, PJ_RECLASS) %>% 
   left_join(eco_grids) %>% 
   summarise(NO.LISTS = n_distinct(GROUP.ID),
             TOT.LISTS = min(TOT.LISTS),
@@ -258,7 +257,7 @@ data_reg <- temp1 %>%
   bind_rows(temp2) %>% 
   mutate(PERIOD = factor(PERIOD, levels = soib_levels)) %>% 
   # removing NA regions in ecoregions name but where data exists (i.e., marine regions)
-  filter(!is.na(ECO_RECLASS2)) %>% 
+  filter(!is.na(PJ_RECLASS)) %>% 
   # converting metrics to NA when number of lists = 0 (to visualise non-overlap)
   mutate(PROP.LISTS = if_else(NO.LISTS == 0, as.numeric(NA_integer_), PROP.LISTS),
          PROP.CELL.COV = if_else(NO.CELLS == 0, as.numeric(NA_integer_), PROP.CELL.COV)) %>% 
@@ -269,13 +268,13 @@ data_reg <- temp1 %>%
 
 data_reg_change1 <- data_reg %>%
   st_drop_geometry() %>% 
-  dplyr::select(ECO_RECLASS2, PERIOD, NO.LISTS) %>% 
+  dplyr::select(PJ_RECLASS, PERIOD, NO.LISTS) %>% 
   pivot_wider(names_from = PERIOD, values_from = NO.LISTS) %>%
   # filling zeros for region-period combinations
   mutate(across(2:5, ~ replace_na(.x, 0))) %>% 
   # adding 1 to all to allow calculation of proportional change
   mutate(across(2:5, ~ .x + 1)) %>% 
-  group_by(ECO_RECLASS2) %>%
+  group_by(PJ_RECLASS) %>%
   # proportional change (not percent)
   summarise(CHANGE1 = `2021` / `pre-2000`,
             CHANGE2 = `2021` / `1990-1999`,
@@ -294,13 +293,13 @@ data_reg_change1 <- data_reg %>%
 
 data_reg_change2 <- data_reg %>%
   st_drop_geometry() %>% 
-  dplyr::select(ECO_RECLASS2, PERIOD, PROP.LISTS) %>% 
+  dplyr::select(PJ_RECLASS, PERIOD, PROP.LISTS) %>% 
   pivot_wider(names_from = PERIOD, values_from = PROP.LISTS) %>%
   # filling zeros for region-period combinations
   mutate(across(2:5, ~ replace_na(.x, 0))) %>% 
   # adding 10^(-6) to all to allow calculation of proportional change
   mutate(across(2:5, ~ .x + 10^(-6))) %>% 
-  group_by(ECO_RECLASS2) %>%
+  group_by(PJ_RECLASS) %>%
   # proportional change (not percent)
   summarise(CHANGE1 = `2021` / `pre-2000`,
             CHANGE2 = `2021` / `1990-1999`,
@@ -319,13 +318,13 @@ data_reg_change2 <- data_reg %>%
 
 data_reg_change3 <- data_reg %>%
   st_drop_geometry() %>% 
-  dplyr::select(ECO_RECLASS2, PERIOD, PROP.CELL.COV) %>% 
+  dplyr::select(PJ_RECLASS, PERIOD, PROP.CELL.COV) %>% 
   pivot_wider(names_from = PERIOD, values_from = PROP.CELL.COV) %>%
   # filling zeros for region-period combinations
   mutate(across(2:5, ~ replace_na(.x, 0))) %>% 
   # adding 10^(-6) to all to allow calculation of proportional change
   mutate(across(2:5, ~ .x + 10^(-6))) %>% 
-  group_by(ECO_RECLASS2) %>%
+  group_by(PJ_RECLASS) %>%
   # proportional change (not percent)
   summarise(CHANGE1 = `2021` / `pre-2000`,
             CHANGE2 = `2021` / `1990-1999`,
@@ -457,7 +456,7 @@ map4_nolists <- gg_map(data = data_reg_change1, sf = T,
                        mainvar = CHANGE, 
                        title = "Change in absolute birding intensity in ecoregions of the country",
                        subtitle = "Fill: proportional change in number of lists from historical time to present day, over ecoregions (grey: zero lists).",
-                       # to signifiy "times" proportional change
+                       # to signify "times" proportional change
                        legend_title = "Proportional (-fold) change")
 
 ggsave("hist_spread/figs/map4_nolists.png", map4_nolists,
@@ -470,7 +469,7 @@ map5_proplists <- gg_map(data = data_reg_change2, sf = T,
                          mainvar = CHANGE, 
                          title = "Change in proportional birding intensity in ecoregions of the country",
                          subtitle = "Fill: proportional change in percentage contribution to total lists from historical time to present day, over ecoregions (grey: zero lists).",
-                         # to signifiy "times" proportional change
+                         # to signify "times" proportional change
                          legend_title = "Proportional (-fold) change")
 
 ggsave("hist_spread/figs/map5_proplists.png", map5_proplists,
