@@ -60,12 +60,17 @@ import_hist_spread_data <- function(init_setup = FALSE) {
     data_hist <- timeline %>% filter(M.YEAR < 2000)
     data_cur <- timeline %>% filter(M.YEAR == 2021)
     
-    save(data_hist, data_cur, timeline, file = "hist_spread/hist_spread.RData")
+    data0 <- data_hist %>% 
+      pivot_longer(c(TIME.SOIB1, TIME.SOIB2), names_to = "PERIOD.TYPE", values_to = "PERIOD") %>% 
+      mutate(PERIOD.TYPE = str_remove(PERIOD.TYPE, "TIME.")) %>% 
+      bind_rows(data_cur %>% rename(PERIOD = TIME.SOIB1) %>% dplyr::select(-TIME.SOIB2)) %>% 
+      mutate(PERIOD = factor(PERIOD, levels = soib_levels))
+    
+    save(data0, timeline, file = "hist_spread/hist_spread.RData")
     rm(data)
     
     assign("timeline", timeline, envir = .GlobalEnv)
-    assign("data_hist", data_hist, envir = .GlobalEnv)
-    assign("data_cur", data_cur, envir = .GlobalEnv)
+    assign("data0", data0, envir = .GlobalEnv)
 
   } else if (init_setup == FALSE) {
     

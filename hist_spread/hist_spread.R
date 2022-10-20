@@ -23,12 +23,13 @@ theme_set(theme_classic() +
 # functions for historical spread analyses
 source("hist_spread/hist_spread_functions.R")
 
+# comparisons for SoIB
+soib_levels <- c("2021", "pre-2000", "1990-1999", "pre-1990")
+
+
 # importing data
 import_hist_spread_data(init_setup = F)
 
-
-# comparisons for SoIB
-soib_levels <- c("2021", "pre-2000", "1990-1999", "pre-1990")
 
 # tidy version of 25*25 grid to which values of interest can be joined (for spatial plotting)
 gridmapg1_sf <- gridmapg1 %>% 
@@ -38,47 +39,10 @@ gridmapg1_sf <- gridmapg1 %>%
 
 ### 1. Grid-level ####
 
-# getting lists metrics (number, proportion, standardised proportion) for 
-# 25x25 cells across time periods
-
-temp1 <- data_hist %>% 
-  bind_rows(data_cur) %>% 
-  group_by(TIME.SOIB1) %>% 
-  mutate(TOT.LISTS = n_distinct(GROUP.ID)) %>% 
-  group_by(TIME.SOIB1, TOT.LISTS, GRIDG1) %>% 
-  summarise(NO.LISTS = n_distinct(GROUP.ID)) %>% 
-  group_by(TIME.SOIB1) %>% 
-  mutate(MAX.LISTS = max(NO.LISTS),
-         MED.LISTS = median(NO.LISTS)) %>% 
-  group_by(TIME.SOIB1, TOT.LISTS, GRIDG1) %>% 
-  summarise(NO.LISTS = NO.LISTS,
-            STAN.LISTS = NO.LISTS/MAX.LISTS, # standardise by max lists/cell (cell with highest activity)
-            CS.LISTS = (NO.LISTS - MED.LISTS)/MED.LISTS, # centre&standardise to median lists/cell
-            PROP.LISTS = NO.LISTS/TOT.LISTS) %>%  # prop. of total Indian birding happening in this cell
-  ungroup() %>% 
-  rename(PERIOD = TIME.SOIB1)
-
-temp2 <- data_hist %>% 
-  group_by(TIME.SOIB2) %>% 
-  mutate(TOT.LISTS = n_distinct(GROUP.ID)) %>% 
-  group_by(TIME.SOIB2, TOT.LISTS, GRIDG1) %>% 
-  summarise(NO.LISTS = n_distinct(GROUP.ID)) %>% 
-  group_by(TIME.SOIB2) %>% 
-  mutate(MAX.LISTS = max(NO.LISTS),
-         MED.LISTS = median(NO.LISTS)) %>% 
-  group_by(TIME.SOIB2, TOT.LISTS, GRIDG1) %>% 
-  summarise(NO.LISTS = NO.LISTS,
-            STAN.LISTS = NO.LISTS/MAX.LISTS,
-            CS.LISTS = (NO.LISTS - MED.LISTS)/MED.LISTS, 
-            PROP.LISTS = NO.LISTS/TOT.LISTS) %>% 
-  ungroup() %>% 
-  rename(PERIOD = TIME.SOIB2) %>% 
-  # removing 2021 since temp1 already has
-  filter(PERIOD != "2021")
-
-grid_cov <- temp1 %>% 
-  bind_rows(temp2) %>% 
-  mutate(PERIOD = factor(PERIOD, levels = soib_levels)) %>% 
+# grid cells coverage at different thresholds (for "coverage")
+data_grid_cells_cov <- data0 %>% 
+  group_by(PERIOD, GRIDG1) %>% 
+  mutate(NO.LISTS = n_distinct(GROUP.ID)) %>% 
   group_by(PERIOD) %>% 
   # number of cells with at least 1 list
   mutate(CELLS.1 = n_distinct(GRIDG1)) %>% 
@@ -98,61 +62,59 @@ grid_cov <- temp1 %>%
 # list of all grids across the different time periods under consideration 
 # (not all grids in India)
 # this is enough to show difference/change; other grids will be blank
-all_grids <- temp1 %>% 
-  bind_rows(temp2) %>% 
-  distinct(GRIDG1)
+# for grids histogram, converting true CELL.ID to continuous values 
+# (i.e., removing the gaps in ID of grid cells falling outside country boundary) so that
+# histogram can be more intuitive because x axis will be serial
+data_grid_cells_list <- data0 %>% 
+  distinct(GRIDG1) %>% 
+  rownames_to_column("GRIDG1.SERIAL") %>% 
+  mutate(GRIDG1.SERIAL = as.integer(GRIDG1.SERIAL))
 
-data0 <- temp1 %>% 
-  bind_rows(temp2) %>% 
-  mutate(PERIOD = factor(PERIOD, levels = soib_levels)) %>% 
+
+# getting lists metrics (number, proportion, standardised proportion) for 
+# 25x25 cells across time periods
+data_grid <- data0 %>% 
   group_by(PERIOD) %>% 
-  complete(GRIDG1 = all_grids$GRIDG1, 
+  mutate(TOT.LISTS = n_distinct(GROUP.ID)) %>% 
+  group_by(PERIOD, TOT.LISTS, GRIDG1) %>% 
+  summarise(NO.LISTS = n_distinct(GROUP.ID)) %>% 
+  group_by(PERIOD) %>% 
+  mutate(MAX.LISTS = max(NO.LISTS),
+         MED.LISTS = median(NO.LISTS)) %>% 
+  group_by(PERIOD, TOT.LISTS, GRIDG1) %>% 
+  summarise(NO.LISTS = NO.LISTS,
+            STAN.LISTS = NO.LISTS/MAX.LISTS, # standardise by max lists/cell (cell with highest activity)
+            CS.LISTS = (NO.LISTS - MED.LISTS)/MED.LISTS, # centre&standardise to median lists/cell
+            PROP.LISTS = NO.LISTS/TOT.LISTS) %>%  # prop. of total Indian birding happening in this cell
+  group_by(PERIOD) %>% 
+  # filling zeroes for cell-period combo with no lists
+  complete(GRIDG1 = data_grid_cells_list$GRIDG1, 
            fill = list(NO.LISTS = 0, TOT.LISTS = 0, STAN.LISTS = 0, CS.LISTS = 0, PROP.LISTS = 0)) %>% 
-  left_join(grid_cov) %>% 
-  ungroup() 
-
-data0grid <- gridmapg1_sf %>% 
-  left_join(data0) %>% 
+  # joining serial cell IDs
+  left_join(data_grid_cells_list) %>% 
+  # joining grid cell coverage info
+  left_join(data_grid_cells_cov) %>% 
+  ungroup() %>% 
+  right_join(gridmapg1_sf) %>% 
   # removing NA PERIOD formed from join
   filter(!is.na(PERIOD)) %>% 
   # converting metrics to NA when number of lists = 0 (to visualise non-overlap)
   mutate(across(c(STAN.LISTS, CS.LISTS, PROP.LISTS),
                 ~ if_else(NO.LISTS == 0, as.numeric(NA_integer_), .x))) %>% 
-  dplyr::select(-c(TOT.LISTS, CELLS.1, CELLS.10, CELLS.20, CELLS.50))
-
-data0_change_no <- data0 %>%
-  pivot_wider(names_from = PERIOD, values_from = NO.LISTS) %>%
-  group_by(GRIDG1) %>%
-  summarise(CHANGE.A = `2021` - `pre-2000`,
-            CHANGE.B = `2021` - `1990-1999`,
-            CHANGE.C = `2021` - `pre-1990`)
-
-data0_change_prop <- data0 %>%
-  pivot_wider(names_from = PERIOD, values_from = PROP.LISTS) %>%
-  group_by(GRIDG1) %>%
-  summarise(CHANGE.A = `2021` - `pre-2000`,
-            CHANGE.B = `2021` - `1990-1999`,
-            CHANGE.C = `2021` - `pre-1990`)
-
-data0_change_stan <- data0 %>%
-  pivot_wider(names_from = PERIOD, values_from = STAN.LISTS) %>%
-  group_by(GRIDG1) %>%
-  summarise(CHANGE.A = `2021` - `pre-2000`,
-            CHANGE.B = `2021` - `1990-1999`,
-            CHANGE.C = `2021` - `pre-1990`)
+  dplyr::select(-c(TOT.LISTS, CELLS.1, CELLS.10, CELLS.20, CELLS.50)) %>% 
+  arrange(GRIDG1, NO.LISTS)
 
 ### 1a. Maps of spatial spread ####
 
 ### Number
 
-map1_nolists <- ggplot(data = data0, aes(LONGITUDE, LATITUDE)) +
+map1_nolists <- ggplot(data = data_grid) +
   facet_wrap(~ PERIOD, ncol = 2) +
   geom_polygon(data = indiamap,
                aes(long, lat, group = group),
                colour = "black", fill = NA, size = 0.2) +
-  geom_polygon(data = data0grid, 
-               aes(long, lat, group = group, fill = log(NO.LISTS))) +
-  scale_fill_viridis_c(na.value = "#CCCCCC") +
+  geom_sf(aes(fill = log(NO.LISTS), geometry = geometry), colour = NA) +
+  scale_fill_viridis_c(na.value = "#CCCCCC", option = "cividis") +
   labs(title = "Birding intensity in grid cells across the country",
        subtitle = "Fill: log-transformed no. of lists per grid cell per time period (grey: zero lists).",
        fill = "log(no. of lists)") +
@@ -163,18 +125,18 @@ map1_nolists <- ggplot(data = data0, aes(LONGITUDE, LATITUDE)) +
         legend.position = "bottom")
 
 ggsave("hist_spread/figs/map1_nolists.png", map1_nolists,
-       width = 10, height = 10, units = "in", dpi = 300)
+       width = 10, height = 12, units = "in", dpi = 300)
 
 ### Total proportion
 
-map2_proplists <- ggplot(data = data0, aes(LONGITUDE, LATITUDE)) +
+map2_proplists <- ggplot(data = data_grid) +
   facet_wrap(~ PERIOD, ncol = 2) +
   geom_polygon(data = indiamap,
                aes(long, lat, group = group),
                colour = "black", fill = NA, size = 0.2) +
-  geom_polygon(data = data0grid, 
-               aes(long, lat, group = group, fill = PROP.LISTS*100)) +
-  scale_fill_viridis_c(na.value = "#CCCCCC") +
+  geom_sf(aes(fill = PROP.LISTS*100, geometry = geometry), colour = NA) +
+  scale_fill_viridis_c(na.value = "#CCCCCC", option = "cividis",
+                       trans = "log10", breaks = c(0.01, 0.1, 0.5, 2, 5, 10)) +
   labs(title = "How was birding spatially concentrated in different periods?",
        subtitle = "Fill: proportion of total nationwide lists from each grid cell (grey: zero lists).",
        fill = "Prop. of lists (%)") +
@@ -182,21 +144,22 @@ map2_proplists <- ggplot(data = data0, aes(LONGITUDE, LATITUDE)) +
         axis.title = element_blank(), 
         axis.text = element_blank(),
         axis.ticks = element_blank(),
-        legend.position = "bottom")
+        legend.position = "bottom",
+        legend.key.width = unit(1.2, "in"))
 
 ggsave("hist_spread/figs/map2_proplists.png", map2_proplists,
-       width = 10, height = 10, units = "in", dpi = 300)
+       width = 10, height = 12, units = "in", dpi = 300)
 
 ### Standardised proportion
 
-map3_stanlists <- ggplot(data = data0, aes(LONGITUDE, LATITUDE)) +
+map3_stanlists <- ggplot(data = data_grid) +
   facet_wrap(~ PERIOD, ncol = 2) +
   geom_polygon(data = indiamap,
                aes(long, lat, group = group),
                colour = "black", fill = NA, size = 0.2) +
-  geom_polygon(data = data0grid, 
-               aes(long, lat, group = group, fill = STAN.LISTS*100)) +
-  scale_fill_viridis_c(na.value = "#CCCCCC") +
+  geom_sf(aes(fill = STAN.LISTS*100, geometry = geometry), colour = NA) +
+  scale_fill_viridis_c(na.value = "#CCCCCC", option = "cividis",
+                       trans = "log10", breaks = c(0.1, 1, 5, 20, 50, 100)) +
   labs(title = "How was birding spatially concentrated in different periods?",
        subtitle = "Fill: no. of lists in proportion to highest lists/cell value (grey: zero lists).",
        fill = "Standardised prop. of lists (%)") +
@@ -204,41 +167,21 @@ map3_stanlists <- ggplot(data = data0, aes(LONGITUDE, LATITUDE)) +
         axis.title = element_blank(), 
         axis.text = element_blank(),
         axis.ticks = element_blank(),
-        legend.position = "bottom")
+        legend.position = "bottom",
+        legend.key.width = unit(1.2, "in"))
 
 ggsave("hist_spread/figs/map3_stanlists.png", map3_stanlists,
-       width = 10, height = 10, units = "in", dpi = 300)
+       width = 10, height = 12, units = "in", dpi = 300)
 
 
 ### 1b. Histograms ####
 
-
-# for grids histogram, converting true CELL.ID to continuous values 
-# (i.e., removing grid cells falling outside country boundary) so that
-# histogram can be more intuitive because x axis will be serial
-serial <- data0 %>% 
-  summarise(GRIDG1 = unique(GRIDG1)) %>% 
-  rownames_to_column("GRIDG1.SERIAL") %>% 
-  mutate(GRIDG1.SERIAL = as.integer(GRIDG1.SERIAL))
-data0 <- data0 %>% left_join(serial)
-
-# turns out, this isn't very informative because 2021 has so much that nothing is visible
-hist_grids <- ggplot(filter(data0, NO.LISTS != 0)) +
-  facet_wrap(~ PERIOD, ncol = 1) +
-  scale_y_continuous(expand = c(0, 0)) +
-  geom_histogram(aes(as.vector(GRIDG1.SERIAL)), bins = 60) +
-  labs(x = "Cell ID")
-
-ggsave("hist_spread/figs/hist_grids.png", hist_grids,
-       width = 7, height = 12, units = "in", dpi = 300)
-
-
-hist_lists <- ggplot(filter(data0, NO.LISTS != 0)) +
+hist_lists <- ggplot(filter(data_grid, NO.LISTS != 0)) +
   facet_wrap(~ PERIOD, ncol = 1) +
   scale_y_continuous(expand = c(0, 0)) +
   # the discrepancy
   annotate("rect", 
-           xmin = 2.2, xmax = 2.9, ymin = 0, ymax = +Inf, 
+           xmin = 1.7, xmax = 2.7, ymin = 0, ymax = +Inf, 
            fill = "#ff0000", col = NA, alpha = 0.1) +
   geom_histogram(aes(log(NO.LISTS))) +
   labs(x = "log(no. of lists per grid cell)")
