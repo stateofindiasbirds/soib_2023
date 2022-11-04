@@ -295,6 +295,9 @@ data_reg_change3 <- data_reg %>%
 reg_abs <- data_reg %>% 
   st_drop_geometry() %>% 
   dplyr::select(-geometry) %>% 
+  # rounding proportions
+  mutate(PROP.LISTS = round(PROP.LISTS, 2),
+         PROP.CELL.COV = round(PROP.CELL.COV, 2)) %>% 
   pivot_longer(c("NO.LISTS", "TOT.LISTS", "PROP.LISTS", "NO.CELLS", "PROP.CELL.COV"),
                names_to = "METRIC", values_to = "VALUE") %>% 
   pivot_wider(names_from = "PERIOD", values_from = "VALUE") %>% 
