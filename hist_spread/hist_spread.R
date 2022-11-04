@@ -309,11 +309,15 @@ write_csv(reg_abs, file = "hist_spread/reg_abs.csv")
 ### 2.2.1. Proportions of birding across regions: columns ####
 
 reg_prop_col <- ggplot(data_reg) +
-  geom_col(aes(PJ_RECLASS, PROP.LISTS)) +
+  geom_col(aes(PJ_RECLASS, PROP.LISTS, fill = PROP.LISTS)) +
   facet_wrap(~ PERIOD, ncol = 1) +
+  scale_fill_viridis_c(option = "cividis", label = scales::comma,
+                       breaks = seq(0, 30, 5)) +
   labs(x = "Ecoregion (reclassified)", y = "Percentage of birding occurring in region (%)",
-       title = "Proportional birding across ecoregions over time") +
-  theme(axis.text = element_text(angle = 90, size = 6))
+       title = "Proportional birding across ecoregions over time",
+       fill = "Percentage\n(%)") +
+  theme(axis.text = element_text(angle = 90, size = 6),
+        legend.key.height = unit(0.6, "in"))
 
 ggsave("hist_spread/figs/reg_prop_col.png", reg_prop_col, 
        width = 9, height = 15, units = "in", dpi = 300)
@@ -335,11 +339,15 @@ ggsave("hist_spread/figs/reg_prop_map.png", reg_prop_map,
 ### 2.3.1. Grid coverage within regions: columns ####
 
 reg_gridcov_col <- ggplot(data_reg) +
-  geom_col(aes(PJ_RECLASS, PROP.CELL.COV)) +
+  geom_col(aes(PJ_RECLASS, PROP.CELL.COV, fill = PROP.CELL.COV)) +
   facet_wrap(~ PERIOD, ncol = 1) +
+  scale_fill_viridis_c(option = "cividis", label = scales::comma,
+                       breaks = seq(0, 100, 10)) +
   labs(x = "Ecoregion (reclassified)", y = "Percentage grid coverage within region (%)",
-       title = "Birding coverage of grid cells within ecoregions over time") +
-  theme(axis.text = element_text(angle = 90, size = 6))
+       title = "Birding coverage of grid cells within ecoregions over time",
+       fill = "Percentage\n(%)") +
+  theme(axis.text = element_text(angle = 90, size = 6),
+        legend.key.height = unit(0.6, "in"))
 
 ggsave("hist_spread/figs/reg_gridcov_col.png", reg_gridcov_col, 
        width = 9, height = 15, units = "in", dpi = 300)
