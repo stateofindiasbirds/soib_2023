@@ -204,6 +204,7 @@ data_reg <- data0 %>%
   complete(PJ_RECLASS = eco_grids$PJ_RECLASS, 
            fill = list(NO.LISTS = 0, PROP.LISTS = 0,
                        NO.CELLS = 0, PROP.CELLS.COV = 0)) %>% 
+  ungroup() %>% 
   # joining ecoregions object which contains their geom
   left_join(ecoregions) %>% 
   # removing NA regions in ecoregions name but where data exists (i.e., marine regions)
@@ -291,9 +292,16 @@ data_reg_change3 <- data_reg %>%
 
 ### 2.1. Absolute numbers: tables ####
 
-data_reg %>% 
+reg_abs <- data_reg %>% 
   st_drop_geometry() %>% 
-  dplyr::select(PERIOD, PJ_RECLASS, NO.LISTS)
+  dplyr::select(-geometry) %>% 
+  pivot_longer(c("NO.LISTS", "TOT.LISTS", "PROP.LISTS", "NO.CELLS", "PROP.CELL.COV"),
+               names_to = "METRIC", values_to = "VALUE") %>% 
+  pivot_wider(names_from = "PERIOD", values_from = "VALUE") %>% 
+  rename(ECOREGION = PJ_RECLASS, ECO.TOT.CELLS = TOT.CELLS) %>% 
+  filter(!is.na(ECO.TOT.CELLS))
+
+write_csv(reg_abs, file = "hist_spread/reg_abs.csv")
 
 ### 2.2.1. Proportions of birding across regions: columns ####
 
