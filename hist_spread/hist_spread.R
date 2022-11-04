@@ -369,14 +369,6 @@ reg_gridcov_map <- gg_map(data = data_reg, sf = T,
 ggsave("hist_spread/figs/reg_gridcov_map.png", reg_gridcov_map,
        width = 10, height = 12, units = "in", dpi = 300)
 
-### 2b. Regions: contribution to national dataset ####
-
-ggplot(data2, 
-       aes(reorder(REGION, -PROP.LISTS), PROP.LISTS)) +
-  facet_wrap(~ PERIOD, ncol = 1) +
-  geom_col() +
-  labs(title = "Distribution of birding across geographical regions",
-       x = "Region", y = "Proportion of lists")
 
 ### 3. Data progression with time periods ####
 

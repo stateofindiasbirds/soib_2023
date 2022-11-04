@@ -222,7 +222,7 @@ joinmapvars = function(data, admin = T, grids = T){
 gg_map <- function(data, datalong, datalat, sf = TRUE, facetvar, ncol = 2,
                    poly1, poly1long = long, poly1lat = lat,
                    poly2, poly2long = long, poly2lat = lat, poly2type = "grid",
-                   mainvar, na_fill = "#ACACAC",
+                   mainvar, na_fill = "#ACACAC", gg_viridis_option = "cividis",
                    title, subtitle, legend_title) {
   
   # if the data object provided is an sf object, it should also be used in the geom_sf() call
@@ -266,7 +266,7 @@ gg_map <- function(data, datalong, datalat, sf = TRUE, facetvar, ncol = 2,
       geom_sf(data = data_sf, aes(geometry = geometry, fill = !!mainvar),
               size = poly2size)
     }} +
-    scale_fill_viridis_c(na.value = na_fill, option = "inferno", label = scales::comma) +
+    scale_fill_viridis_c(na.value = na_fill, option = gg_viridis_option, label = scales::comma) +
     labs(title = title,
          subtitle = subtitle,
          fill = legend_title) +
