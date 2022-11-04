@@ -108,75 +108,52 @@ data_grid <- data0 %>%
 
 ### Number
 
-map1_nolists <- ggplot(data = data_grid) +
-  facet_wrap(~ PERIOD, ncol = 2) +
-  geom_polygon(data = indiamap,
-               aes(long, lat, group = group),
-               colour = "black", fill = NA, size = 0.2) +
-  geom_sf(aes(fill = log(NO.LISTS), geometry = geometry), colour = NA) +
-  scale_fill_viridis_c(na.value = "#CCCCCC", option = "cividis") +
-  labs(title = "Birding intensity in grid cells across the country",
-       subtitle = "Fill: log-transformed no. of lists per grid cell per time period (grey: zero lists).",
-       fill = "log(no. of lists)") +
-  theme(axis.line = element_blank(), 
-        axis.title = element_blank(), 
-        axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        legend.position = "bottom")
+grid_map_no <- gg_map(data = data_grid, sf = T, 
+                      facetvar = PERIOD, ncol = 2,
+                      poly1 = indiamap,
+                      mainvar = log(NO.LISTS), 
+                      gg_viridis_option = "rocket",
+                      title = "Birding intensity in grid cells across the country",
+                      subtitle = "Fill: log-transformed no. of lists per grid cell per time period (grey: zero lists).",
+                      legend_title = "log(no. of lists)")
 
-ggsave("hist_spread/figs/map1_nolists.png", map1_nolists,
+ggsave("hist_spread/figs/grid_map_no.png", grid_map_no,
        width = 10, height = 12, units = "in", dpi = 300)
 
 ### Total proportion
 
-map2_proplists <- ggplot(data = data_grid) +
-  facet_wrap(~ PERIOD, ncol = 2) +
-  geom_polygon(data = indiamap,
-               aes(long, lat, group = group),
-               colour = "black", fill = NA, size = 0.2) +
-  geom_sf(aes(fill = PROP.LISTS*100, geometry = geometry), colour = NA) +
-  scale_fill_viridis_c(na.value = "#CCCCCC", option = "cividis",
-                       trans = "log10", breaks = c(0.01, 0.1, 0.5, 2, 5, 10)) +
-  labs(title = "How was birding spatially concentrated in different periods?",
-       subtitle = "Fill: proportion of total nationwide lists from each grid cell (grey: zero lists).",
-       fill = "Prop. of lists (%)") +
-  theme(axis.line = element_blank(), 
-        axis.title = element_blank(), 
-        axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        legend.position = "bottom",
-        legend.key.width = unit(1.2, "in"))
+grid_map_prop <- gg_map(data = data_grid, sf = T, 
+                        facetvar = PERIOD, ncol = 2,
+                        poly1 = indiamap,
+                        mainvar = PROP.LISTS*100,
+                        scale_trans = "log10", scale_trans_breaks = c(0.01, 0.1, 0.5, 2, 5, 10),
+                        gg_viridis_option = "rocket",
+                        title = "How was birding spatially concentrated in different periods?",
+                        subtitle = "Fill: percentage of total nationwide lists from each grid cell (grey: zero lists).",
+                        legend_title = "Percentage of lists (%)")
 
-ggsave("hist_spread/figs/map2_proplists.png", map2_proplists,
+ggsave("hist_spread/figs/grid_map_prop.png", grid_map_prop,
        width = 10, height = 12, units = "in", dpi = 300)
 
 ### Standardised proportion
 
-map3_stanlists <- ggplot(data = data_grid) +
-  facet_wrap(~ PERIOD, ncol = 2) +
-  geom_polygon(data = indiamap,
-               aes(long, lat, group = group),
-               colour = "black", fill = NA, size = 0.2) +
-  geom_sf(aes(fill = STAN.LISTS*100, geometry = geometry), colour = NA) +
-  scale_fill_viridis_c(na.value = "#CCCCCC", option = "cividis",
-                       trans = "log10", breaks = c(0.1, 1, 5, 20, 50, 100)) +
-  labs(title = "How was birding spatially concentrated in different periods?",
-       subtitle = "Fill: no. of lists in proportion to highest lists/cell value (grey: zero lists).",
-       fill = "Standardised prop. of lists (%)") +
-  theme(axis.line = element_blank(), 
-        axis.title = element_blank(), 
-        axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        legend.position = "bottom",
-        legend.key.width = unit(1.2, "in"))
+grid_map_stan <- gg_map(data = data_grid, sf = T, 
+                        facetvar = PERIOD, ncol = 2,
+                        poly1 = indiamap,
+                        mainvar = STAN.LISTS*100,
+                        scale_trans = "log10", scale_trans_breaks = c(0.1, 1, 5, 20, 50, 100),
+                        gg_viridis_option = "rocket",
+                        title = "How was birding spatially concentrated in different periods?",
+                        subtitle = "Fill: no. of lists in proportion to highest lists/cell value (grey: zero lists).",
+                        legend_title = "Standardised prop. of lists (%)")
 
-ggsave("hist_spread/figs/map3_stanlists.png", map3_stanlists,
+ggsave("hist_spread/figs/grid_map_stan.png", grid_map_stan,
        width = 10, height = 12, units = "in", dpi = 300)
 
 
 ### 1b. Histograms ####
 
-hist_lists <- ggplot(filter(data_grid, NO.LISTS != 0)) +
+grid_hist_no <- ggplot(filter(data_grid, NO.LISTS != 0)) + # need to filter here but not in regional ones
   facet_wrap(~ PERIOD, ncol = 1) +
   scale_y_continuous(expand = c(0, 0)) +
   # the discrepancy
@@ -186,7 +163,7 @@ hist_lists <- ggplot(filter(data_grid, NO.LISTS != 0)) +
   geom_histogram(aes(log(NO.LISTS))) +
   labs(x = "log(no. of lists per grid cell)")
 
-ggsave("hist_spread/figs/hist_lists.png", hist_lists,
+ggsave("hist_spread/figs/grid_hist_no.png", grid_hist_no,
        width = 7, height = 12, units = "in", dpi = 300)
 
 ### 2. Region-level ####
@@ -225,8 +202,8 @@ data_reg <- data0 %>%
   # filling zeroes for cell-period combo with no lists
   group_by(PERIOD) %>% 
   complete(PJ_RECLASS = eco_grids$PJ_RECLASS, 
-           fill = list(NO.LISTS = 0, TOT.LISTS = 0, PROP.LISTS = 0,
-                       NO.CELLS = 0, TOT.CELLS = 0, PROP.CELLS.COV = 0)) %>% 
+           fill = list(NO.LISTS = 0, PROP.LISTS = 0,
+                       NO.CELLS = 0, PROP.CELLS.COV = 0)) %>% 
   # joining ecoregions object which contains their geom
   left_join(ecoregions) %>% 
   # removing NA regions in ecoregions name but where data exists (i.e., marine regions)

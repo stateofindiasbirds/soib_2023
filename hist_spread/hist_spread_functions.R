@@ -223,6 +223,7 @@ gg_map <- function(data, datalong, datalat, sf = TRUE, facetvar, ncol = 2,
                    poly1, poly1long = long, poly1lat = lat,
                    poly2, poly2long = long, poly2lat = lat, poly2type = "grid",
                    mainvar, na_fill = "#ACACAC", gg_viridis_option = "cividis",
+                   scale_trans = NULL, scale_trans_breaks = NULL,
                    title, subtitle, legend_title) {
   
   # if the data object provided is an sf object, it should also be used in the geom_sf() call
@@ -266,14 +267,40 @@ gg_map <- function(data, datalong, datalat, sf = TRUE, facetvar, ncol = 2,
       geom_sf(data = data_sf, aes(geometry = geometry, fill = !!mainvar),
               size = poly2size)
     }} +
-    scale_fill_viridis_c(na.value = na_fill, option = gg_viridis_option, label = scales::comma) +
+    # whether or not to transform the fill scale
+    {if (is.null(scale_trans)) {
+      
+      scale_fill_viridis_c(na.value = na_fill, option = gg_viridis_option, label = scales::comma) 
+      
+    } else if (!is.null(scale_trans) & !is.null(scale_trans_breaks)) {
+      
+      scale_fill_viridis_c(na.value = na_fill, option = gg_viridis_option, 
+                           trans = scale_trans, breaks = scale_trans_breaks)
+      
+    } else if (!is.null(scale_trans) & is.null(scale_trans_breaks)) {
+      
+      stop("Please provide breaks for the transformed scale")
+      
+    }
+    } +
     labs(title = title,
          subtitle = subtitle,
          fill = legend_title) +
-    theme(axis.line = element_blank(),
-          axis.title = element_blank(),
-          axis.text = element_blank(),
-          axis.ticks = element_blank(),
-          legend.position = "bottom")
+    # if log-transforming legend bar, then making bar wider
+    {if (scale_trans == "log10") {
+      theme(axis.line = element_blank(),
+            axis.title = element_blank(),
+            axis.text = element_blank(),
+            axis.ticks = element_blank(),
+            legend.position = "bottom",
+            legend.key.width = unit(1.2, "in"))
+    } else if (is.null(scale_trans)) {
+      theme(axis.line = element_blank(),
+            axis.title = element_blank(),
+            axis.text = element_blank(),
+            axis.ticks = element_blank(),
+            legend.position = "bottom")
+    }}
+    
   
 }
