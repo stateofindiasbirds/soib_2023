@@ -316,7 +316,7 @@ data_reg_change3 <- data_reg %>%
 
 data_reg %>% 
   st_drop_geometry() %>% 
-  select(PERIOD, PJ_RECLASS, NO.LISTS)
+  dplyr::select(PERIOD, PJ_RECLASS, NO.LISTS)
 
 ### 2.2.1. Proportions of birding across regions: columns ####
 
@@ -344,21 +344,30 @@ reg_prop_map <- gg_map(data = data_reg, sf = T,
 ggsave("hist_spread/figs/reg_prop_map.png", reg_prop_map,
        width = 10, height = 12, units = "in", dpi = 300)
 
-### 2.3.2. ####
+### 2.3.1. Grid coverage within regions: columns ####
 
-# out of total cells in region, how many covered?
-map6_cellscov <- gg_map(data = data_reg_change3, sf = T, 
-                        facetvar = COMPARISON.LAB, ncol = 3,
-                        poly1 = indiamap, poly2type = "region",
-                        mainvar = CHANGE, 
-                        title = "Change in spatial coverage within ecoregions of the country",
-                        subtitle = "Fill: proportional change in percentage coverage of 24km \u00d7 24km grid cells within ecoregions, from historical time to present day (grey: zero lists).",
-                        # to signifiy "times" proportional change
-                        legend_title = "Proportional (-fold) change")
+reg_gridcov_col <- ggplot(data_reg) +
+  geom_col(aes(PJ_RECLASS, PROP.CELL.COV)) +
+  facet_wrap(~ PERIOD, ncol = 1) +
+  labs(x = "Ecoregion (reclassified)", y = "Percentage grid coverage within region (%)",
+       title = "Birding coverage of grid cells within ecoregions over time") +
+  theme(axis.text = element_text(angle = 90, size = 6))
 
-ggsave("hist_spread/figs/map6_cellscov.png", map6_cellscov,
-       width = 17, height = 8, units = "in", dpi = 500)
+ggsave("hist_spread/figs/reg_gridcov_col.png", reg_gridcov_col, 
+       width = 9, height = 15, units = "in", dpi = 300)
 
+### 2.3.2. Grid coverage within regions: maps ####
+
+reg_gridcov_map <- gg_map(data = data_reg, sf = T, 
+                          facetvar = PERIOD, ncol = 2,
+                          poly1 = indiamap, poly2type = "region",
+                          mainvar = PROP.CELL.COV, 
+                          title = "Birding coverage of grid cells within ecoregions over time",
+                          subtitle = "Fill: percentage grid coverage within region (grey: zero lists).",
+                          legend_title = "Percentage (%)")
+
+ggsave("hist_spread/figs/reg_gridcov_map.png", reg_gridcov_map,
+       width = 10, height = 12, units = "in", dpi = 300)
 
 ### 2b. Regions: contribution to national dataset ####
 
