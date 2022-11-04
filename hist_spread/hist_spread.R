@@ -202,15 +202,18 @@ eco_grids <- gridmapg1_sf %>%
   st_drop_geometry() # we only need this to later join using PJ_RECLASS
 
 
-temp1 <- data_hist %>% 
-  bind_rows(data_cur) %>% 
+data_reg <- data0 %>% 
+  # to add region info
   st_as_sf(coords = c("LONGITUDE", "LATITUDE")) %>% 
   st_set_crs(st_crs(ecoregions)) %>% 
-  st_join(ecoregions) %>% 
-  group_by(TIME.SOIB1) %>% 
+  st_join(ecoregions) %>%
+  # this joins attributes but not geom of ecoregion (retains geom of lists)
+  # so, removing lists geom and 
+  st_drop_geometry() %>% 
+  group_by(PERIOD) %>% 
   mutate(TOT.LISTS = n_distinct(GROUP.ID)) %>% 
-  group_by(TIME.SOIB1, PJ_RECLASS) %>% 
   left_join(eco_grids) %>% 
+  group_by(PERIOD, PJ_RECLASS) %>% 
   summarise(NO.LISTS = n_distinct(GROUP.ID),
             TOT.LISTS = min(TOT.LISTS),
             # out of total lists in country in time period, how many in this region?
@@ -219,41 +222,18 @@ temp1 <- data_hist %>%
             TOT.CELLS = min(TOT.CELLS),
             # out of total cells in region, how many covered?
             PROP.CELL.COV = 100*NO.CELLS/TOT.CELLS) %>% 
-  ungroup() %>% 
-  rename(PERIOD = TIME.SOIB1)
-
-temp2 <- data_hist %>% 
-  bind_rows(data_cur) %>% 
-  st_as_sf(coords = c("LONGITUDE", "LATITUDE")) %>% 
-  st_set_crs(st_crs(ecoregions)) %>% 
-  st_join(ecoregions) %>% 
-  group_by(TIME.SOIB2) %>% 
-  mutate(TOT.LISTS = n_distinct(GROUP.ID)) %>% 
-  group_by(TIME.SOIB2, PJ_RECLASS) %>% 
-  left_join(eco_grids) %>% 
-  summarise(NO.LISTS = n_distinct(GROUP.ID),
-            TOT.LISTS = min(TOT.LISTS),
-            # out of total lists in country in time period, how many in this region?
-            PROP.LISTS = 100*NO.LISTS/TOT.LISTS,
-            NO.CELLS = n_distinct(GRIDG1),
-            TOT.CELLS = min(TOT.CELLS),
-            # out of total cells in region, how many covered?
-            PROP.CELL.COV = 100*NO.CELLS/TOT.CELLS) %>% 
-  ungroup() %>%
-  rename(PERIOD = TIME.SOIB2) %>%
-  # removing 2021 since temp1 already has
-  filter(PERIOD != "2021")
-
-data_reg <- temp1 %>% 
-  bind_rows(temp2) %>% 
-  mutate(PERIOD = factor(PERIOD, levels = soib_levels)) %>% 
+  # filling zeroes for cell-period combo with no lists
+  group_by(PERIOD) %>% 
+  complete(PJ_RECLASS = eco_grids$PJ_RECLASS, 
+           fill = list(NO.LISTS = 0, TOT.LISTS = 0, PROP.LISTS = 0,
+                       NO.CELLS = 0, TOT.CELLS = 0, PROP.CELLS.COV = 0)) %>% 
+  # joining ecoregions object which contains their geom
+  left_join(ecoregions) %>% 
   # removing NA regions in ecoregions name but where data exists (i.e., marine regions)
   filter(!is.na(PJ_RECLASS)) %>% 
   # converting metrics to NA when number of lists = 0 (to visualise non-overlap)
   mutate(PROP.LISTS = if_else(NO.LISTS == 0, as.numeric(NA_integer_), PROP.LISTS),
-         PROP.CELL.COV = if_else(NO.CELLS == 0, as.numeric(NA_integer_), PROP.CELL.COV)) %>% 
-  dplyr::select(-TOT.LISTS)
-
+         PROP.CELL.COV = if_else(NO.CELLS == 0, as.numeric(NA_integer_), PROP.CELL.COV))
 
 # for change in representation of regions
 
@@ -332,32 +312,39 @@ data_reg_change3 <- data_reg %>%
                                             "pre-2000 to 2021"))) %>% 
   left_join(ecoregions)
 
-### 2a. Regions: change in representation (maps) ####
+### 2.1. Absolute numbers: tables ####
 
-map4_nolists <- gg_map(data = data_reg_change1, sf = T, 
-                       facetvar = COMPARISON.LAB, ncol = 3,
-                       poly1 = indiamap, poly2type = "region",
-                       mainvar = CHANGE, 
-                       title = "Change in absolute birding intensity in ecoregions of the country",
-                       subtitle = "Fill: proportional change in number of lists from historical time to present day, over ecoregions (grey: zero lists).",
-                       # to signify "times" proportional change
-                       legend_title = "Proportional (-fold) change")
+data_reg %>% 
+  st_drop_geometry() %>% 
+  select(PERIOD, PJ_RECLASS, NO.LISTS)
 
-ggsave("hist_spread/figs/map4_nolists.png", map4_nolists,
-       width = 17, height = 8, units = "in", dpi = 500)
+### 2.2.1. Proportions of birding across regions: columns ####
+
+reg_prop_col <- ggplot(data_reg) +
+  geom_col(aes(PJ_RECLASS, PROP.LISTS)) +
+  facet_wrap(~ PERIOD, ncol = 1) +
+  labs(x = "Ecoregion (reclassified)", y = "Percentage of birding occurring in region (%)",
+       title = "Proportional birding across ecoregions over time") +
+  theme(axis.text = element_text(angle = 90, size = 6))
+
+ggsave("hist_spread/figs/reg_prop_col.png", reg_prop_col, 
+       width = 9, height = 15, units = "in", dpi = 300)
+
+### 2.2.2. Proportions of birding across regions: maps ####
 
 # out of total lists in country in time period, how many in this region?
-map5_proplists <- gg_map(data = data_reg_change2, sf = T, 
-                         facetvar = COMPARISON.LAB, ncol = 3,
-                         poly1 = indiamap, poly2type = "region",
-                         mainvar = CHANGE, 
-                         title = "Change in proportional birding intensity in ecoregions of the country",
-                         subtitle = "Fill: proportional change in percentage contribution to total lists from historical time to present day, over ecoregions (grey: zero lists).",
-                         # to signify "times" proportional change
-                         legend_title = "Proportional (-fold) change")
+reg_prop_map <- gg_map(data = data_reg, sf = T, 
+                       facetvar = PERIOD, ncol = 2,
+                       poly1 = indiamap, poly2type = "region",
+                       mainvar = PROP.LISTS, 
+                       title = "Proportional birding across ecoregions over time",
+                       subtitle = "Fill: percentage contribution of ecoregions to total lists (grey: zero lists).",
+                       legend_title = "Percentage (%)")
 
-ggsave("hist_spread/figs/map5_proplists.png", map5_proplists,
-       width = 17, height = 8, units = "in", dpi = 500)
+ggsave("hist_spread/figs/reg_prop_map.png", reg_prop_map,
+       width = 10, height = 12, units = "in", dpi = 300)
+
+### 2.3.2. ####
 
 # out of total cells in region, how many covered?
 map6_cellscov <- gg_map(data = data_reg_change3, sf = T, 

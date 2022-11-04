@@ -84,11 +84,21 @@ import_hist_spread_data <- function(init_setup = FALSE) {
 
   }
   
+  
   # ecoregions
   source("hist_spread/ecoregions.R")
+  
   # reclassification of ecoregion data (from discussion with group)
   reclass <- read_csv("hist_spread/Ecoregions2017_reclassification.csv")
-  ecoregions <- ecoregions %>% left_join(reclass)
+
+  ecoregions <- ecoregions %>% 
+    left_join(reclass) %>% 
+    dplyr::select(-ECO_NAME, -ECO_RECLASS1, -ECO_RECLASS2, -FINAL_RECLASS) %>% 
+    # to merge original ecoregions according to PJ_RECLASS
+    group_by(PJ_RECLASS) %>% 
+    summarise(geometry = st_union(geometry)) %>% 
+    ungroup()
+  
   
   assign("reclass", reclass, envir = .GlobalEnv)
   assign("ecoregions", ecoregions, envir = .GlobalEnv)
@@ -212,7 +222,7 @@ joinmapvars = function(data, admin = T, grids = T){
 gg_map <- function(data, datalong, datalat, sf = TRUE, facetvar, ncol = 2,
                    poly1, poly1long = long, poly1lat = lat,
                    poly2, poly2long = long, poly2lat = lat, poly2type = "grid",
-                   mainvar, na_fill = "#CCCCCC",
+                   mainvar, na_fill = "#ACACAC",
                    title, subtitle, legend_title) {
   
   # if the data object provided is an sf object, it should also be used in the geom_sf() call
