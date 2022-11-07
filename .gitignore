@@ -89,5 +89,8 @@ snippets/
 # folders and specific files in Karthik's system
 Literature/
 hist_spread/*.RData
+hist_spread/*.csv
 hist_spread/figs/
+hist_spread/ecoregions_reclass_viz_files/
+hist_spread/ecoregions_reclass_viz.html
 ebd_IN_relJun-2022.RData
