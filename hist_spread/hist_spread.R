@@ -278,82 +278,11 @@ data_reg <- data0 %>%
   mutate(PROP.LISTS = if_else(NO.LISTS == 0, as.numeric(NA_integer_), PROP.LISTS),
          PROP.CELL.COV = if_else(NO.CELLS == 0, as.numeric(NA_integer_), PROP.CELL.COV))
 
-# for change in representation of regions
+# from grid cell-level analyses, it is clear that we cannot use the finer resolution of
+# historical data, so from here on only considering pre-2000 and 2021
+data_reg <- data_reg %>% 
+  filter(PERIOD %in% c("pre-2000", "2021"))
 
-data_reg_change1 <- data_reg %>%
-  st_drop_geometry() %>% 
-  dplyr::select(PJ_RECLASS, PERIOD, NO.LISTS) %>% 
-  pivot_wider(names_from = PERIOD, values_from = NO.LISTS) %>%
-  # filling zeros for region-period combinations
-  mutate(across(2:5, ~ replace_na(.x, 0))) %>% 
-  # adding 1 to all to allow calculation of proportional change
-  mutate(across(2:5, ~ .x + 1)) %>% 
-  group_by(PJ_RECLASS) %>%
-  # proportional change (not percent)
-  summarise(CHANGE1 = `2021` / `pre-2000`,
-            CHANGE2 = `2021` / `1990-1999`,
-            CHANGE3 = `2021` / `pre-1990`) %>% 
-  pivot_longer(cols = contains("CHANGE"), 
-               names_to = "COMPARISON", names_transform = ~ str_remove(.x, "CHANGE"),
-               values_to = "CHANGE") %>% 
-  mutate(COMPARISON.LAB = case_when(COMPARISON == 1 ~ "pre-2000 to 2021",
-                                    COMPARISON == 2 ~ "1990-1999 to 2021",
-                                    COMPARISON == 3 ~ "pre-1990 to 2021")) %>% 
-  mutate(COMPARISON.LAB = factor(COMPARISON.LAB, 
-                                 levels = c("pre-1990 to 2021", 
-                                            "1990-1999 to 2021", 
-                                            "pre-2000 to 2021"))) %>% 
-  left_join(ecoregions)
-
-data_reg_change2 <- data_reg %>%
-  st_drop_geometry() %>% 
-  dplyr::select(PJ_RECLASS, PERIOD, PROP.LISTS) %>% 
-  pivot_wider(names_from = PERIOD, values_from = PROP.LISTS) %>%
-  # filling zeros for region-period combinations
-  mutate(across(2:5, ~ replace_na(.x, 0))) %>% 
-  # adding 10^(-6) to all to allow calculation of proportional change
-  mutate(across(2:5, ~ .x + 10^(-6))) %>% 
-  group_by(PJ_RECLASS) %>%
-  # proportional change (not percent)
-  summarise(CHANGE1 = `2021` / `pre-2000`,
-            CHANGE2 = `2021` / `1990-1999`,
-            CHANGE3 = `2021` / `pre-1990`) %>% 
-  pivot_longer(cols = contains("CHANGE"), 
-               names_to = "COMPARISON", names_transform = ~ str_remove(.x, "CHANGE"),
-               values_to = "CHANGE") %>% 
-  mutate(COMPARISON.LAB = case_when(COMPARISON == 1 ~ "pre-2000 to 2021",
-                                    COMPARISON == 2 ~ "1990-1999 to 2021",
-                                    COMPARISON == 3 ~ "pre-1990 to 2021")) %>% 
-  mutate(COMPARISON.LAB = factor(COMPARISON.LAB, 
-                                 levels = c("pre-1990 to 2021", 
-                                            "1990-1999 to 2021", 
-                                            "pre-2000 to 2021"))) %>% 
-  left_join(ecoregions)
-
-data_reg_change3 <- data_reg %>%
-  st_drop_geometry() %>% 
-  dplyr::select(PJ_RECLASS, PERIOD, PROP.CELL.COV) %>% 
-  pivot_wider(names_from = PERIOD, values_from = PROP.CELL.COV) %>%
-  # filling zeros for region-period combinations
-  mutate(across(2:5, ~ replace_na(.x, 0))) %>% 
-  # adding 10^(-6) to all to allow calculation of proportional change
-  mutate(across(2:5, ~ .x + 10^(-6))) %>% 
-  group_by(PJ_RECLASS) %>%
-  # proportional change (not percent)
-  summarise(CHANGE1 = `2021` / `pre-2000`,
-            CHANGE2 = `2021` / `1990-1999`,
-            CHANGE3 = `2021` / `pre-1990`) %>% 
-  pivot_longer(cols = contains("CHANGE"), 
-               names_to = "COMPARISON", names_transform = ~ str_remove(.x, "CHANGE"),
-               values_to = "CHANGE") %>% 
-  mutate(COMPARISON.LAB = case_when(COMPARISON == 1 ~ "pre-2000 to 2021",
-                                    COMPARISON == 2 ~ "1990-1999 to 2021",
-                                    COMPARISON == 3 ~ "pre-1990 to 2021")) %>% 
-  mutate(COMPARISON.LAB = factor(COMPARISON.LAB, 
-                                 levels = c("pre-1990 to 2021", 
-                                            "1990-1999 to 2021", 
-                                            "pre-2000 to 2021"))) %>% 
-  left_join(ecoregions)
 
 ### 2.1. Absolute numbers: tables ####
 
@@ -385,7 +314,7 @@ reg_prop_col <- ggplot(data_reg) +
         legend.key.height = unit(0.6, "in"))
 
 ggsave("hist_spread/figs/reg_prop_col.png", reg_prop_col, 
-       width = 9, height = 15, units = "in", dpi = 300)
+       width = 9, height = 8, units = "in", dpi = 300)
 
 ### 2.2.2. Proportions of birding across regions: maps ####
 
@@ -399,7 +328,7 @@ reg_prop_map <- gg_map(data = data_reg, sf = T,
                        legend_title = "Percentage (%)")
 
 ggsave("hist_spread/figs/reg_prop_map.png", reg_prop_map,
-       width = 10, height = 12, units = "in", dpi = 300)
+       width = 10, height = 7, units = "in", dpi = 300)
 
 ### 2.3.1. Grid coverage within regions: columns ####
 
@@ -415,7 +344,7 @@ reg_gridcov_col <- ggplot(data_reg) +
         legend.key.height = unit(0.6, "in"))
 
 ggsave("hist_spread/figs/reg_gridcov_col.png", reg_gridcov_col, 
-       width = 9, height = 15, units = "in", dpi = 300)
+       width = 9, height = 8, units = "in", dpi = 300)
 
 ### 2.3.2. Grid coverage within regions: maps ####
 
@@ -428,7 +357,7 @@ reg_gridcov_map <- gg_map(data = data_reg, sf = T,
                           legend_title = "Percentage (%)")
 
 ggsave("hist_spread/figs/reg_gridcov_map.png", reg_gridcov_map,
-       width = 10, height = 12, units = "in", dpi = 300)
+       width = 10, height = 7, units = "in", dpi = 300)
 
 
 ### 3. Data progression with time periods ####
