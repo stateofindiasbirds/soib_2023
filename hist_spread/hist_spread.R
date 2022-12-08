@@ -117,7 +117,7 @@ grid_map_no <- gg_map(data = data_grid, sf = T,
                       subtitle = "Fill: log-transformed no. of lists per grid cell per time period (grey: zero lists).",
                       legend_title = "log(no. of lists)")
 
-ggsave("hist_spread/figs/grid_map_no.png", grid_map_no,
+ggsave("hist_spread/figs/grid_map_all4_no.png", grid_map_no,
        width = 10, height = 12, units = "in", dpi = 300)
 
 ### Total proportion
@@ -132,7 +132,7 @@ grid_map_prop <- gg_map(data = data_grid, sf = T,
                         subtitle = "Fill: percentage of total nationwide lists from each grid cell (grey: zero lists).",
                         legend_title = "Percentage of lists (%)")
 
-ggsave("hist_spread/figs/grid_map_prop.png", grid_map_prop,
+ggsave("hist_spread/figs/grid_map_all4_prop.png", grid_map_prop,
        width = 10, height = 12, units = "in", dpi = 300)
 
 ### Standardised proportion
@@ -147,8 +147,57 @@ grid_map_stan <- gg_map(data = data_grid, sf = T,
                         subtitle = "Fill: no. of lists in proportion to highest lists/cell value (grey: zero lists).",
                         legend_title = "Standardised prop. of lists (%)")
 
-ggsave("hist_spread/figs/grid_map_stan.png", grid_map_stan,
+ggsave("hist_spread/figs/grid_map_all4_stan.png", grid_map_stan,
        width = 10, height = 12, units = "in", dpi = 300)
+
+
+### only pre-2000 and 2021
+
+
+grid_map_no <- gg_map(data = filter(data_grid, 
+                                    PERIOD %in% c("pre-2000", "2021")), sf = T, 
+                      facetvar = PERIOD, ncol = 2,
+                      poly1 = indiamap,
+                      mainvar = log(NO.LISTS), 
+                      gg_viridis_option = "rocket",
+                      title = "Birding intensity in grid cells across the country",
+                      subtitle = "Fill: log-transformed no. of lists per grid cell per time period (grey: zero lists).",
+                      legend_title = "log(no. of lists)")
+
+ggsave("hist_spread/figs/grid_map_no.png", grid_map_no,
+       width = 11, height = 7, units = "in", dpi = 300)
+
+### Total proportion
+
+grid_map_prop <- gg_map(data = filter(data_grid, 
+                                      PERIOD %in% c("pre-2000", "2021")), sf = T, 
+                        facetvar = PERIOD, ncol = 2,
+                        poly1 = indiamap,
+                        mainvar = PROP.LISTS*100,
+                        scale_trans = "log10", scale_trans_breaks = c(0.01, 0.1, 0.5, 2, 5, 10),
+                        gg_viridis_option = "rocket",
+                        title = "How was birding spatially concentrated in different periods?",
+                        subtitle = "Fill: percentage of total nationwide lists from each grid cell (grey: zero lists).",
+                        legend_title = "Percentage of lists (%)")
+
+ggsave("hist_spread/figs/grid_map_prop.png", grid_map_prop,
+       width = 11, height = 7, units = "in", dpi = 300)
+
+### Standardised proportion
+
+grid_map_stan <- gg_map(data = filter(data_grid, 
+                                      PERIOD %in% c("pre-2000", "2021")), sf = T, 
+                        facetvar = PERIOD, ncol = 2,
+                        poly1 = indiamap,
+                        mainvar = STAN.LISTS*100,
+                        scale_trans = "log10", scale_trans_breaks = c(0.1, 1, 5, 20, 50, 100),
+                        gg_viridis_option = "rocket",
+                        title = "How was birding spatially concentrated in different periods?",
+                        subtitle = "Fill: no. of lists in proportion to highest lists/cell value (grey: zero lists).",
+                        legend_title = "Standardised prop. of lists (%)")
+
+ggsave("hist_spread/figs/grid_map_stan.png", grid_map_stan,
+       width = 11, height = 7, units = "in", dpi = 300)
 
 
 ### 1b. Histograms ####
@@ -163,8 +212,24 @@ grid_hist_no <- ggplot(filter(data_grid, NO.LISTS != 0)) + # need to filter here
   geom_histogram(aes(log(NO.LISTS))) +
   labs(x = "log(no. of lists per grid cell)")
 
-ggsave("hist_spread/figs/grid_hist_no.png", grid_hist_no,
+ggsave("hist_spread/figs/grid_hist_all4_no.png", grid_hist_no,
        width = 7, height = 12, units = "in", dpi = 300)
+
+### only pre-2000 and 2021
+
+grid_hist_no <- ggplot(filter(data_grid, NO.LISTS != 0 &
+                                PERIOD %in% c("pre-2000", "2021"))) + 
+  facet_wrap(~ PERIOD, ncol = 1) +
+  scale_y_continuous(expand = c(0, 0)) +
+  # the discrepancy
+  annotate("rect", 
+           xmin = 1.7, xmax = 2.7, ymin = 0, ymax = +Inf, 
+           fill = "#ff0000", col = NA, alpha = 0.1) +
+  geom_histogram(aes(log(NO.LISTS))) +
+  labs(x = "log(no. of lists per grid cell)")
+
+ggsave("hist_spread/figs/grid_hist_no.png", grid_hist_no,
+       width = 7, height = 6, units = "in", dpi = 300)
 
 ### 2. Region-level ####
 

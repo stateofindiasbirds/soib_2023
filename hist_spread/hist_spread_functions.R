@@ -287,19 +287,19 @@ gg_map <- function(data, datalong, datalat, sf = TRUE, facetvar, ncol = 2,
          subtitle = subtitle,
          fill = legend_title) +
     # if log-transforming legend bar, then making bar wider
-    {if (scale_trans == "log10") {
+    {if (is.null(scale_trans)) {
+      theme(axis.line = element_blank(),
+            axis.title = element_blank(),
+            axis.text = element_blank(),
+            axis.ticks = element_blank(),
+            legend.position = "bottom")
+    } else if (scale_trans == "log10") {
       theme(axis.line = element_blank(),
             axis.title = element_blank(),
             axis.text = element_blank(),
             axis.ticks = element_blank(),
             legend.position = "bottom",
             legend.key.width = unit(1.2, "in"))
-    } else if (is.null(scale_trans)) {
-      theme(axis.line = element_blank(),
-            axis.title = element_blank(),
-            axis.text = element_blank(),
-            axis.ticks = element_blank(),
-            legend.position = "bottom")
     }}
     
   

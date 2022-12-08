@@ -2,7 +2,6 @@ library(tidyverse)
 library(leaflet)
 library(raster)
 library(sf)
-library(glue)
 library(htmlwidgets)
 
 
