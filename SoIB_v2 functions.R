@@ -74,7 +74,7 @@ readcleanrawdata = function(rawpath = "ebd_IN_relJun-2022.txt",
   
   imp = c("CATEGORY","COMMON.NAME","OBSERVATION.COUNT",
           "LOCALITY.ID", "REVIEWED","APPROVED","EXOTIC.CODE",
-          #"LOCALITY.TYPE",
+          "LOCALITY.TYPE",
           "LATITUDE","LONGITUDE","OBSERVATION.DATE","TIME.OBSERVATIONS.STARTED","OBSERVER.ID",
           "PROTOCOL.TYPE",
           "DURATION.MINUTES","EFFORT.DISTANCE.KM",
@@ -659,15 +659,16 @@ dataspeciesfilter = function(datapath = "data.RData",
     filter(ALL.SPECIES.REPORTED == 1) %>%
     group_by(timegroups) %>% summarize(lists = n_distinct(group.id), year = round(median(year)))
   
-  data1 = data
-  data1 = data1 %>% select(-CATEGORY,-LOCALITY.ID,-REVIEWED,-APPROVED,
-                           -LATITUDE,-LONGITUDE,-TIME.OBSERVATIONS.STARTED,-PROTOCOL.TYPE,
-                           -DURATION.MINUTES,-EFFORT.DISTANCE.KM,-day,-cyear)
+  data0 = data
+  data = data %>% select(-CATEGORY,-LOCALITY.ID,-REVIEWED,-APPROVED,
+                         -LOCALITY.TYPE,
+                         -LATITUDE,-LONGITUDE,-TIME.OBSERVATIONS.STARTED,-PROTOCOL.TYPE,
+                         -DURATION.MINUTES,-EFFORT.DISTANCE.KM,-day,-cyear,-EXOTIC.CODE)
   
-  assign("data",data1,.GlobalEnv)
+  assign("data",data,.GlobalEnv)
   assign("databins",databins,.GlobalEnv)
   
-  datah = data %>%
+  datah = data0 %>%
     filter(ALL.SPECIES.REPORTED == 1, CATEGORY == "species" | CATEGORY == "issf") %>%
     group_by(COMMON.NAME,timegroups) %>% summarize(locs = n_distinct(LOCALITY.ID), 
                                                    cells = n_distinct(gridg4)) %>%
@@ -676,7 +677,7 @@ dataspeciesfilter = function(datapath = "data.RData",
     filter(years == 13) %>%
     mutate(ht = 1) %>% select (COMMON.NAME,ht)
   
-  datar = data %>%
+  datar = data0 %>%
     filter(ALL.SPECIES.REPORTED == 1, CATEGORY == "species" | CATEGORY == "issf", year > 2016) %>%
     group_by(COMMON.NAME,year) %>% summarize(locs = n_distinct(LOCALITY.ID), 
                                              cells = n_distinct(gridg4)) %>%
@@ -685,7 +686,7 @@ dataspeciesfilter = function(datapath = "data.RData",
     filter(years == 5) %>%
     mutate(rt = 1) %>% select(COMMON.NAME,rt)
   
-  dataresth1 = data %>%
+  dataresth1 = data0 %>%
     filter(ALL.SPECIES.REPORTED == 1, CATEGORY == "species" | CATEGORY == "issf") %>%
     group_by(COMMON.NAME,timegroups) %>% summarize(cells = n_distinct(gridg4)) %>%
     filter(cells <= gridlimit) %>%
@@ -698,10 +699,10 @@ dataspeciesfilter = function(datapath = "data.RData",
   
   for (i in 1:length(speciesresth$species))
   {
-    tempresth1 = data %>%
+    tempresth1 = data0 %>%
       filter(COMMON.NAME == speciesresth$species[i]) %>%
       distinct(gridg1)
-    tempresth1 = tempresth1 %>% left_join(data)
+    tempresth1 = tempresth1 %>% left_join(data0)
     tempresth2 = tempresth1 %>%
       filter(COMMON.NAME == speciesresth$species[i]) %>%
       group_by(timegroups) %>% summarize(n = n_distinct(group.id)) %>%
@@ -713,7 +714,7 @@ dataspeciesfilter = function(datapath = "data.RData",
       speciesresth$validh[speciesresth$species == speciesresth$species[i]] = 1
   }
   
-  datarestr1 = data %>%
+  datarestr1 = data0 %>%
     filter(ALL.SPECIES.REPORTED == 1, CATEGORY == "species" | CATEGORY == "issf", year > 2016) %>%
     group_by(COMMON.NAME,timegroups) %>% summarize(cells = n_distinct(gridg4)) %>%
     filter(cells <= gridlimit) %>%
@@ -726,10 +727,10 @@ dataspeciesfilter = function(datapath = "data.RData",
   
   for (i in 1:length(unique(datarestr1$COMMON.NAME)))
   {
-    temprestr1 = data %>%
+    temprestr1 = data0 %>%
       filter(COMMON.NAME == speciesrestr$species[i]) %>%
       distinct(gridg1)
-    temprestr1 = temprestr1 %>% left_join(data)
+    temprestr1 = temprestr1 %>% left_join(data0)
     temprestr2 = temprestr1 %>%
       filter(COMMON.NAME == speciesrestr$species[i],year > 2016) %>%
       group_by(timegroups) %>% summarize(n = n_distinct(group.id)) %>%
@@ -772,7 +773,7 @@ dataspeciesfilter = function(datapath = "data.RData",
   
   names(restrictedspecieslist) = c("COMMON.NAME","ht","rt")
   
-  randomcheck = data %>% filter(ALL.SPECIES.REPORTED == 1, 
+  randomcheck = data0 %>% filter(ALL.SPECIES.REPORTED == 1, 
                                 COMMON.NAME %in% restrictedspecieslist$COMMON.NAME) %>%
     group_by(COMMON.NAME) %>% summarize(n = n_distinct(gridg1)) %>% filter(n > 4)
   
@@ -810,8 +811,8 @@ dataspeciesfilter = function(datapath = "data.RData",
                    "Non Breeding Activity Period","India.Checklist.Name",
                    "India.Scientific.Name","Selected - SOIB")
   
-  sampledcells = c(length(unique(data$gridg1)),length(unique(data$gridg2)),
-                   length(unique(data$gridg3)),length(unique(data$gridg4)))
+  sampledcells = c(length(unique(data0$gridg1)),length(unique(data0$gridg2)),
+                   length(unique(data0$gridg3)),length(unique(data0$gridg4)))
   
   x = c(x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,x11,x12)
   
@@ -848,6 +849,7 @@ dataspeciesfilter = function(datapath = "data.RData",
   
   write.csv(dataf,"fullspecieslist.csv",row.names = F)
   
+  save(specieslist,restrictedspecieslist,file = "specieslists.RData")
   rm(list=setdiff(ls(envir = .GlobalEnv), c("data","specieslist","databins",
                                             "sampledcells","totalcells","gridlevels","area",
                                             "areag1","areag2","areag3","areag4","stats",
@@ -855,7 +857,12 @@ dataspeciesfilter = function(datapath = "data.RData",
      pos = ".GlobalEnv")
   
   save.image("dataforanalyses.RData")
-  save(specieslist,restrictedspecieslist,file = "specieslists.RData")
+
+  data0 = data0 %>% select(-CATEGORY,-LOCALITY.ID,-REVIEWED,-APPROVED,
+                          -TIME.OBSERVATIONS.STARTED,
+                          -day,-cyear,-EXOTIC.CODE)
+  save(data0,file = "dataforanalyses_extra.RData")
+  
   
   rm(data, specieslist, databins, sampledcells, totalcells, gridlevels, area,
      areag1, areag2, areag3, areag4, stats, restrictedspecieslist, pos = ".GlobalEnv")
