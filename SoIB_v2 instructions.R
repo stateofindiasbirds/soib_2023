@@ -43,7 +43,7 @@ addmapvars()
 ## and selected species list, data
 
 source('SoIB_v2 functions.R')
-dataspeciesfilter(locationlimit = 15,gridlimit = 4)
+dataspeciesfilter(locationlimit = 15,gridlimit = 4,listlimit = 50)
 
 
 

@@ -7,7 +7,6 @@ source('SoIB_v2 functions.R')
 load("dataforanalyses.RData")
 
 databins=c(1992,2003,2009,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021)
-error=T
 nsim = 100
 
 data$gridg1 = as.factor(data$gridg1)
@@ -29,10 +28,10 @@ data0 = data
 
 ## the loop across all species for a subset of specieslist
 
-specieslist1 = specieslist %>% filter(COMMON.NAME %in% c("Indian Bushlark","Great Gray Shrike",
-                                                        "Forest Wagtail","Black-capped Kingfisher",
-                                                        "Pacific Golden-Plover","Curlew Sandpiper",
-                                                        "Small Minivet","Malabar Gray Hornbill"))
+specieslist1 = specieslist %>% filter(COMMON.NAME %in% c("House Sparrow","Nilgiri Sholakili",
+                                                         "Nilgiri Pipit","Bugun Liocichla",
+                                                         "Mishmi Wren-Babbler",
+                                                         "Chestnut-backed Laughingthrush"))
 c = 0
 
 start = Sys.time()
@@ -43,6 +42,18 @@ for (species in specieslist1$COMMON.NAME)
   
   specieslist2 = specieslist1 %>%
     filter(COMMON.NAME == species)
+  
+  flag = 0
+  if (species %in% restrictedspecieslist$COMMON.NAME)
+  {
+    flag = 1
+    restrictedlist1 = restrictedspecieslist %>% filter(COMMON.NAME == species)
+    specieslist2$ht = restrictedlist1$ht
+    specieslist2$rt = restrictedlist1$rt
+    
+    if (restrictedlist1$mixed == 0)
+      flag = 2
+  }
   
   ## filters data based on whether the species has been selected for long-term trends (ht) 
   ## or short-term trends (rt) 
@@ -63,10 +74,10 @@ for (species in specieslist1$COMMON.NAME)
     g1 = left_join(g1,mp)
     g1$species = species
     g1 = g1 %>%
-      filter(timegroups < 2017)
+      filter(timegroups < 2014)
     
     data = data %>%
-      filter(year >= 2017)
+      filter(year >= 2014)
   }
   
   if (is.na(specieslist2$ht) & is.na(specieslist2$rt))
@@ -106,14 +117,37 @@ for (species in specieslist1$COMMON.NAME)
   ## expand dataframe to include absences as well
   
   ed = expandbyspecies(data,species)
+  
+  ed$month = as.numeric(ed$month)
+  ed$month[ed$month %in% c(11,12,1,2)] = "Win"
+  ed$month[ed$month %in% c(3,4,5,6)] = "Sum"
+  ed$month[ed$month %in% c(7,8,9,10)] = "Mon"
+  ed$month = as.factor(ed$month)
+  
   tm = unique(data$timegroups)
   #rm(data, pos = ".GlobalEnv")
   
   ## the model
   
-  m1 = glmer(OBSERVATION.COUNT ~ month + month:log(no.sp) + timegroups + (1|gridg3/gridg1), data = ed, 
-             family=binomial(link = 'cloglog'), nAGQ = 0, control = glmerControl(optimizer = "bobyqa"))
+  if (flag == 0)
+  {
+    m1 = glmer(OBSERVATION.COUNT ~ month + month:log(no.sp) + timegroups + (1|gridg3/gridg1), data = ed, 
+               family=binomial(link = 'cloglog'), nAGQ = 0, control = glmerControl(optimizer = "bobyqa"))
+  }
   
+  if (flag == 1)
+  {
+    m1 = glmer(OBSERVATION.COUNT ~ month + month:log(no.sp) + timegroups + (1|gridg1), data = ed, 
+               family=binomial(link = 'cloglog'), nAGQ = 0, control = glmerControl(optimizer = "bobyqa"))
+  }
+  
+  if (flag == 2)
+  {
+    m1 = glm(OBSERVATION.COUNT ~ month + month:log(no.sp) + timegroups, data = ed, 
+               family=binomial(link = 'cloglog'))
+  }
+  
+
   ## prepare a new data file to predict
   
   f = data.frame(unique(tm))
@@ -131,7 +165,7 @@ for (species in specieslist1$COMMON.NAME)
   
   ## bootstrap to get errors
   
-  if (error)
+  if (flag != 2)
   {
     predFun = function(m1) {
       predict(m1,ltemp, re.form = NA, allow.new.levels=TRUE)
@@ -248,14 +282,16 @@ for (species in specieslist1$COMMON.NAME)
     f1 = left_join(f1,fx)
   }
   
-  if(!isTRUE(error))
+  if(flag == 2)
   {
-    f2$freq = predict(m1, newdata = ltemp,
-                      type="response", re.form = NA)
-    f1 = f2 %>%
-      filter(!is.na(freq)) %>%
-      group_by(timegroups) %>% summarize(freq = mean(freq))
-    f1$se = NA
+    pred = predict(m1, newdata = ltemp, se.fit = T, type = "link")
+    f2$freqt = clogloglink(pred$fit,inverse = T)
+    f2$cl = clogloglink((pred$fit-pred$se.fit),inverse = T)
+    f2$set = f2$freqt-f2$cl
+    fx = f2 %>%
+      filter(!is.na(freqt) & !is.na(set)) %>%
+      group_by(timegroups) %>% summarize(freq = mean(freqt), se = sqrt(sum(set^2)/n()))
+    f1 = left_join(f1,fx)
   }
   
   
@@ -294,5 +330,5 @@ for (species in specieslist1$COMMON.NAME)
 end = Sys.time()
 print(end-start)
 
-write.csv(trends, "assorted_trends_3.csv", row.names = F)
+write.csv(trends, "assorted_trends_5.csv", row.names = F)
 # at assorted 2
