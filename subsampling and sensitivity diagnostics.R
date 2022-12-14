@@ -4,10 +4,14 @@ require(VGAM)
 require(parallel)
 
 source('SoIB_v2 functions.R')
+
 load("dataforanalyses.RData")
+locs = read.csv("sub_samp_locs.csv")
+
+
+
 
 databins=c(1992,2003,2009,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021)
-nsim = 100
 
 data$gridg1 = as.factor(data$gridg1)
 data$gridg2 = as.factor(data$gridg2)
@@ -26,12 +30,16 @@ data$gridg = data$gridg3
 
 data0 = data
 
-## the loop across all species for a subset of specieslist
+specieslist1 = specieslist %>% filter(COMMON.NAME %in% c("House Sparrow","Red-necked Falcon",
+                                                         "Ashy Prinia","Indian Peafowl",
+                                                         "Malabar Gray Hornbill",
+                                                         "Pacific Golden-Plover",
+                                                         "Indian Courser"))
 
-specieslist1 = specieslist %>% filter(COMMON.NAME %in% c("House Sparrow","Nilgiri Sholakili",
-                                                         "Nilgiri Pipit","Bugun Liocichla",
-                                                         "Mishmi Wren-Babbler",
-                                                         "Chestnut-backed Laughingthrush"))
+
+## spatial subsampling - one checklist per location
+
+
 c = 0
 
 start = Sys.time()
@@ -98,7 +106,13 @@ for (species in specieslist1$COMMON.NAME)
     f1 = f1 %>% filter(!is.na(f1$timegroups))
   }
   
-
+  # one random checklist per location
+  
+  locs1 = locs %>% group_by(LOCALITY.ID,month,timegroups) %>% sample_n(1)
+  data = data %>% 
+    filter(group.id %in% locs1$group.id) 
+  
+  
   temp = data %>%
     filter(COMMON.NAME == species) %>%
     distinct(gridg3,month)
@@ -145,10 +159,9 @@ for (species in specieslist1$COMMON.NAME)
   if (flag == 2)
   {
     m1 = glm(OBSERVATION.COUNT ~ month + month:log(no.sp) + timegroups, data = ed, 
-               family=binomial(link = 'cloglog'))
+             family=binomial(link = 'cloglog'))
   }
   
-
   ## prepare a new data file to predict
   
   f = data.frame(unique(tm))
@@ -164,137 +177,13 @@ for (species in specieslist1$COMMON.NAME)
   f2$se = numeric(length(ltemp$no.sp))
   f2$timegroups = ltemp$timegroups
   
-  ## bootstrap to get errors
-  
-  if (flag != 2)
-  {
-    predFun = function(m1) {
-      predict(m1,ltemp, re.form = NA, allow.new.levels=TRUE)
-    }
-    
-    cr = max(1, floor(detectCores()/2))
-    cl = makeCluster(rep("localhost", cr), outfile = 'log.txt')
-    #showConnections(all = T)
-    clusterEvalQ(cl, library(lme4))
-    clusterExport(cl, varlist = c("ltemp"))
-    pred1 = bootMer(m1, nsim = nsim, FUN = predFun, parallel = "snow",
-                   use.u = FALSE, type = "parametric", ncpus = cr, cl = cl)
-    print(cr)
-    stopCluster(cl)
-    
-    cl = makeCluster(rep("localhost", cr), outfile = 'log.txt')
-    #showConnections(all = T)
-    clusterEvalQ(cl, library(lme4))
-    clusterExport(cl, varlist = c("ltemp"))
-    pred2 = bootMer(m1, nsim = nsim, FUN = predFun, parallel = "snow",
-                    use.u = FALSE, type = "parametric", ncpus = cr, cl = cl)
-    print(cr)
-    stopCluster(cl)
-    
-    cl = makeCluster(rep("localhost", cr), outfile = 'log.txt')
-    #showConnections(all = T)
-    clusterEvalQ(cl, library(lme4))
-    clusterExport(cl, varlist = c("ltemp"))
-    pred3 = bootMer(m1, nsim = nsim, FUN = predFun, parallel = "snow",
-                    use.u = FALSE, type = "parametric", ncpus = cr, cl = cl)
-    print(cr)
-    stopCluster(cl)
-    
-    cl = makeCluster(rep("localhost", cr), outfile = 'log.txt')
-    #showConnections(all = T)
-    clusterEvalQ(cl, library(lme4))
-    clusterExport(cl, varlist = c("ltemp"))
-    pred4 = bootMer(m1, nsim = nsim, FUN = predFun, parallel = "snow",
-                    use.u = FALSE, type = "parametric", ncpus = cr, cl = cl)
-    print(cr)
-    stopCluster(cl)
-    
-    
-    cl = makeCluster(rep("localhost", cr), outfile = 'log.txt')
-    #showConnections(all = T)
-    clusterEvalQ(cl, library(lme4))
-    clusterExport(cl, varlist = c("ltemp"))
-    pred5 = bootMer(m1, nsim = nsim, FUN = predFun, parallel = "snow",
-                    use.u = FALSE, type = "parametric", ncpus = cr, cl = cl)
-    print(cr)
-    stopCluster(cl)
-    
-    cl = makeCluster(rep("localhost", cr), outfile = 'log.txt')
-    #showConnections(all = T)
-    clusterEvalQ(cl, library(lme4))
-    clusterExport(cl, varlist = c("ltemp"))
-    pred6 = bootMer(m1, nsim = nsim, FUN = predFun, parallel = "snow",
-                    use.u = FALSE, type = "parametric", ncpus = cr, cl = cl)
-    print(cr)
-    stopCluster(cl)
-    
-    cl = makeCluster(rep("localhost", cr), outfile = 'log.txt')
-    #showConnections(all = T)
-    clusterEvalQ(cl, library(lme4))
-    clusterExport(cl, varlist = c("ltemp"))
-    pred7 = bootMer(m1, nsim = nsim, FUN = predFun, parallel = "snow",
-                    use.u = FALSE, type = "parametric", ncpus = cr, cl = cl)
-    print(cr)
-    stopCluster(cl)
-    
-    cl = makeCluster(rep("localhost", cr), outfile = 'log.txt')
-    #showConnections(all = T)
-    clusterEvalQ(cl, library(lme4))
-    clusterExport(cl, varlist = c("ltemp"))
-    pred8 = bootMer(m1, nsim = nsim, FUN = predFun, parallel = "snow",
-                    use.u = FALSE, type = "parametric", ncpus = cr, cl = cl)
-    print(cr)
-    stopCluster(cl)
-    
-    cl = makeCluster(rep("localhost", cr), outfile = 'log.txt')
-    #showConnections(all = T)
-    clusterEvalQ(cl, library(lme4))
-    clusterExport(cl, varlist = c("ltemp"))
-    pred9 = bootMer(m1, nsim = nsim, FUN = predFun, parallel = "snow",
-                    use.u = FALSE, type = "parametric", ncpus = cr, cl = cl)
-    print(cr)
-    stopCluster(cl)
-    
-    cl = makeCluster(rep("localhost", cr), outfile = 'log.txt')
-    #showConnections(all = T)
-    clusterEvalQ(cl, library(lme4))
-    clusterExport(cl, varlist = c("ltemp"))
-    pred10 = bootMer(m1, nsim = nsim, FUN = predFun, parallel = "snow",
-                    use.u = FALSE, type = "parametric", ncpus = cr, cl = cl)
-    print(cr)
-    stopCluster(cl)
-    
-    pred = rbind(pred1$t,pred2$t,pred3$t,pred4$t,pred5$t,pred6$t,pred7$t,pred8$t,pred9$t,pred10$t)
-    
-    for (i in 1:length(ltemp$no.sp))
-    {
-      f2$freq[i] = median(na.omit(pred[,i]))
-      f2$se[i] = sd(na.omit(pred[,i]))
-    }
-    
-    f2$freqt = clogloglink(f2$freq,inverse = T)
-    f2$cl = clogloglink((f2$freq-f2$se),inverse = T)
-    f2$set = f2$freqt-f2$cl
-    
-    fx = f2 %>%
-      filter(!is.na(freqt) & !is.na(set)) %>%
-      group_by(timegroups) %>% summarize(freq = mean(freqt), se = sqrt(sum(set^2)/n())) 
-    
-    f1 = left_join(f1,fx)
-  }
-  
-  if(flag == 2)
-  {
-    pred = predict(m1, newdata = ltemp, se.fit = T, type = "link")
-    f2$freqt = clogloglink(pred$fit,inverse = T)
-    f2$cl = clogloglink((pred$fit-pred$se.fit),inverse = T)
-    f2$set = f2$freqt-f2$cl
-    fx = f2 %>%
-      filter(!is.na(freqt) & !is.na(set)) %>%
-      group_by(timegroups) %>% summarize(freq = mean(freqt), se = sqrt(sum(set^2)/n()))
-    f1 = left_join(f1,fx)
-  }
-  
+
+  pred = predict(m1, newdata = ltemp, type = "link")
+  f2$freqt = clogloglink(pred$fit,inverse = T)
+  fx = f2 %>%
+    filter(!is.na(freqt)) %>%
+    group_by(timegroups) %>% summarize(freq = mean(freqt))
+  f1 = left_join(f1,fx)
   
   f1$timegroups = factor(f1$timegroups, levels = c("before 2000","2000-2006","2007-2010",
                                                    "2011-2012","2013","2014","2015","2016",
@@ -331,5 +220,7 @@ for (species in specieslist1$COMMON.NAME)
 end = Sys.time()
 print(end-start)
 
-write.csv(trends, "assorted_trends_5.csv", row.names = F)
-# at assorted 2
+
+
+
+## sensitivity analyses - 1) subest of observations 2) subset of points

@@ -867,8 +867,11 @@ dataspeciesfilter = function(datapath = "data.RData",
      pos = ".GlobalEnv")
   
   save.image("dataforanalyses.RData")
+  
+  locs_write = data0 %>% distinct(LOCALITY.ID,group.id,month,timegroups)
+  write.csv(locs_write,"sub_samp_locs.csv",row.names = F)
 
-  data0 = data0 %>% select(-CATEGORY,-LOCALITY.ID,-REVIEWED,-APPROVED,
+  data0 = data0 %>% select(-CATEGORY,-REVIEWED,-APPROVED,-LOCALITY.ID, 
                           -TIME.OBSERVATIONS.STARTED,
                           -day,-cyear,-EXOTIC.CODE)
   save(data0,file = "dataforanalyses_extra.RData")
