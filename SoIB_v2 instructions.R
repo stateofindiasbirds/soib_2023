@@ -47,6 +47,73 @@ dataspeciesfilter(locationlimit = 15,gridlimit = 4,listlimit = 50)
 
 
 
+## create the set of random locations that doesn't work inside a function
+## start parallel
+
+require(tidyverse)
+require(parallel)
+require(foreach)
+require(doParallel)
+
+source('SoIB_v2 functions.R')
+locs = read.csv("sub_samp_locs.csv")
+
+n.cores = parallel::detectCores()/2
+#create the cluster
+my.cluster = parallel::makeCluster(
+  n.cores, 
+  type = "PSOCK"
+)
+#register it to be used by %dopar%
+doParallel::registerDoParallel(cl = my.cluster)
+#check if it is registered (optional)
+#foreach::getDoParRegistered()
+#how many workers are available? (optional)
+#foreach::getDoParWorkers()
+
+
+randomgroupids = foreach(i=1:1000, .combine='cbind') %dopar%
+  createrandomlocs(locs)
+
+parallel::stopCluster(cl = my.cluster)
+
+save(randomgroupids,file = "randomgroupids.RData")
+
+rm(list = ls())
+
+
+
+
+## create 1000 data files using randomgroupids
+
+require(tidyverse)
+
+source('SoIB_v2 functions.R')
+
+load("dataforanalyses.RData")
+load("randomgroupids.RData")
+
+dir.create("dataforsim")
+
+for (i in 6:300)
+{
+  start = Sys.time()
+  data0 = data %>% 
+    filter(group.id %in% randomgroupids[,i]) 
+  end = Sys.time()
+  print(end-start)
+
+  start = Sys.time()
+  nm = paste("/data",i,".csv",sep="")
+  filename = paste("E:/Abhinandan/BCI/soib_v2/dataforsim",nm,sep = '')
+  write.csv(data0,filename,row.names=F)
+  end = Sys.time()
+  print(end-start)
+}
+
+rm(list = ls())
+
+
   ###################                       PART 2                     ###################################
 ## provide "dataforanalyses.RData", "neighbours.RData", "indiaspecieslist.csv" and 
 ## "Migratory Status - Migratory Status.csv"

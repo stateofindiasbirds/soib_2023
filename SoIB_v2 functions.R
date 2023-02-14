@@ -575,6 +575,7 @@ dataspeciesfilter = function(datapath = "data.RData",
 {
   require(tidyverse)
   require(DataCombine)
+
   
   fullmap = read.csv("SoIB_mapping_2022.csv")
   resspecies = fullmap %>%
@@ -859,6 +860,11 @@ dataspeciesfilter = function(datapath = "data.RData",
   
   write.csv(dataf,"fullspecieslist.csv",row.names = F)
   
+  locs_write = data0 %>% 
+    filter(ALL.SPECIES.REPORTED == 1) %>%
+    distinct(LOCALITY.ID,group.id,month,timegroups)
+  write.csv(locs_write,"sub_samp_locs.csv",row.names = F)
+  
   save(specieslist,restrictedspecieslist,file = "specieslists.RData")
   rm(list=setdiff(ls(envir = .GlobalEnv), c("data","specieslist","databins",
                                             "sampledcells","totalcells","gridlevels","area",
@@ -867,11 +873,8 @@ dataspeciesfilter = function(datapath = "data.RData",
      pos = ".GlobalEnv")
   
   save.image("dataforanalyses.RData")
-  
-  locs_write = data0 %>% distinct(LOCALITY.ID,group.id,month,timegroups)
-  write.csv(locs_write,"sub_samp_locs.csv",row.names = F)
 
-  data0 = data0 %>% select(-CATEGORY,-REVIEWED,-APPROVED,-LOCALITY.ID, 
+  data0 = data0 %>% select(-CATEGORY,-REVIEWED,-APPROVED,-LOCALITY.ID,
                           -TIME.OBSERVATIONS.STARTED,
                           -day,-cyear,-EXOTIC.CODE)
   save(data0,file = "dataforanalyses_extra.RData")
@@ -1730,4 +1733,152 @@ SoIBoccupancy = function(data,species,areag)
     a = occufreq(data,species,areag,rerun=T,datatofill=a)
   }
   return(a)
+}
+
+
+
+#### create a set of locations
+## locs is a data frame with location, group id info
+
+createrandomlocs = function(locs)
+{
+  require(tidyverse)
+  locs1 = locs %>% 
+    group_by(LOCALITY.ID,month,timegroups) %>% sample_n(1)
+  return(locs1$group.id)
+}
+
+
+
+singlespeciesrun = function(data,species,specieslist,restrictedspecieslist)
+{
+  require(tidyverse)
+  require(merTools)
+  
+  data1 = data
+  specieslist1 = specieslist %>% filter(COMMON.NAME %in% species)
+  
+  specieslist2 = specieslist1 %>%
+    dplyr::filter(COMMON.NAME == species)
+  
+  flag = 0
+  if (species %in% restrictedspecieslist$COMMON.NAME)
+  {
+    flag = 1
+    restrictedlist1 = restrictedspecieslist %>% filter(COMMON.NAME == species)
+    specieslist2$ht = restrictedlist1$ht
+    specieslist2$rt = restrictedlist1$rt
+    
+    if (restrictedlist1$mixed == 0)
+      flag = 2
+  }
+  
+  ## filters data based on whether the species has been selected for long-term trends (ht) 
+  ## or short-term trends (rt) 
+  
+  if (is.na(specieslist2$ht) & !is.na(specieslist2$rt))
+  {
+    data1 = data1 %>%
+      filter(year >= 2014)
+  }
+  
+  temp = data1 %>%
+    filter(COMMON.NAME == species) %>%
+    distinct(gridg3,month)
+  data1 = temp %>% left_join(data1)
+  
+  datay = data1 %>%
+    group_by(gridg3,gridg1,group.id) %>% slice(1) %>% ungroup %>%
+    group_by(gridg3,gridg1) %>% summarize(medianlla = median(no.sp)) %>%
+    group_by(gridg3) %>% summarize(medianlla = mean(medianlla)) %>%
+    summarize(medianlla = round(mean(medianlla)))
+  
+  medianlla = datay$medianlla
+  
+  
+  ## expand dataframe to include absences as well
+  
+  ed = expandbyspecies(data1,species)
+  
+  ed$month = as.numeric(ed$month)
+  ed$month[ed$month %in% c(12,1,2)] = "Win"
+  ed$month[ed$month %in% c(3,4,5)] = "Sum"
+  ed$month[ed$month %in% c(6,7,8)] = "Mon"
+  ed$month[ed$month %in% c(9,10,11)] = "Aut"
+  ed$month = as.factor(ed$month)
+  
+  tm = unique(data1$timegroups)
+  #rm(data, pos = ".GlobalEnv")
+  
+  ## the model
+  
+  if (flag == 0)
+  {
+    m1 = glmer(OBSERVATION.COUNT ~ month + month:log(no.sp) + timegroups + (1|gridg3/gridg1), data = ed, 
+               family=binomial(link = 'cloglog'), nAGQ = 0, control = glmerControl(optimizer = "bobyqa"))
+  }
+  
+  if (flag == 1)
+  {
+    m1 = glmer(OBSERVATION.COUNT ~ month + month:log(no.sp) + timegroups + (1|gridg1), data = ed, 
+               family=binomial(link = 'cloglog'), nAGQ = 0, control = glmerControl(optimizer = "bobyqa"))
+  }
+  
+  if (flag == 2)
+  {
+    m1 = glm(OBSERVATION.COUNT ~ month + month:log(no.sp) + timegroups, data = ed, 
+             family=binomial(link = 'cloglog'))
+  }
+  
+  ## prepare a new data file to predict
+  
+  f = data.frame(unique(tm))
+  f = do.call("rbind", replicate(length(unique(ed$month)),f,simplify=F))
+  names(f) = "timegroups"
+  f$month = rep(unique(ed$month), each = length(f$timegroups)/length(unique(ed$month)))
+  ltemp = data.frame(timegroups = f$timegroups,
+                     no.sp = medianlla, month = f$month,
+                     gridg1 = data1$gridg1[1], gridg3 = data1$gridg3[1])
+  
+  f1 = data.frame(timegroups = tm)
+  
+  f2 = data.frame(freq = numeric(length(ltemp$no.sp)))
+  f2$se = numeric(length(ltemp$no.sp))
+  f2$timegroups = ltemp$timegroups
+  
+  
+  if (flag != 2)
+  {
+    #pred = predict(m1, newdata = ltemp, type = "response", re.form = NA, allow.new.levels=TRUE)
+    pred = predictInterval(m1, newdata = ltemp, which = "fixed",
+                        level = 0.48, type = "linear.prediction")
+    f2$freqt = pred$fit
+    f2$set = pred$fit-pred$lwr
+  }
+  
+  if (flag == 2)
+  {
+    pred = predict(m1, newdata = ltemp, type = "link", se.fit = T)
+    f2$freqt = pred$fit
+    f2$set = pred$se.fit
+  }
+  
+  fx = f2 %>%
+    filter(!is.na(freqt) & !is.na(se)) %>%
+    group_by(timegroups) %>% summarize(freq = mean(freqt), se = mean(set))
+  f1 = left_join(f1,fx)
+  
+  f1$timegroups = factor(f1$timegroups, levels = c("before 2000","2000-2006","2007-2010",
+                                                   "2011-2012","2013","2014","2015","2016",
+                                                   "2017","2018","2019","2020","2021"))
+  f1 = f1[order(f1$timegroups),]
+  names(f1)[1] = "timegroupsf"
+  mp = data.frame(timegroupsf = c("before 2000","2000-2006","2007-2010",
+                                  "2011-2012","2013","2014","2015","2016",
+                                  "2017","2018","2019","2020","2021"), 
+                  timegroups = as.numeric(databins))
+  f1 = left_join(mp,f1)
+  
+  tocomb = c(species,f1$freq,f1$se)
+  return(tocomb)
 }
