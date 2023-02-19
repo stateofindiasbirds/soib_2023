@@ -8,10 +8,12 @@ library(extrafont)
 
 trends = read.csv("trends.csv")
 temp = trends %>% 
+  mutate(lci_std = lci_std_2014,mean_std = mean_std_2014,rci_std = rci_std_2014) %>%
+  filter(timegroups >= 2014) %>%
   filter(COMMON.NAME %in% c("Nilgiri Pipit"))
 
 scol = "#869B27"
-#loadfonts(device = "win")
+  #loadfonts(device = "win")
 
 maxci = temp$rci_std
 minci = temp$lci_std
@@ -81,10 +83,9 @@ ggp = ggplot(temp, aes(x=timegroups, y=mean_std)) +
   xlab("years") +
   ylab("change in eBird abundance index")
 
-xbreaks1 = temp$timegroups[1:13]
-lbreaks1 = temp$timegroupsf[1:13]
-lbreaks1[1:3] = c(paste(sprintf('\u2190')," before 2000"),"2000-06","2007-10")
-lbreaks1[c(4,6,8,10,12)] = ""
+xbreaks1 = temp$timegroups[1:8]
+lbreaks1 = temp$timegroupsf[1:8]
+
 
 ggpx = ggp +
   theme(axis.title.x = element_blank(), 
@@ -115,50 +116,7 @@ ggpx = ggp +
         panel.background = element_rect(fill = "transparent",colour = NA))+
   theme(legend.position = "none")
 
-rect1 = rectGrob(
-  x = unit(7.74, "in"),
-  y = unit(0.64, "in"),
-  width = unit(0.15, "in"),
-  height = unit(0.15, "in"),
-  hjust = 0, vjust = 1,
-  gp = gpar(fill = "white", col = "white", alpha = 1)
-)
-rect2 = rectGrob(
-  x = unit(8.35, "in"),
-  y = unit(0.64, "in"),
-  width = unit(0.15, "in"),
-  height = unit(0.15, "in"),
-  hjust = 0, vjust = 1,
-  gp = gpar(fill = "white", col = "white", alpha = 1)
-)
-rect3 = rectGrob(
-  x = unit(8.97, "in"),
-  y = unit(0.64, "in"),
-  width = unit(0.15, "in"),
-  height = unit(0.15, "in"),
-  hjust = 0, vjust = 1,
-  gp = gpar(fill = "white", col = "white", alpha = 1)
-)
-rect4 = rectGrob(
-  x = unit(9.58, "in"),
-  y = unit(0.64, "in"),
-  width = unit(0.15, "in"),
-  height = unit(0.15, "in"),
-  hjust = 0, vjust = 1,
-  gp = gpar(fill = "white", col = "white", alpha = 1)
-)
-rect5 = rectGrob(
-  x = unit(10.19, "in"),
-  y = unit(0.64, "in"),
-  width = unit(0.15, "in"),
-  height = unit(0.15, "in"),
-  hjust = 0, vjust = 1,
-  gp = gpar(fill = "white", col = "white", alpha = 1)
-)
-
-ggpx1 = ggdraw(ggpx) +
-  draw_grob(rect1) + draw_grob(rect2) + draw_grob(rect3) + draw_grob(rect4) +
-  draw_grob(rect5)
+ggpx1 = ggdraw(ggpx)
 
 sps = as.character(temp$COMMON.NAME[1])
 name = paste(sps,"_","eBird_trend_graph.jpg",sep="")

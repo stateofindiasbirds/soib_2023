@@ -6,28 +6,27 @@ library(cowplot)
 library(extrafont)
 
 
-trends1 = read.csv("assorted_trends_2.csv")
-#trends2 = read.csv("House_Sparrow_trend.csv")
-#trends = rbind(trends1,trends2)
-trends = trends %>% filter(species %in% c("Ashy Prinia","Red-necked Falcon","House Sparrow"))
-trends$species = factor(trends$species, levels = c("House Sparrow","Ashy Prinia","Red-necked Falcon"))
+trends = read.csv("trends.csv")
+temp = trends %>% filter(COMMON.NAME %in% c("Common Myna","Jungle Myna"))
+temp$COMMON.NAME = factor(temp$COMMON.NAME, 
+                          levels = c("Common Myna","Jungle Myna"))
 
-temp = stdtrends(trends)
+
 #loadfonts(device = "win")
 
 cols = c("#869B27", "#E49B36", "#A13E2B", "#78CAE0", "#B69AC9", "#EA5599", "#31954E", "#493F3D",
          "#CC6666", "#9999CC", "#000000", "#66CC99")
 #cols = c("#41726c","#2d809b","#e0d27b","#8cc48c","#55bfaf")
 
-ns = length(unique(trends$species))
+ns = length(unique(temp$COMMON.NAME))
 
 
 cols1 = cols[c(1:ns)]
-bks1 = sort(unique(trends$species))
-lbs1 = sort(unique(trends$species))
+bks1 = sort(unique(temp$COMMON.NAME))
+lbs1 = sort(unique(temp$COMMON.NAME))
 
-maxci = temp$nmfreqbyspec + temp$nmsebyspec*1.96
-minci = temp$nmfreqbyspec - temp$nmsebyspec*1.96
+maxci = temp$rci_std
+minci = temp$lci_std
 
 liml = min(minci)
 liml = round_any(liml,50,floor)
@@ -80,7 +79,7 @@ for (j in 1:5)
     ybreaksl[j] = paste((ybreaks[j]-100),"%",sep="")
 }
 
-ggp = ggplot(temp, aes(x=timegroups, y=nmfreqbyspec, col=species, fill = species)) + 
+ggp = ggplot(temp, aes(x=timegroups, y=mean_std, col=COMMON.NAME, fill = COMMON.NAME)) + 
   geom_point(size = 3) +
   geom_line(size = 1.5) +
   geom_hline(yintercept = ybreaks[1], linetype = "dotted", size = 0.7) +
@@ -88,8 +87,8 @@ ggp = ggplot(temp, aes(x=timegroups, y=nmfreqbyspec, col=species, fill = species
   geom_hline(yintercept = ybreaks[3], linetype = "dotted", size = 0.7) +
   geom_hline(yintercept = ybreaks[4], linetype = "dotted", size = 0.7) +
   geom_hline(yintercept = ybreaks[5], linetype = "dotted", size = 0.7) +
-  geom_ribbon(aes(x = timegroups, ymin = (nmfreqbyspec - nmsebyspec*1.96),
-                  ymax = (nmfreqbyspec + nmsebyspec*1.96), fill = species), colour = NA, alpha = 0.3) +
+  geom_ribbon(aes(x = timegroups, ymin = lci_std,
+                  ymax = rci_std, fill = COMMON.NAME), colour = NA, alpha = 0.3) +
   xlab("years") +
   ylab("change in eBird abundance index")
 
