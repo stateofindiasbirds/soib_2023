@@ -13,7 +13,7 @@ listofspecies = c(lsa$COMMON.NAME,restrictedspecieslist$COMMON.NAME)
 count = 0
 databins=c(1992,2003,2009,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021)
 
-for (k in 1:100)
+for (k in 51:125)
 {
   start = Sys.time()
   
@@ -49,7 +49,7 @@ for (k in 1:100)
   
   parallel::stopCluster(cl = my.cluster)
   
-  if (count == 0)
+  if (count == 0) 
     trends = data.frame(trends0)
   if (count > 0)
     trends = rbind(trends,data.frame(trends0))
@@ -92,7 +92,7 @@ trends = trends %>%
   arrange(sl,sp) %>%
   select(sl,COMMON.NAME,timegroupsf,timegroups,freq,se,-sp)
 
-write.csv(trends, "trends_1.csv", row.names = F)
+write.csv(trends, "trends_2.csv", row.names = F)
 
 
 
