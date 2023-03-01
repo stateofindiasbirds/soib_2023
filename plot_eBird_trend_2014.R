@@ -10,7 +10,7 @@ trends = read.csv("trends.csv")
 temp = trends %>% 
   mutate(lci_std = lci_std_2014,mean_std = mean_std_2014,rci_std = rci_std_2014) %>%
   filter(timegroups >= 2014) %>%
-  filter(COMMON.NAME %in% c("Nilgiri Pipit"))
+  filter(COMMON.NAME %in% c("Large-billed Leaf Warbler"))
 
 scol = "#869B27"
   #loadfonts(device = "win")

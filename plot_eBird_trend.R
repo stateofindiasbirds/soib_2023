@@ -8,7 +8,7 @@ library(extrafont)
 
 trends = read.csv("trends.csv")
 temp = trends %>% 
-  filter(COMMON.NAME %in% c("Nilgiri Pipit"))
+  filter(COMMON.NAME %in% c("Large-billed Leaf Warbler"))
 
 scol = "#869B27"
 #loadfonts(device = "win")

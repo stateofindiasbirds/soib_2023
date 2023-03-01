@@ -966,6 +966,17 @@ erroradd = function(vec)
   return(err)
 }
 
+simerrordiv = function(x1,x2,se1,se2)
+{
+  tp = data.frame(num = clogloglink(rnorm(1000,x1,se1), inverse = T), 
+                  den = clogloglink(rnorm(1000,x2,se2), inverse = T))
+  tp = tp %>%
+    summarize(rat = num/den)
+  l = quantile(tp$rat,0.025)
+  r = quantile(tp$rat,0.975)
+  b = c(l,r)
+  return(b)
+}
 
 
 
