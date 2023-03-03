@@ -6,8 +6,9 @@ library(extrafont)
 
 
 trends = read.csv("trends.csv")
+trends = trends %>% filter(timegroups <= 2021)
 temp = trends %>% 
-  filter(COMMON.NAME %in% c("Large-billed Leaf Warbler"))
+  filter(COMMON.NAME %in% c("Spot-billed Pelican"))
 
 scol = "#869B27"
 #loadfonts(device = "win")
