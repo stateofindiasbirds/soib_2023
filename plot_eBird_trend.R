@@ -1,5 +1,4 @@
 source('SoIB_v2 functions.R')
-library(plyr)
 library(tidyverse)
 library(grid)
 library(cowplot)
@@ -17,10 +16,10 @@ maxci = temp$rci_std
 minci = temp$lci_std
 
 liml = min(minci[!is.na(minci)])
-liml = round_any(liml,50,floor)
+liml = plyr::round_any(liml,50,floor)
 
 limu = max(maxci[!is.na(maxci)])
-limu = round_any(limu,50,ceiling)
+limu = plyr::round_any(limu,50,ceiling)
 
 if ((limu-liml) < 100 & liml < 0)
   liml = liml - 50
@@ -40,22 +39,22 @@ if (any(ybreaks != 100))
   if (any(tmp1 == 100) & min(tmp1) >= 0)
   {
     ybreaks = tmp1
-    liml = round_any(ybreaks[1],50,floor)
+    liml = plyr::round_any(ybreaks[1],50,floor)
   }
   if (min(tmp1) < 0 & any(tmp1 == 100))
   {
     ybreaks = ybreaks + tmpx[2]
-    limu = round_any(ybreaks[5],50,ceiling)
+    limu = plyr::round_any(ybreaks[5],50,ceiling)
     limu = limu + round(0.01*(limu-liml))
   }
   if (any(tmp2 == 100))
   {
     ybreaks = tmp2
-    limu = round_any(ybreaks[5],50,ceiling)
+    limu = plyr::round_any(ybreaks[5],50,ceiling)
     limu = limu + round(0.01*(limu-liml))
   }
   
-  ybreaks = round_any(ybreaks,10,round)
+  ybreaks = plyr::round_any(ybreaks,10,round)
 }
 
 ybreaksl = rep("",5)

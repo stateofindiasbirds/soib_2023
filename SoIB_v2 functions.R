@@ -519,8 +519,8 @@ completelistcheck = function(data)
   # exclude records based on verious criteria 
   data = data %>%
     mutate(ALL.SPECIES.REPORTED = 
-             case_when(ALL.SPECIES.REPORTED == 1 & (group.id %in% grp | speed > vel |
-                                                      (sut < time & no.sp <= 3) | 
+             case_when(ALL.SPECIES.REPORTED == 1 & (EFFORT.DISTANCE.KM > 10 | group.id %in% grp | 
+                                                      speed > vel | (sut < time & no.sp <= 3) | 
                                                       PROTOCOL.TYPE == "Incidental" | 
                                                       (!is.na(hr) & ((hr <= 4 & end <= 4) | 
                                                                        (hr >= 20 & end <= 28)))) ~ 0, 
@@ -874,9 +874,8 @@ dataspeciesfilter = function(datapath = "data.RData",
   
   save.image("dataforanalyses.RData")
 
-  data0 = data0 %>% select(-CATEGORY,-REVIEWED,-APPROVED,-LOCALITY.ID,
-                          -TIME.OBSERVATIONS.STARTED,
-                          -day,-cyear,-EXOTIC.CODE)
+  data0 = data0 %>% select(-REVIEWED,-APPROVED,
+                          -cyear)
   save(data0,file = "dataforanalyses_extra.RData")
   
   
@@ -968,8 +967,8 @@ erroradd = function(vec)
 
 simerrordiv = function(x1,x2,se1,se2)
 {
-  tp = data.frame(num = clogloglink(rnorm(1000,x1,se1), inverse = T), 
-                  den = clogloglink(rnorm(1000,x2,se2), inverse = T))
+  tp = data.frame(num = clogloglink(rnorm(5000,x1,se1), inverse = T), 
+                  den = clogloglink(rnorm(5000,x2,se2), inverse = T))
   tp = tp %>%
     summarize(rat = num/den)
   l = quantile(tp$rat,0.025)
