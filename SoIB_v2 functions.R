@@ -545,8 +545,8 @@ removevagrants = function(data)
                                                  "Resident & Winter Migrant",
                                                  "Resident & Summer Migrant",
                                                  "Resident & Local Migrant")) %>%
-    select(eBird.English.Name.2021)
-  migspecies = as.vector(migspecies$eBird.English.Name.2021)
+    select(eBird.English.Name.2022)
+  migspecies = as.vector(migspecies$eBird.English.Name.2022)
   
   d = data %>%
     filter(COMMON.NAME %in% migspecies) %>%
@@ -584,8 +584,8 @@ dataspeciesfilter = function(datapath = "data.RData",
                                                  "Resident & Winter Migrant",
                                                  "Resident & Summer Migrant",
                                                  "Resident & Local Migrant")) %>%
-    select(eBird.English.Name.2021)
-  resident = as.vector(resspecies$eBird.English.Name.2021)
+    select(eBird.English.Name.2022)
+  resident = as.vector(resspecies$eBird.English.Name.2022)
   
   load(datapath)
   
