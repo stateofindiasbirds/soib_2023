@@ -1,6 +1,8 @@
 source('SoIB_v2 functions.R')
 library(tidyverse)
-library(grid)
+library(ggdist)
+library(ggridges)
+library(ggpubr)
 library(cowplot)
 library(extrafont)
 
@@ -8,10 +10,13 @@ library(extrafont)
 trends = read.csv("trends.csv")
 trends = trends %>% filter(timegroups <= 2021)
 temp = trends %>% 
-  filter(COMMON.NAME %in% c("Red-whiskered Bulbul"))
+  filter(COMMON.NAME %in% c("Common Tailorbird"))
 
 scol = "#869B27"
 #loadfonts(device = "win")
+
+tg = c("before 2000", "2000-2006", "2007-2010", "2011-2012", "2013", "2014", "2015", 
+       "2016", "2017", "2018", "2019", "2020", "2021")
 
 maxci = temp$rci_std
 minci = temp$lci_std
@@ -67,101 +72,77 @@ for (j in 1:5)
     ybreaksl[j] = paste((ybreaks[j]-100),"%",sep="")
 }
 
+ybreaksl[ybreaks == 100] = ""
 
-ggp = ggplot(temp, aes(x=timegroups, y=mean_std)) + 
-  geom_point(size = 3, colour = scol) +
-  geom_line(size = 1.5, colour = scol) +
-  geom_hline(yintercept = ybreaks[1], linetype = "dotted", size = 0.7) +
-  geom_hline(yintercept = ybreaks[2], linetype = "dotted", size = 0.7) +
-  geom_hline(yintercept = ybreaks[3], linetype = "dotted", size = 0.7) +
-  geom_hline(yintercept = ybreaks[4], linetype = "dotted", size = 0.7) +
-  geom_hline(yintercept = ybreaks[5], linetype = "dotted", size = 0.7) +
-  geom_ribbon(aes(x = timegroups, ymin = lci_std,
-                  ymax = rci_std), fill = scol, colour = NA, alpha = 0.3) +
-  xlab("years") +
+
+
+######################### get the x-axis right
+
+
+x_tick_pre2000Bas = seq(1999, 2021) + 0.5
+
+ggp = ggplot(temp, aes(x = timegroups, y = mean_std, ymin = lci_std, ymax = rci_std)) +
+  geom_lineribbon(fill = scol, col = "black", linewidth = 0.7) +
+  geom_point(size = 3, color = "black") +
+  geom_bracket(
+    inherit.aes = FALSE, 
+    xmin = c(2000, 2006, 2010, 2012, seq(2013, 2020)) + 0.5, 
+    xmax = c(2006, 2010, 2012, seq(2013, 2021)) + 0.5,
+    y.position = liml-0.02*range,
+    bracket.shorten = 0.15,
+    tip.length = 0.05,
+    vjust = 3,
+    label = tg[-1],
+    label.size = 3) +
+  scale_x_continuous(
+    breaks = c(seq(1999, 2021), x_tick_pre2000Bas),
+    labels = c("", "2000", "2001", rep(c(""), 2006-2000-2), 
+               "2006", "2007", rep(c(""), 2010-2006-2), 
+               "2010", "2011", rep(c(""), 2012-2010-2), 
+               paste0(seq(2012, 2021)), rep(c(""), length(x_tick_pre2000Bas))),
+    limits = c(1999.5, 2021.5)) +
+  geom_hline(yintercept = ybreaks[1], linetype = "dotted", linewidth = 0.7) +
+  geom_hline(yintercept = ybreaks[2], linetype = "dotted", linewidth = 0.7) +
+  geom_hline(yintercept = ybreaks[3], linetype = "dotted", linewidth = 0.7) +
+  geom_hline(yintercept = ybreaks[4], linetype = "dotted", linewidth = 0.7) +
+  geom_hline(yintercept = ybreaks[5], linetype = "dotted", linewidth = 0.7) +
+  geom_hline(yintercept = 100, linetype = "solid", linewidth = 0.9) +
+  xlab("time-steps") +
   ylab("change in eBird abundance index")
-
-xbreaks1 = temp$timegroups[1:13]
-lbreaks1 = temp$timegroupsf[1:13]
-lbreaks1[1:3] = c(paste(sprintf('\u2190')," before 2000"),"2000-06","2007-10")
-lbreaks1[c(4,6,8,10,12)] = ""
 
 ggpx = ggp +
   theme(axis.title.x = element_blank(), 
-        axis.text.x = element_text(size = 19, colour = "#56697B",
-                                   margin = margin(0, 0, 0.8, 0, 'cm')),
         axis.title.y = element_text(size = 22, colour = "#56697B",
                                     margin = margin(0, 0.8, 0, 0.4, 'cm')), 
-        axis.ticks.x = element_line(size = 0.7, colour = "#56697B"), 
-        axis.ticks.length=unit(.4, "cm"),
-        axis.text.y = element_text(size = 24, colour = "#56697B", vjust = -0.4, hjust = 1, 
+        axis.text.y = element_text(size = 20, colour = "#56697B", vjust = -0.4, hjust = 1, 
                                    margin = margin(0, -0.8, 0, 0, 'cm')),
-        axis.ticks.y = element_blank(), 
-        axis.line.x = element_line(size = 0.7, colour = "#56697B")) +
+        axis.ticks.y = element_blank()) +
   theme(legend.title = element_blank(), legend.text = element_text(size = 12)) +
   theme(text=element_text(family="Gill Sans MT")) +
-  scale_x_continuous(breaks = xbreaks1, labels = lbreaks1) +
   scale_y_continuous(expand=c(0,0),
                      breaks = c(ybreaks[1],ybreaks[2],ybreaks[3],ybreaks[4],ybreaks[5]),
                      labels = c(ybreaksl[1],ybreaksl[2],ybreaksl[3],
                                 ybreaksl[4],ybreaksl[5]))+
+  annotate("text", x = 1999.5, y = 100 + range*0.03, label = "Pre-2000 baseline", 
+           colour = "black", family="Gill Sans MT", size = 5)+
   coord_cartesian(ylim = c(liml-0.1*range,limu+0.1*range), clip="off")+
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         panel.border = element_blank(),
         plot.margin=unit(c(0,0,0,0), "cm"),
-        plot.title = element_text(hjust = 0.5),
+        legend.title = element_blank(),
+        axis.line.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
         plot.background = element_rect(fill = "transparent",colour = NA),
         panel.background = element_rect(fill = "transparent",colour = NA))+
   theme(legend.position = "none")
 
-rect1 = rectGrob(
-  x = unit(7.75, "in"),
-  y = unit(0.64, "in"),
-  width = unit(0.15, "in"),
-  height = unit(0.15, "in"),
-  hjust = 0, vjust = 1,
-  gp = gpar(fill = "white", col = "white", alpha = 1)
-)
-rect2 = rectGrob(
-  x = unit(8.44, "in"),
-  y = unit(0.64, "in"),
-  width = unit(0.08, "in"),
-  height = unit(0.15, "in"),
-  hjust = 0, vjust = 1,
-  gp = gpar(fill = "white", col = "white", alpha = 1)
-)
-rect3 = rectGrob(
-  x = unit(9.02, "in"),
-  y = unit(0.64, "in"),
-  width = unit(0.08, "in"),
-  height = unit(0.15, "in"),
-  hjust = 0, vjust = 1,
-  gp = gpar(fill = "white", col = "white", alpha = 1)
-)
-rect4 = rectGrob(
-  x = unit(9.64, "in"),
-  y = unit(0.64, "in"),
-  width = unit(0.08, "in"),
-  height = unit(0.15, "in"),
-  hjust = 0, vjust = 1,
-  gp = gpar(fill = "white", col = "white", alpha = 1)
-)
-rect5 = rectGrob(
-  x = unit(10.24, "in"),
-  y = unit(0.64, "in"),
-  width = unit(0.08, "in"),
-  height = unit(0.15, "in"),
-  hjust = 0, vjust = 1,
-  gp = gpar(fill = "white", col = "white", alpha = 1)
-)
 
-ggpx1 = ggdraw(ggpx) +
-  draw_grob(rect1) + draw_grob(rect2) + draw_grob(rect3) + draw_grob(rect4) +
-  draw_grob(rect5)
+ggpx1 = ggdraw(ggpx)
 
 sps = as.character(temp$COMMON.NAME[1])
-name = paste(sps,"_","eBird_trend.jpg",sep="")
+name = paste(sps,"_","eBird_trend_SoIBv2.jpg",sep="")
 
 jpeg(name, units="in", width=11, height=7, res=1000, bg="transparent")
 grid::grid.draw(ggpx1)

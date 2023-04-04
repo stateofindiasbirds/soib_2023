@@ -6,34 +6,21 @@ library(extrafont)
 
 
 trends = read.csv("trends.csv")
+temp = trends %>% 
+  mutate(lci_std = lci_std_recent,mean_std = mean_std_recent,rci_std = rci_std_recent) %>%
+  filter(timegroups >= 2014 & timegroups <= 2021) %>%
+  filter(COMMON.NAME %in% c("Great Gray Shrike"))
 
-species = c("White-rumped Vulture","Egyptian Vulture","Indian Vulture","Tawny Eagle")
-
-temp = trends %>% filter(COMMON.NAME %in% species, timegroups <= 2021)
-temp$COMMON.NAME = factor(temp$COMMON.NAME, 
-                          levels = species)
-
-
-#loadfonts(device = "win")
-
-cols = c("#869B27", "#E49B36", "#A13E2B", "#78CAE0", "#B69AC9", "#EA5599", "#31954E", "#493F3D",
-         "#CC6666", "#9999CC", "#000000", "#66CC99")
-#cols = c("#41726c","#2d809b","#e0d27b","#8cc48c","#55bfaf")
-
-ns = length(unique(temp$COMMON.NAME))
-
-
-cols1 = cols[c(1:ns)]
-bks1 = sort(unique(temp$COMMON.NAME))
-lbs1 = sort(unique(temp$COMMON.NAME))
+scol = "#869B27"
+  #loadfonts(device = "win")
 
 maxci = temp$rci_std
 minci = temp$lci_std
 
-liml = min(minci)
+liml = min(minci[!is.na(minci)])
 liml = plyr::round_any(liml,50,floor)
 
-limu = max(maxci)
+limu = max(maxci[!is.na(maxci)])
 limu = plyr::round_any(limu,50,ceiling)
 
 if ((limu-liml) < 100 & liml < 0)
@@ -81,23 +68,23 @@ for (j in 1:5)
     ybreaksl[j] = paste((ybreaks[j]-100),"%",sep="")
 }
 
-ggp = ggplot(temp, aes(x=timegroups, y=mean_std, col=COMMON.NAME, fill = COMMON.NAME)) + 
-  geom_point(size = 3) +
-  geom_line(size = 1.5) +
+
+ggp = ggplot(temp, aes(x=timegroups, y=mean_std)) + 
+  geom_point(size = 3, colour = scol) +
+  geom_line(size = 1.5, colour = scol) +
   geom_hline(yintercept = ybreaks[1], linetype = "dotted", size = 0.7) +
   geom_hline(yintercept = ybreaks[2], linetype = "dotted", size = 0.7) +
   geom_hline(yintercept = ybreaks[3], linetype = "dotted", size = 0.7) +
   geom_hline(yintercept = ybreaks[4], linetype = "dotted", size = 0.7) +
   geom_hline(yintercept = ybreaks[5], linetype = "dotted", size = 0.7) +
   geom_ribbon(aes(x = timegroups, ymin = lci_std,
-                  ymax = rci_std, fill = COMMON.NAME), colour = NA, alpha = 0.3) +
+                  ymax = rci_std), fill = scol, colour = NA, alpha = 0.3) +
   xlab("years") +
   ylab("change in eBird abundance index")
 
-xbreaks1 = temp$timegroups[1:13]
-lbreaks1 = temp$timegroupsf[1:13]
-lbreaks1[1:3] = c(paste(sprintf('\u2190')," before 2000"),"2000-06","2007-10")
-lbreaks1[c(4,6,8,10,12)] = ""
+xbreaks1 = temp$timegroups[1:8]
+lbreaks1 = temp$timegroupsf[1:8]
+
 
 ggpx = ggp +
   theme(axis.title.x = element_blank(), 
@@ -111,14 +98,8 @@ ggpx = ggp +
                                    margin = margin(0, -0.8, 0, 0, 'cm')),
         axis.ticks.y = element_blank(), 
         axis.line.x = element_line(size = 0.7, colour = "#56697B")) +
-  theme(legend.title = element_blank(), legend.text = element_text(size = 12, colour = "#56697B")) +
+  theme(legend.title = element_blank(), legend.text = element_text(size = 12)) +
   theme(text=element_text(family="Gill Sans MT")) +
-  scale_colour_manual(breaks = bks1, 
-                      labels = lbs1,
-                      values = cols1) +
-  scale_fill_manual(breaks = bks1, 
-                    labels = lbs1,
-                    values = cols1) +
   scale_x_continuous(breaks = xbreaks1, labels = lbreaks1) +
   scale_y_continuous(expand=c(0,0),
                      breaks = c(ybreaks[1],ybreaks[2],ybreaks[3],ybreaks[4],ybreaks[5]),
@@ -132,55 +113,13 @@ ggpx = ggp +
         plot.title = element_text(hjust = 0.5),
         plot.background = element_rect(fill = "transparent",colour = NA),
         panel.background = element_rect(fill = "transparent",colour = NA))+
-  theme(legend.position = "bottom")
+  theme(legend.position = "none")
 
-rect1 = rectGrob(
-  x = unit(7.7, "in"),
-  y = unit(1.18, "in"),
-  width = unit(0.15, "in"),
-  height = unit(0.15, "in"),
-  hjust = 0, vjust = 1,
-  gp = gpar(fill = "white", col = "white", alpha = 1)
-)
-rect2 = rectGrob(
-  x = unit(8.35, "in"),
-  y = unit(1.18, "in"),
-  width = unit(0.1, "in"),
-  height = unit(0.15, "in"),
-  hjust = 0, vjust = 1,
-  gp = gpar(fill = "white", col = "white", alpha = 1)
-)
-rect3 = rectGrob(
-  x = unit(8.97, "in"),
-  y = unit(1.18, "in"),
-  width = unit(0.1, "in"),
-  height = unit(0.15, "in"),
-  hjust = 0, vjust = 1,
-  gp = gpar(fill = "white", col = "white", alpha = 1)
-)
-rect4 = rectGrob(
-  x = unit(9.6, "in"),
-  y = unit(1.18, "in"),
-  width = unit(0.1, "in"),
-  height = unit(0.15, "in"),
-  hjust = 0, vjust = 1,
-  gp = gpar(fill = "white", col = "white", alpha = 1)
-)
-rect5 = rectGrob(
-  x = unit(10.19, "in"),
-  y = unit(1.18, "in"),
-  width = unit(0.1, "in"),
-  height = unit(0.15, "in"),
-  hjust = 0, vjust = 1,
-  gp = gpar(fill = "white", col = "white", alpha = 1)
-)
+ggpx1 = ggdraw(ggpx)
 
-ggpx3 = ggdraw(ggpx) +
-  draw_grob(rect1) + draw_grob(rect2) + draw_grob(rect3) + draw_grob(rect4) +
-  draw_grob(rect5)
-
-name = "multiple_species_eBird_trend.jpg"
+sps = as.character(temp$COMMON.NAME[1])
+name = paste(sps,"_","eBird_trend_recent.jpg",sep="")
 
 jpeg(name, units="in", width=11, height=7, res=1000, bg="transparent")
-grid::grid.draw(ggpx3)
+grid::grid.draw(ggpx1)
 dev.off()

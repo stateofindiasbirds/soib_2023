@@ -7,9 +7,9 @@ library(extrafont)
 
 trends = read.csv("trends.csv")
 temp = trends %>% 
-  mutate(lci_std = lci_std_2014,mean_std = mean_std_2014,rci_std = rci_std_2014) %>%
-  filter(timegroups >= 2014 & timegroups <= 2021) %>%
-  filter(COMMON.NAME %in% c("Silver-eared Mesia"))
+  mutate(lci_std = lci_comb_std,mean_std = mean_comb_std,rci_std = rci_comb_std) %>%
+  filter(timegroups >= 2014 & timegroups <= 2027) %>%
+  filter(COMMON.NAME %in% c("Great Gray Shrike"))
 
 scol = "#869B27"
   #loadfonts(device = "win")
@@ -82,16 +82,16 @@ ggp = ggplot(temp, aes(x=timegroups, y=mean_std)) +
   xlab("years") +
   ylab("change in eBird abundance index")
 
-xbreaks1 = temp$timegroups[1:8]
-lbreaks1 = temp$timegroupsf[1:8]
+xbreaks1 = temp$timegroups
+lbreaks1 = temp$timegroupsf
 
 
 ggpx = ggp +
   theme(axis.title.x = element_blank(), 
-        axis.text.x = element_text(size = 19, colour = "#56697B", vjust = -3, 
+        axis.text.x = element_text(size = 17, colour = "#56697B", 
                                    margin = margin(0, 0, 0.8, 0, 'cm')),
-        axis.title.y = element_text(size = 22, colour = "#56697B",vjust = -1,
-                                    margin = margin(0, 0.8, 0, 0, 'cm')), 
+        axis.title.y = element_text(size = 22, colour = "#56697B",
+                                    margin = margin(0, 0.8, 0, 0.4, 'cm')), 
         axis.ticks.x = element_line(size = 0.7, colour = "#56697B"), 
         axis.ticks.length=unit(.4, "cm"),
         axis.text.y = element_text(size = 24, colour = "#56697B", vjust = -0.4, hjust = 1, 
@@ -118,7 +118,7 @@ ggpx = ggp +
 ggpx1 = ggdraw(ggpx)
 
 sps = as.character(temp$COMMON.NAME[1])
-name = paste(sps,"_","eBird_trend_graph.jpg",sep="")
+name = paste(sps,"_","eBird_trend_redlist.jpg",sep="")
 
 jpeg(name, units="in", width=11, height=7, res=1000, bg="transparent")
 grid::grid.draw(ggpx1)
