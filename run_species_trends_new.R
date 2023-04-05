@@ -10,6 +10,7 @@ source('SoIB_v2 functions.R')
 load("dataforanalyses.RData")
 lsa = specieslist %>% filter(!is.na(ht) | !is.na(rt))
 listofspecies = c(lsa$COMMON.NAME,restrictedspecieslist$COMMON.NAME)
+speclen = length(listofspecies)
 count = 0
 databins=c(1992,2003,2009,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021)
 
@@ -86,7 +87,7 @@ trends$sl = b1
 trends = pivot_longer(trends, -c(timegroups,timegroupsf,sl,type), 
                       values_to = "value", names_to = "COMMON.NAME")
 trends = pivot_wider(trends, names_from = type, values_from = value)
-trends$sp = rep(1:720,13*n)
+trends$sp = rep(1:speclen,13*n)
 
 trends = trends %>%
   arrange(sl,sp) %>%

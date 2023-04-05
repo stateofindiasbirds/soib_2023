@@ -1,0 +1,246 @@
+SOIBv2.Long.Term.Status,SOIBv2.Current.Status,SOIB.Range.Status,SOIBv2.Priority.Status
+Strong Decline,Strong Decline,Very Restricted,High
+Moderate Decline,Strong Decline,Very Restricted,High
+Data Deficient,Strong Decline,Very Restricted,High
+Uncertain,Strong Decline,Very Restricted,High
+Stable,Strong Decline,Very Restricted,High
+Moderate Increase,Strong Decline,Very Restricted,High
+Strong Increase,Strong Decline,Very Restricted,High
+Strong Decline,Moderate Decline,Very Restricted,High
+Moderate Decline,Moderate Decline,Very Restricted,High
+Data Deficient,Moderate Decline,Very Restricted,High
+Uncertain,Moderate Decline,Very Restricted,High
+Stable,Moderate Decline,Very Restricted,High
+Moderate Increase,Moderate Decline,Very Restricted,Moderate
+Strong Increase,Moderate Decline,Very Restricted,Moderate
+Strong Decline,Data Deficient,Very Restricted,NA
+Moderate Decline,Data Deficient,Very Restricted,NA
+Data Deficient,Data Deficient,Very Restricted,High
+Uncertain,Data Deficient,Very Restricted,NA
+Stable,Data Deficient,Very Restricted,NA
+Moderate Increase,Data Deficient,Very Restricted,NA
+Strong Increase,Data Deficient,Very Restricted,NA
+Strong Decline,Uncertain,Very Restricted,High
+Moderate Decline,Uncertain,Very Restricted,High
+Data Deficient,Uncertain,Very Restricted,High
+Uncertain,Uncertain,Very Restricted,High
+Stable,Uncertain,Very Restricted,Low
+Moderate Increase,Uncertain,Very Restricted,Moderate
+Strong Increase,Uncertain,Very Restricted,Moderate
+Strong Decline,Stable,Very Restricted,High
+Moderate Decline,Stable,Very Restricted,High
+Data Deficient,Stable,Very Restricted,Moderate
+Uncertain,Stable,Very Restricted,Moderate
+Stable,Stable,Very Restricted,Low
+Moderate Increase,Stable,Very Restricted,Low
+Strong Increase,Stable,Very Restricted,Low
+Strong Decline,Moderate Increase,Very Restricted,High
+Moderate Decline,Moderate Increase,Very Restricted,High
+Data Deficient,Moderate Increase,Very Restricted,Moderate
+Uncertain,Moderate Increase,Very Restricted,Moderate
+Stable,Moderate Increase,Very Restricted,Low
+Moderate Increase,Moderate Increase,Very Restricted,Low
+Strong Increase,Moderate Increase,Very Restricted,Low
+Strong Decline,Strong Increase,Very Restricted,High
+Moderate Decline,Strong Increase,Very Restricted,High
+Data Deficient,Strong Increase,Very Restricted,Moderate
+Uncertain,Strong Increase,Very Restricted,Moderate
+Stable,Strong Increase,Very Restricted,Low
+Moderate Increase,Strong Increase,Very Restricted,Low
+Strong Increase,Strong Increase,Very Restricted,Low
+Strong Decline,Strong Decline,Restricted,High
+Moderate Decline,Strong Decline,Restricted,High
+Data Deficient,Strong Decline,Restricted,High
+Uncertain,Strong Decline,Restricted,High
+Stable,Strong Decline,Restricted,High
+Moderate Increase,Strong Decline,Restricted,Moderate
+Strong Increase,Strong Decline,Restricted,Moderate
+Strong Decline,Moderate Decline,Restricted,High
+Moderate Decline,Moderate Decline,Restricted,High
+Data Deficient,Moderate Decline,Restricted,High
+Uncertain,Moderate Decline,Restricted,High
+Stable,Moderate Decline,Restricted,Moderate
+Moderate Increase,Moderate Decline,Restricted,Moderate
+Strong Increase,Moderate Decline,Restricted,Moderate
+Strong Decline,Data Deficient,Restricted,NA
+Moderate Decline,Data Deficient,Restricted,NA
+Data Deficient,Data Deficient,Restricted,Moderate
+Uncertain,Data Deficient,Restricted,NA
+Stable,Data Deficient,Restricted,NA
+Moderate Increase,Data Deficient,Restricted,NA
+Strong Increase,Data Deficient,Restricted,NA
+Strong Decline,Uncertain,Restricted,High
+Moderate Decline,Uncertain,Restricted,High
+Data Deficient,Uncertain,Restricted,Moderate
+Uncertain,Uncertain,Restricted,Moderate
+Stable,Uncertain,Restricted,Low
+Moderate Increase,Uncertain,Restricted,Low
+Strong Increase,Uncertain,Restricted,Low
+Strong Decline,Stable,Restricted,High
+Moderate Decline,Stable,Restricted,Moderate
+Data Deficient,Stable,Restricted,Low
+Uncertain,Stable,Restricted,Low
+Stable,Stable,Restricted,Low
+Moderate Increase,Stable,Restricted,Low
+Strong Increase,Stable,Restricted,Low
+Strong Decline,Moderate Increase,Restricted,Moderate
+Moderate Decline,Moderate Increase,Restricted,Moderate
+Data Deficient,Moderate Increase,Restricted,Low
+Uncertain,Moderate Increase,Restricted,Low
+Stable,Moderate Increase,Restricted,Low
+Moderate Increase,Moderate Increase,Restricted,Low
+Strong Increase,Moderate Increase,Restricted,Low
+Strong Decline,Strong Increase,Restricted,Moderate
+Moderate Decline,Strong Increase,Restricted,Moderate
+Data Deficient,Strong Increase,Restricted,Low
+Uncertain,Strong Increase,Restricted,Low
+Stable,Strong Increase,Restricted,Low
+Moderate Increase,Strong Increase,Restricted,Low
+Strong Increase,Strong Increase,Restricted,Low
+Strong Decline,Strong Decline,Moderate,High
+Moderate Decline,Strong Decline,Moderate,High
+Data Deficient,Strong Decline,Moderate,Moderate
+Uncertain,Strong Decline,Moderate,Moderate
+Stable,Strong Decline,Moderate,Moderate
+Moderate Increase,Strong Decline,Moderate,Moderate
+Strong Increase,Strong Decline,Moderate,Moderate
+Strong Decline,Moderate Decline,Moderate,High
+Moderate Decline,Moderate Decline,Moderate,High
+Data Deficient,Moderate Decline,Moderate,Moderate
+Uncertain,Moderate Decline,Moderate,Moderate
+Stable,Moderate Decline,Moderate,Moderate
+Moderate Increase,Moderate Decline,Moderate,Moderate
+Strong Increase,Moderate Decline,Moderate,Moderate
+Strong Decline,Data Deficient,Moderate,NA
+Moderate Decline,Data Deficient,Moderate,NA
+Data Deficient,Data Deficient,Moderate,Moderate
+Uncertain,Data Deficient,Moderate,NA
+Stable,Data Deficient,Moderate,NA
+Moderate Increase,Data Deficient,Moderate,NA
+Strong Increase,Data Deficient,Moderate,NA
+Strong Decline,Uncertain,Moderate,Moderate
+Moderate Decline,Uncertain,Moderate,Moderate
+Data Deficient,Uncertain,Moderate,Low
+Uncertain,Uncertain,Moderate,Low
+Stable,Uncertain,Moderate,Low
+Moderate Increase,Uncertain,Moderate,Low
+Strong Increase,Uncertain,Moderate,Low
+Strong Decline,Stable,Moderate,Moderate
+Moderate Decline,Stable,Moderate,Moderate
+Data Deficient,Stable,Moderate,Low
+Uncertain,Stable,Moderate,Low
+Stable,Stable,Moderate,Low
+Moderate Increase,Stable,Moderate,Low
+Strong Increase,Stable,Moderate,Low
+Strong Decline,Moderate Increase,Moderate,Moderate
+Moderate Decline,Moderate Increase,Moderate,Moderate
+Data Deficient,Moderate Increase,Moderate,Low
+Uncertain,Moderate Increase,Moderate,Low
+Stable,Moderate Increase,Moderate,Low
+Moderate Increase,Moderate Increase,Moderate,Low
+Strong Increase,Moderate Increase,Moderate,Low
+Strong Decline,Strong Increase,Moderate,Moderate
+Moderate Decline,Strong Increase,Moderate,Moderate
+Data Deficient,Strong Increase,Moderate,Low
+Uncertain,Strong Increase,Moderate,Low
+Stable,Strong Increase,Moderate,Low
+Moderate Increase,Strong Increase,Moderate,Low
+Strong Increase,Strong Increase,Moderate,Low
+Strong Decline,Strong Decline,Very Large,High
+Moderate Decline,Strong Decline,Very Large,Moderate
+Data Deficient,Strong Decline,Very Large,Moderate
+Uncertain,Strong Decline,Very Large,Moderate
+Stable,Strong Decline,Very Large,Moderate
+Moderate Increase,Strong Decline,Very Large,Moderate
+Strong Increase,Strong Decline,Very Large,Low
+Strong Decline,Moderate Decline,Very Large,Moderate
+Moderate Decline,Moderate Decline,Very Large,Moderate
+Data Deficient,Moderate Decline,Very Large,Moderate
+Uncertain,Moderate Decline,Very Large,Moderate
+Stable,Moderate Decline,Very Large,Low
+Moderate Increase,Moderate Decline,Very Large,Low
+Strong Increase,Moderate Decline,Very Large,Low
+Strong Decline,Data Deficient,Very Large,NA
+Moderate Decline,Data Deficient,Very Large,NA
+Data Deficient,Data Deficient,Very Large,Moderate
+Uncertain,Data Deficient,Very Large,NA
+Stable,Data Deficient,Very Large,NA
+Moderate Increase,Data Deficient,Very Large,NA
+Strong Increase,Data Deficient,Very Large,NA
+Strong Decline,Uncertain,Very Large,Moderate
+Moderate Decline,Uncertain,Very Large,Moderate
+Data Deficient,Uncertain,Very Large,Low
+Uncertain,Uncertain,Very Large,Low
+Stable,Uncertain,Very Large,Low
+Moderate Increase,Uncertain,Very Large,Low
+Strong Increase,Uncertain,Very Large,Low
+Strong Decline,Stable,Very Large,Moderate
+Moderate Decline,Stable,Very Large,Low
+Data Deficient,Stable,Very Large,Low
+Uncertain,Stable,Very Large,Low
+Stable,Stable,Very Large,Low
+Moderate Increase,Stable,Very Large,Low
+Strong Increase,Stable,Very Large,Low
+Strong Decline,Moderate Increase,Very Large,Moderate
+Moderate Decline,Moderate Increase,Very Large,Low
+Data Deficient,Moderate Increase,Very Large,Low
+Uncertain,Moderate Increase,Very Large,Low
+Stable,Moderate Increase,Very Large,Low
+Moderate Increase,Moderate Increase,Very Large,Low
+Strong Increase,Moderate Increase,Very Large,Low
+Strong Decline,Strong Increase,Very Large,Low
+Moderate Decline,Strong Increase,Very Large,Low
+Data Deficient,Strong Increase,Very Large,Low
+Uncertain,Strong Increase,Very Large,Low
+Stable,Strong Increase,Very Large,Low
+Moderate Increase,Strong Increase,Very Large,Low
+Strong Increase,Strong Increase,Very Large,Low
+Strong Decline,Strong Decline,Large,High
+Moderate Decline,Strong Decline,Large,High
+Data Deficient,Strong Decline,Large,Moderate
+Uncertain,Strong Decline,Large,Moderate
+Stable,Strong Decline,Large,Moderate
+Moderate Increase,Strong Decline,Large,Moderate
+Strong Increase,Strong Decline,Large,Moderate
+Strong Decline,Moderate Decline,Large,High
+Moderate Decline,Moderate Decline,Large,Moderate
+Data Deficient,Moderate Decline,Large,Moderate
+Uncertain,Moderate Decline,Large,Moderate
+Stable,Moderate Decline,Large,Low
+Moderate Increase,Moderate Decline,Large,Low
+Strong Increase,Moderate Decline,Large,Low
+Strong Decline,Data Deficient,Large,NA
+Moderate Decline,Data Deficient,Large,NA
+Data Deficient,Data Deficient,Large,Moderate
+Uncertain,Data Deficient,Large,NA
+Stable,Data Deficient,Large,NA
+Moderate Increase,Data Deficient,Large,NA
+Strong Increase,Data Deficient,Large,NA
+Strong Decline,Uncertain,Large,Moderate
+Moderate Decline,Uncertain,Large,Moderate
+Data Deficient,Uncertain,Large,Low
+Uncertain,Uncertain,Large,Low
+Stable,Uncertain,Large,Low
+Moderate Increase,Uncertain,Large,Low
+Strong Increase,Uncertain,Large,Low
+Strong Decline,Stable,Large,Moderate
+Moderate Decline,Stable,Large,Low
+Data Deficient,Stable,Large,Low
+Uncertain,Stable,Large,Low
+Stable,Stable,Large,Low
+Moderate Increase,Stable,Large,Low
+Strong Increase,Stable,Large,Low
+Strong Decline,Moderate Increase,Large,Moderate
+Moderate Decline,Moderate Increase,Large,Low
+Data Deficient,Moderate Increase,Large,Low
+Uncertain,Moderate Increase,Large,Low
+Stable,Moderate Increase,Large,Low
+Moderate Increase,Moderate Increase,Large,Low
+Strong Increase,Moderate Increase,Large,Low
+Strong Decline,Strong Increase,Large,Moderate
+Moderate Decline,Strong Increase,Large,Low
+Data Deficient,Strong Increase,Large,Low
+Uncertain,Strong Increase,Large,Low
+Stable,Strong Increase,Large,Low
+Moderate Increase,Strong Increase,Large,Low
+Strong Increase,Strong Increase,Large,Low
