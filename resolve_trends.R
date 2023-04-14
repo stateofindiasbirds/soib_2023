@@ -4,7 +4,7 @@ library(VGAM)
 
 load("specieslists.RData")
 main = read.csv("SoIB_mapping_2022.csv")
-recentcutoff = 2014
+recentcutoff = 2015
 
 main$longtermrci = main$longtermmean = main$longtermlci = NA 
 main$currentsloperci = main$currentslopemean = main$currentslopelci = NA
@@ -91,7 +91,7 @@ modtrends_recent$mean_std_recent = 100*modtrends_recent$mean/modtrends_recent$m2
 modtrends_recent$rci_std_recent = NA
 
 flag = 0
-newdata = data.frame(timegroups = 2022:2071)
+newdata = data.frame(timegroups = 2023:2072)
 for (i in unique(modtrends_recent$COMMON.NAME))
 {
   ct = 0
@@ -136,7 +136,7 @@ for (i in unique(modtrends_recent$COMMON.NAME))
         group_by(timegroups) %>%
         reframe(val = sample(rat,1))
       temp$val1 = temp$val - 100
-      temp$timegroups1 = temp$timegroups - 2014
+      temp$timegroups1 = temp$timegroups - recentcutoff
       
       fit = with(temp,lm(log(val)~timegroups))
       fit1 = with(temp,lm(val1~0+timegroups1))
@@ -229,9 +229,9 @@ trends$lci_comb_std[trends$lci_comb_std<0] = 0
 
 write.csv(trends,"trends.csv",row.names=F)
 
-proj2027 = trends %>% filter(timegroups == 2027) %>% select(COMMON.NAME,rci_comb_std)
-names(proj2027)[2] = "proj2027"
-main = left_join(main,proj2027,by=c("eBird.English.Name.2022"="COMMON.NAME"))
+proj2028 = trends %>% filter(timegroups == 2028) %>% select(COMMON.NAME,rci_comb_std)
+names(proj2028)[2] = "proj2028"
+main = left_join(main,proj2028,by=c("eBird.English.Name.2022"="COMMON.NAME"))
 
 proj2040 = trends %>% filter(timegroups == 2040) %>% select(COMMON.NAME,rci_comb_std)
 names(proj2040)[2] = "proj2040"
