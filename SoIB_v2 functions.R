@@ -3,8 +3,8 @@
 ## read and clean raw data and add important columns like group id, seaonality variables
 ## place raw txt file (India download) in working directory 
 
-readcleanrawdata = function(rawpath = "ebd_IN_relJun-2022.txt", 
-                            sensitivepath = "ebd_sensitive_relMay-2022_IN.txt")
+readcleanrawdata = function(rawpath = "ebd_IN_relFeb-2023.txt", 
+                            sensitivepath = "ebd_sensitive_relFeb-2023_IN.txt")
 {
   require(lubridate)
   require(tidyverse)
@@ -212,7 +212,7 @@ readcleanrawdata = function(rawpath = "ebd_IN_relJun-2022.txt",
     group_by(group.id) %>% mutate(no.sp = n_distinct(COMMON.NAME)) %>%
     ungroup
   
-  data = data %>% filter(year < 2022)
+  data = data %>% filter(year < 2023)
   
   ## remove probable mistakes
   
@@ -226,253 +226,83 @@ readcleanrawdata = function(rawpath = "ebd_IN_relJun-2022.txt",
 ### createmaps ########################################
 
 
-## requires shapefiles and several packages - path1 = India; path2 = India States; 
-## path3 = India Districts
-## provide path to folder and name of file within
-
-## this can be edited for more flexibility with grid sizes; current default is 25,50,100,200
-
-## current default args are c("India","India_2011","India States","IndiaStates_2011","India Districts","IndiaDistricts_2011")
-
-## saves a workspace image called "maps.RData"
-
-createmaps = function(g1=25,g2=50,g3=100,g4=200,path1="India",name1="India_2011",path2="in_states_2019",
-                      name2="in_states_2019",path3="in_dists_2019",name3="in_dist_2019")
-{
-  require(tidyverse)
-  require(rgdal)
-  require(sp)
-  require(sf)
-
-  # reading maps
-  
-  assign("indiamap",readOGR(path1,name1),.GlobalEnv)
-  assign("statemap",readOGR(path2,name2),.GlobalEnv)
-  assign("districtmap",readOGR(path3,name3),.GlobalEnv)
-  
-  # creating SPDF grids below that can be intersected with various maps and overlaid on to data
-  
-  bb = bbox(indiamap) # creates a box with extents from map
-  cs = c(g1*1000/111111,g1*1000/111111)  # cell size g1 km x g1 km
-  cc = bb[, 1] + (cs/2)  # cell offset
-  cd = ceiling(diff(t(bb))/cs)  # number of cells per direction
-  grd = GridTopology(cellcentre.offset=cc, cellsize=cs, cells.dim=cd) # create required grids
-  sp_grd = SpatialGridDataFrame(grd, data=data.frame(id=1:prod(cd))) # create spatial grid data frame
-  nb4g1 = gridIndex2nb(sp_grd, maxdist = sqrt(1), fullMat = TRUE) # creates list of neighbours
-  nb8g1 = gridIndex2nb(sp_grd, maxdist = sqrt(2), fullMat = TRUE) # creates list of neighbours
-  sp_grd_poly = as(sp_grd, "SpatialPolygonsDataFrame") # SGDF to SPDF
-  assign("nb4g1",nb4g1,.GlobalEnv)
-  assign("nb8g1",nb8g1,.GlobalEnv)
-  assign("gridmapg1",sp_grd_poly,.GlobalEnv)
-  
-  bb = bbox(indiamap)
-  cs = c(g2*1000/111111,g2*1000/111111) 
-  cc = bb[, 1] + (cs/2)  # cell offset
-  cd = ceiling(diff(t(bb))/cs)  # number of cells per direction
-  grd = GridTopology(cellcentre.offset=cc, cellsize=cs, cells.dim=cd)
-  sp_grd = SpatialGridDataFrame(grd, data=data.frame(id=1:prod(cd)))
-  nb4g2 = gridIndex2nb(sp_grd, maxdist = sqrt(1), fullMat = TRUE)
-  nb8g2 = gridIndex2nb(sp_grd, maxdist = sqrt(2), fullMat = TRUE)
-  sp_grd_poly = as(sp_grd, "SpatialPolygonsDataFrame")
-  assign("nb4g2",nb4g2,.GlobalEnv)
-  assign("nb8g2",nb8g2,.GlobalEnv)
-  assign("gridmapg2",sp_grd_poly,.GlobalEnv)
-  
-  bb = bbox(indiamap)
-  cs = c(g3*1000/111111,g3*1000/111111) 
-  cc = bb[, 1] + (cs/2)  # cell offset
-  cd = ceiling(diff(t(bb))/cs)  # number of cells per direction
-  grd = GridTopology(cellcentre.offset=cc, cellsize=cs, cells.dim=cd)
-  sp_grd = SpatialGridDataFrame(grd, data=data.frame(id=1:prod(cd)))
-  nb4g3 = gridIndex2nb(sp_grd, maxdist = sqrt(1), fullMat = TRUE)
-  nb8g3 = gridIndex2nb(sp_grd, maxdist = sqrt(2), fullMat = TRUE)
-  sp_grd_poly = as(sp_grd, "SpatialPolygonsDataFrame")
-  assign("nb4g3",nb4g3,.GlobalEnv)
-  assign("nb8g3",nb8g3,.GlobalEnv)
-  assign("gridmapg3",sp_grd_poly,.GlobalEnv)
-  
-  bb = bbox(indiamap)
-  cs = c(g4*1000/111111,g4*1000/111111) 
-  cc = bb[, 1] + (cs/2)  # cell offset
-  cd = ceiling(diff(t(bb))/cs)  # number of cells per direction
-  grd = GridTopology(cellcentre.offset=cc, cellsize=cs, cells.dim=cd)
-  sp_grd = SpatialGridDataFrame(grd, data=data.frame(id=1:prod(cd)))
-  nb4g4 = gridIndex2nb(sp_grd, maxdist = sqrt(1), fullMat = TRUE)
-  nb8g4 = gridIndex2nb(sp_grd, maxdist = sqrt(2), fullMat = TRUE)
-  sp_grd_poly = as(sp_grd, "SpatialPolygonsDataFrame")
-  assign("nb4g4",nb4g4,.GlobalEnv)
-  assign("nb8g4",nb8g4,.GlobalEnv)
-  assign("gridmapg4",sp_grd_poly,.GlobalEnv)
-  
-  # indiamap = spTransform(indiamap,CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"))
-  # not required here, CRS is NA
-  
-  x = as(indiamap,"sf") %>% sf::st_buffer(dist=0)
-  # to calculate total number of grids of each size
-  c1 = st_intersection(as(gridmapg1,"sf"), x)
-  areag1 = data.frame(id = as.character(c1$id), area = round(st_area(c1)*12345.65))
-  c1 = as(c1,"Spatial")
-  c2 = st_intersection(as(gridmapg2,"sf"), x)
-  areag2 = data.frame(id = as.character(c2$id), area = round(st_area(c2)*12345.65))
-  c2 = as(c2,"Spatial")
-  c3 = st_intersection(as(gridmapg3,"sf"), x)
-  areag3 = data.frame(id = as.character(c3$id), area = round(st_area(c3)*12345.65))
-  c3 = as(c3,"Spatial")
-  c4 = st_intersection(as(gridmapg4,"sf"), x)
-  areag4 = data.frame(id = as.character(c4$id), area = round(st_area(c4)*12345.65))
-  c4 = as(c4,"Spatial")
-  area = round(st_area(x)*12345.65)
-  
-  
-  totalcells = c(length(unique(fortify(c1)$id)),length(unique(fortify(c2)$id)),
-                 length(unique(fortify(c3)$id)),length(unique(fortify(c4)$id)))
-  
-  assign("areag1",areag1,.GlobalEnv)
-  assign("areag2",areag2,.GlobalEnv)
-  assign("areag3",areag3,.GlobalEnv)
-  assign("areag4",areag4,.GlobalEnv)
-  assign("totalcells",totalcells,.GlobalEnv)
-  assign("area",area,.GlobalEnv)
-  assign("gridlevels",c(g1,g2,g3,g4),.GlobalEnv)
-  
-  rm(list=setdiff(ls(envir = .GlobalEnv), c("districtmap", "statemap", "indiamap", "gridmapg1", 
-                                            "gridmapg2", "gridmapg3", "gridmapg4","nb4g1",
-                                            "nb4g2", "nb4g3", "nb4g4", "nb8g1", "nb8g2", "nb8g3", 
-                                            "nb8g4", "totalcells", "gridlevels","area",
-                                            "areag1","areag2","areag3","areag4")), 
-     pos = ".GlobalEnv")
-  
-  save.image("maps.RData")
-  
-  rm(list=setdiff(ls(envir = .GlobalEnv), c("nb4g1", "nb4g2", "nb4g3", "nb4g4", 
-                                            "nb8g1", "nb8g2", "nb8g3", "nb8g4",
-                                            "totalcells","gridlevels","area",
-                                            "areag1","areag2","areag3","areag4")), 
-     pos = ".GlobalEnv")
-  
-  save.image("neighbours.RData")
-  
-  load("maps.RData", envir = globalenv())
-  
-  rm(list=setdiff(ls(envir = .GlobalEnv), c("districtmap", "statemap", "indiamap", "gridmapg1", "gridmapg2", 
-                                            "gridmapg3", "gridmapg4",
-                                            "totalcells","gridlevels","area",
-                                            "areag1","areag2","areag3","areag4")), 
-     pos = ".GlobalEnv")
-  
-  save.image("maps.RData")
-  
-  rm(districtmap,statemap,indiamap,gridmapg1,gridmapg2, 
-       gridmapg3,gridmapg4,
-       totalcells,gridlevels,area,
-       areag1, areag2, areag3, areag4, pos = ".GlobalEnv")
-}
+## Refer to the India Maps repository
 
 
 ### addmapvars ########################################
 
 
 ## prepare data for analyses, add map variables, grids
-## place the 'maps' workspace in working directory
+## place the 'maps_sf' and "grids_g0_sf" workspaces in the working directory
 
-addmapvars = function(datapath = "rawdata.RData", mappath = "maps.RData")
+addmapvars = function(datapath = "rawdata.RData", 
+                      mappath1 = "maps_sf.RData", mappath2 = "grids_g0_sf.RData")
 {
   require(tidyverse)
-  # require(data.table)
-  require(sp)
-  require(rgeos)
+  require(sf)
   
   load(datapath)
   
   # map details to add to eBird data
-  load(mappath)
+  load(mappath1)
+  load(mappath2)
   
-  # single object at group ID level (same group ID, same grid/district/state)
-  temp0 = data %>% group_by(group.id) %>% slice(1) 
+  sf_use_s2(FALSE)
   
+  temp = data %>% 
+    distinct(group.id, LONGITUDE, LATITUDE) %>% 
+    group_by(group.id) %>% 
+    slice(1) %>% 
+    ungroup() %>% 
+    # joining map vars to EBD
+    st_as_sf(coords = c("LONGITUDE", "LATITUDE"), remove = F) %>% 
+    st_set_crs(st_crs(dists_sf)) %>% 
+    st_join(dists_sf %>% dplyr::select(-STATE.NAME, -AREA)) %>% 
+    st_join(states_sf %>% dplyr::select(-AREA)) %>% 
+    # PAs
+    ###
+    # grid cells
+    st_join(g0_in_sf %>% dplyr::select(GRID.G0)) %>% 
+    st_join(g1_in_sf %>% dplyr::select(GRID.G1)) %>% 
+    st_join(g2_in_sf %>% dplyr::select(GRID.G2)) %>% 
+    st_join(g3_in_sf %>% dplyr::select(GRID.G3)) %>% 
+    st_join(g4_in_sf %>% dplyr::select(GRID.G4)) %>% 
+    st_drop_geometry()
   
-  ### add columns with DISTRICT and ST_NM to main data 
+  temp0 = temp %>% 
+    distinct(DISTRICT.NAME,STATE.NAME,GRID.G0,GRID.G1,GRID.G2,GRID.G3,GRID.G4,group.id) %>% 
+    group_by(group.id) %>% 
+    slice(1) %>% 
+    ungroup()
+  names(temp0) = c("DISTRICT","ST_NM","gridg0","gridg1","gridg2","gridg3","gridg4","group.id")
   
-  temp = temp0 # separate object to prevent repeated slicing (intensive step)
+  data = data %>%
+    left_join(temp0)
   
-  rownames(temp) = temp$group.id # only to setup adding the group.id column for the future left_join
-  coordinates(temp) = ~LONGITUDE + LATITUDE # convert to SPDF
-  proj4string(temp) = "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
+  data = data %>%
+    filter(!is.na(gridg4) & !is.na(gridg3) & !is.na(gridg2) & !is.na(gridg1))
   
-  temp = sp::over(temp, districtmap) %>% # returns only ATTRIBUTES of districtmap (DISTRICT and ST_NM)
-    dplyr::select(1, 2) %>% 
-    rename(DISTRICT = dtname,
-           ST_NM = stname) %>% 
-    rownames_to_column("group.id") 
+  ### calculate important areas
   
-  data = left_join(temp, data)
-  
-  
-  ### add columns with GRID ATTRIBUTES to main data
-  
-  temp = temp0
-  
-  rownames(temp) = temp$group.id
-  coordinates(temp) = ~LONGITUDE + LATITUDE
-  
-  temp = sp::over(temp, gridmapg1) %>% 
-    rownames_to_column("group.id") %>% 
-    rename(gridg1 = id)
-  
-  data = left_join(temp, data)
-  
-  
-  temp = temp0
-  
-  rownames(temp) = temp$group.id
-  coordinates(temp) = ~LONGITUDE + LATITUDE
-  
-  temp = sp::over(temp, gridmapg2) %>% 
-    rownames_to_column("group.id") %>% 
-    rename(gridg2 = id)
-  
-  data = left_join(temp, data)
+  x = india_sf %>% sf::st_buffer(dist=0)
+  area = round(st_area(x)*12345.65)
   
   
-  temp = temp0
-  
-  rownames(temp) = temp$group.id
-  coordinates(temp) = ~LONGITUDE + LATITUDE
-  
-  temp = sp::over(temp, gridmapg3) %>% 
-    rownames_to_column("group.id") %>% 
-    rename(gridg3 = id)
-  
-  data = left_join(temp, data)
-  
-  
-  temp = temp0
-  
-  rownames(temp) = temp$group.id
-  coordinates(temp) = ~LONGITUDE + LATITUDE
-  
-  temp = sp::over(temp, gridmapg4) %>% 
-    rownames_to_column("group.id") %>% 
-    rename(gridg4 = id)
-  
-  data = left_join(temp, data)
-  
+  totalcells = c(length(g0_in_sf[,1]),length(g1_in_sf[,1]),
+                 length(g2_in_sf[,1]),length(g3_in_sf[,1]),
+                 length(g4_in_sf[,1]))
   
   ### 
   
   assign("area",area,.GlobalEnv)
-  assign("areag1",areag1,.GlobalEnv)
-  assign("areag2",areag2,.GlobalEnv)
-  assign("areag3",areag3,.GlobalEnv)
-  assign("areag4",areag4,.GlobalEnv)
   assign("totalcells",totalcells,.GlobalEnv)
-  assign("gridlevels",gridlevels,.GlobalEnv)
+  assign("grid_sizes_deg",grid_sizes_deg,.GlobalEnv)
+  assign("grid_sizes_km",grid_sizes_km,.GlobalEnv)
   
   assign("data",data,.GlobalEnv)
 
-  save(data,totalcells,gridlevels,area,areag1,areag2,areag3,areag4, file="data.RData")
-  rm(data, totalcells, gridlevels, area,
-     areag1, areag2, areag3, areag4, pos = ".GlobalEnv")
+  save(data,totalcells,grid_sizes_deg,grid_sizes_km,area, file="data.RData")
+  rm(data,totalcells,grid_sizes_deg,grid_sizes_km,area, pos = ".GlobalEnv")
 }
 
 
@@ -544,7 +374,10 @@ removevagrants = function(data)
                                                  "Resident & Altitudinal Migrant",
                                                  "Resident & Winter Migrant",
                                                  "Resident & Summer Migrant",
-                                                 "Resident & Local Migrant")) %>%
+                                                 "Resident & Local Migrant",
+                                                 "Resident & Localized Summer Migrant",
+                                                 "Resident & Within-India Migrant",
+                                                 "Resident (Extirpated)")) %>%
     select(eBird.English.Name.2022)
   migspecies = as.vector(migspecies$eBird.English.Name.2022)
   
@@ -555,7 +388,7 @@ removevagrants = function(data)
   
   d = left_join(d,data)
   d = d %>%
-    filter(year > 2013)
+    filter(year > 2014)
   
   save(d,file = "vagrantdata.RData")
   
@@ -580,10 +413,13 @@ dataspeciesfilter = function(datapath = "data.RData",
   fullmap = read.csv("SoIB_mapping_2022.csv")
   resspecies = fullmap %>%
     filter(Migratory.Status.Within.India %in% c("Resident",
-                                                 "Resident & Altitudinal Migrant",
-                                                 "Resident & Winter Migrant",
-                                                 "Resident & Summer Migrant",
-                                                 "Resident & Local Migrant")) %>%
+                                                "Resident & Altitudinal Migrant",
+                                                "Resident & Winter Migrant",
+                                                "Resident & Summer Migrant",
+                                                "Resident & Local Migrant",
+                                                "Resident & Localized Summer Migrant",
+                                                "Resident & Within-India Migrant",
+                                                "Resident (Extirpated)")) %>%
     select(eBird.English.Name.2022)
   resident = as.vector(resspecies$eBird.English.Name.2022)
   
@@ -592,23 +428,12 @@ dataspeciesfilter = function(datapath = "data.RData",
   x1 = paste(nrow(data),"filter 0 observations")
   x2 = paste(length(unique(data$group.id)),"filter 0 unique checklists")
   
+  data$gridg0 = as.character(data$gridg0)
   data$gridg1 = as.character(data$gridg1)
   data$gridg2 = as.character(data$gridg2)
   data$gridg3 = as.character(data$gridg3)
   data$gridg4 = as.character(data$gridg4)
-  areag1$id = as.character(areag1$id)
-  areag2$id = as.character(areag2$id)
-  areag3$id = as.character(areag3$id)
-  areag4$id = as.character(areag4$id)
-  
-  ## exclude pelagic lists
-  data = data %>%
-    filter(!gridg1 %in% setdiff(data$gridg1, intersect(areag1$id,unique(data$gridg1))) &
-             !gridg2 %in% setdiff(data$gridg2, intersect(areag2$id,unique(data$gridg2))) &
-             !gridg3 %in% setdiff(data$gridg3, intersect(areag3$id,unique(data$gridg3))) &
-             !gridg4 %in% setdiff(data$gridg4, intersect(areag4$id,unique(data$gridg4))) &
-             !is.na(gridg1) & !is.na(gridg2) & !is.na(gridg3) & !is.na(gridg4))
-  
+
   data = data %>%
     filter(is.na(EFFORT.DISTANCE.KM) | EFFORT.DISTANCE.KM <= 50) %>%
     filter(REVIEWED == 0 | APPROVED == 1) %>%
@@ -628,14 +453,15 @@ dataspeciesfilter = function(datapath = "data.RData",
     mutate(timegroups = ifelse(year == 2018, "2018", timegroups)) %>%
     mutate(timegroups = ifelse(year == 2019, "2019", timegroups)) %>%
     mutate(timegroups = ifelse(year == 2020, "2020", timegroups)) %>%
-    mutate(timegroups = ifelse(year == 2021, "2021", timegroups))
+    mutate(timegroups = ifelse(year == 2021, "2021", timegroups)) %>%
+    mutate(timegroups = ifelse(year == 2022, "2022", timegroups))
   
   data = data %>%
     mutate(timegroups1 = as.character(year)) %>%
     mutate(timegroups1 = ifelse(year <= 2006, "before 2006", timegroups1)) %>%
-    mutate(timegroups1 = ifelse(year > 2006 & year <= 2013, "2007-2013", timegroups1)) %>%
-    mutate(timegroups1 = ifelse(year > 2013 & year <= 2018, "2014-2018", timegroups1)) %>%
-    mutate(timegroups1 = ifelse(year > 2018, "2019-2021", timegroups1))
+    mutate(timegroups1 = ifelse(year > 2006 & year <= 2014, "2007-2014", timegroups1)) %>%
+    mutate(timegroups1 = ifelse(year > 2014 & year <= 2019, "2015-2019", timegroups1)) %>%
+    mutate(timegroups1 = ifelse(year > 2019, "2020-2022", timegroups1))
   
   data = removevagrants(data)
 
@@ -677,11 +503,11 @@ dataspeciesfilter = function(datapath = "data.RData",
     filter(locs > locationlimit, cells > gridlimit) %>%
     group_by(COMMON.NAME) %>% reframe(years = n()) %>%
     group_by(COMMON.NAME) %>%
-    filter(years == 13) %>%
+    filter(years == 14) %>%
     mutate(ht = 1) %>% select (COMMON.NAME,ht)
   
   datar = data0 %>%
-    filter(ALL.SPECIES.REPORTED == 1, CATEGORY == "species" | CATEGORY == "issf", year > 2013) %>%
+    filter(ALL.SPECIES.REPORTED == 1, CATEGORY == "species" | CATEGORY == "issf", year > 2014) %>%
     group_by(COMMON.NAME,year) %>% reframe(locs = n_distinct(LOCALITY.ID), 
                                              cells = n_distinct(gridg4)) %>%
     group_by(COMMON.NAME,year) %>%
@@ -698,7 +524,7 @@ dataspeciesfilter = function(datapath = "data.RData",
     filter(cells <= gridlimit) %>%
     group_by(COMMON.NAME) %>% reframe(years = n()) %>%
     group_by(COMMON.NAME) %>%
-    filter(years == 13) %>%
+    filter(years == 14) %>%
     select (COMMON.NAME)
   
   speciesresth = data.frame(species = intersect(unique(dataresth1$COMMON.NAME),resident))
@@ -714,12 +540,12 @@ dataspeciesfilter = function(datapath = "data.RData",
       group_by(timegroups) %>% reframe(n = n_distinct(group.id)) %>%
       group_by(timegroups) %>%
       filter(n > listlimit)
-    if (length(tempresth1$timegroups) == 13)
+    if (length(tempresth1$timegroups) == 14)
       speciesresth$validh[speciesresth$species == speciesresth$species[i]] = 1
   }
   
   datarestr1 = data0 %>%
-    filter(ALL.SPECIES.REPORTED == 1, CATEGORY == "species" | CATEGORY == "issf", year > 2013) %>%
+    filter(ALL.SPECIES.REPORTED == 1, CATEGORY == "species" | CATEGORY == "issf", year > 2014) %>%
     group_by(COMMON.NAME,timegroups) %>% reframe(cells = n_distinct(gridg4)) %>%
     group_by(COMMON.NAME,timegroups) %>%
     filter(cells <= gridlimit) %>%
@@ -738,7 +564,7 @@ dataspeciesfilter = function(datapath = "data.RData",
       distinct(gridg1)
     temprestr1 = temprestr1 %>% left_join(data0)
     temprestr1 = temprestr1 %>%
-      filter(year > 2013) %>%
+      filter(year > 2014) %>%
       group_by(timegroups) %>% reframe(n = n_distinct(group.id)) %>%
       group_by(timegroups) %>%
       filter(n > listlimit)
@@ -832,20 +658,18 @@ dataspeciesfilter = function(datapath = "data.RData",
   names(dataf) = c("COMMON.NAME","SCIENTIFIC.NAME","Long.Term.Analysis","Current.Analysis",
                    "Selected.SOIB")
   
-  sampledcells = c(length(unique(data0$gridg1)),length(unique(data0$gridg2)),
-                   length(unique(data0$gridg3)),length(unique(data0$gridg4)))
+  sampledcells = c(length(unique(data0$gridg0)),length(unique(data0$gridg1)),
+                   length(unique(data0$gridg2)),length(unique(data0$gridg3)),
+                   length(unique(data0$gridg4)))
   
   x = c(x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,x11,x12)
   
   assign("stats",x,.GlobalEnv) 
-  assign("areag1",areag1,.GlobalEnv)
-  assign("areag2",areag2,.GlobalEnv)
-  assign("areag3",areag3,.GlobalEnv)
-  assign("areag4",areag4,.GlobalEnv)
   assign("area",area,.GlobalEnv)
   assign("sampledcells",sampledcells,.GlobalEnv)
   assign("totalcells",totalcells,.GlobalEnv)
-  assign("gridlevels",gridlevels,.GlobalEnv)
+  assign("grid_sizes_deg",grid_sizes_deg,.GlobalEnv)
+  assign("grid_sizes_km",grid_sizes_km,.GlobalEnv)
   assign("specieslist",specieslist,.GlobalEnv)
   assign("restrictedspecieslist",restrictedspecieslist,.GlobalEnv)
   
@@ -859,6 +683,52 @@ dataspeciesfilter = function(datapath = "data.RData",
   dataf = dataf %>% select("COMMON.NAME","SCIENTIFIC.NAME","Long.Term.Analysis","Current.Analysis",
                            "Selected.SOIB")
   
+  #### additional filtering safeguards - proportion of range sampled during every timegroup
+  
+  totalrange = data %>%
+    filter(COMMON.NAME %in% dataf$COMMON.NAME) %>%
+    distinct(COMMON.NAME,gridg1)
+  
+  proprange = data %>%
+    distinct(timegroups,gridg1)
+  
+  spectime = expand.grid(COMMON.NAME = dataf$COMMON.NAME,
+                         timegroups = unique(data$timegroups))
+  spectime$proprange25km = 0
+  
+  for (i in 1:length(spectime$COMMON.NAME))
+  {
+    species = spectime$COMMON.NAME[i]
+    tg = spectime$timegroups[i]
+    
+    temp1 = totalrange %>% filter(COMMON.NAME == species)
+    temp2 = proprange %>% filter(timegroups == tg)
+    
+    l1 = length(intersect(temp2$gridg1,temp1$gridg1))
+    l2 = length(temp1$gridg1)
+    
+    spectime$proprange25km[i] = l1/l2
+  }
+    
+  write.csv(spectime,"samplingovertime.csv",row.names = F)
+  
+  
+  #### additional filtering safeguards - proportional sampling within each 25km grid cell
+  
+  samp5km = data %>%
+    filter(ALL.SPECIES.REPORTED == 1) %>%
+    group_by(gridg1) %>% reframe(n = n_distinct(gridg0))
+  
+  spec25km = data %>%
+    filter(ALL.SPECIES.REPORTED == 1) %>%
+    filter(COMMON.NAME %in% dataf$COMMON.NAME) %>%
+    distinct(COMMON.NAME,gridg1)
+  
+  samp25km5km = spec25km %>% left_join(samp5km) %>%
+    group_by(COMMON.NAME) %>% reframe(mean5km = mean(n), sd5km = sd(n))
+  
+  dataf = dataf %>% left_join(samp25km5km)
+  
 
   write.csv(dataf,"fullspecieslist.csv",row.names = F)
   
@@ -868,21 +738,23 @@ dataspeciesfilter = function(datapath = "data.RData",
   write.csv(locs_write,"sub_samp_locs.csv",row.names = F)
   
   save(specieslist,restrictedspecieslist,file = "specieslists.RData")
+  
   rm(list=setdiff(ls(envir = .GlobalEnv), c("data","specieslist","databins",
-                                            "sampledcells","totalcells","gridlevels","area",
-                                            "areag1","areag2","areag3","areag4","stats",
+                                            "sampledcells","totalcells",
+                                            "grid_sizes_deg","grid_sizes_km",
+                                            "area","stats",
                                             "restrictedspecieslist")), 
      pos = ".GlobalEnv")
   
   save.image("dataforanalyses.RData")
-
+  
   data0 = data0 %>% select(-REVIEWED,-APPROVED,
                           -cyear)
   save(data0,file = "dataforanalyses_extra.RData")
   
   
-  rm(data, specieslist, databins, sampledcells, totalcells, gridlevels, area,
-     areag1, areag2, areag3, areag4, stats, restrictedspecieslist, pos = ".GlobalEnv")
+  rm(data, specieslist, databins, sampledcells, totalcells, grid_sizes_deg, grid_sizes_km, area,
+     stats, restrictedspecieslist, pos = ".GlobalEnv")
 }
 
 
@@ -978,304 +850,6 @@ simerrordiv = function(x1,x2,se1,se2)
 }
 
 
-
-### stdtrends ########################################
-
-## standardize trends
-
-stdtrends = function(trends)
-{
-  require(tidyverse)
-  
-  modtrends = na.omit(trends)
-  
-  tg = unique(modtrends$timegroups)
-  
-  recenttrends = modtrends %>%
-    filter(timegroups %in% tg) %>%
-    group_by(species) %>% mutate(freq1 = first(freq)) %>% ungroup() %>%
-    group_by(species) %>% mutate(se1 = first(se)) %>% ungroup() %>%
-    mutate(nmfreqbyspec = as.numeric(errordiv(freq,freq1,se,se1)[,1])) %>%
-    mutate(nmsebyspec = as.numeric(errordiv(freq,freq1,se,se1)[,2])) %>%
-    mutate(nmfreq = freq/max(freq1))
-  recenttrends$nmsebyspec[recenttrends$timegroups == min(recenttrends$timegroups)] = 0
-
-  
-  recenttrends$nmfreqbyspec = recenttrends$nmfreqbyspec*100
-  recenttrends$nmsebyspec = recenttrends$nmsebyspec*100
-  
-  recenttrends = recenttrends %>%
-    dplyr::select(timegroupsf,timegroups,species,nmfreqbyspec,nmsebyspec)
-  
-  return(recenttrends)
-}
-
-### plotcompositetrends ########################################
-
-
-# plot composite trends
-
-plotcompositetrends = function(trends,specieslist,name="composite",g1=NA,g2=NA,g3=NA,g4=NA,g5=NA,g6=NA,
-                               g7=NA,g8=NA,n1=NA,n2=NA,n3=NA,n4=NA,n5=NA,n6=NA,
-                               n7=NA,n8=NA)
-{
-  require(tidyverse)
-  require(ggthemes)
-  
-  theme_set(theme_tufte())
-  
-  g = list(g1,g2,g3,g4,g5,g6,g7,g8)
-  g = Filter(Negate(anyNA), g)
-  l = length(g)
-  if (l == 0)
-    break
-  
-  n = c(n1,n2,n3,n4,n5,n6,n7,n8)
-  n = n[!is.na(n)]
-  n1 = as.character(c(1:l))
-  
-  speciesl = as.character()
-  for (i in 1:l)
-  {
-    speciesl = c(speciesl,g[[i]])
-  }
-  
-  speciesl = unique(speciesl)
-  
-  glmr = read.csv("glmr.csv")
-  
-  glmr$mintrend = glmr$trend - glmr$trendci
-  glmr$maxtrend = glmr$trend + glmr$trendci
-  glmr$minslope = glmr$slope - glmr$slopeci
-  glmr$maxslope = glmr$slope + glmr$slopeci
-  
-  glmr$mintrend[glmr$mintrend < -100] = -100
-  
-  trendscat = glmr %>%
-    mutate(longcat = 
-             case_when(is.na(trend) ~ "Data Deficient",
-                       trendci > 50 ~ "Uncertain",
-                       maxtrend <= -50 ~ "Strong Decline",
-                       maxtrend <= -25 ~ "Moderate Decline",
-                       mintrend >= 50 ~ "Strong Increase",
-                       mintrend >= 25 ~ "Moderate Increase",
-                       trendci > 30 & mintrend > -(0.5*trendci) ~ "Uncertain",
-                       trendci > 30 & maxtrend < (0.5*trendci) ~ "Uncertain",
-                       TRUE ~ "Stable")
-    ) %>%
-    mutate(shortcat = 
-             case_when(is.na(slope) ~ "Data Deficient",
-                       slopeci > 20 ~ "Uncertain",
-                       maxslope <= -2.7 ~ "Strong Decline",
-                       maxslope <= -1.1 ~ "Moderate Decline",
-                       minslope >= 1.6 ~ "Strong Increase",
-                       minslope >= 0.9 ~ "Moderate Increase",
-                       TRUE ~ "Stable")
-    ) %>%
-    select(species,trend,trendci,mintrend,maxtrend,slope,slopeci,minslope,maxslope,longcat,shortcat)
-  
-  trendscat$longcat[trendscat$species %in% c("Sykes's Short-toed Lark","Green Warbler","Sykes's Warbler",
-                                             "Taiga Flycatcher","Chestnut Munia")] = NA
-  trendscat$shortcat[trendscat$species %in% c("Sykes's Short-toed Lark","Green Warbler","Sykes's Warbler",
-                                              "Taiga Flycatcher","Chestnut Munia")] = NA
-  
-  trendscat$longcat = factor(trendscat$longcat, levels = c("Strong Increase","Moderate Increase",
-                                                           "Stable","Uncertain","Data Deficient",
-                                                           "Moderate Decline","Strong Decline"))
-  trendscat$shortcat = factor(trendscat$shortcat, levels = c("Strong Increase","Moderate Increase",
-                                                             "Stable","Uncertain","Data Deficient",
-                                                             "Moderate Decline","Strong Decline"))
-  
-  trendscat = trendscat %>% filter(species %in% speciesl)
-  
-  for (i in 1:l)
-  {
-    gp = composite(trends[trends$species %in% g[[i]],], name = n[i])
-    temp = trendscat[trendscat$species %in% g[[i]],]
-    temp$name = n1[i]
-    if (i == 1)
-    {
-      gp1 = gp
-      temp1 = temp
-    }
-    if (i > 1)
-    {
-      gp1 = rbind(gp1,gp)
-      temp1 = rbind(temp1,temp)
-    }
-  }
-  
-  forbarlong = temp1 %>%
-    filter(!longcat == "Uncertain") %>%
-    group_by(name) %>% mutate(specs = n()) %>%
-    group_by(name,longcat) %>% summarize(perc = n()*100/max(specs))
-  names(forbarlong)[2] = "cat"
-  forbarlong$type = "Long-term Trend"
-  
-  forbarshort = temp1 %>%
-    filter(!shortcat == "Uncertain") %>%
-    group_by(name) %>% mutate(specs = n()) %>%
-    group_by(name,shortcat) %>% summarize(perc = n()*100/max(specs))
-  names(forbarshort)[2] = "cat"
-  forbarshort$type = "Current Annual Change"
-  
-  forbar = rbind(forbarlong,forbarshort)
-  
-  forbar$type = factor(forbar$type, levels = c("Long-term Trend","Current Annual Change"))
-  
-  theme_set(theme_tufte())
-  
-  ggpt = plottrends(gp1, n, leg = F)
-  ggp1 = ggpt[[1]]
-  ggpz = ggpt[[4]]
-  
-  require(extrafont)
-  #loadfonts(device = "win")
-  #font_import()
-  
-  t_names = c(
-    'Long-term Trend'="Long-term\nTrend",
-    'Current Annual Change'="Current\nChange"
-  )
-  
-  forbar$cat = as.character(forbar$cat)
-  forbar = forbar %>% filter(!cat == "Uncertain")
-  forbar$cat = factor(forbar$cat, levels = c("Strong Increase","Moderate Increase","Stable",
-                                             "Moderate Decline","Strong Decline"))
-  #forbar$cat = factor(forbar$cat, levels = c("Strong Decline","Moderate Decline","Stable",
-  #                                           "Moderate Increase","Strong Increase"))
-  ord = sort(unique(forbar$cat))
-  #ord = factor(ord, levels = c("Strong Decline","Moderate Decline","Stable","Moderate Increase",
-  #                             "Strong Increase"))
-  catcols = c("#378AB1","#8AC8A4","#E4EBB8","#CCA5BB","#B02A83")
-  #catcols = c("#B02A83","#CCA5BB","#E4EBB8","#8AC8A4","#378AB1")
-  
-  
-  theme_set(theme_tufte())
-
-  
-  ggp = ggplot(forbar, aes(x=name, y=perc, fill=cat)) + 
-    facet_wrap(~type, nrow = 1, ncol = 2, labeller = as_labeller(t_names)) +
-    geom_bar(stat = 'identity') +
-    xlab("groups") +
-    ylab("percentage of species")
-  
-  ggp2 = ggp +
-    theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank(),
-          axis.title.y = element_blank(), axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
-    theme(legend.title = element_blank(), legend.text = element_text(size = 8)) +
-    #theme(strip.text.x = element_text(size = 8, face = "bold")) +
-    theme(strip.text.x = element_blank()) +
-    theme(text=element_text(family="Gill Sans MT")) +
-    scale_fill_manual(breaks = c("Strong Increase","Moderate Increase","Stable","Moderate Decline",
-                                 "Strong Decline"), 
-                      labels = c("Strong\nIncrease","Moderate\nIncrease","Stable","Moderate\nDecline",
-                                 "Strong\nDecline"),
-                      values = catcols[ord]) +
-    theme(legend.position = c("bottom"))
-  
-  ggpy = ggp +
-    theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank(),
-          axis.title.y = element_blank(), axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
-    theme(legend.title = element_blank(), legend.text = element_text(size = 5)) +
-    #theme(strip.text.x = element_text(size = 8, face = "bold")) +
-    theme(strip.text.x = element_blank()) +
-    theme(text=element_text(family="Gill Sans MT")) +
-    scale_fill_manual(breaks = c("Strong Increase","Moderate Increase","Stable","Moderate Decline",
-                                 "Strong Decline"), 
-                      labels = c("Strong\nIncrease","Moderate\nIncrease","Stable","Moderate\nDecline",
-                                 "Strong\nDecline"),
-                      values = catcols[ord]) +
-    theme(legend.position = "none")
-  
-  ext = c("z1","z2","z3","z4","z5")
-  ext = ext[1:(5-l)]
-  lims = rev(unique(forbar$name))
-  if (l != 5)
-  {
-    lims = rev(c(unique(forbar$name),ext))
-  }
-  
-  ggpp1 = ggplot(forbar, aes(x=name, y=perc, fill=cat, width = .5)) + 
-    facet_wrap(~type, nrow = 2, ncol = 1, labeller = as_labeller(t_names)) +
-    geom_bar(stat = 'identity') +
-    scale_x_discrete(limits = lims) +
-    xlab("groups") +
-    ylab("percentage of species")
-  
-  #spacebar = ((7.2*(72.27-11))/(2*l+2.5))
-  #print((2*spacebar)/((2*l+2.5)*spacebar+11))
-  
-  ggpp = ggpp1 +
-    theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank(),
-          axis.title.y = element_blank(), axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
-    theme(legend.title = element_blank(), legend.text = element_text(size = 5)) +
-    #theme(strip.text.x = element_text(size = 8, face = "bold")) +
-    theme(strip.text.x = element_blank()) +
-    theme(text=element_text(family="Gill Sans MT")) +
-    scale_fill_manual(breaks = c("Strong Increase","Moderate Increase","Stable","Moderate Decline",
-                                 "Strong Decline"), 
-                      labels = c("Strong\nIncrease","Moderate\nIncrease","Stable","Moderate\nDecline",
-                                 "Strong\nDecline"),
-                      values = catcols[ord]) +
-    theme(legend.position = "none") +
-    coord_flip() +
-    theme(panel.spacing = unit(100, "pt"))
-  
-  #http://www.sthda.com/english/wiki/colors-in-r
-  
-  p3 = ggp2
-  
-  require(cowplot)
-  g1 = plot_grid(ggpz,ggpy,nrow=1,ncol=2,rel_widths = c(4/5, 1/5))
-  
-  sepleg1 = ggpt[[2]]
-  sepleg2 = get_legend(p3)
-  
-  g2 = plot_grid(sepleg1,sepleg2,align = "h",nrow=1,ncol=2,rel_widths = c(3/5, 2/5))
-  
-  g = plot_grid(g1,g2,align = "v",nrow=2,ncol=1,rel_heights = c(7/8, 1/8))
-  
-  gtemp = plot_grid(ggpz,sepleg1,align = "v",nrow=2,ncol=1,rel_heights = c(7/8, 1/8))
-  
-  theme_set(theme_tufte())
-  
-  #n1 = paste(name,".tiff",sep="")
-  n2 = paste(name,".png",sep="")
-  n3 = paste(name,"_composite.svg",sep="")
-  n4 = paste(name,"_speciestrends.svg",sep="")
-  n5 = paste(name,".svg",sep="")
-  ntemp = paste(name,"_no_bars.png",sep="")
-
-  #tiff(n1, units="in", width=10, height=7, res=1000)
-  #grid::grid.draw(g)
-  #dev.off()
-  
-  png(n2, units="in", width=10, height=7, res=1000)
-  grid::grid.draw(g)
-  dev.off()
-  
-  png(ntemp, units="in", width=10, height=7, res=1000)
-  grid::grid.draw(gtemp)
-  dev.off()
-  
-  #png(n2, units="in", width=10, height=7.2, res=1000)
-  #print(ggpp)
-  #dev.off()
-  
-  print(ggpt[[1]])
-  ggsave(file=n3, units="in", width=11, height=8)
-  
-  print(ggpp)
-  ggsave(file=n4, units="in", width=10, height=7.2)
-  
-  print(grid::grid.draw(g))
-  ggsave(file=n5, units="in", width=10, height=7)
-
-  
-  #theme(legend.position = "none")
-  
-}
 
 
 
@@ -1692,7 +1266,7 @@ singlespeciesrun = function(data,species,specieslist,restrictedspecieslist)
   if (is.na(specieslist2$ht) & !is.na(specieslist2$rt))
   {
     data1 = data1 %>%
-      filter(year >= 2014)
+      filter(year >= 2015)
   }
   
   temp = data1 %>%
@@ -1704,7 +1278,7 @@ singlespeciesrun = function(data,species,specieslist,restrictedspecieslist)
     group_by(gridg3,gridg1,group.id) %>% slice(1) %>% ungroup %>%
     group_by(gridg3,gridg1) %>% reframe(medianlla = median(no.sp)) %>%
     group_by(gridg3) %>% reframe(medianlla = mean(medianlla)) %>%
-    group_by(gridg3) %>% reframe(medianlla = round(mean(medianlla)))
+    reframe(medianlla = round(mean(medianlla)))
   
   medianlla = datay$medianlla
   
@@ -1783,12 +1357,12 @@ singlespeciesrun = function(data,species,specieslist,restrictedspecieslist)
   
   f1$timegroups = factor(f1$timegroups, levels = c("before 2000","2000-2006","2007-2010",
                                                    "2011-2012","2013","2014","2015","2016",
-                                                   "2017","2018","2019","2020","2021"))
+                                                   "2017","2018","2019","2020","2021","2022"))
   f1 = f1[order(f1$timegroups),]
   names(f1)[1] = "timegroupsf"
   mp = data.frame(timegroupsf = c("before 2000","2000-2006","2007-2010",
                                   "2011-2012","2013","2014","2015","2016",
-                                  "2017","2018","2019","2020","2021"), 
+                                  "2017","2018","2019","2020","2021","2022"), 
                   timegroups = as.numeric(databins))
   f1 = left_join(mp,f1)
   

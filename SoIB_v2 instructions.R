@@ -8,8 +8,7 @@
 ## creates grids at 25, 50, 100, 200 resolutions and lists of 4 and 8 nearest neighbours
 ## writes 'maps.RData' and 'neighbours.RData' to the home folder (called in other functions)
 
-source('SoIB_v2 functions.R')
-createmaps()
+## check the India Maps repo
 
 ### Sequence of steps to clean data starting from .txt file
 
@@ -21,7 +20,7 @@ createmaps()
 ## writes 'rawdata.RData' to the home folder
 
 source('SoIB_v2 functions.R')
-readcleanrawdata("ebd_IN_relJul-2022.txt","ebd_sensitive_relMay-2022_IN.txt") 
+readcleanrawdata("ebd_IN_relFeb-2023.txt","ebd_sensitive_relFeb-2023_IN.txt") 
 
 ## add map and grid variables to the dataset (dataframe)
 ## has to be run after the previous step
@@ -95,7 +94,7 @@ load("randomgroupids.RData")
 
 dir.create("dataforsim")
 
-for (i in 6:300)
+for (i in 1:2)
 {
   start = Sys.time()
   data0 = data %>% 
