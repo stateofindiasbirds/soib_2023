@@ -83,36 +83,6 @@ rm(list = ls())
 
 
 
-## create 1000 data files using randomgroupids
-
-require(tidyverse)
-
-source('SoIB_v2 functions.R')
-
-load("dataforanalyses.RData")
-load("randomgroupids.RData")
-
-dir.create("dataforsim")
-
-for (i in 1:2)
-{
-  start = Sys.time()
-  data0 = data %>% 
-    filter(group.id %in% randomgroupids[,i]) 
-  end = Sys.time()
-  print(end-start)
-
-  start = Sys.time()
-  nm = paste("/data",i,".csv",sep="")
-  filename = paste("E:/Abhinandan/BCI/soib_v2/dataforsim",nm,sep = '')
-  write.csv(data0,filename,row.names=F)
-  end = Sys.time()
-  print(end-start)
-}
-
-rm(list = ls())
-
-
   ###################                       PART 2                     ###################################
 ## provide "dataforanalyses.RData", "neighbours.RData", "indiaspecieslist.csv" and 
 ## "Migratory Status - Migratory Status.csv"
