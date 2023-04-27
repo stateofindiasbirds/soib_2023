@@ -1007,7 +1007,7 @@ dataspeciesfilter = function(datapath = "data.RData",
   dataf = dataf %>% left_join(samp25km5km)
   
   
-  write.csv(dataf,"masks_analyses/fullspecieslist_mask_woodland.csv",row.names = F)
+  write.csv(dataf,"fullspecieslist_mask_woodland.csv",row.names = F)
   
   locs_write = data0 %>% 
     filter(ALL.SPECIES.REPORTED == 1) %>%
@@ -1272,7 +1272,7 @@ dataspeciesfilter = function(datapath = "data.RData",
   dataf = dataf %>% left_join(samp25km5km)
   
   
-  write.csv(dataf,"masks_analyses/fullspecieslist_mask_cropland.csv",row.names = F)
+  write.csv(dataf,"fullspecieslist_mask_cropland.csv",row.names = F)
   
   locs_write = data0 %>% 
     filter(ALL.SPECIES.REPORTED == 1) %>%
@@ -1539,7 +1539,7 @@ dataspeciesfilter = function(datapath = "data.RData",
   dataf = dataf %>% left_join(samp25km5km)
   
   
-  write.csv(dataf,"masks_analyses/fullspecieslist_mask_oneland.csv",row.names = F)
+  write.csv(dataf,"fullspecieslist_mask_oneland.csv",row.names = F)
   
   locs_write = data0 %>% 
     filter(ALL.SPECIES.REPORTED == 1) %>%
@@ -1804,7 +1804,7 @@ dataspeciesfilter = function(datapath = "data.RData",
   dataf = dataf %>% left_join(samp25km5km)
   
   
-  write.csv(dataf,"masks_analyses/fullspecieslist_mask_pa.csv",row.names = F)
+  write.csv(dataf,"fullspecieslist_mask_pa.csv",row.names = F)
   
   locs_write = data0 %>% 
     filter(ALL.SPECIES.REPORTED == 1) %>%
