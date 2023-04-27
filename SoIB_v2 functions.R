@@ -513,7 +513,7 @@ dataspeciesfilter = function(datapath = "data.RData",
   databins = data %>%
     filter(ALL.SPECIES.REPORTED == 1) %>%
     group_by(timegroups) %>% reframe(lists = n_distinct(group.id), year = round(median(year)))
-  
+
   datah = data0 %>%
     filter(ALL.SPECIES.REPORTED == 1, CATEGORY == "species" | CATEGORY == "issf") %>%
     group_by(COMMON.NAME,timegroups) %>% reframe(locs = n_distinct(LOCALITY.ID), 
@@ -914,6 +914,14 @@ dataspeciesfilter = function(datapath = "data.RData",
   
   restrictedspecieslist = rbind(restrictedspecieslist_a,restrictedspecieslist_b)
   
+  # select only forest species
+  specieslist$ht[!specieslist$COMMON.NAME %in% woodland] = NA
+  specieslist$rt[!specieslist$COMMON.NAME %in% woodland] = NA
+  
+  restrictedspecieslist$ht[!restrictedspecieslist$COMMON.NAME %in% woodland] = NA
+  restrictedspecieslist$rt[!restrictedspecieslist$COMMON.NAME %in% woodland] = NA
+
+  
   t1 = dataf %>%
     filter((ht == 1 | rt == 1) & (Breeding.Activity.Period != "Nocturnal" |
                                     Non.Breeding.Activity.Period != "Nocturnal"))
@@ -945,10 +953,6 @@ dataspeciesfilter = function(datapath = "data.RData",
   
   dataf$Long.Term.Analysis[dataf$COMMON.NAME %in% check1] = "X"
   dataf$Current.Analysis[dataf$COMMON.NAME %in% check2] = "X"
-  
-  # select only forest species
-  dataf$Long.Term.Analysis[!dataf$COMMON.NAME %in% woodland] = ""
-  dataf$Current.Analysis[!dataf$COMMON.NAME %in% woodland] = ""
   
   dataf = dataf %>% select("COMMON.NAME","SCIENTIFIC.NAME","Long.Term.Analysis","Current.Analysis",
                            "Selected.SOIB")
@@ -1178,6 +1182,13 @@ dataspeciesfilter = function(datapath = "data.RData",
   
   restrictedspecieslist = rbind(restrictedspecieslist_a,restrictedspecieslist_b)
   
+  # select only openland species
+  specieslist$ht[!specieslist$COMMON.NAME %in% openland] = NA
+  specieslist$rt[!specieslist$COMMON.NAME %in% openland] = NA
+  
+  restrictedspecieslist$ht[!restrictedspecieslist$COMMON.NAME %in% openland] = NA
+  restrictedspecieslist$rt[!restrictedspecieslist$COMMON.NAME %in% openland] = NA
+  
   t1 = dataf %>%
     filter((ht == 1 | rt == 1) & (Breeding.Activity.Period != "Nocturnal" |
                                     Non.Breeding.Activity.Period != "Nocturnal"))
@@ -1209,10 +1220,6 @@ dataspeciesfilter = function(datapath = "data.RData",
   
   dataf$Long.Term.Analysis[dataf$COMMON.NAME %in% check1] = "X"
   dataf$Current.Analysis[dataf$COMMON.NAME %in% check2] = "X"
-  
-  # select only forest species
-  dataf$Long.Term.Analysis[!dataf$COMMON.NAME %in% openland] = ""
-  dataf$Current.Analysis[!dataf$COMMON.NAME %in% openland] = ""
   
   dataf = dataf %>% select("COMMON.NAME","SCIENTIFIC.NAME","Long.Term.Analysis","Current.Analysis",
                            "Selected.SOIB")
@@ -1445,6 +1452,13 @@ dataspeciesfilter = function(datapath = "data.RData",
   
   restrictedspecieslist = rbind(restrictedspecieslist_a,restrictedspecieslist_b)
   
+  # select only openland species
+  specieslist$ht[!specieslist$COMMON.NAME %in% openland] = NA
+  specieslist$rt[!specieslist$COMMON.NAME %in% openland] = NA
+  
+  restrictedspecieslist$ht[!restrictedspecieslist$COMMON.NAME %in% openland] = NA
+  restrictedspecieslist$rt[!restrictedspecieslist$COMMON.NAME %in% openland] = NA
+  
   t1 = dataf %>%
     filter((ht == 1 | rt == 1) & (Breeding.Activity.Period != "Nocturnal" |
                                     Non.Breeding.Activity.Period != "Nocturnal"))
@@ -1476,10 +1490,6 @@ dataspeciesfilter = function(datapath = "data.RData",
   
   dataf$Long.Term.Analysis[dataf$COMMON.NAME %in% check1] = "X"
   dataf$Current.Analysis[dataf$COMMON.NAME %in% check2] = "X"
-  
-  # select only forest species
-  dataf$Long.Term.Analysis[!dataf$COMMON.NAME %in% openland] = ""
-  dataf$Current.Analysis[!dataf$COMMON.NAME %in% openland] = ""
   
   dataf = dataf %>% select("COMMON.NAME","SCIENTIFIC.NAME","Long.Term.Analysis","Current.Analysis",
                            "Selected.SOIB")
@@ -1741,10 +1751,6 @@ dataspeciesfilter = function(datapath = "data.RData",
   
   dataf$Long.Term.Analysis[dataf$COMMON.NAME %in% check1] = "X"
   dataf$Current.Analysis[dataf$COMMON.NAME %in% check2] = "X"
-  
-  # select only forest species
-  dataf$Long.Term.Analysis[!dataf$COMMON.NAME %in% openland] = ""
-  dataf$Current.Analysis[!dataf$COMMON.NAME %in% openland] = ""
   
   dataf = dataf %>% select("COMMON.NAME","SCIENTIFIC.NAME","Long.Term.Analysis","Current.Analysis",
                            "Selected.SOIB")
@@ -2427,7 +2433,7 @@ singlespeciesrun = function(data,species,specieslist,restrictedspecieslist)
   mp = data.frame(timegroupsf = c("before 2000","2000-2006","2007-2010",
                                   "2011-2012","2013","2014","2015","2016",
                                   "2017","2018","2019","2020","2021","2022"), 
-                  timegroups = as.numeric(databins))
+                  timegroups = as.numeric(sort(databins$year)))
   f1 = left_join(mp,f1)
   
   tocomb = c(species,f1$freq,f1$se)
