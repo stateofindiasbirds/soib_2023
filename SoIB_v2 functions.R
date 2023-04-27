@@ -512,7 +512,8 @@ dataspeciesfilter = function(datapath = "data.RData",
   
   databins = data %>%
     filter(ALL.SPECIES.REPORTED == 1) %>%
-    group_by(timegroups) %>% reframe(lists = n_distinct(group.id), year = round(median(year)))
+    group_by(timegroups) %>% reframe(lists = n_distinct(group.id), year = round(median(year))) %>%
+    arrange(year)
 
   datah = data0 %>%
     filter(ALL.SPECIES.REPORTED == 1, CATEGORY == "species" | CATEGORY == "issf") %>%
@@ -775,7 +776,8 @@ dataspeciesfilter = function(datapath = "data.RData",
   
   databins = data %>%
     filter(ALL.SPECIES.REPORTED == 1) %>%
-    group_by(timegroups) %>% reframe(lists = n_distinct(group.id), year = round(median(year)))
+    group_by(timegroups) %>% reframe(lists = n_distinct(group.id), year = round(median(year))) %>%
+    arrange(year)
   
   datah = data0 %>%
     filter(ALL.SPECIES.REPORTED == 1, CATEGORY == "species" | CATEGORY == "issf") %>%
@@ -1043,7 +1045,8 @@ dataspeciesfilter = function(datapath = "data.RData",
   
   databins = data %>%
     filter(ALL.SPECIES.REPORTED == 1) %>%
-    group_by(timegroups) %>% reframe(lists = n_distinct(group.id), year = round(median(year)))
+    group_by(timegroups) %>% reframe(lists = n_distinct(group.id), year = round(median(year))) %>%
+    arrange(year)
   
   datah = data0 %>%
     filter(ALL.SPECIES.REPORTED == 1, CATEGORY == "species" | CATEGORY == "issf") %>%
@@ -1313,7 +1316,8 @@ dataspeciesfilter = function(datapath = "data.RData",
   
   databins = data %>%
     filter(ALL.SPECIES.REPORTED == 1) %>%
-    group_by(timegroups) %>% reframe(lists = n_distinct(group.id), year = round(median(year)))
+    group_by(timegroups) %>% reframe(lists = n_distinct(group.id), year = round(median(year))) %>%
+    arrange(year)
   
   datah = data0 %>%
     filter(ALL.SPECIES.REPORTED == 1, CATEGORY == "species" | CATEGORY == "issf") %>%
@@ -1581,7 +1585,8 @@ dataspeciesfilter = function(datapath = "data.RData",
   
   databins = data %>%
     filter(ALL.SPECIES.REPORTED == 1) %>%
-    group_by(timegroups) %>% reframe(lists = n_distinct(group.id), year = round(median(year)))
+    group_by(timegroups) %>% reframe(lists = n_distinct(group.id), year = round(median(year))) %>%
+    arrange(year)
   
   datah = data0 %>%
     filter(ALL.SPECIES.REPORTED == 1, CATEGORY == "species" | CATEGORY == "issf") %>%
@@ -2433,7 +2438,7 @@ singlespeciesrun = function(data,species,specieslist,restrictedspecieslist)
   mp = data.frame(timegroupsf = c("before 2000","2000-2006","2007-2010",
                                   "2011-2012","2013","2014","2015","2016",
                                   "2017","2018","2019","2020","2021","2022"), 
-                  timegroups = as.numeric(sort(databins$year)))
+                  timegroups = as.numeric(databins$year))
   f1 = left_join(mp,f1)
   
   tocomb = c(species,f1$freq,f1$se)
