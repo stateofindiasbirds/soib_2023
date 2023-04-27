@@ -11,16 +11,17 @@ load("specieslists.RData")
 lsa = specieslist %>% filter(!is.na(ht) | !is.na(rt))
 listofspecies = c(lsa$COMMON.NAME,restrictedspecieslist$COMMON.NAME)
 speclen = length(listofspecies)
-databins=c(1992,2003,2009,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022)
 
-for (k in 3:200)
+dir.create("trends")
+
+for (k in 122:200)
 {
   start = Sys.time()
   
   # read required data files from folder - specify path accordingly
   
   nm = paste("/data",k,".csv",sep="")
-  filename = paste("E:/Abhinandan/BCI/soib_v2/dataforsim",nm,sep = '')
+  filename = paste("dataforsim",nm,sep = '')
   data = read.csv(filename)
   
   data$gridg1 = as.factor(data$gridg1)
@@ -78,7 +79,7 @@ for (k in 3:200)
     arrange(sl,sp) %>%
     select(sl,COMMON.NAME,timegroupsf,timegroups,freq,se,-sp)
   
-  write.csv(trends, paste0('E:/Abhinandan/BCI/soib_v2/trends/trends_', k,'.csv'), row.names = F)
+  write.csv(trends, paste0('trends/trends_', k,'.csv'), row.names = F)
 
   end = Sys.time()
   print(end-start)
@@ -93,7 +94,7 @@ for (k in 3:200)
 
 
 
-
+ 
 
 
 

@@ -45,72 +45,11 @@ source('SoIB_v2 functions.R')
 dataspeciesfilter(locationlimit = 15,gridlimit = 4,listlimit = 50)
 
 
-
-## create the set of random locations that doesn't work inside a function
-## start parallel
-
-require(tidyverse)
-require(parallel)
-require(foreach)
-require(doParallel)
-
-source('SoIB_v2 functions.R')
-locs = read.csv("sub_samp_locs.csv")
-
-n.cores = parallel::detectCores()/2
-#create the cluster
-my.cluster = parallel::makeCluster(
-  n.cores, 
-  type = "PSOCK"
-)
-#register it to be used by %dopar%
-doParallel::registerDoParallel(cl = my.cluster)
-#check if it is registered (optional)
-#foreach::getDoParRegistered()
-#how many workers are available? (optional)
-#foreach::getDoParWorkers()
+## create random group IDs
+## print data files
+## run trend analyses
 
 
-randomgroupids = foreach(i=1:1000, .combine='cbind') %dopar%
-  createrandomlocs(locs)
-
-parallel::stopCluster(cl = my.cluster)
-
-save(randomgroupids,file = "randomgroupids.RData")
-
-rm(list = ls())
-
-
-
-
-## create 1000 data files using randomgroupids
-
-require(tidyverse)
-
-source('SoIB_v2 functions.R')
-
-load("dataforanalyses.RData")
-load("randomgroupids.RData")
-
-dir.create("dataforsim")
-
-for (i in 1:2)
-{
-  start = Sys.time()
-  data0 = data %>% 
-    filter(group.id %in% randomgroupids[,i]) 
-  end = Sys.time()
-  print(end-start)
-
-  start = Sys.time()
-  nm = paste("/data",i,".csv",sep="")
-  filename = paste("E:/Abhinandan/BCI/soib_v2/dataforsim",nm,sep = '')
-  write.csv(data0,filename,row.names=F)
-  end = Sys.time()
-  print(end-start)
-}
-
-rm(list = ls())
 
 
   ###################                       PART 2                     ###################################
@@ -133,46 +72,6 @@ source('SoIB_v2 functions.R')
 occ = SoIBoccupancy(data,species,areag=areag1)
 
 ## for the final run, species = specieslist$COMMON.NAME (or this incrementally)
-
-
-
-## THE MAIN RATE-LIMITING STEP
-## provides trends estimates for only ONE species at a time
-## requires tidyverse, lme4 and VGAM
-## the dataframe specieslist MUST BE present in the environment
-## returns a dataframe with trend values
-## with error = F, errors are not computed, function runs faster
-
-source('SoIB_v2 functions.R')
-load("dataforanalyses.RData")
-species = "House Sparrow"
-start = Sys.time()
-trends = freqtrendssparrow(data,species,specieslist,error=T,nsim=300)
-end = Sys.time()
-print(end-start)
-
-save(trends,file = "SparrowTrends.RData")
-
-tre = freqtrends(data,species,specieslist,error=T,nsim=2)
-
-tre = freqtrendsrestricted(data,species,restrictedspecieslist)
-
-## this has to be run for all species in specieslist
-
-#c = 0
-#for (species in specieslist$COMMON.NAME)
-#{
-#  c = c + 1
-#  tre = freqtrends(data,species,specieslist,error=T,nsim=1000)
-#  if (c == 1)
-#  {
-#    trends = tre
-#  }
-#  if (c > 1)
-#  {
-#    trends = rbind(trends,tre)
-#  }
-#}
 
 source('SoIB_v2 functions.R')
 load("dataforanalyses.RData")
@@ -206,105 +105,5 @@ for (i in 1:length(restrictedspecieslist$COMMON.NAME))
 
 
 
-
-
-###################                       PART 3                     ###################################
-
-## calculates composite values
-## use a dataframe called 'trends' created from multiple 'tre's
-## reuires tidyverse
-## no data files called in the function
-## returns a single composite trend
-
-source('SoIB_v2 functions.R')
-
-## all information to be added as columns to trend file
-## create separate composite data frames and merge
-
-
-
-
-
-
-
-
-###################                       PART 4                     ###################################
-
-## only single species for calculatetrendslope
-## plots trends, provide trend data for up to 8 species, or 8 composites
-## requires tidyverse
-## no data files called in either function but environment MUST HAVE specieslist
-## MUST HAVE a dataframe called trends which has trends for all species in 'specieslist'
-## ensure that selectspecies has a maximum of 8 species
-
-library(tidyverse)
-#map = map %>%
-#  select(eBird.English.Name.2018,eBird.English.Name.2019,eBird.Scientific.Name.2019,IUCN,Schedule)
-
-init = "./All Trends"
-nms = list.files(path = init)
-
-load(paste(init,"/",nms[1], sep = ""))
-trends = tre
-
-for (i in 2:length(nms))
-{
-  load(paste(init,"/",nms[i], sep = ""))
-  trends = rbind(trends,tre)
-}
-
-rm(list=setdiff(ls(envir = .GlobalEnv), c("trends")), pos = ".GlobalEnv")
-save.image("AllTrends.RData")
-#rm(list = ls(all.names = TRUE))
-
-source('SoIB_v2 functions.R')
-load("dataforanalyses.RData")
-load("AllTrends.RData")
-
-check1 = restrictedspecieslist$COMMON.NAME[!is.na(restrictedspecieslist$ht)]
-check2 = restrictedspecieslist$COMMON.NAME[!is.na(restrictedspecieslist$rt)]
-
-specieslist$rt[specieslist$COMMON.NAME %in% check2] = 1
-specieslist$ht[specieslist$COMMON.NAME %in% check1] = 1
-trends = trends %>% filter(species %in% specieslist$COMMON.NAME)
-
-specs = unique(trends$species)
-temp = calculatetrendslope(trends,specs[1],specieslist)
-
-for(i in 2:length(specs))
-{
-  print(specs[i])
-  temp1 = calculatetrendslope(trends,specs[i],specieslist)
-  temp = rbind(temp,temp1)
-}
-
-glmr = temp
-
-write.csv(glmr,"glmr.csv",row.names = F)
-
-## this has to be run for all species in specieslist
-
-#c = 0
-#for (species in specieslist$COMMON.NAME)
-#{
-#  c = c + 1
-#  trendslopetmp = calculatetrendslope(trends, species, specieslist, composite = F)
-#  if (c == 1)
-#  {
-#    trendslope = trendslopetmp
-#  }
-#  if (c > 1)
-#  {
-#    trendslope = rbind(trendslope,trendslopetmp)
-#  }
-#}
-
-
-## to plot trends for up to 8 species
-load("AllTrends.RData")
-source('SoIB_v2 functions.R')
-library(tidyverse)
-
-plottrends(trends, selectspecies = c("Ashy Prinia","House Sparrow","Red-necked Falcon"))
 
 
