@@ -62,7 +62,7 @@ for (k in 122:200)
          "2011-2012","2013","2014","2015","2016",
          "2017","2018","2019","2020","2021","2022")
   #b1 = rep(1:n,each=28)
-  databins1 = rep(databins,n*2)
+  databins1 = rep(databins$year,n*2)
   tg1 = rep(tg,n*2)
   
   trends$timegroups = databins1
