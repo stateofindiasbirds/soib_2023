@@ -21,7 +21,7 @@ speclen = length(listofspecies)
 
 dir.create("masks_analyses/trends_mask_woodland")
 
-for (k in 1:219)
+for (k in 1:200)
 {
   start = Sys.time()
   
