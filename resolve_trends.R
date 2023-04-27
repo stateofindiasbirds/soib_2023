@@ -4,14 +4,38 @@ library(VGAM)
 
 load("specieslists.RData")
 main = read.csv("SoIB_mapping_2022.csv")
+base = read.csv("fullspecieslist.csv")
+base = base %>% select(-SCIENTIFIC.NAME)
 recentcutoff = 2015
+
+main = left_join(main,base,by=c("eBird.English.Name.2022"="COMMON.NAME"))
 
 main$longtermrci = main$longtermmean = main$longtermlci = NA 
 main$currentsloperci = main$currentslopemean = main$currentslopelci = NA
 
 file_names = dir("trends") #where you have your files
 trends = do.call(rbind,lapply(paste("trends/",file_names,sep=""),read.csv))
-trends = trends %>% filter(is.na(se) | se < freq)
+
+## remove problem species from current and long-term trends
+# long-term
+trendsa = trends %>%
+  filter(COMMON.NAME %in% main$eBird.English.Name.2022[main$Long.Term.Analysis == "X"]) %>%
+  group_by(sl,COMMON.NAME) %>%  
+  filter(any(se > 2*abs(freq))) %>%
+  distinct(sl,COMMON.NAME)
+specs_lt_remove = unique(trendsa$COMMON.NAME)
+
+main$Long.Term.Analysis[main$eBird.English.Name.2022 %in% specs_lt_remove] = ""
+
+# current
+trendsb = trends %>%
+  filter(timegroups >= 2015) %>%
+  filter(COMMON.NAME %in% main$eBird.English.Name.2022[main$Current.Analysis == "X"]) %>%
+  group_by(sl,COMMON.NAME) %>%  
+  filter(any(se > 2*abs(freq))) %>%
+  distinct(sl,COMMON.NAME)
+specs_ct_remove = unique(trendsb$COMMON.NAME)
+
 
 trends = trends %>%
   group_by(COMMON.NAME,timegroupsf,timegroups) %>% 
@@ -22,9 +46,9 @@ trends = trends %>%
          rci = clogloglink(mean_trans + 1.96*se_trans,inverse = T)) %>%
   ungroup()
 
-trends_framework = data.frame(timegroups = rep(c(unique(trends$timegroups),2022:2071),
+trends_framework = data.frame(timegroups = rep(c(unique(trends$timegroups),2023:2072),
                                                length(unique(trends$COMMON.NAME))),
-                              COMMON.NAME = rep(unique(trends$COMMON.NAME),each=63))
+                              COMMON.NAME = rep(unique(trends$COMMON.NAME),each=64))
 trends_framework = left_join(trends_framework,trends[,1:3])
 trends_framework$timegroupsf[is.na(trends_framework$timegroupsf)] = trends_framework$timegroups[is.na(trends_framework$timegroupsf)]
   
