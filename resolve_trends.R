@@ -19,9 +19,10 @@ trends = do.call(rbind,lapply(paste("trends/",file_names,sep=""),read.csv))
 ## remove problem species from current and long-term trends
 # long-term
 trendsa = trends %>%
+  filter(timegroups < 2015) %>%
   filter(COMMON.NAME %in% main$eBird.English.Name.2022[main$Long.Term.Analysis == "X"]) %>%
   group_by(sl,COMMON.NAME) %>%  
-  filter(any(se > 2*abs(freq))) %>%
+  filter(any(is.na(se) | se > 2*abs(freq))) %>%
   distinct(sl,COMMON.NAME)
 specs_lt_remove = unique(trendsa$COMMON.NAME)
 
@@ -32,9 +33,12 @@ trendsb = trends %>%
   filter(timegroups >= 2015) %>%
   filter(COMMON.NAME %in% main$eBird.English.Name.2022[main$Current.Analysis == "X"]) %>%
   group_by(sl,COMMON.NAME) %>%  
-  filter(any(se > 2*abs(freq))) %>%
+  filter(any(is.na(se) | se > 2*abs(freq))) %>%
   distinct(sl,COMMON.NAME)
 specs_ct_remove = unique(trendsb$COMMON.NAME)
+
+main$Long.Term.Analysis[main$eBird.English.Name.2022 %in% specs_ct_remove] = ""
+main$Current.Analysis[main$eBird.English.Name.2022 %in% specs_ct_remove] = ""
 
 
 trends = trends %>%

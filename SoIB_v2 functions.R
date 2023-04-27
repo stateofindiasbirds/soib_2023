@@ -632,8 +632,8 @@ dataspeciesfilter = function(datapath = "data.RData",
                              c("Besra","Horsefield's Bushlark","Common Flameback",
                                "Eastern Orphean Warbler","Richard's Pipit")] = NA
   
-  check1 = restrictedspecieslist$species[!is.na(restrictedspecieslist$ht)]
-  check2 = restrictedspecieslist$species[!is.na(restrictedspecieslist$rt)]
+  check1 = restrictedspecieslist$COMMON.NAME[!is.na(restrictedspecieslist$ht)]
+  check2 = restrictedspecieslist$COMMON.NAME[!is.na(restrictedspecieslist$rt)]
   
   randomcheck_a = data0 %>% filter(ALL.SPECIES.REPORTED == 1, 
                                 COMMON.NAME %in% restrictedspecieslist$COMMON.NAME) %>%
@@ -896,8 +896,8 @@ dataspeciesfilter = function(datapath = "data.RData",
                              c("Besra","Horsefield's Bushlark","Common Flameback",
                                "Eastern Orphean Warbler","Richard's Pipit")] = NA
   
-  check1 = restrictedspecieslist$species[!is.na(restrictedspecieslist$ht)]
-  check2 = restrictedspecieslist$species[!is.na(restrictedspecieslist$rt)]
+  check1 = restrictedspecieslist$COMMON.NAME[!is.na(restrictedspecieslist$ht)]
+  check2 = restrictedspecieslist$COMMON.NAME[!is.na(restrictedspecieslist$rt)]
   
   randomcheck_a = data0 %>% filter(ALL.SPECIES.REPORTED == 1, 
                                    COMMON.NAME %in% restrictedspecieslist$COMMON.NAME) %>%
@@ -1165,8 +1165,8 @@ dataspeciesfilter = function(datapath = "data.RData",
                              c("Besra","Horsefield's Bushlark","Common Flameback",
                                "Eastern Orphean Warbler","Richard's Pipit")] = NA
   
-  check1 = restrictedspecieslist$species[!is.na(restrictedspecieslist$ht)]
-  check2 = restrictedspecieslist$species[!is.na(restrictedspecieslist$rt)]
+  check1 = restrictedspecieslist$COMMON.NAME[!is.na(restrictedspecieslist$ht)]
+  check2 = restrictedspecieslist$COMMON.NAME[!is.na(restrictedspecieslist$rt)]
   
   randomcheck_a = data0 %>% filter(ALL.SPECIES.REPORTED == 1, 
                                    COMMON.NAME %in% restrictedspecieslist$COMMON.NAME) %>%
@@ -1436,8 +1436,8 @@ dataspeciesfilter = function(datapath = "data.RData",
                              c("Besra","Horsefield's Bushlark","Common Flameback",
                                "Eastern Orphean Warbler","Richard's Pipit")] = NA
   
-  check1 = restrictedspecieslist$species[!is.na(restrictedspecieslist$ht)]
-  check2 = restrictedspecieslist$species[!is.na(restrictedspecieslist$rt)]
+  check1 = restrictedspecieslist$COMMON.NAME[!is.na(restrictedspecieslist$ht)]
+  check2 = restrictedspecieslist$COMMON.NAME[!is.na(restrictedspecieslist$rt)]
   
   randomcheck_a = data0 %>% filter(ALL.SPECIES.REPORTED == 1, 
                                    COMMON.NAME %in% restrictedspecieslist$COMMON.NAME) %>%
@@ -1705,8 +1705,8 @@ dataspeciesfilter = function(datapath = "data.RData",
                              c("Besra","Horsefield's Bushlark","Common Flameback",
                                "Eastern Orphean Warbler","Richard's Pipit")] = NA
   
-  check1 = restrictedspecieslist$species[!is.na(restrictedspecieslist$ht)]
-  check2 = restrictedspecieslist$species[!is.na(restrictedspecieslist$rt)]
+  check1 = restrictedspecieslist$COMMON.NAME[!is.na(restrictedspecieslist$ht)]
+  check2 = restrictedspecieslist$COMMON.NAME[!is.na(restrictedspecieslist$rt)]
   
   randomcheck_a = data0 %>% filter(ALL.SPECIES.REPORTED == 1, 
                                    COMMON.NAME %in% restrictedspecieslist$COMMON.NAME) %>%

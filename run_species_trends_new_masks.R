@@ -20,7 +20,7 @@ speclen = length(listofspecies)
 
 dir.create("masks_analyses/trends_mask_woodland")
 
-for (k in 1:200)
+for (k in 42:100)
 {
   start = Sys.time()
   
@@ -108,7 +108,7 @@ speclen = length(listofspecies)
 
 dir.create("masks_analyses/trends_mask_cropland")
 
-for (k in 1:200)
+for (k in 1:100)
 {
   start = Sys.time()
   
@@ -196,7 +196,7 @@ speclen = length(listofspecies)
 
 dir.create("masks_analyses/trends_mask_oneland")
 
-for (k in 1:200)
+for (k in 1:100)
 {
   start = Sys.time()
   
@@ -284,7 +284,7 @@ speclen = length(listofspecies)
 
 dir.create("masks_analyses/trends_mask_pa")
 
-for (k in 1:200)
+for (k in 1:100)
 {
   start = Sys.time()
   
