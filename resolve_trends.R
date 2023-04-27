@@ -9,8 +9,8 @@ recentcutoff = 2015
 main$longtermrci = main$longtermmean = main$longtermlci = NA 
 main$currentsloperci = main$currentslopemean = main$currentslopelci = NA
 
-file_names = dir("trend_base_files") #where you have your files
-trends = do.call(rbind,lapply(paste("trend_base_files/",file_names,sep=""),read.csv))
+file_names = dir("trends") #where you have your files
+trends = do.call(rbind,lapply(paste("trends/",file_names,sep=""),read.csv))
 trends = trends %>% filter(is.na(se) | se < freq)
 
 trends = trends %>%
