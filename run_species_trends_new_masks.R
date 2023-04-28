@@ -20,7 +20,7 @@ speclen = length(listofspecies)
 
 dir.create("masks_analyses/trends_mask_woodland")
 
-for (k in 42:100)
+for (k in 101:200)
 {
   start = Sys.time()
   
@@ -51,7 +51,7 @@ for (k in 42:100)
   #how many workers are available? (optional)
   #foreach::getDoParWorkers()
   
-  trends0 = foreach (i = listofspecies, .combine='cbind') %dopar%
+  trends0 = foreach (i = listofspecies, .combine='cbind', .errorhandling = 'remove') %dopar%
     singlespeciesrun(data,i,specieslist,restrictedspecieslist)
   
   trends = data.frame(trends0)
@@ -79,6 +79,13 @@ for (k in 42:100)
   trends = pivot_longer(trends, -c(timegroups,timegroupsf,sl,type), 
                         values_to = "value", names_to = "COMMON.NAME")
   trends = pivot_wider(trends, names_from = type, values_from = value)
+  
+  trends_back = expand.grid(timegroupsf = databins$timegroups,COMMON.NAME = listofspecies,sl = k)
+  trends_back = left_join(trends_back,databins,by=c("timegroupsf"="timegroups"))
+  trends_back = trends_back %>% select(-lists)
+  names(trends_back)[4] = "timegroups"
+  trends = left_join(trends_back,trends)
+  
   trends$sp = rep(1:speclen,14*n)
   
   trends = trends %>%
@@ -95,6 +102,8 @@ for (k in 42:100)
   gc()
 }
 
+rm(list = ls())
+source('SoIB_v2 functions.R')
 
 
 
@@ -108,7 +117,7 @@ speclen = length(listofspecies)
 
 dir.create("masks_analyses/trends_mask_cropland")
 
-for (k in 1:100)
+for (k in 101:200)
 {
   start = Sys.time()
   
@@ -139,7 +148,7 @@ for (k in 1:100)
   #how many workers are available? (optional)
   #foreach::getDoParWorkers()
   
-  trends0 = foreach (i = listofspecies, .combine='cbind') %dopar%
+  trends0 = foreach (i = listofspecies, .combine='cbind', .errorhandling = 'remove') %dopar%
     singlespeciesrun(data,i,specieslist,restrictedspecieslist)
   
   trends = data.frame(trends0)
@@ -167,6 +176,13 @@ for (k in 1:100)
   trends = pivot_longer(trends, -c(timegroups,timegroupsf,sl,type), 
                         values_to = "value", names_to = "COMMON.NAME")
   trends = pivot_wider(trends, names_from = type, values_from = value)
+  
+  trends_back = expand.grid(timegroupsf = databins$timegroups,COMMON.NAME = listofspecies,sl = k)
+  trends_back = left_join(trends_back,databins,by=c("timegroupsf"="timegroups"))
+  trends_back = trends_back %>% select(-lists)
+  names(trends_back)[4] = "timegroups"
+  trends = left_join(trends_back,trends)
+  
   trends$sp = rep(1:speclen,14*n)
   
   trends = trends %>%
@@ -183,6 +199,9 @@ for (k in 1:100)
   gc()
 }
 
+rm(list = ls())
+source('SoIB_v2 functions.R')
+
 
 
 
@@ -196,7 +215,7 @@ speclen = length(listofspecies)
 
 dir.create("masks_analyses/trends_mask_oneland")
 
-for (k in 1:100)
+for (k in 101:200)
 {
   start = Sys.time()
   
@@ -227,7 +246,7 @@ for (k in 1:100)
   #how many workers are available? (optional)
   #foreach::getDoParWorkers()
   
-  trends0 = foreach (i = listofspecies, .combine='cbind') %dopar%
+  trends0 = foreach (i = listofspecies, .combine='cbind', .errorhandling = 'remove') %dopar%
     singlespeciesrun(data,i,specieslist,restrictedspecieslist)
   
   trends = data.frame(trends0)
@@ -255,6 +274,13 @@ for (k in 1:100)
   trends = pivot_longer(trends, -c(timegroups,timegroupsf,sl,type), 
                         values_to = "value", names_to = "COMMON.NAME")
   trends = pivot_wider(trends, names_from = type, values_from = value)
+  
+  trends_back = expand.grid(timegroupsf = databins$timegroups,COMMON.NAME = listofspecies,sl = k)
+  trends_back = left_join(trends_back,databins,by=c("timegroupsf"="timegroups"))
+  trends_back = trends_back %>% select(-lists)
+  names(trends_back)[4] = "timegroups"
+  trends = left_join(trends_back,trends)
+  
   trends$sp = rep(1:speclen,14*n)
   
   trends = trends %>%
@@ -271,6 +297,8 @@ for (k in 1:100)
   gc()
 }
 
+rm(list = ls())
+source('SoIB_v2 functions.R')
 
 
 
@@ -284,7 +312,7 @@ speclen = length(listofspecies)
 
 dir.create("masks_analyses/trends_mask_pa")
 
-for (k in 1:100)
+for (k in 72:200)
 {
   start = Sys.time()
   
@@ -315,7 +343,7 @@ for (k in 1:100)
   #how many workers are available? (optional)
   #foreach::getDoParWorkers()
   
-  trends0 = foreach (i = listofspecies, .combine='cbind') %dopar%
+  trends0 = foreach (i = listofspecies, .combine='cbind', .errorhandling = 'remove') %dopar%
     singlespeciesrun(data,i,specieslist,restrictedspecieslist)
   
   trends = data.frame(trends0)
@@ -343,6 +371,13 @@ for (k in 1:100)
   trends = pivot_longer(trends, -c(timegroups,timegroupsf,sl,type), 
                         values_to = "value", names_to = "COMMON.NAME")
   trends = pivot_wider(trends, names_from = type, values_from = value)
+  
+  trends_back = expand.grid(timegroupsf = databins$timegroups,COMMON.NAME = listofspecies,sl = k)
+  trends_back = left_join(trends_back,databins,by=c("timegroupsf"="timegroups"))
+  trends_back = trends_back %>% select(-lists)
+  names(trends_back)[4] = "timegroups"
+  trends = left_join(trends_back,trends)
+  
   trends$sp = rep(1:speclen,14*n)
   
   trends = trends %>%
