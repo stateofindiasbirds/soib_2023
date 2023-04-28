@@ -2,45 +2,43 @@
 
 source('SoIB_v2 functions.R')
 library(tidyverse)
-load("specieslists.RData")
-
 
 main = read.csv("SoIB_main.csv")
-#soiblist = read.csv("fullspecieslist.csv")
-#main = left_join(main,soiblist,by=c("eBird.English.Name.2022"="COMMON.NAME"))
 
-# change this method later
-speclist = specieslist$COMMON.NAME
 
 main = main %>%
   mutate(SOIBv2.Long.Term.Status = 
-           case_when(is.na(longtermmean) ~ "Data Deficient",
-                     longtermrci <= 50 ~ "Strong Decline",
-                     longtermrci <= 75 ~ "Moderate Decline",
-                     longtermlci >= 150 ~ "Strong Increase",
-                     longtermlci >= 125 ~ "Moderate Increase",
-                     (longtermrci-longtermlci) > 25 ~ "Uncertain",
+           case_when(is.na(longtermmean) ~ "eBird Data Deficient",
+                     longtermrci <= 50 ~ "Rapid Decline",
+                     longtermrci <= 75 ~ "Declining",
+                     longtermlci >= 150 ~ "Rapid Increase",
+                     longtermlci >= 125 ~ "Increasing",
+                     ((longtermrci-longtermlci) > 25 & longtermlci > 100 & longtermrci > 100) ~ "eBird Data Indecisive",
+                     ((longtermrci-longtermlci) > 25 & longtermlci < 100 & longtermrci < 100) ~ "eBird Data Indecisive",
+                     (longtermrci-longtermlci) > 50 ~ "eBird Data Indecisive",
                      TRUE ~ "Stable")
   ) %>%
   mutate(SOIBv2.Current.Status = 
-           case_when(is.na(currentslopemean) ~ "Data Deficient",
-                     currentsloperci <= -2.7 ~ "Strong Decline",
-                     currentsloperci <= -1.1 ~ "Moderate Decline",
-                     currentslopelci >= 1.6 ~ "Strong Increase",
-                     currentslopelci >= 0.9 ~ "Moderate Increase",
-                     (currentsloperci-currentslopelci) > 2 ~ "Uncertain",
+           case_when(is.na(currentslopemean) ~ "eBird Data Deficient",
+                     currentsloperci <= -2.7 ~ "Rapid Decline",
+                     currentsloperci <= -1.1 ~ "Declining",
+                     currentslopelci >= 1.6 ~ "Rapid Increase",
+                     currentslopelci >= 0.9 ~ "Increasing",
+                     ((currentsloperci-currentslopelci) > 2 & currentslopelci > 0 & currentsloperci > 0) ~ "eBird Data Indecisive",
+                     ((currentsloperci-currentslopelci) > 2 & currentslopelci < 0 & currentsloperci < 0) ~ "eBird Data Indecisive",
+                     (currentsloperci-currentslopelci) > 6 ~ "eBird Data Indecisive",
                      TRUE ~ "Stable")
   )
 
-main$SOIBv2.Long.Term.Status[!main$eBird.English.Name.2022 %in% speclist] = NA
-main$SOIBv2.Current.Status[!main$eBird.English.Name.2022 %in% speclist] = NA
-main$SOIB.Range.Status[!main$eBird.English.Name.2022 %in% speclist] = NA
+main$SOIBv2.Long.Term.Status[main$Selected.SOIB != "X"] = NA
+main$SOIBv2.Current.Status[main$Selected.SOIB != "X"] = NA
+main$SOIB.Range.Status[main$Selected.SOIB != "X"] = NA
 
 
 
-trendcats = c("Strong Decline","Moderate Decline","Data Deficient","Uncertain",
-              "Stable","Moderate Increase","Strong Increase")
-rangecats = c("Data Deficient","Very Restricted","Restricted","Moderate",
+trendcats = c("Rapid Decline","Declining","eBird Data Deficient","eBird Data Indecisive",
+              "Stable","Increasing","Rapid Increase")
+rangecats = c("eBird Data Deficient","Very Restricted","Restricted","Moderate",
               "Large","Very Large")
 
 
@@ -48,9 +46,9 @@ priorityrules = read.csv("priorityclassificationrules.csv")
 main = left_join(main,priorityrules)
 
 
-unce = c("Data Deficient","Uncertain")
+unce = c("eBird Data Deficient","eBird Data Indecisive")
 rest = c("Very Restricted","Restricted")
-decl = c("Moderate Decline","Strong Decline")
+decl = c("Declining","Rapid Decline")
 
 main = main %>%
   mutate(SOIBv2.Priority.Status = as.character(SOIBv2.Priority.Status)) %>%
@@ -67,4 +65,27 @@ main = main %>%
                      TRUE ~ SOIBv2.Priority.Status))
 
 write.csv(main,"SoIB_main.csv",row.names=F)
+
+## small investigations
+
+summary_status = data.frame(Category = trendcats)
+a = data.frame(table(main$SOIBv2.Long.Term.Status))
+names(a) = c("Category","Long.Term")
+b = data.frame(table(main$SOIBv2.Current.Status))
+names(b) = c("Category","Current")
+summary_status = left_join(summary_status,a)
+summary_status = left_join(summary_status,b)
+
+priority_summary = data.frame(table(main$SOIBv2.Priority.Status))
+names(priority_summary) = c("Category","N.species")
+
+species_summary = data.frame(Category = c("Selected for SoIB","Long-term Analysis","Current Analysis"),
+                             N.species = c(as.vector(table(main$Selected.SOIB))[2],
+                                           as.vector(table(main$Long.Term.Analysis))[2],
+                                           as.vector(table(main$Current.Analysis))[2]))
+
+write.csv(summary_status,"summary_status.csv",row.names=F)
+write.csv(priority_summary,"priority_status.csv",row.names=F)
+write.csv(species_summary,"species_status.csv",row.names=F)
+
 
