@@ -2,7 +2,6 @@ source('SoIB_v2 functions.R')
 library(tidyverse)
 library(VGAM)
 
-load("specieslists.RData")
 main = read.csv("SoIB_mapping_2022.csv")
 base = read.csv("fullspecieslist.csv")
 base = base %>% select(-SCIENTIFIC.NAME)
@@ -25,62 +24,77 @@ trendsa = trends %>%
   group_by(sl,COMMON.NAME) %>%  
   filter(any(is.na(se) | se > abs(freq))) %>%
   distinct(sl,COMMON.NAME)
-tab_lt_rem = data.frame(table(trendsa$COMMON.NAME))
-names(tab_lt_rem) = c("COMMON.NAME","count")
-tab_lt_rem$COMMON.NAME = as.character(tab_lt_rem$COMMON.NAME)
 
-specs_lt_remove = tab_lt_rem$COMMON.NAME[tab_lt_rem$count >= round(totsims/2)]
-specs_lt_remove_part = tab_lt_rem$COMMON.NAME[tab_lt_rem$count < round(totsims/2)]
+if (length(trendsa$sl) > 0)
+{
+  tab_lt_rem = data.frame(table(trendsa$COMMON.NAME))
+  names(tab_lt_rem) = c("COMMON.NAME","count")
+  tab_lt_rem$COMMON.NAME = as.character(tab_lt_rem$COMMON.NAME)
+  
+  specs_lt_remove = tab_lt_rem$COMMON.NAME[tab_lt_rem$count >= round(totsims/2)]
+  specs_lt_remove_part = tab_lt_rem$COMMON.NAME[tab_lt_rem$count < round(totsims/2)]
+  
+  trends = trends %>%
+    mutate(freq = 
+             case_when(timegroups < 2015 & COMMON.NAME %in% specs_lt_remove ~ NA,
+                       TRUE ~ freq),
+           se = 
+             case_when(timegroups < 2015 & COMMON.NAME %in% specs_lt_remove ~ NA,
+                       TRUE ~ se))
+  main$Long.Term.Analysis[main$eBird.English.Name.2022 %in% specs_lt_remove] = ""
+  
+  trendsa = trendsa %>%
+    filter(COMMON.NAME %in% specs_lt_remove_part) %>%
+    distinct(sl,COMMON.NAME)
+  trendsa = trendsa %>%
+    mutate(comb = paste(sl,COMMON.NAME))
+  trends = trends %>%
+    mutate(comb = paste(sl,COMMON.NAME)) %>%
+    filter(!comb %in% trendsa$comb) %>%
+    select(-comb)
+}
 
-trends = trends %>%
-  mutate(freq = 
-           case_when(timegroups < 2015 & COMMON.NAME %in% specs_lt_remove ~ NA,
-                     TRUE ~ freq),
-         se = 
-           case_when(timegroups < 2015 & COMMON.NAME %in% specs_lt_remove ~ NA,
-                     TRUE ~ se))
-main$Long.Term.Analysis[main$eBird.English.Name.2022 %in% specs_lt_remove] = ""
 
-trendsa = trendsa %>%
-  filter(COMMON.NAME %in% specs_lt_remove_part) %>%
-  distinct(sl,COMMON.NAME)
-trendsa = trendsa %>%
-  mutate(comb = paste(sl,COMMON.NAME))
-trends = trends %>%
-  mutate(comb = paste(sl,COMMON.NAME)) %>%
-  filter(!comb %in% trendsa$comb) %>%
-  select(-comb)
+
+
+
 
 
 # current
+
+
 trendsb = trends %>%
   filter(timegroups >= 2015) %>%
   filter(COMMON.NAME %in% main$eBird.English.Name.2022[main$Current.Analysis == "X"]) %>%
   group_by(sl,COMMON.NAME) %>%  
   filter(any(is.na(se) | se > abs(freq))) %>%
   distinct(sl,COMMON.NAME)
-tab_ct_rem = data.frame(table(trendsb$COMMON.NAME))
-names(tab_ct_rem) = c("COMMON.NAME","count")
-tab_ct_rem$COMMON.NAME = as.character(tab_ct_rem$COMMON.NAME)
 
-specs_ct_remove = tab_ct_rem$COMMON.NAME[tab_ct_rem$count >= round(totsims/2)]
-specs_ct_remove_part = tab_ct_rem$COMMON.NAME[tab_ct_rem$count < round(totsims/2)]
-
-trends = trends %>%
-  filter(!COMMON.NAME %in% specs_ct_remove)
-
-main$Long.Term.Analysis[main$eBird.English.Name.2022 %in% specs_ct_remove] = ""
-main$Current.Analysis[main$eBird.English.Name.2022 %in% specs_ct_remove] = ""
-
-trendsb = trendsb %>%
-  filter(COMMON.NAME %in% specs_ct_remove_part) %>%
-  distinct(sl,COMMON.NAME)
-trendsb = trendsb %>%
-  mutate(comb = paste(sl,COMMON.NAME))
-trends = trends %>%
-  mutate(comb = paste(sl,COMMON.NAME)) %>%
-  filter(!comb %in% trendsb$comb) %>%
-  select(-comb)
+if (length(trendsb$sl) > 0)
+{
+  tab_ct_rem = data.frame(table(trendsb$COMMON.NAME))
+  names(tab_ct_rem) = c("COMMON.NAME","count")
+  tab_ct_rem$COMMON.NAME = as.character(tab_ct_rem$COMMON.NAME)
+  
+  specs_ct_remove = tab_ct_rem$COMMON.NAME[tab_ct_rem$count >= round(totsims/2)]
+  specs_ct_remove_part = tab_ct_rem$COMMON.NAME[tab_ct_rem$count < round(totsims/2)]
+  
+  trends = trends %>%
+    filter(!COMMON.NAME %in% specs_ct_remove)
+  
+  main$Long.Term.Analysis[main$eBird.English.Name.2022 %in% specs_ct_remove] = ""
+  main$Current.Analysis[main$eBird.English.Name.2022 %in% specs_ct_remove] = ""
+  
+  trendsb = trendsb %>%
+    filter(COMMON.NAME %in% specs_ct_remove_part) %>%
+    distinct(sl,COMMON.NAME)
+  trendsb = trendsb %>%
+    mutate(comb = paste(sl,COMMON.NAME))
+  trends = trends %>%
+    mutate(comb = paste(sl,COMMON.NAME)) %>%
+    filter(!comb %in% trendsb$comb) %>%
+    select(-comb)
+}
 
 
 
@@ -177,7 +191,7 @@ modtrends = modtrends %>%
   filter(COMMON.NAME %in% main$eBird.English.Name.2022[main$Long.Term.Analysis == "X"]) %>%
   arrange(COMMON.NAME,timegroups)
 
-modtrend_recent = modtrends_recent %>%
+modtrends_recent = modtrends_recent %>%
   filter(COMMON.NAME %in% main$eBird.English.Name.2022[main$Current.Analysis == "X"]) %>%
   arrange(COMMON.NAME,timegroups)
 
@@ -355,7 +369,7 @@ trends = trends %>%
 trends = left_join(trends_framework,trends)
 trends = left_join(trends,ext_trends)
 
-trends$COMMON.NAME = factor(trends$COMMON.NAME, levels = specieslist$COMMON.NAME)
+trends$COMMON.NAME = factor(trends$COMMON.NAME, levels = base$COMMON.NAME)
 trends = trends %>%
   arrange(COMMON.NAME,timegroups)
 
@@ -471,4 +485,91 @@ names(proj2029.rci)[2] = "proj2029.rci"
 main = left_join(main,proj2029.rci,by=c("eBird.English.Name.2022"="COMMON.NAME"))
 
 
+
+
+
+
+## assign categories to trends and occupancy
+
+
+main = main %>%
+  mutate(SOIBv2.Long.Term.Status = 
+           case_when(is.na(longtermmean) ~ "eBird Data Deficient",
+                     longtermrci <= 50 ~ "Rapid Decline",
+                     longtermrci <= 75 ~ "Declining",
+                     longtermlci >= 150 ~ "Rapid Increase",
+                     longtermlci >= 125 ~ "Increasing",
+                     ((longtermrci-longtermlci) > 25 & longtermlci > 100 & longtermrci > 100) ~ "eBird Data Indecisive",
+                     ((longtermrci-longtermlci) > 25 & longtermlci < 100 & longtermrci < 100) ~ "eBird Data Indecisive",
+                     (longtermrci-longtermlci) > 50 ~ "eBird Data Indecisive",
+                     TRUE ~ "Stable")
+  ) %>%
+  mutate(SOIBv2.Current.Status = 
+           case_when(is.na(currentslopemean) ~ "eBird Data Deficient",
+                     currentsloperci <= -2.7 ~ "Rapid Decline",
+                     currentsloperci <= -1.1 ~ "Declining",
+                     currentslopelci >= 1.6 ~ "Rapid Increase",
+                     currentslopelci >= 0.9 ~ "Increasing",
+                     ((currentsloperci-currentslopelci) > 2 & currentslopelci > 0 & currentsloperci > 0) ~ "eBird Data Indecisive",
+                     ((currentsloperci-currentslopelci) > 2 & currentslopelci < 0 & currentsloperci < 0) ~ "eBird Data Indecisive",
+                     (currentsloperci-currentslopelci) > 6 ~ "eBird Data Indecisive",
+                     TRUE ~ "Stable")
+  )
+
+main$SOIBv2.Long.Term.Status[main$Selected.SOIB != "X"] = NA
+main$SOIBv2.Current.Status[main$Selected.SOIB != "X"] = NA
+main$SOIB.Range.Status[main$Selected.SOIB != "X"] = NA
+
+
+
+trendcats = c("Rapid Decline","Declining","eBird Data Deficient","eBird Data Indecisive",
+              "Stable","Increasing","Rapid Increase")
+rangecats = c("eBird Data Deficient","Very Restricted","Restricted","Moderate",
+              "Large","Very Large")
+
+
+priorityrules = read.csv("priorityclassificationrules.csv")
+main = left_join(main,priorityrules)
+
+
+unce = c("eBird Data Deficient","eBird Data Indecisive")
+rest = c("Very Restricted","Restricted")
+decl = c("Declining","Rapid Decline")
+
+main = main %>%
+  mutate(SOIBv2.Priority.Status = as.character(SOIBv2.Priority.Status)) %>%
+  mutate(SOIBv2.Priority.Status = 
+           case_when(SOIBv2.Long.Term.Status %in% unce & SOIBv2.Current.Status %in% unce &
+                       IUCN.Category %in% c("Endangered","Critically Endangered") ~ "High",
+                     SOIBv2.Long.Term.Status %in% decl & SOIBv2.Current.Status %in% decl &
+                       IUCN.Category %in% c("Endangered","Critically Endangered") ~ "High",
+                     SOIBv2.Long.Term.Status %in% unce & SOIBv2.Current.Status %in% unce &
+                       SOIB.Range.Status %in% rest &
+                       IUCN.Category %in% c("Vulnerable") ~ "High",
+                     SOIBv2.Long.Term.Status %in% unce & SOIBv2.Current.Status %in% unce &
+                       IUCN.Category %in% c("Near Threatened","Vulnerable") & SOIBv2.Priority.Status == "Low" ~ "Moderate",
+                     TRUE ~ SOIBv2.Priority.Status))
+
 write.csv(main,"SoIB_main.csv",row.names=F)
+
+## small investigations
+
+summary_status = data.frame(Category = trendcats)
+a = data.frame(table(main$SOIBv2.Long.Term.Status))
+names(a) = c("Category","Long.Term")
+b = data.frame(table(main$SOIBv2.Current.Status))
+names(b) = c("Category","Current")
+summary_status = left_join(summary_status,a)
+summary_status = left_join(summary_status,b)
+
+priority_summary = data.frame(table(main$SOIBv2.Priority.Status))
+names(priority_summary) = c("Category","N.species")
+
+species_summary = data.frame(Category = c("Selected for SoIB","Long-term Analysis","Current Analysis"),
+                             N.species = c(as.vector(table(main$Selected.SOIB))[2],
+                                           as.vector(table(main$Long.Term.Analysis))[2],
+                                           as.vector(table(main$Current.Analysis))[2]))
+
+write.csv(summary_status,"summary_status.csv",row.names=F)
+write.csv(priority_summary,"priority_status.csv",row.names=F)
+write.csv(species_summary,"species_status.csv",row.names=F)
