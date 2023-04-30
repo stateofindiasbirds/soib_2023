@@ -896,6 +896,14 @@ dataspeciesfilter = function(datapath = "data.RData",
                              c("Besra","Horsefield's Bushlark","Common Flameback",
                                "Eastern Orphean Warbler","Richard's Pipit")] = NA
   
+  # select only forest species
+  specieslist$ht[!specieslist$COMMON.NAME %in% woodland] = NA
+  specieslist$rt[!specieslist$COMMON.NAME %in% woodland] = NA
+  
+  restrictedspecieslist$ht[!restrictedspecieslist$COMMON.NAME %in% woodland] = NA
+  restrictedspecieslist$rt[!restrictedspecieslist$COMMON.NAME %in% woodland] = NA
+  
+  
   check1 = restrictedspecieslist$COMMON.NAME[!is.na(restrictedspecieslist$ht)]
   check2 = restrictedspecieslist$COMMON.NAME[!is.na(restrictedspecieslist$rt)]
   
@@ -915,14 +923,6 @@ dataspeciesfilter = function(datapath = "data.RData",
   restrictedspecieslist_b$mixed = 0
   
   restrictedspecieslist = rbind(restrictedspecieslist_a,restrictedspecieslist_b)
-  
-  # select only forest species
-  specieslist$ht[!specieslist$COMMON.NAME %in% woodland] = NA
-  specieslist$rt[!specieslist$COMMON.NAME %in% woodland] = NA
-  
-  restrictedspecieslist$ht[!restrictedspecieslist$COMMON.NAME %in% woodland] = NA
-  restrictedspecieslist$rt[!restrictedspecieslist$COMMON.NAME %in% woodland] = NA
-
   
   t1 = dataf %>%
     filter((ht == 1 | rt == 1) & (Breeding.Activity.Period != "Nocturnal" |
@@ -958,6 +958,12 @@ dataspeciesfilter = function(datapath = "data.RData",
   
   dataf = dataf %>% select("COMMON.NAME","SCIENTIFIC.NAME","Long.Term.Analysis","Current.Analysis",
                            "Selected.SOIB")
+  
+  
+  ## filter out woodland species only
+  dataf$Long.Term.Analysis[!dataf$COMMON.NAME %in% woodland] = ""
+  dataf$Current.Analysis[!dataf$COMMON.NAME %in% woodland] = ""
+  dataf$Selected.SOIB[!dataf$COMMON.NAME %in% woodland] = ""
   
   sampledcells = c(length(unique(data0$gridg0)),length(unique(data0$gridg1)),
                    length(unique(data0$gridg2)),length(unique(data0$gridg3)),
@@ -1165,6 +1171,15 @@ dataspeciesfilter = function(datapath = "data.RData",
                              c("Besra","Horsefield's Bushlark","Common Flameback",
                                "Eastern Orphean Warbler","Richard's Pipit")] = NA
   
+  # select only openland species
+  specieslist$ht[!specieslist$COMMON.NAME %in% openland] = NA
+  specieslist$rt[!specieslist$COMMON.NAME %in% openland] = NA
+  
+  restrictedspecieslist$ht[!restrictedspecieslist$COMMON.NAME %in% openland] = NA
+  restrictedspecieslist$rt[!restrictedspecieslist$COMMON.NAME %in% openland] = NA
+  
+  
+  
   check1 = restrictedspecieslist$COMMON.NAME[!is.na(restrictedspecieslist$ht)]
   check2 = restrictedspecieslist$COMMON.NAME[!is.na(restrictedspecieslist$rt)]
   
@@ -1185,13 +1200,7 @@ dataspeciesfilter = function(datapath = "data.RData",
   
   restrictedspecieslist = rbind(restrictedspecieslist_a,restrictedspecieslist_b)
   
-  # select only openland species
-  specieslist$ht[!specieslist$COMMON.NAME %in% openland] = NA
-  specieslist$rt[!specieslist$COMMON.NAME %in% openland] = NA
-  
-  restrictedspecieslist$ht[!restrictedspecieslist$COMMON.NAME %in% openland] = NA
-  restrictedspecieslist$rt[!restrictedspecieslist$COMMON.NAME %in% openland] = NA
-  
+
   t1 = dataf %>%
     filter((ht == 1 | rt == 1) & (Breeding.Activity.Period != "Nocturnal" |
                                     Non.Breeding.Activity.Period != "Nocturnal"))
@@ -1226,6 +1235,12 @@ dataspeciesfilter = function(datapath = "data.RData",
   
   dataf = dataf %>% select("COMMON.NAME","SCIENTIFIC.NAME","Long.Term.Analysis","Current.Analysis",
                            "Selected.SOIB")
+  
+  ## filter out openland species only
+  dataf$Long.Term.Analysis[!dataf$COMMON.NAME %in% openland] = ""
+  dataf$Current.Analysis[!dataf$COMMON.NAME %in% openland] = ""
+  dataf$Selected.SOIB[!dataf$COMMON.NAME %in% openland] = ""
+  
   
   sampledcells = c(length(unique(data0$gridg0)),length(unique(data0$gridg1)),
                    length(unique(data0$gridg2)),length(unique(data0$gridg3)),
@@ -1436,6 +1451,15 @@ dataspeciesfilter = function(datapath = "data.RData",
                              c("Besra","Horsefield's Bushlark","Common Flameback",
                                "Eastern Orphean Warbler","Richard's Pipit")] = NA
   
+  # select only openland species
+  specieslist$ht[!specieslist$COMMON.NAME %in% openland] = NA
+  specieslist$rt[!specieslist$COMMON.NAME %in% openland] = NA
+  
+  restrictedspecieslist$ht[!restrictedspecieslist$COMMON.NAME %in% openland] = NA
+  restrictedspecieslist$rt[!restrictedspecieslist$COMMON.NAME %in% openland] = NA
+  
+  
+  
   check1 = restrictedspecieslist$COMMON.NAME[!is.na(restrictedspecieslist$ht)]
   check2 = restrictedspecieslist$COMMON.NAME[!is.na(restrictedspecieslist$rt)]
   
@@ -1456,12 +1480,8 @@ dataspeciesfilter = function(datapath = "data.RData",
   
   restrictedspecieslist = rbind(restrictedspecieslist_a,restrictedspecieslist_b)
   
-  # select only openland species
-  specieslist$ht[!specieslist$COMMON.NAME %in% openland] = NA
-  specieslist$rt[!specieslist$COMMON.NAME %in% openland] = NA
+
   
-  restrictedspecieslist$ht[!restrictedspecieslist$COMMON.NAME %in% openland] = NA
-  restrictedspecieslist$rt[!restrictedspecieslist$COMMON.NAME %in% openland] = NA
   
   t1 = dataf %>%
     filter((ht == 1 | rt == 1) & (Breeding.Activity.Period != "Nocturnal" |
@@ -1488,6 +1508,12 @@ dataspeciesfilter = function(datapath = "data.RData",
   dataf = left_join(dataf,specieslist1)
   names(dataf) = c("COMMON.NAME","SCIENTIFIC.NAME","Long.Term.Analysis","Current.Analysis",
                    "Selected.SOIB")
+  
+  ## filter out openland species only
+  dataf$Long.Term.Analysis[!dataf$COMMON.NAME %in% openland] = ""
+  dataf$Current.Analysis[!dataf$COMMON.NAME %in% openland] = ""
+  dataf$Selected.SOIB[!dataf$COMMON.NAME %in% openland] = ""
+  
   
   dataf[is.na(dataf)] = ""
   dataf[dataf == 1] = "X"

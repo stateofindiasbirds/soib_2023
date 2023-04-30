@@ -80,12 +80,7 @@ for (k in 101:200)
                         values_to = "value", names_to = "COMMON.NAME")
   trends = pivot_wider(trends, names_from = type, values_from = value)
   
-  trends_back = expand.grid(timegroupsf = databins$timegroups,COMMON.NAME = listofspecies,sl = k)
-  trends_back = left_join(trends_back,databins,by=c("timegroupsf"="timegroups"))
-  trends_back = trends_back %>% select(-lists)
-  names(trends_back)[4] = "timegroups"
-  trends = left_join(trends_back,trends)
-  
+  speclen = length(unique(trends$COMMON.NAME))
   trends$sp = rep(1:speclen,14*n)
   
   trends = trends %>%
@@ -177,12 +172,7 @@ for (k in 101:200)
                         values_to = "value", names_to = "COMMON.NAME")
   trends = pivot_wider(trends, names_from = type, values_from = value)
   
-  trends_back = expand.grid(timegroupsf = databins$timegroups,COMMON.NAME = listofspecies,sl = k)
-  trends_back = left_join(trends_back,databins,by=c("timegroupsf"="timegroups"))
-  trends_back = trends_back %>% select(-lists)
-  names(trends_back)[4] = "timegroups"
-  trends = left_join(trends_back,trends)
-  
+  speclen = length(unique(trends$COMMON.NAME))
   trends$sp = rep(1:speclen,14*n)
   
   trends = trends %>%
@@ -275,12 +265,7 @@ for (k in 101:200)
                         values_to = "value", names_to = "COMMON.NAME")
   trends = pivot_wider(trends, names_from = type, values_from = value)
   
-  trends_back = expand.grid(timegroupsf = databins$timegroups,COMMON.NAME = listofspecies,sl = k)
-  trends_back = left_join(trends_back,databins,by=c("timegroupsf"="timegroups"))
-  trends_back = trends_back %>% select(-lists)
-  names(trends_back)[4] = "timegroups"
-  trends = left_join(trends_back,trends)
-  
+  speclen = length(unique(trends$COMMON.NAME))
   trends$sp = rep(1:speclen,14*n)
   
   trends = trends %>%
@@ -312,7 +297,7 @@ speclen = length(listofspecies)
 
 dir.create("masks_analyses/trends_mask_pa")
 
-for (k in 72:200)
+for (k in 49:200)
 {
   start = Sys.time()
   
@@ -372,12 +357,7 @@ for (k in 72:200)
                         values_to = "value", names_to = "COMMON.NAME")
   trends = pivot_wider(trends, names_from = type, values_from = value)
   
-  trends_back = expand.grid(timegroupsf = databins$timegroups,COMMON.NAME = listofspecies,sl = k)
-  trends_back = left_join(trends_back,databins,by=c("timegroupsf"="timegroups"))
-  trends_back = trends_back %>% select(-lists)
-  names(trends_back)[4] = "timegroups"
-  trends = left_join(trends_back,trends)
-  
+  speclen = length(unique(trends$COMMON.NAME))
   trends$sp = rep(1:speclen,14*n)
   
   trends = trends %>%
