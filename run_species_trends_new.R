@@ -7,21 +7,21 @@ require(doParallel)
 
 source('SoIB_v2 functions.R')
 
-load("dataforanalyses.RData")
+load("specieslists.RData")
 lsa = specieslist %>% filter(!is.na(ht) | !is.na(rt))
 listofspecies = c(lsa$COMMON.NAME,restrictedspecieslist$COMMON.NAME)
 speclen = length(listofspecies)
-count = 0
-databins=c(1992,2003,2009,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021)
 
-for (k in 51:125)
+dir.create("trends")
+
+for (k in 122:200)
 {
   start = Sys.time()
   
   # read required data files from folder - specify path accordingly
   
   nm = paste("/data",k,".csv",sep="")
-  filename = paste("E:/Abhinandan/BCI/soib_v2/dataforsim",nm,sep = '')
+  filename = paste("dataforsim",nm,sep = '')
   data = read.csv(filename)
   
   data$gridg1 = as.factor(data$gridg1)
@@ -45,62 +45,58 @@ for (k in 51:125)
   #how many workers are available? (optional)
   #foreach::getDoParWorkers()
   
-  trends0 = foreach (i = listofspecies, .combine='cbind') %dopar%
+  trends0 = foreach (i = listofspecies, .combine='cbind', .errorhandling = 'remove') %dopar%
     singlespeciesrun(data,i,specieslist,restrictedspecieslist)
   
-  parallel::stopCluster(cl = my.cluster)
+  trends = data.frame(trends0)
   
-  if (count == 0) 
-    trends = data.frame(trends0)
-  if (count > 0)
-    trends = rbind(trends,data.frame(trends0))
+  len = length(as.vector(trends[,1]))
+  n = len/29
+  spnames = as.vector(trends[1,])
+  sq = -seq(1,len,29)
+  trends = trends[sq,]
+  names(trends) = spnames
+  a = rep(c("freq","se"),each=14)
+  a1 = rep(a,n)
+  tg = c("before 2000","2000-2006","2007-2010",
+         "2011-2012","2013","2014","2015","2016",
+         "2017","2018","2019","2020","2021","2022")
+  #b1 = rep(1:n,each=28)
+  databins1 = rep(databins$year,n*2)
+  tg1 = rep(tg,n*2)
   
+  trends$timegroups = databins1
+  trends$timegroupsf = tg1
+  trends$type = a1
+  trends$sl = k
+  
+  trends = pivot_longer(trends, -c(timegroups,timegroupsf,sl,type), 
+                        values_to = "value", names_to = "COMMON.NAME")
+  trends = pivot_wider(trends, names_from = type, values_from = value)
+  
+  speclen = length(unique(trends$COMMON.NAME))
+  trends$sp = rep(1:speclen,14*n)
+  
+  trends = trends %>%
+    arrange(sl,sp) %>%
+    select(sl,COMMON.NAME,timegroupsf,timegroups,freq,se,-sp)
+  
+  write.csv(trends, paste0('trends/trends_', k,'.csv'), row.names = F)
+
   end = Sys.time()
   print(end-start)
   
-  count = count + 1
   print(k)
+  
+  gc()
 }
 
-trends_temp = trends
-
-len = length(as.vector(trends[,1]))
-n = len/27
-spnames = as.vector(trends[1,])
-sq = -seq(1,len,27)
-trends = trends[sq,]
-names(trends) = spnames
-a = rep(c("freq","se"),each=13)
-a1 = rep(a,n)
-tg = c("before 2000","2000-2006","2007-2010",
-       "2011-2012","2013","2014","2015","2016",
-       "2017","2018","2019","2020","2021")
-b1 = rep(1:n,each=26)
-databins1 = rep(databins,n*2)
-tg1 = rep(tg,n*2)
-
-trends$timegroups = databins1
-trends$timegroupsf = tg1
-trends$type = a1
-trends$sl = b1
-
-trends = pivot_longer(trends, -c(timegroups,timegroupsf,sl,type), 
-                      values_to = "value", names_to = "COMMON.NAME")
-trends = pivot_wider(trends, names_from = type, values_from = value)
-trends$sp = rep(1:speclen,13*n)
-
-trends = trends %>%
-  arrange(sl,sp) %>%
-  select(sl,COMMON.NAME,timegroupsf,timegroups,freq,se,-sp)
-
-write.csv(trends, "trends_2.csv", row.names = F)
 
 
 
 
 
-
-
+ 
 
 
 

@@ -2,16 +2,168 @@ source('SoIB_v2 functions.R')
 library(tidyverse)
 library(VGAM)
 
-load("specieslists.RData")
 main = read.csv("SoIB_mapping_2022.csv")
-recentcutoff = 2014
+base = read.csv("fullspecieslist.csv")
+base = base %>% select(-SCIENTIFIC.NAME)
+recentcutoff = 2015
+
+main = left_join(main,base,by=c("eBird.English.Name.2022"="COMMON.NAME"))
 
 main$longtermrci = main$longtermmean = main$longtermlci = NA 
 main$currentsloperci = main$currentslopemean = main$currentslopelci = NA
 
-file_names = dir("trend_base_files") #where you have your files
-trends = do.call(rbind,lapply(paste("trend_base_files/",file_names,sep=""),read.csv))
-trends = trends %>% filter(is.na(se) | se < freq)
+file_names = dir("trends") #where you have your files
+trends = do.call(rbind,lapply(paste("trends/",file_names,sep=""),read.csv))
+totsims = length(unique(trends$sl))
+
+## remove problem species from current and long-term trends
+# long-term
+trendsa = trends %>%
+  filter(timegroups < 2015) %>%
+  filter(COMMON.NAME %in% main$eBird.English.Name.2022[main$Long.Term.Analysis == "X"]) %>%
+  group_by(sl,COMMON.NAME) %>%  
+  filter(any(is.na(se) | se > abs(freq))) %>%
+  distinct(sl,COMMON.NAME)
+
+if (length(trendsa$sl) > 0)
+{
+  tab_lt_rem = data.frame(table(trendsa$COMMON.NAME))
+  names(tab_lt_rem) = c("COMMON.NAME","count")
+  tab_lt_rem$COMMON.NAME = as.character(tab_lt_rem$COMMON.NAME)
+  
+  specs_lt_remove = tab_lt_rem$COMMON.NAME[tab_lt_rem$count >= round(totsims/2)]
+  specs_lt_remove_part = tab_lt_rem$COMMON.NAME[tab_lt_rem$count < round(totsims/2)]
+  
+  trends = trends %>%
+    mutate(freq = 
+             case_when(timegroups < 2015 & COMMON.NAME %in% specs_lt_remove ~ NA,
+                       TRUE ~ freq),
+           se = 
+             case_when(timegroups < 2015 & COMMON.NAME %in% specs_lt_remove ~ NA,
+                       TRUE ~ se))
+  main$Long.Term.Analysis[main$eBird.English.Name.2022 %in% specs_lt_remove] = ""
+  
+  trendsa = trendsa %>%
+    filter(COMMON.NAME %in% specs_lt_remove_part) %>%
+    distinct(sl,COMMON.NAME)
+  trendsa = trendsa %>%
+    mutate(comb = paste(sl,COMMON.NAME))
+  trends = trends %>%
+    mutate(comb = paste(sl,COMMON.NAME)) %>%
+    filter(!comb %in% trendsa$comb) %>%
+    select(-comb)
+}
+
+
+
+
+
+
+
+# current
+
+
+trendsb = trends %>%
+  filter(timegroups >= 2015) %>%
+  filter(COMMON.NAME %in% main$eBird.English.Name.2022[main$Current.Analysis == "X"]) %>%
+  group_by(sl,COMMON.NAME) %>%  
+  filter(any(is.na(se) | se > abs(freq))) %>%
+  distinct(sl,COMMON.NAME)
+
+if (length(trendsb$sl) > 0)
+{
+  tab_ct_rem = data.frame(table(trendsb$COMMON.NAME))
+  names(tab_ct_rem) = c("COMMON.NAME","count")
+  tab_ct_rem$COMMON.NAME = as.character(tab_ct_rem$COMMON.NAME)
+  
+  specs_ct_remove = tab_ct_rem$COMMON.NAME[tab_ct_rem$count >= round(totsims/2)]
+  specs_ct_remove_part = tab_ct_rem$COMMON.NAME[tab_ct_rem$count < round(totsims/2)]
+  
+  trends = trends %>%
+    filter(!COMMON.NAME %in% specs_ct_remove)
+  
+  main$Long.Term.Analysis[main$eBird.English.Name.2022 %in% specs_ct_remove] = ""
+  main$Current.Analysis[main$eBird.English.Name.2022 %in% specs_ct_remove] = ""
+  
+  trendsb = trendsb %>%
+    filter(COMMON.NAME %in% specs_ct_remove_part) %>%
+    distinct(sl,COMMON.NAME)
+  trendsb = trendsb %>%
+    mutate(comb = paste(sl,COMMON.NAME))
+  trends = trends %>%
+    mutate(comb = paste(sl,COMMON.NAME)) %>%
+    filter(!comb %in% trendsb$comb) %>%
+    select(-comb)
+}
+
+
+
+## remove species based on 2 extra metrics
+
+## number of sampled 5km within (not for PAs)
+
+specsc1 = main$eBird.English.Name.2022[!is.na(main$mean5km) & main$mean5km < 8 &
+                                         (main$Long.Term.Analysis == "X" |
+                                            main$Current.Analysis == "X") &
+                                         !main$Endemic.Region %in% c("Andaman and Nicobar Islands",
+                                                                     "Andaman Islands",
+                                                                     "Nicobar Islands")]
+
+specsc2 = main$eBird.English.Name.2022[!is.na(main$ci5km) & (main$ci5km/main$mean5km) > 0.25 &
+                                         (main$Long.Term.Analysis == "X" |
+                                            main$Current.Analysis == "X") &
+                                         !main$Endemic.Region %in% c("Andaman and Nicobar Islands",
+                                                                     "Andaman Islands",
+                                                                     "Nicobar Islands")]
+specsc = union(specsc1,specsc2)
+
+trends = trends %>%
+  filter(!COMMON.NAME %in% specsc)
+
+main$Long.Term.Analysis[main$eBird.English.Name.2022 %in% specsc] = ""
+main$Current.Analysis[main$eBird.English.Name.2022 %in% specsc] = ""
+
+
+
+## proportion of 25km sampled
+
+specsd1 = main$eBird.English.Name.2022[!is.na(main$proprange25km2000) & 
+                                         (main$proprange25km2000/main$proprange25km2022) < 0.075 &
+                                         (main$Long.Term.Analysis == "X")]
+
+specsd2 = main$eBird.English.Name.2022[!is.na(main$proprange25km2000) & 
+                                         main$proprange25km2000 < 0.04 &
+                                         (main$Long.Term.Analysis == "X")]
+
+specsd = union(specsd1,specsd2)
+
+
+trends = trends %>%
+  mutate(freq = 
+           case_when(timegroups < 2015 & COMMON.NAME %in% specsd ~ NA,
+                     TRUE ~ freq),
+         se = 
+           case_when(timegroups < 2015 & COMMON.NAME %in% specsd ~ NA,
+                     TRUE ~ se))
+main$Long.Term.Analysis[main$eBird.English.Name.2022 %in% specsd] = ""
+
+
+
+specsd3 = main$eBird.English.Name.2022[!is.na(main$proprange25km.current) & 
+                                         (main$proprange25km.current/main$proprange25km2022) < 0.6 &
+                                         (main$Current.Analysis == "X")]
+
+trends = trends %>%
+  filter(!COMMON.NAME %in% specsd)
+
+main$Long.Term.Analysis[main$eBird.English.Name.2022 %in% specsd] = ""
+main$Current.Analysis[main$eBird.English.Name.2022 %in% specsd] = ""
+
+
+
+
+
+## calculations
 
 trends = trends %>%
   group_by(COMMON.NAME,timegroupsf,timegroups) %>% 
@@ -22,9 +174,13 @@ trends = trends %>%
          rci = clogloglink(mean_trans + 1.96*se_trans,inverse = T)) %>%
   ungroup()
 
-trends_framework = data.frame(timegroups = rep(c(unique(trends$timegroups),2022:2071),
+extra.years = 2023:2029
+
+trends_framework = data.frame(timegroups = rep(c(unique(trends$timegroups),extra.years),
                                                length(unique(trends$COMMON.NAME))),
-                              COMMON.NAME = rep(unique(trends$COMMON.NAME),each=63))
+                              COMMON.NAME = 
+                                rep(unique(trends$COMMON.NAME),
+                                each=(length(unique(trends$timegroups))+length(extra.years))))
 trends_framework = left_join(trends_framework,trends[,1:3])
 trends_framework$timegroupsf[is.na(trends_framework$timegroupsf)] = trends_framework$timegroups[is.na(trends_framework$timegroupsf)]
   
@@ -32,9 +188,11 @@ modtrends = na.omit(trends)
 modtrends_recent = trends %>% filter(timegroups >= recentcutoff)
 
 modtrends = modtrends %>%
+  filter(COMMON.NAME %in% main$eBird.English.Name.2022[main$Long.Term.Analysis == "X"]) %>%
   arrange(COMMON.NAME,timegroups)
 
-modtrend_recents = modtrends_recent %>%
+modtrends_recent = modtrends_recent %>%
+  filter(COMMON.NAME %in% main$eBird.English.Name.2022[main$Current.Analysis == "X"]) %>%
   arrange(COMMON.NAME,timegroups)
 
 modtrends = modtrends %>%
@@ -66,7 +224,7 @@ for (i in unique(modtrends$COMMON.NAME))
     modtrends$rci_std[modtrends$COMMON.NAME == i & modtrends$timegroups == j] = 
       100*as.numeric(r)
     
-    if (j == 2021)
+    if (j == 2022)
     {
       longtermlci = modtrends$lci_std[modtrends$COMMON.NAME == i & modtrends$timegroups == j]
       longtermmean = modtrends$mean_std[modtrends$COMMON.NAME == i & modtrends$timegroups == j]
@@ -91,7 +249,7 @@ modtrends_recent$mean_std_recent = 100*modtrends_recent$mean/modtrends_recent$m2
 modtrends_recent$rci_std_recent = NA
 
 flag = 0
-newdata = data.frame(timegroups = 2022:2071)
+newdata = data.frame(timegroups = extra.years)
 for (i in unique(modtrends_recent$COMMON.NAME))
 {
   ct = 0
@@ -125,55 +283,54 @@ for (i in unique(modtrends_recent$COMMON.NAME))
   flag = flag + 1
   
   ct = 0
-  if (!i %in% c("Rufous-vented Laughingthrush","Pale-footed Bush Warbler"))
+  sl = numeric(1000)
+  slse = numeric(1000)
+  for (z in 1:1000)
   {
-    sl = numeric(1000)
-    slse = numeric(1000)
-    for (z in 1:1000)
-    {
-      ct = ct + 1
-      temp = tp %>% 
-        group_by(timegroups) %>%
-        reframe(val = sample(rat,1))
-      temp$val1 = temp$val - 100
-      temp$timegroups1 = temp$timegroups - 2014
-      
-      fit = with(temp,lm(log(val)~timegroups))
-      fit1 = with(temp,lm(val1~0+timegroups1))
-      sl[z] = summary(fit1)$coefficients[1,1]
-      slse[z] = summary(fit1)$coefficients[1,2]
-      
-      pd = predict(fit,newdata,se = T)
-      
-      pred0$mean = pd$fit
-      pred0$se = pd$se.fit
-      
-      pred0$COMMON.NAME = i
-      
-      if (ct == 1)
-        pred = pred0
-      if (ct > 1)
-        pred = rbind(pred,pred0)
-    }
+    ct = ct + 1
+    temp = tp %>% 
+      group_by(timegroups) %>%
+      reframe(val = sample(rat,1))
+    temp$val1 = temp$val - 100
+    temp$timegroups1 = temp$timegroups - recentcutoff
     
-    se.slope = sd(sl) + sqrt(sum(slse^2)/length(slse))
+    fit = with(temp,lm(log(val)~timegroups))
+    fit1 = with(temp,lm(val1~0+timegroups1))
+    sl[z] = summary(fit1)$coefficients[1,1]
+    slse[z] = summary(fit1)$coefficients[1,2]
     
-    main$currentslopelci[main$eBird.English.Name.2022 == i] = mean(sl) - 1.96*se.slope
-    main$currentslopemean[main$eBird.English.Name.2022 == i] = mean(sl)
-    main$currentsloperci[main$eBird.English.Name.2022 == i] = mean(sl) + 1.96*se.slope
+    pd = predict(fit,newdata,se = T)
     
-    pred = pred %>%
-      mutate(lci_bt = exp(mean-1.96*se), mean_bt = exp(mean), rci_bt = exp(mean+1.96*se)) %>%
-      group_by(COMMON.NAME,timegroups) %>% 
-      reframe(lci_ext_std = mean(lci_bt),
-             mean_ext_std = mean(mean_bt),
-             rci_ext_std = mean(rci_bt))
+    pred0$mean = pd$fit
+    pred0$se = pd$se.fit
     
-    if (flag == 1)
-      ext_trends = pred
-    if (flag > 1)
-      ext_trends = rbind(ext_trends,pred)
+    pred0$COMMON.NAME = i
+    
+    if (ct == 1)
+      pred = pred0
+    if (ct > 1)
+      pred = rbind(pred,pred0)
   }
+
+    
+  se.slope = sd(sl) + sqrt(sum(slse^2)/length(slse))
+  
+  main$currentslopelci[main$eBird.English.Name.2022 == i] = mean(sl) - 1.96*se.slope
+  main$currentslopemean[main$eBird.English.Name.2022 == i] = mean(sl)
+  main$currentsloperci[main$eBird.English.Name.2022 == i] = mean(sl) + 1.96*se.slope
+  
+  pred = pred %>%
+    mutate(lci_bt = exp(mean-1.96*se), mean_bt = exp(mean), rci_bt = exp(mean+1.96*se)) %>%
+    group_by(COMMON.NAME,timegroups) %>% 
+    reframe(lci_ext_std = mean(lci_bt),
+           mean_ext_std = mean(mean_bt),
+           rci_ext_std = mean(rci_bt))
+  
+  if (flag == 1)
+    ext_trends = pred
+  if (flag > 1)
+    ext_trends = rbind(ext_trends,pred)
+
   print(i)
 }
 
@@ -212,7 +369,7 @@ trends = trends %>%
 trends = left_join(trends_framework,trends)
 trends = left_join(trends,ext_trends)
 
-trends$COMMON.NAME = factor(trends$COMMON.NAME, levels = specieslist$COMMON.NAME)
+trends$COMMON.NAME = factor(trends$COMMON.NAME, levels = base$COMMON.NAME)
 trends = trends %>%
   arrange(COMMON.NAME,timegroups)
 
@@ -229,16 +386,190 @@ trends$lci_comb_std[trends$lci_comb_std<0] = 0
 
 write.csv(trends,"trends.csv",row.names=F)
 
-proj2027 = trends %>% filter(timegroups == 2027) %>% select(COMMON.NAME,rci_comb_std)
-names(proj2027)[2] = "proj2027"
-main = left_join(main,proj2027,by=c("eBird.English.Name.2022"="COMMON.NAME"))
+# 2023
 
-proj2040 = trends %>% filter(timegroups == 2040) %>% select(COMMON.NAME,rci_comb_std)
-names(proj2040)[2] = "proj2040"
-main = left_join(main,proj2040,by=c("eBird.English.Name.2022"="COMMON.NAME"))
+proj2023.lci = trends %>% filter(timegroups == 2023) %>% select(COMMON.NAME,lci_comb_std)
+names(proj2023.lci)[2] = "proj2023.lci"
+main = left_join(main,proj2023.lci,by=c("eBird.English.Name.2022"="COMMON.NAME"))
 
-proj2050 = trends %>% filter(timegroups == 2050) %>% select(COMMON.NAME,rci_comb_std)
-names(proj2050)[2] = "proj2050"
-main = left_join(main,proj2050,by=c("eBird.English.Name.2022"="COMMON.NAME"))
+proj2023.mean = trends %>% filter(timegroups == 2023) %>% select(COMMON.NAME,mean_comb_std)
+names(proj2023.mean)[2] = "proj2023.mean"
+main = left_join(main,proj2023.mean,by=c("eBird.English.Name.2022"="COMMON.NAME"))
+
+proj2023.rci = trends %>% filter(timegroups == 2023) %>% select(COMMON.NAME,rci_comb_std)
+names(proj2023.rci)[2] = "proj2023.rci"
+main = left_join(main,proj2023.rci,by=c("eBird.English.Name.2022"="COMMON.NAME"))
+
+# 2024
+
+proj2024.lci = trends %>% filter(timegroups == 2024) %>% select(COMMON.NAME,lci_comb_std)
+names(proj2024.lci)[2] = "proj2024.lci"
+main = left_join(main,proj2024.lci,by=c("eBird.English.Name.2022"="COMMON.NAME"))
+
+proj2024.mean = trends %>% filter(timegroups == 2024) %>% select(COMMON.NAME,mean_comb_std)
+names(proj2024.mean)[2] = "proj2024.mean"
+main = left_join(main,proj2024.mean,by=c("eBird.English.Name.2022"="COMMON.NAME"))
+
+proj2024.rci = trends %>% filter(timegroups == 2024) %>% select(COMMON.NAME,rci_comb_std)
+names(proj2024.rci)[2] = "proj2024.rci"
+main = left_join(main,proj2024.rci,by=c("eBird.English.Name.2022"="COMMON.NAME"))
+
+# 2025
+
+proj2025.lci = trends %>% filter(timegroups == 2025) %>% select(COMMON.NAME,lci_comb_std)
+names(proj2025.lci)[2] = "proj2025.lci"
+main = left_join(main,proj2025.lci,by=c("eBird.English.Name.2022"="COMMON.NAME"))
+
+proj2025.mean = trends %>% filter(timegroups == 2025) %>% select(COMMON.NAME,mean_comb_std)
+names(proj2025.mean)[2] = "proj2025.mean"
+main = left_join(main,proj2025.mean,by=c("eBird.English.Name.2022"="COMMON.NAME"))
+
+proj2025.rci = trends %>% filter(timegroups == 2025) %>% select(COMMON.NAME,rci_comb_std)
+names(proj2025.rci)[2] = "proj2025.rci"
+main = left_join(main,proj2025.rci,by=c("eBird.English.Name.2022"="COMMON.NAME"))
+
+# 2026
+
+proj2026.lci = trends %>% filter(timegroups == 2026) %>% select(COMMON.NAME,lci_comb_std)
+names(proj2026.lci)[2] = "proj2026.lci"
+main = left_join(main,proj2026.lci,by=c("eBird.English.Name.2022"="COMMON.NAME"))
+
+proj2026.mean = trends %>% filter(timegroups == 2026) %>% select(COMMON.NAME,mean_comb_std)
+names(proj2026.mean)[2] = "proj2026.mean"
+main = left_join(main,proj2026.mean,by=c("eBird.English.Name.2022"="COMMON.NAME"))
+
+proj2026.rci = trends %>% filter(timegroups == 2026) %>% select(COMMON.NAME,rci_comb_std)
+names(proj2026.rci)[2] = "proj2026.rci"
+main = left_join(main,proj2026.rci,by=c("eBird.English.Name.2022"="COMMON.NAME"))
+
+# 2027
+
+proj2027.lci = trends %>% filter(timegroups == 2027) %>% select(COMMON.NAME,lci_comb_std)
+names(proj2027.lci)[2] = "proj2027.lci"
+main = left_join(main,proj2027.lci,by=c("eBird.English.Name.2022"="COMMON.NAME"))
+
+proj2027.mean = trends %>% filter(timegroups == 2027) %>% select(COMMON.NAME,mean_comb_std)
+names(proj2027.mean)[2] = "proj2027.mean"
+main = left_join(main,proj2027.mean,by=c("eBird.English.Name.2022"="COMMON.NAME"))
+
+proj2027.rci = trends %>% filter(timegroups == 2027) %>% select(COMMON.NAME,rci_comb_std)
+names(proj2027.rci)[2] = "proj2027.rci"
+main = left_join(main,proj2027.rci,by=c("eBird.English.Name.2022"="COMMON.NAME"))
+
+# 2028
+
+proj2028.lci = trends %>% filter(timegroups == 2028) %>% select(COMMON.NAME,lci_comb_std)
+names(proj2028.lci)[2] = "proj2028.lci"
+main = left_join(main,proj2028.lci,by=c("eBird.English.Name.2022"="COMMON.NAME"))
+
+proj2028.mean = trends %>% filter(timegroups == 2028) %>% select(COMMON.NAME,mean_comb_std)
+names(proj2028.mean)[2] = "proj2028.mean"
+main = left_join(main,proj2028.mean,by=c("eBird.English.Name.2022"="COMMON.NAME"))
+
+proj2028.rci = trends %>% filter(timegroups == 2028) %>% select(COMMON.NAME,rci_comb_std)
+names(proj2028.rci)[2] = "proj2028.rci"
+main = left_join(main,proj2028.rci,by=c("eBird.English.Name.2022"="COMMON.NAME"))
+
+# 2029
+
+proj2029.lci = trends %>% filter(timegroups == 2029) %>% select(COMMON.NAME,lci_comb_std)
+names(proj2029.lci)[2] = "proj2029.lci"
+main = left_join(main,proj2029.lci,by=c("eBird.English.Name.2022"="COMMON.NAME"))
+
+proj2029.mean = trends %>% filter(timegroups == 2029) %>% select(COMMON.NAME,mean_comb_std)
+names(proj2029.mean)[2] = "proj2029.mean"
+main = left_join(main,proj2029.mean,by=c("eBird.English.Name.2022"="COMMON.NAME"))
+
+proj2029.rci = trends %>% filter(timegroups == 2029) %>% select(COMMON.NAME,rci_comb_std)
+names(proj2029.rci)[2] = "proj2029.rci"
+main = left_join(main,proj2029.rci,by=c("eBird.English.Name.2022"="COMMON.NAME"))
+
+
+
+
+
+
+## assign categories to trends and occupancy
+
+
+main = main %>%
+  mutate(SOIBv2.Long.Term.Status = 
+           case_when(is.na(longtermmean) ~ "eBird Data Deficient",
+                     longtermrci <= 50 ~ "Rapid Decline",
+                     longtermrci <= 75 ~ "Declining",
+                     longtermlci >= 150 ~ "Rapid Increase",
+                     longtermlci >= 125 ~ "Increasing",
+                     ((longtermrci-longtermlci) > 25 & longtermlci > 100 & longtermrci > 100) ~ "eBird Data Indecisive",
+                     ((longtermrci-longtermlci) > 25 & longtermlci < 100 & longtermrci < 100) ~ "eBird Data Indecisive",
+                     (longtermrci-longtermlci) > 50 ~ "eBird Data Indecisive",
+                     TRUE ~ "Stable")
+  ) %>%
+  mutate(SOIBv2.Current.Status = 
+           case_when(is.na(currentslopemean) ~ "eBird Data Deficient",
+                     currentsloperci <= -2.7 ~ "Rapid Decline",
+                     currentsloperci <= -1.1 ~ "Declining",
+                     currentslopelci >= 1.6 ~ "Rapid Increase",
+                     currentslopelci >= 0.9 ~ "Increasing",
+                     ((currentsloperci-currentslopelci) > 2 & currentslopelci > 0 & currentsloperci > 0) ~ "eBird Data Indecisive",
+                     ((currentsloperci-currentslopelci) > 2 & currentslopelci < 0 & currentsloperci < 0) ~ "eBird Data Indecisive",
+                     (currentsloperci-currentslopelci) > 6 ~ "eBird Data Indecisive",
+                     TRUE ~ "Stable")
+  )
+
+main$SOIBv2.Long.Term.Status[main$Selected.SOIB != "X"] = NA
+main$SOIBv2.Current.Status[main$Selected.SOIB != "X"] = NA
+main$SOIB.Range.Status[main$Selected.SOIB != "X"] = NA
+
+
+
+trendcats = c("Rapid Decline","Declining","eBird Data Deficient","eBird Data Indecisive",
+              "Stable","Increasing","Rapid Increase")
+rangecats = c("eBird Data Deficient","Very Restricted","Restricted","Moderate",
+              "Large","Very Large")
+
+
+priorityrules = read.csv("priorityclassificationrules.csv")
+main = left_join(main,priorityrules)
+
+
+unce = c("eBird Data Deficient","eBird Data Indecisive")
+rest = c("Very Restricted","Restricted")
+decl = c("Declining","Rapid Decline")
+
+main = main %>%
+  mutate(SOIBv2.Priority.Status = as.character(SOIBv2.Priority.Status)) %>%
+  mutate(SOIBv2.Priority.Status = 
+           case_when(SOIBv2.Long.Term.Status %in% unce & SOIBv2.Current.Status %in% unce &
+                       IUCN.Category %in% c("Endangered","Critically Endangered") ~ "High",
+                     SOIBv2.Long.Term.Status %in% decl & SOIBv2.Current.Status %in% decl &
+                       IUCN.Category %in% c("Endangered","Critically Endangered") ~ "High",
+                     SOIBv2.Long.Term.Status %in% unce & SOIBv2.Current.Status %in% unce &
+                       SOIB.Range.Status %in% rest &
+                       IUCN.Category %in% c("Vulnerable") ~ "High",
+                     SOIBv2.Long.Term.Status %in% unce & SOIBv2.Current.Status %in% unce &
+                       IUCN.Category %in% c("Near Threatened","Vulnerable") & SOIBv2.Priority.Status == "Low" ~ "Moderate",
+                     TRUE ~ SOIBv2.Priority.Status))
 
 write.csv(main,"SoIB_main.csv",row.names=F)
+
+## small investigations
+
+summary_status = data.frame(Category = trendcats)
+a = data.frame(table(main$SOIBv2.Long.Term.Status))
+names(a) = c("Category","Long.Term")
+b = data.frame(table(main$SOIBv2.Current.Status))
+names(b) = c("Category","Current")
+summary_status = left_join(summary_status,a)
+summary_status = left_join(summary_status,b)
+
+priority_summary = data.frame(table(main$SOIBv2.Priority.Status))
+names(priority_summary) = c("Category","N.species")
+
+species_summary = data.frame(Category = c("Selected for SoIB","Long-term Analysis","Current Analysis"),
+                             N.species = c(as.vector(table(main$Selected.SOIB))[2],
+                                           as.vector(table(main$Long.Term.Analysis))[2],
+                                           as.vector(table(main$Current.Analysis))[2]))
+
+write.csv(summary_status,"summary_status.csv",row.names=F)
+write.csv(priority_summary,"priority_status.csv",row.names=F)
+write.csv(species_summary,"species_status.csv",row.names=F)
