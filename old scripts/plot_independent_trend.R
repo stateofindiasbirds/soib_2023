@@ -22,7 +22,7 @@ limu = max(temp$cir)+0.1*range
 ybreaks = seq(liml,limu,length.out=5)
 ybreaksl = round(ybreaks,2)
 
-ggp = ggplot(temp, aes(x=timegroups, y=count)) + 
+ggp = ggplot(temp, aes(x=timegroups, y=count)) +
   geom_point(size = 3, colour = scol) +
   geom_line(size = 1.5, colour = scol) +
   geom_hline(yintercept = ybreaks[1], linetype = "dotted", size = 0.7) +

@@ -1,3 +1,5 @@
+## compare for a species across masks
+
 source('SoIB_v2 functions.R')
 library(tidyverse)
 library(ggdist)
@@ -6,20 +8,78 @@ library(ggpubr)
 library(cowplot)
 library(extrafont)
 
+sps = "Yellow-browed Bulbul"
 
+main = read.csv("SoIB_main.csv")
+main$Mask = "All areas"
 trends = read.csv("trends.csv")
-trends = trends %>% filter(timegroups >= 2015 & timegroups <= 2022)
+trends$Mask = "All areas"
 
-species = c("Great Hornbill","Wreathed Hornbill","Oriental Pied-Hornbill")
-sps = "Hornbills"
+main.woodland = read.csv("SoIB_main_mask_woodland.csv")
+main.woodland$Mask = "Woodland"
+trends.woodland = read.csv("trends_mask_woodland.csv")
+trends.woodland$Mask = "Woodland"
+
+main.pa = read.csv("SoIB_main_mask_pa.csv")
+main.pa$Mask = "PAs"
+trends.pa = read.csv("trends_mask_pa.csv")
+trends.pa$Mask = "PAs"
+
+main.crop = read.csv("SoIB_main_mask_cropland.csv")
+main.crop$Mask = "Cropland"
+trends.crop = read.csv("trends_mask_cropland.csv")
+trends.crop$Mask = "Cropland"
+
+main.one = read.csv("SoIB_main_mask_oneland.csv")
+main.one$Mask = "ONEs"
+trends.one = read.csv("trends_mask_oneland.csv")
+trends.one$Mask = "ONEs"
+
+qualifying.species = main$eBird.English.Name.2022[!main$SOIB.Long.Term.Status %in% 
+                                                    c("eBird Data Indecisive","eBird Data Deficient") & 
+                                                    main$Long.Term.Analysis == "X"]
+qualifying.species.woodland = main.woodland$eBird.English.Name.2022[!main.woodland$SOIB.Long.Term.Status %in% 
+                                                                      c("eBird Data Indecisive","eBird Data Deficient") & 
+                                                                      main.woodland$Long.Term.Analysis == "X"]
+qualifying.species.pa = main.pa$eBird.English.Name.2022[!main.pa$SOIB.Long.Term.Status %in% 
+                                                          c("eBird Data Indecisive","eBird Data Deficient") & 
+                                                          main.pa$Long.Term.Analysis == "X"]
+qualifying.species.crop = main.crop$eBird.English.Name.2022[!main.crop$SOIB.Long.Term.Status %in% 
+                                                              c("eBird Data Indecisive","eBird Data Deficient") & 
+                                                              main.crop$Long.Term.Analysis == "X"]
+qualifying.species.one = main.one$eBird.English.Name.2022[!main.one$SOIB.Long.Term.Status %in% 
+                                                            c("eBird Data Indecisive","eBird Data Deficient") & 
+                                                            main.one$Long.Term.Analysis == "X"]
+
+
+trends = trends %>% filter(COMMON.NAME %in% qualifying.species) %>% filter(COMMON.NAME %in% sps)
+trends.woodland = trends.woodland %>% filter(COMMON.NAME %in% qualifying.species.woodland)  %>% filter(COMMON.NAME %in% sps)
+trends.pa = trends.pa %>% filter(COMMON.NAME %in% qualifying.species.pa)  %>% filter(COMMON.NAME %in% sps)
+trends.crop = trends.crop %>% filter(COMMON.NAME %in% qualifying.species.crop)  %>% filter(COMMON.NAME %in% sps)
+trends.one = trends.one %>% filter(COMMON.NAME %in% qualifying.species.one)  %>% filter(COMMON.NAME %in% sps)
+
+trends = rbind(trends,trends.woodland,trends.pa,trends.crop,trends.one)
+
+cols.masks = data.frame(Mask = c("All areas","Woodland","PAs","Cropland","ONEs"),
+                        cols = c("#A13E2B","#869B27","#66CC99","#B69AC9","#E49B36"))
+
+
+
 
 temp = trends %>% 
-  mutate(lci_std = lci_std_recent,mean_std = mean_std_recent,rci_std = rci_std_recent) %>%
-  filter(COMMON.NAME %in% species)
+  filter(timegroups <= 2022)
+
+temp$COMMON.NAME = temp$Mask
+
+cols.masks = cols.masks %>% filter(Mask %in% temp$COMMON.NAME)
+
 
 t1 = temp[temp$timegroups == 2022,]
 t1 = t1 %>% arrange(desc(mean_std))
 order = t1$COMMON.NAME
+
+cols.masks$Mask = factor(cols.masks$Mask, levels = order)
+cols.masks = cols.masks %>% arrange(Mask)
 
 
 temp$COMMON.NAME = factor(temp$COMMON.NAME, 
@@ -33,6 +93,9 @@ cols = c("#869B27", "#31954E", "#E49B36", "#CC6666", "#78CAE0", "#A13E2B", "#EA5
 #cols = c("#41726c","#2d809b","#e0d27b","#8cc48c","#55bfaf")
 tcol = "black"
 
+
+cols = cols.masks$cols
+
 ns = length(unique(temp$COMMON.NAME))
 
 
@@ -40,7 +103,8 @@ cols1 = cols[c(1:ns)]
 bks1 = sort(unique(temp$COMMON.NAME))
 lbs1 = sort(unique(temp$COMMON.NAME))
 
-tg = c("2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022")
+tg = c("before 2000", "2000-2006", "2007-2010", "2011-2012", "2013", "2014", "CT", 
+       "2016", "2017", "2018", "2019", "2020", "2021", "2022")
 
 temp$rci_std = temp$lci_std = temp$mean_std
 
@@ -150,11 +214,9 @@ if (max(ybreaks) > um)
 
 
 
-
 ######################### get the x-axis right
 
-
-x_tick_preBas = seq(2015, 2022) + 0.5
+x_tick_pre2000Bas = seq(1999, 2022) + 0.5
 
 ggp = ggplot(temp, aes(x = timegroups, y = mean_std,col = COMMON.NAME)) +
   geom_line(linewidth = 2) +
@@ -162,8 +224,8 @@ ggp = ggplot(temp, aes(x = timegroups, y = mean_std,col = COMMON.NAME)) +
   ggtitle(sps) +
   geom_bracket(
     inherit.aes = FALSE, 
-    xmin = c(seq(2015, 2021)) + 0.5, 
-    xmax = c(seq(2016, 2022)) + 0.5,
+    xmin = c(2000, 2006, 2010, 2012, seq(2013, 2021)) + 0.5, 
+    xmax = c(2006, 2010, 2012, seq(2013, 2022)) + 0.5,
     y.position = lm-0.01*range,
     bracket.shorten = 0.15,
     tip.length = 0.04,
@@ -177,9 +239,12 @@ ggp = ggplot(temp, aes(x = timegroups, y = mean_std,col = COMMON.NAME)) +
                     labels = lbs1,
                     values = cols1) +
   scale_x_continuous(
-    breaks = c(seq(2016, 2022), x_tick_preBas),
-    labels = c(paste0(seq(2016, 2022)), rep(c(""), length(x_tick_preBas))),
-    limits = c(2015.5, 2022.5)) +
+    breaks = c(seq(1999, 2022), x_tick_pre2000Bas),
+    labels = c("", "2000", "2001", rep(c(""), 2006-2000-2), 
+               "2006", "2007", rep(c(""), 2010-2006-2), 
+               "2010", "2011", rep(c(""), 2012-2010-2), 
+               paste0(seq(2012, 2022)), rep(c(""), length(x_tick_pre2000Bas))),
+    limits = c(1999.5, 2022.5)) +
   geom_hline(yintercept = ybreaks[1], linetype = "dotted", linewidth = 0.7) +
   geom_hline(yintercept = ybreaks[2], linetype = "dotted", linewidth = 0.7) +
   geom_hline(yintercept = ybreaks[3], linetype = "dotted", linewidth = 0.7) +
@@ -204,9 +269,7 @@ ggpx = ggp +
                      breaks = c(ybreaks[1],ybreaks[2],ybreaks[3],ybreaks[4],ybreaks[5]),
                      labels = c(ybreaksl[1],ybreaksl[2],ybreaksl[3],
                                 ybreaksl[4],ybreaksl[5]))+
-  annotate("text", x = 2015.5, y = 100 + range*0.06, label = "2015 (CT)", 
-           colour = "black", family="Gill Sans MT", size = 5)+
-  annotate("text", x = 2015.5, y = 100 + range*0.025, label = "baseline", 
+  annotate("text", x = 1999.5, y = 100 + range*0.035, label = "Pre-2000 (LT) baseline", 
            colour = "black", family="Gill Sans MT", size = 5)+
   coord_cartesian(ylim = c(lm-0.1*range,um+0.1*range), clip="off")+
   theme(panel.grid.major = element_blank(),
@@ -227,7 +290,7 @@ ggpx = ggp +
 
 ggpx3 = ggdraw(ggpx)
 
-name1 = paste("trends_graphs/current trends - multiple species/",sps,"_","multiple_species_eBird_trend_recent_SoIBv2.jpg",sep="")
+name1 = paste("trends_graphs/long-term trends - masks/",sps,"_","mask_comparison_eBird_trend_SoIBv2.jpg",sep="")
 
 jpeg(name1, units="in", width=11, height=7, res=1000, bg="transparent")
 grid::grid.draw(ggpx3)
