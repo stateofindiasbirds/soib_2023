@@ -3,8 +3,10 @@ library(tidyverse)
 library(ggdist)
 library(ggridges)
 library(ggpubr)
+library(ggrepel)
 library(cowplot)
 library(extrafont)
+library(stringr)
 
 
 main = read.csv("trends_results/full_results/SoIB_main.csv")
@@ -26,6 +28,8 @@ for (i in qualifying.species)
   
   
   scol = "#869B27"
+  tcol = "black"
+  pcol = "#A13E2B"
     #loadfonts(device = "win")
   
   tg = c("2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022")
@@ -132,14 +136,46 @@ for (i in qualifying.species)
   
   ######################### get the x-axis right
   
-  sps = as.character(temp$COMMON.NAME[1])
+  sps = i
   
   x_tick_preBas = seq(2015, 2022) + 0.5
   
-  ggp = ggplot(temp, aes(x = timegroups, y = mean_std, ymin = lci_std, ymax = rci_std)) +
+  temp$COMMON.NAMEy = as.character(temp$COMMON.NAME)
+  temp$COMMON.NAMEz = as.character(temp$COMMON.NAME)
+  temp$COMMON.NAMEx = ""
+  
+  
+  for (k in 1:length(temp$COMMON.NAME))
+  {
+    
+    temp$COMMON.NAMEx[k] = as.character(temp$COMMON.NAME[k])
+    
+    if (nchar(temp$COMMON.NAMEy[k]) > 16)
+    {
+      temp$COMMON.NAMEy[k] = word(temp$COMMON.NAME[k],1,-2)
+      temp$COMMON.NAMEz[k] = word(temp$COMMON.NAME[k],-1)
+      
+      if (nchar(temp$COMMON.NAMEy[k]) > 16)
+      {
+        temp$COMMON.NAMEy[k] = word(temp$COMMON.NAME[k],1,-3)
+        temp$COMMON.NAMEz[k] = word(temp$COMMON.NAME[k],-2,-1)
+      }
+      
+      temp$COMMON.NAMEx[k] = paste(temp$COMMON.NAMEy[k],"\n",temp$COMMON.NAMEz[k],sep="")
+    }
+  }
+  
+  temp$COMMON.NAMEx[temp$timegroupsf != "2016"] = ""
+  tlow = sort(unique(temp$timegroups))[2]
+  
+  
+  ggp = ggplot(temp, aes(x = timegroups, y = mean_std, ymin = lci_std, ymax = rci_std,
+                         label = COMMON.NAMEx)) +
     geom_lineribbon(fill = scol, col = "black", linewidth = 0.7, alpha = 1) +
     geom_point(size = 3, color = "black") +
-    ggtitle(sps) +
+    geom_text_repel(nudge_x = -0.85, direction = "y", hjust = "center", size = 4, 
+                    min.segment.length = Inf, color = pcol, fontface = c("bold")) +
+    #ggtitle(sps) +
     geom_bracket(
       inherit.aes = FALSE, 
       xmin = c(seq(2015, 2021)) + 0.5, 
@@ -153,34 +189,39 @@ for (i in qualifying.species)
     scale_x_continuous(
       breaks = c(seq(2016, 2022), x_tick_preBas),
       labels = c(paste0(seq(2016, 2022)), rep(c(""), length(x_tick_preBas))),
-      limits = c(2015.5, 2022.5)) +
-    geom_hline(yintercept = ybreaks[1], linetype = "dotted", linewidth = 0.7) +
-    geom_hline(yintercept = ybreaks[2], linetype = "dotted", linewidth = 0.7) +
-    geom_hline(yintercept = ybreaks[3], linetype = "dotted", linewidth = 0.7) +
-    geom_hline(yintercept = ybreaks[4], linetype = "dotted", linewidth = 0.7) +
-    geom_hline(yintercept = ybreaks[5], linetype = "dotted", linewidth = 0.7) +
-    geom_hline(yintercept = 100, linetype = "solid", linewidth = 0.9) +
+      limits = c(2015.01, 2022.7)) +
+    geom_segment(x = tlow, y = ybreaks[1], xend = 2022, yend = ybreaks[1], linetype = "dotted", linewidth = 0.7, col = tcol) +
+    geom_segment(x = tlow, y = ybreaks[2], xend = 2022, yend = ybreaks[2], linetype = "dotted", linewidth = 0.7, col = tcol) +
+    geom_segment(x = tlow, y = ybreaks[3], xend = 2022, yend = ybreaks[3], linetype = "dotted", linewidth = 0.7, col = tcol) +
+    geom_segment(x = tlow, y = ybreaks[4], xend = 2022, yend = ybreaks[4], linetype = "dotted", linewidth = 0.7, col = tcol) +
+    geom_segment(x = tlow, y = ybreaks[5], xend = 2022, yend = ybreaks[5], linetype = "dotted", linewidth = 0.7, col = tcol) +
+    geom_segment(x = tlow, y = 100, xend = 2022, yend = 100, linetype = "solid", linewidth = 0.9, col = tcol) +
     xlab("time-steps") +
     ylab("change in eBird abundance index")
   
   ggpx = ggp +
     theme(axis.title.x = element_blank(), 
           axis.title.y = element_text(size = 22, colour = "#56697B",
-                                      margin = margin(0, 0.8, 0, 0.4, 'cm')), 
-          axis.text.y = element_text(size = 20, colour = "#56697B", vjust = -0.4, hjust = 1, 
-                                     margin = margin(0, -0.8, 0, 0, 'cm')),
+                                      margin = margin(0, 0.6, 0, 0.4, 'cm')), 
+          axis.text.y = element_blank(),
           axis.ticks.y = element_blank()) +
-    theme(legend.title = element_blank(), legend.text = element_text(size = 12),
-          plot.title = element_text(face = 'italic', size = 20, hjust = 0.5, vjust = 0.5),
-          legend.key = element_blank())+
     theme(text=element_text(family="Gill Sans MT")) +
     scale_y_continuous(expand=c(0,0),
                        breaks = c(ybreaks[1],ybreaks[2],ybreaks[3],ybreaks[4],ybreaks[5]),
                        labels = c(ybreaksl[1],ybreaksl[2],ybreaksl[3],
-                                  ybreaksl[4],ybreaksl[5]))+
-    annotate("text", x = 2015.5, y = 100 + range*0.055, label = "2015 (CT)", 
-             colour = "black", family="Gill Sans MT", size = 5)+
-    annotate("text", x = 2015.5, y = 100 + range*0.025, label = "baseline", 
+                                  ybreaksl[4],ybreaksl[5]),
+                       position = "left")+
+    annotate("text", x = 2022.7, y = ybreaks[1], label = ybreaksl[1], 
+             colour = "#56697B", family="Gill Sans MT", size = 6)+
+    annotate("text", x = 2022.7, y = ybreaks[2], label = ybreaksl[2], 
+             colour = "#56697B", family="Gill Sans MT", size = 6)+
+    annotate("text", x = 2022.7, y = ybreaks[3], label = ybreaksl[3], 
+             colour = "#56697B", family="Gill Sans MT", size = 6)+
+    annotate("text", x = 2022.7, y = ybreaks[4], label = ybreaksl[4], 
+             colour = "#56697B", family="Gill Sans MT", size = 6)+
+    annotate("text", x = 2022.7, y = ybreaks[5], label = ybreaksl[5], 
+             colour = "#56697B", family="Gill Sans MT", size = 6)+
+    annotate("text", x = 2022.7, y = 100, label = "2015 (CT)\nbaseline", 
              colour = "black", family="Gill Sans MT", size = 5)+
     coord_cartesian(ylim = c(lm-0.1*range,um+0.1*range), clip="off")+
     theme(panel.grid.major = element_blank(),
@@ -193,7 +234,7 @@ for (i in qualifying.species)
           axis.ticks.x = element_blank(),
           plot.background = element_rect(fill = "transparent",colour = NA),
           panel.background = element_rect(fill = "transparent",colour = NA))+
-    theme(legend.position = "none")
+    guides(colour = "none")
   
   ggpx1 = ggdraw(ggpx)
   

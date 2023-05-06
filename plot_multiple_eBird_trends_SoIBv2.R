@@ -47,7 +47,7 @@ cols1 = cols[c(1:ns)]
 bks1 = sort(unique(temp$COMMON.NAME))
 lbs1 = sort(unique(temp$COMMON.NAME))
 
-tg = c("before 2000", "2000-2006", "2007-2010", "2011-2012", "2013", "2014", "CT", 
+tg = c("before 2000", "2000-2006", "2007-2010", "2011-2012", "2013", "2014", "2015", 
        "2016", "2017", "2018", "2019", "2020", "2021", "2022")
 
 temp$rci_std = temp$lci_std = temp$mean_std
@@ -191,11 +191,12 @@ for (k in 1:length(temp$COMMON.NAME))
 }
 
 temp$COMMON.NAMEx[temp$timegroupsf != "2000-2006"] = ""
-
+tlow = sort(unique(temp$timegroups))[2]
 
 ggp = ggplot(temp, aes(x = timegroups, y = mean_std, col = COMMON.NAME, label = COMMON.NAMEx)) +
   geom_line(linewidth = 2) +
-  geom_text_repel(nudge_x = -2, direction = "y", hjust = "center", size = 4, min.segment.length = Inf) +
+  geom_text_repel(nudge_x = -2, direction = "y", hjust = "center", size = 4, 
+                  min.segment.length = Inf, fontface = "bold") +
   #geom_point(size = 3) +
   ggtitle(sps) +
   geom_bracket(
@@ -204,9 +205,19 @@ ggp = ggplot(temp, aes(x = timegroups, y = mean_std, col = COMMON.NAME, label = 
     xmax = c(2006, 2010, 2012, seq(2013, 2022)) + 0.5,
     y.position = lm-0.01*range,
     bracket.shorten = 0.15,
-    tip.length = 0.04,
-    vjust = 3,
+    tip.length = 0.03,
+    vjust = 2.5,
     label = tg[-1],
+    label.size = 3) +
+  geom_bracket(
+    inherit.aes = FALSE, 
+    xmin = c(2015) - 0.5, 
+    xmax = c(2022) + 0.5,
+    y.position = lm-0.05*range,
+    bracket.shorten = 0.15,
+    tip.length = 0.02,
+    vjust = 2.1,
+    label = "Current Trend",
     label.size = 3) +
   scale_colour_manual(breaks = bks1, 
                       labels = lbs1,
@@ -221,14 +232,14 @@ ggp = ggplot(temp, aes(x = timegroups, y = mean_std, col = COMMON.NAME, label = 
                "2010", "2011", rep(c(""), 2012-2010-2), 
                paste0(seq(2012, 2022)), rep(c(""), length(x_tick_pre2000Bas))),
     limits = c(1999.5, 2023.5)) +
-  geom_segment(x = 2003, y = ybreaks[1], xend = 2022, yend = ybreaks[1], linetype = "dotted", linewidth = 0.7, col = tcol) +
-  geom_segment(x = 2003, y = ybreaks[2], xend = 2022, yend = ybreaks[2], linetype = "dotted", linewidth = 0.7, col = tcol) +
-  geom_segment(x = 2003, y = ybreaks[3], xend = 2022, yend = ybreaks[3], linetype = "dotted", linewidth = 0.7, col = tcol) +
-  geom_segment(x = 2003, y = ybreaks[4], xend = 2022, yend = ybreaks[4], linetype = "dotted", linewidth = 0.7, col = tcol) +
-  geom_segment(x = 2003, y = ybreaks[5], xend = 2022, yend = ybreaks[5], linetype = "dotted", linewidth = 0.7, col = tcol) +
-  geom_segment(x = 2003, y = 100, xend = 2022, yend = 100, linetype = "solid", linewidth = 0.9, col = tcol) +
+  geom_segment(x = tlow, y = ybreaks[1], xend = 2022, yend = ybreaks[1], linetype = "dotted", linewidth = 0.7, col = tcol) +
+  geom_segment(x = tlow, y = ybreaks[2], xend = 2022, yend = ybreaks[2], linetype = "dotted", linewidth = 0.7, col = tcol) +
+  geom_segment(x = tlow, y = ybreaks[3], xend = 2022, yend = ybreaks[3], linetype = "dotted", linewidth = 0.7, col = tcol) +
+  geom_segment(x = tlow, y = ybreaks[4], xend = 2022, yend = ybreaks[4], linetype = "dotted", linewidth = 0.7, col = tcol) +
+  geom_segment(x = tlow, y = ybreaks[5], xend = 2022, yend = ybreaks[5], linetype = "dotted", linewidth = 0.7, col = tcol) +
+  geom_segment(x = tlow, y = 100, xend = 2022, yend = 100, linetype = "solid", linewidth = 0.9, col = tcol) +
   xlab("time-steps") +
-  ylab("change in eBird abundance index")
+  ylab("Change in eBird Abundance Index")
 
 ggpx = ggp +
   theme(axis.title.x = element_blank(), 

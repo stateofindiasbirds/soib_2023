@@ -3,8 +3,11 @@ library(tidyverse)
 library(ggdist)
 library(ggridges)
 library(ggpubr)
+library(ggrepel)
 library(cowplot)
 library(extrafont)
+library(stringr)
+
 
 main = read.csv("trends_results/full_results/SoIB_main.csv")
 trends = read.csv("trends_results/full_results/trends.csv")
@@ -15,7 +18,7 @@ trends = trends %>% filter(COMMON.NAME %in% qualifying.species) %>%
   filter(timegroups <= 2022)
 
 
-for (i in qualifying.species)
+for (i in "Asian Emerald Dove")
 {
   temp = trends %>% 
     filter(COMMON.NAME %in% i)
@@ -23,9 +26,11 @@ for (i in qualifying.species)
   t1 = temp[temp$timegroups == 2022,]
   
   scol = "#869B27"
+  tcol = "black"
+  pcol = "#A13E2B"
   #loadfonts(device = "win")
   
-  tg = c("before 2000", "2000-2006", "2007-2010", "2011-2012", "2013", "2014", "CT", 
+  tg = c("before 2000", "2000-2006", "2007-2010", "2011-2012", "2013", "2014", "2015", 
          "2016", "2017", "2018", "2019", "2020", "2021", "2022")
   
   maxci = temp$rci_std
@@ -135,22 +140,60 @@ for (i in qualifying.species)
   
   x_tick_pre2000Bas = seq(1999, 2022) + 0.5
   
-  ggp = ggplot(temp, aes(x = timegroups, y = mean_std, ymin = lci_std, ymax = rci_std)) +
+  temp$COMMON.NAMEy = as.character(temp$COMMON.NAME)
+  temp$COMMON.NAMEz = as.character(temp$COMMON.NAME)
+  temp$COMMON.NAMEx = ""
+  
+  
+  for (k in 1:length(temp$COMMON.NAME))
+  {
+    
+    temp$COMMON.NAMEx[k] = as.character(temp$COMMON.NAME[k])
+    
+    if (nchar(temp$COMMON.NAMEy[k]) > 18)
+    {
+      temp$COMMON.NAMEy[k] = word(temp$COMMON.NAME[k],1,-2)
+      temp$COMMON.NAMEz[k] = word(temp$COMMON.NAME[k],-1)
+      
+      if (nchar(temp$COMMON.NAMEy[k]) > 18)
+      {
+        temp$COMMON.NAMEy[k] = word(temp$COMMON.NAME[k],1,-3)
+        temp$COMMON.NAMEz[k] = word(temp$COMMON.NAME[k],-2,-1)
+      }
+      
+      temp$COMMON.NAMEx[k] = paste(temp$COMMON.NAMEy[k],"\n",temp$COMMON.NAMEz[k],sep="")
+    }
+  }
+  
+  temp$COMMON.NAMEx[temp$timegroupsf != "2000-2006"] = ""
+  tlow = sort(unique(temp$timegroups))[2]
+  
+  ggp = ggplot(temp, aes(x = timegroups, y = mean_std, ymin = lci_std, ymax = rci_std,
+                         label = COMMON.NAMEx)) +
     geom_lineribbon(fill = scol, col = "black", linewidth = 0.7, alpha = 1) +
-    #geom_segment(x = 2015 , y = temp$lci_std[temp$timegroups == 2015], 
-    #             xend = 2015, yend = temp$rci_std[temp$timegroups == 2015], 
-    #             linewidth = 0.7, col = tcol) +
     geom_point(size = 3, color = "black") +
-    ggtitle(sps) +
+    geom_text_repel(nudge_x = -2.2, direction = "y", hjust = "center", size = 4, 
+                    min.segment.length = Inf, color = pcol, fontface = c("bold")) +
+    #ggtitle(sps) +
     geom_bracket(
       inherit.aes = FALSE, 
       xmin = c(2000, 2006, 2010, 2012, seq(2013, 2021)) + 0.5, 
       xmax = c(2006, 2010, 2012, seq(2013, 2022)) + 0.5,
       y.position = lm-0.01*range,
       bracket.shorten = 0.15,
-      tip.length = 0.04,
-      vjust = 3,
+      tip.length = 0.03,
+      vjust = 2.5,
       label = tg[-1],
+      label.size = 3) +
+    geom_bracket(
+      inherit.aes = FALSE, 
+      xmin = c(2015) - 0.5, 
+      xmax = c(2022) + 0.5,
+      y.position = lm-0.05*range,
+      bracket.shorten = 0.15,
+      tip.length = 0.02,
+      vjust = 2.1,
+      label = "Current Trend",
       label.size = 3) +
     scale_x_continuous(
       breaks = c(seq(1999, 2022), x_tick_pre2000Bas),
@@ -158,32 +201,40 @@ for (i in qualifying.species)
                  "2006", "2007", rep(c(""), 2010-2006-2), 
                  "2010", "2011", rep(c(""), 2012-2010-2), 
                  paste0(seq(2012, 2022)), rep(c(""), length(x_tick_pre2000Bas))),
-      limits = c(1999.5, 2022.5)) +
-    geom_hline(yintercept = ybreaks[1], linetype = "dotted", linewidth = 0.7) +
-    geom_hline(yintercept = ybreaks[2], linetype = "dotted", linewidth = 0.7) +
-    geom_hline(yintercept = ybreaks[3], linetype = "dotted", linewidth = 0.7) +
-    geom_hline(yintercept = ybreaks[4], linetype = "dotted", linewidth = 0.7) +
-    geom_hline(yintercept = ybreaks[5], linetype = "dotted", linewidth = 0.7) +
-    geom_hline(yintercept = 100, linetype = "solid", linewidth = 0.9) +
+      limits = c(1999.5, 2023.5)) +
+    geom_segment(x = tlow, y = ybreaks[1], xend = 2022, yend = ybreaks[1], linetype = "dotted", linewidth = 0.7, col = tcol) +
+    geom_segment(x = tlow, y = ybreaks[2], xend = 2022, yend = ybreaks[2], linetype = "dotted", linewidth = 0.7, col = tcol) +
+    geom_segment(x = tlow, y = ybreaks[3], xend = 2022, yend = ybreaks[3], linetype = "dotted", linewidth = 0.7, col = tcol) +
+    geom_segment(x = tlow, y = ybreaks[4], xend = 2022, yend = ybreaks[4], linetype = "dotted", linewidth = 0.7, col = tcol) +
+    geom_segment(x = tlow, y = ybreaks[5], xend = 2022, yend = ybreaks[5], linetype = "dotted", linewidth = 0.7, col = tcol) +
+    geom_segment(x = tlow, y = 100, xend = 2022, yend = 100, linetype = "solid", linewidth = 0.9, col = tcol) +
     xlab("time-steps") +
-    ylab("change in eBird abundance index")
+    ylab("Change in eBird Abundance Index")
   
   ggpx = ggp +
     theme(axis.title.x = element_blank(), 
           axis.title.y = element_text(size = 22, colour = "#56697B",
-                                      margin = margin(0, 0.8, 0, 0.4, 'cm')), 
-          axis.text.y = element_text(size = 20, colour = "#56697B", vjust = -0.4, hjust = 1, 
-                                     margin = margin(0, -0.8, 0, 0, 'cm')),
+                                      margin = margin(0, -0.6, 0, 0.4, 'cm')), 
+          axis.text.y = element_blank(),
           axis.ticks.y = element_blank()) +
-    theme(legend.title = element_blank(), legend.text = element_text(size = 12),
-          plot.title = element_text(face = 'italic', size = 20, hjust = 0.5, vjust = 0.5),
-          legend.key = element_blank())+
+    theme(plot.title = element_text(face = 'italic', size = 20, hjust = 0.5, vjust = 0.5))+
     theme(text=element_text(family="Gill Sans MT")) +
     scale_y_continuous(expand=c(0,0),
                        breaks = c(ybreaks[1],ybreaks[2],ybreaks[3],ybreaks[4],ybreaks[5]),
                        labels = c(ybreaksl[1],ybreaksl[2],ybreaksl[3],
-                                  ybreaksl[4],ybreaksl[5]))+
-    annotate("text", x = 1999.5, y = 100 + range*0.03, label = "Pre-2000 (LT) baseline", 
+                                  ybreaksl[4],ybreaksl[5]),
+                       position = "left")+
+    annotate("text", x = 2023.5, y = ybreaks[1], label = ybreaksl[1], 
+             colour = "#56697B", family="Gill Sans MT", size = 6)+
+    annotate("text", x = 2023.5, y = ybreaks[2], label = ybreaksl[2], 
+             colour = "#56697B", family="Gill Sans MT", size = 6)+
+    annotate("text", x = 2023.5, y = ybreaks[3], label = ybreaksl[3], 
+             colour = "#56697B", family="Gill Sans MT", size = 6)+
+    annotate("text", x = 2023.5, y = ybreaks[4], label = ybreaksl[4], 
+             colour = "#56697B", family="Gill Sans MT", size = 6)+
+    annotate("text", x = 2023.5, y = ybreaks[5], label = ybreaksl[5], 
+             colour = "#56697B", family="Gill Sans MT", size = 6)+
+    annotate("text", x = 2023.5, y = 100, label = "Pre-2000\nbaseline", 
              colour = "black", family="Gill Sans MT", size = 5)+
     coord_cartesian(ylim = c(lm-0.1*range,um+0.1*range), clip="off")+
     theme(panel.grid.major = element_blank(),
@@ -196,7 +247,7 @@ for (i in qualifying.species)
           axis.ticks.x = element_blank(),
           plot.background = element_rect(fill = "transparent",colour = NA),
           panel.background = element_rect(fill = "transparent",colour = NA))+
-    theme(legend.position = "none")
+    guides(colour = "none")
   
   
   ggpx1 = ggdraw(ggpx)
