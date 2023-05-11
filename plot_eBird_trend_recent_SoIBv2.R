@@ -18,11 +18,11 @@ trends = trends %>% filter(COMMON.NAME %in% qualifying.species) %>%
   filter(timegroups >= 2015 & timegroups <= 2022)
 
 
-for (i in qualifying.species)
+for (z in qualifying.species)
 {
   temp = trends %>% 
     mutate(lci_std = lci_std_recent,mean_std = mean_std_recent,rci_std = rci_std_recent) %>%
-    filter(COMMON.NAME %in% i)
+    filter(COMMON.NAME %in% z)
   
   t1 = temp[temp$timegroups == 2022,]
   
@@ -136,46 +136,21 @@ for (i in qualifying.species)
   
   ######################### get the x-axis right
   
-  sps = i
+  sps = z
   
   x_tick_preBas = seq(2015, 2022) + 0.5
   
-  temp$COMMON.NAMEy = as.character(temp$COMMON.NAME)
-  temp$COMMON.NAMEz = as.character(temp$COMMON.NAME)
-  temp$COMMON.NAMEx = ""
+  tlow = temp %>%
+    select(COMMON.NAME,timegroups) %>%
+    arrange(COMMON.NAME,timegroups) %>%
+    group_by(COMMON.NAME) %>% slice(2) %>% ungroup()
   
+  tlow = max(tlow$timegroups)
   
-  for (k in 1:length(temp$COMMON.NAME))
-  {
-    
-    temp$COMMON.NAMEx[k] = as.character(temp$COMMON.NAME[k])
-    
-    if (nchar(temp$COMMON.NAMEy[k]) > 16)
-    {
-      temp$COMMON.NAMEy[k] = word(temp$COMMON.NAME[k],1,-2)
-      temp$COMMON.NAMEz[k] = word(temp$COMMON.NAME[k],-1)
-      
-      if (nchar(temp$COMMON.NAMEy[k]) > 16)
-      {
-        temp$COMMON.NAMEy[k] = word(temp$COMMON.NAME[k],1,-3)
-        temp$COMMON.NAMEz[k] = word(temp$COMMON.NAME[k],-2,-1)
-      }
-      
-      temp$COMMON.NAMEx[k] = paste(temp$COMMON.NAMEy[k],"\n",temp$COMMON.NAMEz[k],sep="")
-    }
-  }
-  
-  temp$COMMON.NAMEx[temp$timegroupsf != "2016"] = ""
-  tlow = sort(unique(temp$timegroups))[2]
-  
-  
-  ggp = ggplot(temp, aes(x = timegroups, y = mean_std, ymin = lci_std, ymax = rci_std,
-                         label = COMMON.NAMEx)) +
+  ggp = ggplot(temp, aes(x = timegroups, y = mean_std, ymin = lci_std, ymax = rci_std)) +
     geom_lineribbon(fill = scol, col = "black", linewidth = 0.7, alpha = 1) +
     geom_point(size = 3, color = "black") +
-    geom_text_repel(nudge_x = -0.85, direction = "y", hjust = "center", size = 4, 
-                    min.segment.length = Inf, color = pcol, fontface = c("bold")) +
-    #ggtitle(sps) +
+    ggtitle(sps) +
     geom_bracket(
       inherit.aes = FALSE, 
       xmin = c(seq(2015, 2021)) + 0.5, 
@@ -187,17 +162,18 @@ for (i in qualifying.species)
       label = tg[-1],
       label.size = 3) +
     scale_x_continuous(
+      expand=c(0,0),
       breaks = c(seq(2016, 2022), x_tick_preBas),
       labels = c(paste0(seq(2016, 2022)), rep(c(""), length(x_tick_preBas))),
-      limits = c(2015.01, 2022.7)) +
+      limits = c(2015.5, 2023.1)) +
     geom_segment(x = tlow, y = ybreaks[1], xend = 2022, yend = ybreaks[1], linetype = "dotted", linewidth = 0.7, col = tcol) +
     geom_segment(x = tlow, y = ybreaks[2], xend = 2022, yend = ybreaks[2], linetype = "dotted", linewidth = 0.7, col = tcol) +
     geom_segment(x = tlow, y = ybreaks[3], xend = 2022, yend = ybreaks[3], linetype = "dotted", linewidth = 0.7, col = tcol) +
     geom_segment(x = tlow, y = ybreaks[4], xend = 2022, yend = ybreaks[4], linetype = "dotted", linewidth = 0.7, col = tcol) +
     geom_segment(x = tlow, y = ybreaks[5], xend = 2022, yend = ybreaks[5], linetype = "dotted", linewidth = 0.7, col = tcol) +
     geom_segment(x = tlow, y = 100, xend = 2022, yend = 100, linetype = "solid", linewidth = 0.9, col = tcol) +
-    xlab("time-steps") +
-    ylab("change in eBird abundance index")
+    xlab("Time-steps") +
+    ylab("Change in eBird Abundance Index")
   
   ggpx = ggp +
     theme(axis.title.x = element_blank(), 
@@ -205,6 +181,7 @@ for (i in qualifying.species)
                                       margin = margin(0, 0.6, 0, 0.4, 'cm')), 
           axis.text.y = element_blank(),
           axis.ticks.y = element_blank()) +
+    theme(plot.title = element_text(face = 'bold', size = 20, hjust = 0.5, vjust = -2, colour = pcol))+
     theme(text=element_text(family="Gill Sans MT")) +
     scale_y_continuous(expand=c(0,0),
                        breaks = c(ybreaks[1],ybreaks[2],ybreaks[3],ybreaks[4],ybreaks[5]),
@@ -221,7 +198,7 @@ for (i in qualifying.species)
              colour = "#56697B", family="Gill Sans MT", size = 6)+
     annotate("text", x = 2022.7, y = ybreaks[5], label = ybreaksl[5], 
              colour = "#56697B", family="Gill Sans MT", size = 6)+
-    annotate("text", x = 2022.7, y = 100, label = "2015 (CT)\nbaseline", 
+    annotate("text", x = 2022.7, y = 100, label = "2015\nbaseline", 
              colour = "black", family="Gill Sans MT", size = 5)+
     coord_cartesian(ylim = c(lm-0.1*range,um+0.1*range), clip="off")+
     theme(panel.grid.major = element_blank(),

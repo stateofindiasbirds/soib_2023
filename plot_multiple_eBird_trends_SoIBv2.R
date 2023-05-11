@@ -19,7 +19,9 @@ trends = trends %>% filter(COMMON.NAME %in% qualifying.species) %>%
 
 species = c("White-rumped Vulture","Indian Vulture","Red-headed Vulture","Bearded Vulture",
             "Egyptian Vulture","Eurasian Griffon")
-sps = "Vultures"
+species = c("Little Ringed Plover","Little Tern","Great Thick-knee","Small Pratincole")
+
+sps = "River Birds"
 
 temp = trends %>% 
   filter(COMMON.NAME %in% species)
@@ -35,10 +37,11 @@ temp$COMMON.NAME = factor(temp$COMMON.NAME,
 
 #loadfonts(device = "win")
 
-cols = c("#869B27", "#31954E", "#E49B36", "#CC6666", "#78CAE0", "#A13E2B", "#EA5599", "#493F3D",
-         "#B69AC9", "#CC6666", "#9999CC", "#000000", "#66CC99")
+cols = c("#869B27", "#31954E", "#E49B36", "#CC6666", "#78CAE0", "#9999CC", "#493F3D",
+         "#B69AC9", "#A13E2B", "#EA5599", "#000000", "#66CC99")
 #cols = c("#41726c","#2d809b","#e0d27b","#8cc48c","#55bfaf")
 tcol = "black"
+pcol = "#A13E2B"
 
 ns = length(unique(temp$COMMON.NAME))
 
@@ -191,7 +194,13 @@ for (k in 1:length(temp$COMMON.NAME))
 }
 
 temp$COMMON.NAMEx[temp$timegroupsf != "2000-2006"] = ""
-tlow = sort(unique(temp$timegroups))[2]
+
+tlow = temp %>%
+  select(COMMON.NAME,timegroups) %>%
+  arrange(COMMON.NAME,timegroups) %>%
+  group_by(COMMON.NAME) %>% slice(2) %>% ungroup()
+
+tlow = max(tlow$timegroups)
 
 ggp = ggplot(temp, aes(x = timegroups, y = mean_std, col = COMMON.NAME, label = COMMON.NAMEx)) +
   geom_line(linewidth = 2) +
@@ -238,7 +247,7 @@ ggp = ggplot(temp, aes(x = timegroups, y = mean_std, col = COMMON.NAME, label = 
   geom_segment(x = tlow, y = ybreaks[4], xend = 2022, yend = ybreaks[4], linetype = "dotted", linewidth = 0.7, col = tcol) +
   geom_segment(x = tlow, y = ybreaks[5], xend = 2022, yend = ybreaks[5], linetype = "dotted", linewidth = 0.7, col = tcol) +
   geom_segment(x = tlow, y = 100, xend = 2022, yend = 100, linetype = "solid", linewidth = 0.9, col = tcol) +
-  xlab("time-steps") +
+  xlab("Time-steps") +
   ylab("Change in eBird Abundance Index")
 
 ggpx = ggp +
@@ -247,7 +256,7 @@ ggpx = ggp +
                                     margin = margin(0, -0.6, 0, 0.4, 'cm')), 
         axis.text.y = element_blank(),
         axis.ticks.y = element_blank()) +
-  theme(plot.title = element_text(face = 'italic', size = 20, hjust = 0.5, vjust = 0.5))+
+  theme(plot.title = element_text(face = 'bold', size = 20, hjust = 0.5, vjust = -2, colour = pcol))+
   theme(text=element_text(family="Gill Sans MT")) +
   scale_y_continuous(expand=c(0,0),
                      breaks = c(ybreaks[1],ybreaks[2],ybreaks[3],ybreaks[4],ybreaks[5]),

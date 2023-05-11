@@ -18,10 +18,10 @@ trends = trends %>% filter(COMMON.NAME %in% qualifying.species) %>%
   filter(timegroups <= 2022)
 
 
-for (i in "Asian Emerald Dove")
+for (z in qualifying.species)
 {
   temp = trends %>% 
-    filter(COMMON.NAME %in% i)
+    filter(COMMON.NAME %in% z)
   
   t1 = temp[temp$timegroups == 2022,]
   
@@ -136,45 +136,21 @@ for (i in "Asian Emerald Dove")
   
   ######################### get the x-axis right
   
-  sps = i
+  sps = z
   
   x_tick_pre2000Bas = seq(1999, 2022) + 0.5
   
-  temp$COMMON.NAMEy = as.character(temp$COMMON.NAME)
-  temp$COMMON.NAMEz = as.character(temp$COMMON.NAME)
-  temp$COMMON.NAMEx = ""
+  tlow = temp %>%
+    select(COMMON.NAME,timegroups) %>%
+    arrange(COMMON.NAME,timegroups) %>%
+    group_by(COMMON.NAME) %>% slice(2) %>% ungroup()
   
+  tlow = max(tlow$timegroups)
   
-  for (k in 1:length(temp$COMMON.NAME))
-  {
-    
-    temp$COMMON.NAMEx[k] = as.character(temp$COMMON.NAME[k])
-    
-    if (nchar(temp$COMMON.NAMEy[k]) > 18)
-    {
-      temp$COMMON.NAMEy[k] = word(temp$COMMON.NAME[k],1,-2)
-      temp$COMMON.NAMEz[k] = word(temp$COMMON.NAME[k],-1)
-      
-      if (nchar(temp$COMMON.NAMEy[k]) > 18)
-      {
-        temp$COMMON.NAMEy[k] = word(temp$COMMON.NAME[k],1,-3)
-        temp$COMMON.NAMEz[k] = word(temp$COMMON.NAME[k],-2,-1)
-      }
-      
-      temp$COMMON.NAMEx[k] = paste(temp$COMMON.NAMEy[k],"\n",temp$COMMON.NAMEz[k],sep="")
-    }
-  }
-  
-  temp$COMMON.NAMEx[temp$timegroupsf != "2000-2006"] = ""
-  tlow = sort(unique(temp$timegroups))[2]
-  
-  ggp = ggplot(temp, aes(x = timegroups, y = mean_std, ymin = lci_std, ymax = rci_std,
-                         label = COMMON.NAMEx)) +
+  ggp = ggplot(temp, aes(x = timegroups, y = mean_std, ymin = lci_std, ymax = rci_std)) +
     geom_lineribbon(fill = scol, col = "black", linewidth = 0.7, alpha = 1) +
     geom_point(size = 3, color = "black") +
-    geom_text_repel(nudge_x = -2.2, direction = "y", hjust = "center", size = 4, 
-                    min.segment.length = Inf, color = pcol, fontface = c("bold")) +
-    #ggtitle(sps) +
+    ggtitle(sps) +
     geom_bracket(
       inherit.aes = FALSE, 
       xmin = c(2000, 2006, 2010, 2012, seq(2013, 2021)) + 0.5, 
@@ -196,19 +172,20 @@ for (i in "Asian Emerald Dove")
       label = "Current Trend",
       label.size = 3) +
     scale_x_continuous(
+      expand=c(0,0),
       breaks = c(seq(1999, 2022), x_tick_pre2000Bas),
       labels = c("", "2000", "2001", rep(c(""), 2006-2000-2), 
                  "2006", "2007", rep(c(""), 2010-2006-2), 
                  "2010", "2011", rep(c(""), 2012-2010-2), 
                  paste0(seq(2012, 2022)), rep(c(""), length(x_tick_pre2000Bas))),
-      limits = c(1999.5, 2023.5)) +
+      limits = c(2000, 2024.7)) +
     geom_segment(x = tlow, y = ybreaks[1], xend = 2022, yend = ybreaks[1], linetype = "dotted", linewidth = 0.7, col = tcol) +
     geom_segment(x = tlow, y = ybreaks[2], xend = 2022, yend = ybreaks[2], linetype = "dotted", linewidth = 0.7, col = tcol) +
     geom_segment(x = tlow, y = ybreaks[3], xend = 2022, yend = ybreaks[3], linetype = "dotted", linewidth = 0.7, col = tcol) +
     geom_segment(x = tlow, y = ybreaks[4], xend = 2022, yend = ybreaks[4], linetype = "dotted", linewidth = 0.7, col = tcol) +
     geom_segment(x = tlow, y = ybreaks[5], xend = 2022, yend = ybreaks[5], linetype = "dotted", linewidth = 0.7, col = tcol) +
     geom_segment(x = tlow, y = 100, xend = 2022, yend = 100, linetype = "solid", linewidth = 0.9, col = tcol) +
-    xlab("time-steps") +
+    xlab("Time-steps") +
     ylab("Change in eBird Abundance Index")
   
   ggpx = ggp +
@@ -217,7 +194,7 @@ for (i in "Asian Emerald Dove")
                                       margin = margin(0, -0.6, 0, 0.4, 'cm')), 
           axis.text.y = element_blank(),
           axis.ticks.y = element_blank()) +
-    theme(plot.title = element_text(face = 'italic', size = 20, hjust = 0.5, vjust = 0.5))+
+    theme(plot.title = element_text(face = 'bold', size = 20, hjust = 0.5, vjust = -2, colour = pcol))+
     theme(text=element_text(family="Gill Sans MT")) +
     scale_y_continuous(expand=c(0,0),
                        breaks = c(ybreaks[1],ybreaks[2],ybreaks[3],ybreaks[4],ybreaks[5]),

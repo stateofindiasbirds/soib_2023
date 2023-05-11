@@ -12,6 +12,9 @@ main = left_join(main,base,by=c("eBird.English.Name.2022"="COMMON.NAME"))
 main$longtermrci = main$longtermmean = main$longtermlci = NA 
 main$currentsloperci = main$currentslopemean = main$currentslopelci = NA
 
+sens = main %>% select(eBird.English.Name.2022)
+sens$currentsloperci = sens$currentslopemean = sens$currentslopelci = NA
+
 file_names = dir("trends_mask_oneland") #where you have your files
 trends = do.call(rbind,lapply(paste("trends_mask_oneland/",file_names,sep=""),read.csv))
 totsims = length(unique(trends$sl))
@@ -250,6 +253,8 @@ modtrends_recent$rci_std_recent = NA
 
 flag = 0
 newdata = data.frame(timegroups = extra.years)
+newdata1 = data.frame(timegroups = unique(modtrends_recent$timegroups))
+
 for (i in unique(modtrends_recent$COMMON.NAME))
 {
   ct = 0
@@ -278,7 +283,6 @@ for (i in unique(modtrends_recent$COMMON.NAME))
       tp = rbind(tp,tp0)
   }
   
-  tp$rat = 100*tp$rat
   pred0 = newdata
   flag = flag + 1
   
@@ -290,14 +294,18 @@ for (i in unique(modtrends_recent$COMMON.NAME))
     ct = ct + 1
     temp = tp %>% 
       group_by(timegroups) %>%
-      reframe(val = sample(rat,1))
-    temp$val1 = temp$val - 100
-    temp$timegroups1 = temp$timegroups - recentcutoff
+      reframe(val = sample(val,1))
     
     fit = with(temp,lm(log(val)~timegroups))
-    fit1 = with(temp,lm(val1~0+timegroups1))
-    sl[z] = summary(fit1)$coefficients[1,1]
-    slse[z] = summary(fit1)$coefficients[1,2]
+    fit1 = with(temp,lm(val~timegroups)) #CHANGE
+    
+    pd1 = predict(fit1,newdata1,se = T)
+    num = pd1$fit[2]-pd1$fit[1]
+    den = abs(pd1$fit[1])
+    numse = sqrt(pd1$se.fit[1]^2 + pd1$se.fit[2]^2)
+    dense = pd1$se.fit[1]
+    sl[z] = 100*errordiv(num,den,numse,dense)[1]
+    slse[z] = errordiv(num,den,numse,dense)[2]
     
     pd = predict(fit,newdata,se = T)
     
@@ -305,6 +313,7 @@ for (i in unique(modtrends_recent$COMMON.NAME))
     pred0$se = pd$se.fit
     
     pred0$COMMON.NAME = i
+    pred0$val = temp$val[temp$timegroups == recentcutoff]
     
     if (ct == 1)
       pred = pred0
@@ -312,7 +321,8 @@ for (i in unique(modtrends_recent$COMMON.NAME))
       pred = rbind(pred,pred0)
   }
   
-  
+  sl = as.numeric(sl)
+  slse = as.numeric(slse)
   se.slope = sd(sl) + sqrt(sum(slse^2)/length(slse))
   
   main$currentslopelci[main$eBird.English.Name.2022 == i] = mean(sl) - 1.96*se.slope
@@ -320,7 +330,7 @@ for (i in unique(modtrends_recent$COMMON.NAME))
   main$currentsloperci[main$eBird.English.Name.2022 == i] = mean(sl) + 1.96*se.slope
   
   pred = pred %>%
-    mutate(lci_bt = exp(mean-1.96*se), mean_bt = exp(mean), rci_bt = exp(mean+1.96*se)) %>%
+    mutate(lci_bt = 100*exp(mean-1.96*se)/val, mean_bt = 100*exp(mean)/val, rci_bt = 100*exp(mean+1.96*se)/val) %>%
     group_by(COMMON.NAME,timegroups) %>% 
     reframe(lci_ext_std = mean(lci_bt),
             mean_ext_std = mean(mean_bt),
@@ -384,7 +394,7 @@ trends$rci_comb_std[!is.na(trends$rci_ext_std)] = trends$rci_ext_std[!is.na(tren
 
 trends$lci_comb_std[trends$lci_comb_std<0] = 0
 
-write.csv(trends,"trends_mask_oneland.csv",row.names=F)
+write.csv(trends,"trends_results/mask_one/trends_mask_oneland.csv",row.names=F)
 
 # 2023
 
@@ -484,6 +494,9 @@ proj2029.rci = trends %>% filter(timegroups == 2029) %>% select(COMMON.NAME,rci_
 names(proj2029.rci)[2] = "proj2029.rci"
 main = left_join(main,proj2029.rci,by=c("eBird.English.Name.2022"="COMMON.NAME"))
 
+write.csv(main,"trends_results/mask_one/SoIB_main_mask_oneland_wocats.csv",row.names=F)
+
+
 
 
 
@@ -491,28 +504,31 @@ main = left_join(main,proj2029.rci,by=c("eBird.English.Name.2022"="COMMON.NAME")
 
 ## assign categories to trends and occupancy
 
+main = read.csv("trends_results/mask_one/SoIB_main_mask_oneland_wocats.csv")
 
 main = main %>%
   mutate(SOIBv2.Long.Term.Status = 
            case_when(is.na(longtermmean) ~ "eBird Data Deficient",
+                     (longtermrci-longtermmean)/longtermmean > 0.5 ~ "eBird Data Indecisive",
                      longtermrci <= 50 ~ "Rapid Decline",
-                     longtermrci <= 75 ~ "Declining",
+                     longtermrci <= 75 ~ "Decline",
                      longtermlci >= 150 ~ "Rapid Increase",
-                     longtermlci >= 125 ~ "Increasing",
-                     ((longtermrci-longtermlci) > 25 & longtermlci > 100 & longtermrci > 100) ~ "eBird Data Indecisive",
-                     ((longtermrci-longtermlci) > 25 & longtermlci < 100 & longtermrci < 100) ~ "eBird Data Indecisive",
-                     (longtermrci-longtermlci) > 50 ~ "eBird Data Indecisive",
+                     longtermlci >= 125 ~ "Increase",
+                     (longtermrci < 100 & longtermlci < 100) ~ "eBird Data Indecisive",
+                     longtermlci <= 50 ~ "eBird Data Indecisive",
+                     (longtermrci > 100 & longtermlci > 100) ~ "eBird Data Indecisive",
+                     longtermrci >= 150 ~ "eBird Data Indecisive",
                      TRUE ~ "Stable")
   ) %>%
   mutate(SOIBv2.Current.Status = 
            case_when(is.na(currentslopemean) ~ "eBird Data Deficient",
-                     currentsloperci <= -2.7 ~ "Rapid Decline",
-                     currentsloperci <= -1.1 ~ "Declining",
-                     currentslopelci >= 1.6 ~ "Rapid Increase",
-                     currentslopelci >= 0.9 ~ "Increasing",
-                     ((currentsloperci-currentslopelci) > 2 & currentslopelci > 0 & currentsloperci > 0) ~ "eBird Data Indecisive",
-                     ((currentsloperci-currentslopelci) > 2 & currentslopelci < 0 & currentsloperci < 0) ~ "eBird Data Indecisive",
                      (currentsloperci-currentslopelci) > 6 ~ "eBird Data Indecisive",
+                     currentsloperci <= -2.7 ~ "Rapid Decline",
+                     currentsloperci <= -1.1 ~ "Decline",
+                     currentslopelci >= 1.6 ~ "Rapid Increase",
+                     currentslopelci >= 0.9 ~ "Increase",
+                     currentslopelci <= -2.7 ~ "eBird Data Indecisive",
+                     currentsloperci >= 1.6 ~ "eBird Data Indecisive",
                      TRUE ~ "Stable")
   )
 
@@ -522,8 +538,8 @@ main$SOIB.Range.Status[main$Selected.SOIB != "X"] = NA
 
 
 
-trendcats = c("Rapid Decline","Declining","eBird Data Deficient","eBird Data Indecisive",
-              "Stable","Increasing","Rapid Increase")
+trendcats = c("Rapid Decline","Decline","eBird Data Deficient","eBird Data Indecisive",
+              "Stable","Increase","Rapid Increase")
 rangecats = c("eBird Data Deficient","Very Restricted","Restricted","Moderate",
               "Large","Very Large")
 
@@ -534,7 +550,7 @@ main = left_join(main,priorityrules)
 
 unce = c("eBird Data Deficient","eBird Data Indecisive")
 rest = c("Very Restricted","Restricted")
-decl = c("Declining","Rapid Decline")
+decl = c("Decline","Rapid Decline")
 
 main = main %>%
   mutate(SOIBv2.Priority.Status = as.character(SOIBv2.Priority.Status)) %>%
@@ -550,7 +566,12 @@ main = main %>%
                        IUCN.Category %in% c("Near Threatened","Vulnerable") & SOIBv2.Priority.Status == "Low" ~ "Moderate",
                      TRUE ~ SOIBv2.Priority.Status))
 
-write.csv(main,"SoIB_main_mask_oneland.csv",row.names=F)
+main = main %>%
+  mutate(longtermlci = longtermlci-100,
+         longtermmean = longtermmean-100,
+         longtermrci = longtermrci-100)
+
+write.csv(main,"trends_results/mask_one/SoIB_main_mask_oneland.csv",row.names=F)
 
 ## small investigations
 
@@ -570,6 +591,6 @@ species_summary = data.frame(Category = c("Selected for SoIB","Long-term Analysi
                                            as.vector(table(main$Long.Term.Analysis))[2],
                                            as.vector(table(main$Current.Analysis))[2]))
 
-write.csv(summary_status,"summary_status_mask_oneland.csv",row.names=F)
-write.csv(priority_summary,"priority_status_mask_oneland.csv",row.names=F)
-write.csv(species_summary,"species_status_mask_oneland.csv",row.names=F)
+write.csv(summary_status,"trends_results/mask_one/summary_status_mask_oneland.csv",row.names=F)
+write.csv(priority_summary,"trends_results/mask_one/priority_status_mask_oneland.csv",row.names=F)
+write.csv(species_summary,"trends_results/mask_one/species_status_mask_oneland.csv",row.names=F)
