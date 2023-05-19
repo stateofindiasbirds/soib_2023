@@ -611,9 +611,9 @@ dataspeciesfilter = function(datapath = "data.RData",
   dataf$rt[dataf$Breeding.Activity.Period == "Nocturnal" &
              dataf$Non.Breeding.Activity.Period == "Nocturnal"] = NA
   
-  specieslist$ht[specieslist$COMMON.NAME %in% c("Besra","Horsefield's Bushlark","Common Flameback",
+  specieslist$ht[specieslist$COMMON.NAME %in% c("Besra","Horsfield's Bushlark","Common Flameback",
                                                 "Eastern Orphean Warbler","Richard's Pipit")] = NA
-  specieslist$rt[specieslist$COMMON.NAME %in% c("Besra","Horsefield's Bushlark","Common Flameback",
+  specieslist$rt[specieslist$COMMON.NAME %in% c("Besra","Horsfield's Bushlark","Common Flameback",
                                                 "Eastern Orphean Warbler","Richard's Pipit")] = NA
   
   restrictedspecieslist  = data.frame(species = specieslist$COMMON.NAME)
@@ -626,10 +626,10 @@ dataspeciesfilter = function(datapath = "data.RData",
   names(restrictedspecieslist) = c("COMMON.NAME","ht","rt")
   
   restrictedspecieslist$ht[restrictedspecieslist$COMMON.NAME %in% 
-                             c("Besra","Horsefield's Bushlark","Common Flameback",
+                             c("Besra","Horsfield's Bushlark","Common Flameback",
                                "Eastern Orphean Warbler","Richard's Pipit")] = NA
   restrictedspecieslist$rt[restrictedspecieslist$COMMON.NAME %in% 
-                             c("Besra","Horsefield's Bushlark","Common Flameback",
+                             c("Besra","Horsfield's Bushlark","Common Flameback",
                                "Eastern Orphean Warbler","Richard's Pipit")] = NA
   
   check1 = restrictedspecieslist$COMMON.NAME[!is.na(restrictedspecieslist$ht)]
@@ -875,9 +875,9 @@ dataspeciesfilter = function(datapath = "data.RData",
   dataf$rt[dataf$Breeding.Activity.Period == "Nocturnal" &
              dataf$Non.Breeding.Activity.Period == "Nocturnal"] = NA
   
-  specieslist$ht[specieslist$COMMON.NAME %in% c("Besra","Horsefield's Bushlark","Common Flameback",
+  specieslist$ht[specieslist$COMMON.NAME %in% c("Besra","Horsfield's Bushlark","Common Flameback",
                                                 "Eastern Orphean Warbler","Richard's Pipit")] = NA
-  specieslist$rt[specieslist$COMMON.NAME %in% c("Besra","Horsefield's Bushlark","Common Flameback",
+  specieslist$rt[specieslist$COMMON.NAME %in% c("Besra","Horsfield's Bushlark","Common Flameback",
                                                 "Eastern Orphean Warbler","Richard's Pipit")] = NA
   
   restrictedspecieslist  = data.frame(species = specieslist$COMMON.NAME)
@@ -890,10 +890,10 @@ dataspeciesfilter = function(datapath = "data.RData",
   names(restrictedspecieslist) = c("COMMON.NAME","ht","rt")
   
   restrictedspecieslist$ht[restrictedspecieslist$COMMON.NAME %in% 
-                             c("Besra","Horsefield's Bushlark","Common Flameback",
+                             c("Besra","Horsfield's Bushlark","Common Flameback",
                                "Eastern Orphean Warbler","Richard's Pipit")] = NA
   restrictedspecieslist$rt[restrictedspecieslist$COMMON.NAME %in% 
-                             c("Besra","Horsefield's Bushlark","Common Flameback",
+                             c("Besra","Horsfield's Bushlark","Common Flameback",
                                "Eastern Orphean Warbler","Richard's Pipit")] = NA
   
   # select only forest species
@@ -1150,9 +1150,9 @@ dataspeciesfilter = function(datapath = "data.RData",
   dataf$rt[dataf$Breeding.Activity.Period == "Nocturnal" &
              dataf$Non.Breeding.Activity.Period == "Nocturnal"] = NA
   
-  specieslist$ht[specieslist$COMMON.NAME %in% c("Besra","Horsefield's Bushlark","Common Flameback",
+  specieslist$ht[specieslist$COMMON.NAME %in% c("Besra","Horsfield's Bushlark","Common Flameback",
                                                 "Eastern Orphean Warbler","Richard's Pipit")] = NA
-  specieslist$rt[specieslist$COMMON.NAME %in% c("Besra","Horsefield's Bushlark","Common Flameback",
+  specieslist$rt[specieslist$COMMON.NAME %in% c("Besra","Horsfield's Bushlark","Common Flameback",
                                                 "Eastern Orphean Warbler","Richard's Pipit")] = NA
   
   restrictedspecieslist  = data.frame(species = specieslist$COMMON.NAME)
@@ -1165,10 +1165,10 @@ dataspeciesfilter = function(datapath = "data.RData",
   names(restrictedspecieslist) = c("COMMON.NAME","ht","rt")
   
   restrictedspecieslist$ht[restrictedspecieslist$COMMON.NAME %in% 
-                             c("Besra","Horsefield's Bushlark","Common Flameback",
+                             c("Besra","Horsfield's Bushlark","Common Flameback",
                                "Eastern Orphean Warbler","Richard's Pipit")] = NA
   restrictedspecieslist$rt[restrictedspecieslist$COMMON.NAME %in% 
-                             c("Besra","Horsefield's Bushlark","Common Flameback",
+                             c("Besra","Horsfield's Bushlark","Common Flameback",
                                "Eastern Orphean Warbler","Richard's Pipit")] = NA
   
   # select only openland species
@@ -1430,9 +1430,9 @@ dataspeciesfilter = function(datapath = "data.RData",
   dataf$rt[dataf$Breeding.Activity.Period == "Nocturnal" &
              dataf$Non.Breeding.Activity.Period == "Nocturnal"] = NA
   
-  specieslist$ht[specieslist$COMMON.NAME %in% c("Besra","Horsefield's Bushlark","Common Flameback",
+  specieslist$ht[specieslist$COMMON.NAME %in% c("Besra","Horsfield's Bushlark","Common Flameback",
                                                 "Eastern Orphean Warbler","Richard's Pipit")] = NA
-  specieslist$rt[specieslist$COMMON.NAME %in% c("Besra","Horsefield's Bushlark","Common Flameback",
+  specieslist$rt[specieslist$COMMON.NAME %in% c("Besra","Horsfield's Bushlark","Common Flameback",
                                                 "Eastern Orphean Warbler","Richard's Pipit")] = NA
   
   restrictedspecieslist  = data.frame(species = specieslist$COMMON.NAME)
@@ -1445,10 +1445,10 @@ dataspeciesfilter = function(datapath = "data.RData",
   names(restrictedspecieslist) = c("COMMON.NAME","ht","rt")
   
   restrictedspecieslist$ht[restrictedspecieslist$COMMON.NAME %in% 
-                             c("Besra","Horsefield's Bushlark","Common Flameback",
+                             c("Besra","Horsfield's Bushlark","Common Flameback",
                                "Eastern Orphean Warbler","Richard's Pipit")] = NA
   restrictedspecieslist$rt[restrictedspecieslist$COMMON.NAME %in% 
-                             c("Besra","Horsefield's Bushlark","Common Flameback",
+                             c("Besra","Horsfield's Bushlark","Common Flameback",
                                "Eastern Orphean Warbler","Richard's Pipit")] = NA
   
   # select only openland species
@@ -1710,9 +1710,9 @@ dataspeciesfilter = function(datapath = "data.RData",
   dataf$rt[dataf$Breeding.Activity.Period == "Nocturnal" &
              dataf$Non.Breeding.Activity.Period == "Nocturnal"] = NA
   
-  specieslist$ht[specieslist$COMMON.NAME %in% c("Besra","Horsefield's Bushlark","Common Flameback",
+  specieslist$ht[specieslist$COMMON.NAME %in% c("Besra","Horsfield's Bushlark","Common Flameback",
                                                 "Eastern Orphean Warbler","Richard's Pipit")] = NA
-  specieslist$rt[specieslist$COMMON.NAME %in% c("Besra","Horsefield's Bushlark","Common Flameback",
+  specieslist$rt[specieslist$COMMON.NAME %in% c("Besra","Horsfield's Bushlark","Common Flameback",
                                                 "Eastern Orphean Warbler","Richard's Pipit")] = NA
   
   restrictedspecieslist  = data.frame(species = specieslist$COMMON.NAME)
@@ -1725,10 +1725,10 @@ dataspeciesfilter = function(datapath = "data.RData",
   names(restrictedspecieslist) = c("COMMON.NAME","ht","rt")
   
   restrictedspecieslist$ht[restrictedspecieslist$COMMON.NAME %in% 
-                             c("Besra","Horsefield's Bushlark","Common Flameback",
+                             c("Besra","Horsfield's Bushlark","Common Flameback",
                                "Eastern Orphean Warbler","Richard's Pipit")] = NA
   restrictedspecieslist$rt[restrictedspecieslist$COMMON.NAME %in% 
-                             c("Besra","Horsefield's Bushlark","Common Flameback",
+                             c("Besra","Horsfield's Bushlark","Common Flameback",
                                "Eastern Orphean Warbler","Richard's Pipit")] = NA
   
   check1 = restrictedspecieslist$COMMON.NAME[!is.na(restrictedspecieslist$ht)]
