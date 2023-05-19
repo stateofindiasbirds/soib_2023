@@ -182,7 +182,7 @@ readcleanrawdata = function(rawpath = "ebd_IN_relFeb-2023.txt",
   assign("data",data,.GlobalEnv)
   
   # save workspace
-  save(data, file="rawdata.RData")
+  save(data, file="00_data/rawdata.RData")
   rm(data, pos = ".GlobalEnv")
 }
 
@@ -198,12 +198,12 @@ readcleanrawdata = function(rawpath = "ebd_IN_relFeb-2023.txt",
 ## prepare data for analyses, add map variables, grids
 ## place the 'maps_sf' and "grids_g0_sf" workspaces in the working directory
 
-addmapvars = function(datapath = "rawdata.RData", 
-                      mappath1 = "grids_sf_full.RData", 
-                      mappath2 = "grids_g0_sf.RData",
-                      mappath3 = "maps_sf.RData",
-                      papath = "maps_pa_sf.RData",
-                      maskspath = "habmasks_sf.RData")
+addmapvars = function(datapath = "00_data/rawdata.RData", 
+                      mappath1 = "00_data/grids_sf_full.RData", 
+                      mappath2 = "00_data/grids_g0_sf.RData",
+                      mappath3 = "00_data/maps_sf.RData",
+                      papath = "00_data/maps_pa_sf.RData",
+                      maskspath = "00_data/habmasks_sf.RData")
 {
   require(tidyverse)
   require(sf)
@@ -261,7 +261,7 @@ addmapvars = function(datapath = "rawdata.RData",
   
   assign("data",data,.GlobalEnv)
 
-  save(data, file="data.RData")
+  save(data, file="00_data/data.RData")
   rm(data, pos = ".GlobalEnv")
 }
 
@@ -350,7 +350,7 @@ removevagrants = function(data)
   d = d %>%
     filter(year > 2014)
   
-  save(d,file = "vagrantdata.RData")
+  save(d,file = "00_data/vagrantdata.RData")
   
   data = anti_join(data,d)
   return(data)
@@ -363,7 +363,7 @@ removevagrants = function(data)
 ## select species for State of India's Birds, and species for historical and recent trends
 ## includes all diurnal endemics (endemicity) and essential species (SelectSpecies)
 
-dataspeciesfilter = function(datapath = "data.RData",
+dataspeciesfilter = function(datapath = "00_data/data.RData",
                              locationlimit = 15,gridlimit = 4,listlimit = 50)
 {
   require(tidyverse)
@@ -439,7 +439,7 @@ dataspeciesfilter = function(datapath = "data.RData",
   data_base = data
   
   data0 = data_base %>% select(-REVIEWED,-APPROVED,-cyear)
-  save(data0,file = "dataforanalyses_extra.RData")
+  save(data0,file = "00_data/dataforanalyses_extra.RData")
   
   
   #### full country
@@ -697,8 +697,8 @@ dataspeciesfilter = function(datapath = "data.RData",
     distinct(LOCALITY.ID,group.id,month,timegroups)
   write.csv(locs_write,"sub_samp_locs.csv",row.names = F)
   
-  save(specieslist,restrictedspecieslist,databins,file = "specieslists.RData")
-  save(data,sampledcells,databins,stats,file = "dataforanalyses.RData")
+  save(specieslist,restrictedspecieslist,databins,file = "00_data/specieslists.RData")
+  save(data,sampledcells,databins,stats,file = "00_data/dataforanalyses.RData")
   
   
   
@@ -1916,7 +1916,7 @@ occufreq = function(data, species, areag, rerun = F, datatofill)
   require(data.table)
   require(unmarked)
   
-  load("neighbours.RData")
+  load("00_data/neighbours.RData")
   
   migstatus = read.csv("Migratory Status - Migratory Status.csv")
 

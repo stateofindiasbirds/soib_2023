@@ -21,4 +21,4 @@ n_distinct(z$GROUP.ID)
 
 lost <- anti_join(x, z)
   
-save(lost, file = "lostwithdistance.RData")
+save(lost, file = "00_data/lostwithdistance.RData")

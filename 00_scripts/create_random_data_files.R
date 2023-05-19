@@ -6,8 +6,8 @@ require(tidyverse)
 
 source('00_scripts/SoIBv2_functions.R')
 
-load("dataforanalyses.RData")
-load("randomgroupids.RData")
+load("00_data/dataforanalyses.RData")
+load("00_data/randomgroupids.RData")
 
 dir.create("dataforsim")
 

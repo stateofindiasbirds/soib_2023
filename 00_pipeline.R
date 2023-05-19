@@ -26,7 +26,7 @@ readcleanrawdata("ebd_IN_relFeb-2023.txt","ebd_sensitive_relFeb-2023_IN.txt")
 ## has to be run after the previous step
 ## requires R packages tidyverse, data.table, sp and rgeos
 ## data.RData and maps.RData files MUST BE in the working directory
-## writes 'data.RData' to the home folder
+## writes '00_data/data.RData' to the home folder
 
 source('00_scripts/SoIBv2_functions.R')
 addmapvars()
@@ -37,7 +37,7 @@ addmapvars()
 ## "indiaspecieslist.csv", "Activity - Activity.csv", "Migratory Status - Migratory Status.csv",
 ## "Endemicity - Endemicity.csv", "Select Species from List - Select Species from List.csv"
 ## and data.RData files MUST BE in the home folder
-## writes 'dataforanalyses.RData' to the home folder, workspace contains info about
+## writes '00_data/dataforanalyses.RData' to the home folder, workspace contains info about
 ## amount of data in each temporal bin, full species list (with all attribute columns) 
 ## and selected species list, data
 
@@ -74,7 +74,7 @@ occ = SoIBoccupancy(data,species,areag=areag1)
 ## for the final run, species = specieslist$COMMON.NAME (or this incrementally)
 
 source('00_scripts/SoIBv2_functions.R')
-load("dataforanalyses.RData")
+load("00_data/dataforanalyses.RData")
 #load("finaloccupancy.RData")
 
 #occ = SoIBoccupancy(data,species = specieslist$COMMON.NAME[1],areag = areag1)

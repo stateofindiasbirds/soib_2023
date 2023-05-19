@@ -7,7 +7,7 @@ require(doParallel)
 
 source('00_scripts/SoIBv2_functions.R')
 
-load("specieslists.RData")
+load("00_data/specieslists.RData")
 lsa = specieslist %>% filter(!is.na(ht) | !is.na(rt))
 listofspecies = c(lsa$COMMON.NAME,restrictedspecieslist$COMMON.NAME)
 speclen = length(listofspecies)

@@ -28,6 +28,6 @@ randomgroupids = foreach(i=1:1000, .combine='cbind') %dopar%
 
 parallel::stopCluster(cl = my.cluster)
 
-save(randomgroupids,file = "randomgroupids.RData")
+save(randomgroupids,file = "00_data/randomgroupids.RData")
 
 rm(list = ls())

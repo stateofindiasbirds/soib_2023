@@ -5,13 +5,13 @@
 *.Rproj
 
 # RData files
-rawdata.RData
-data.RData
-dataforanalyses.RData
-dataforanalyses_extra.RData
-maps_pa_sf.RData
-randomgroupids.RData
-lostwithdistance.RData
+00_data/rawdata.RData
+00_data/data.RData
+00_data/dataforanalyses.RData
+00_data/dataforanalyses_extra.RData
+00_data/maps_pa_sf.RData
+00_data/randomgroupids.RData
+00_data/lostwithdistance.RData
 
 # raw data files
 *.txt

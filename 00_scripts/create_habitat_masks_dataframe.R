@@ -7,4 +7,4 @@ habmasks_sf <- geojson_sf("soibV2GridsIN_habMasksAdded.geojson") %>%
   mutate(woodland = NULL, cropland = NULL, one = NULL) %>% 
   st_drop_geometry()
 
-save(habmasks_sf, file = "habmasks_sf.RData")
+save(habmasks_sf, file = "00_data/habmasks_sf.RData")
