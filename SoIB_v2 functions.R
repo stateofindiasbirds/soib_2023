@@ -208,7 +208,7 @@ readcleanrawdata = function(rawpath = "ebd_IN_relFeb-2023.txt",
            #fort = ceiling(day/14),
            cyear = year(OBSERVATION.DATE)) %>%
     dplyr::select(-c("OBSERVATION.DATE")) %>%
-    mutate(year = ifelse(day <= 151, cyear-1, cyear)) %>%
+    mutate(year = ifelse(month > 5, cyear, cyear-1)) %>% # from June to May
     group_by(group.id) %>% mutate(no.sp = n_distinct(COMMON.NAME)) %>%
     ungroup
   
