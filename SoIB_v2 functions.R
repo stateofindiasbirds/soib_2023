@@ -454,28 +454,15 @@ dataspeciesfilter = function(datapath = "data.RData",
     filter(!EXOTIC.CODE %in% c("X"))
   
   data = data %>%
-    mutate(timegroups = as.character(year)) %>%
-    mutate(timegroups = ifelse(year <= 1999, "before 2000", timegroups)) %>%
-    mutate(timegroups = ifelse(year > 1999 & year <= 2006, "2000-2006", timegroups)) %>%
-    mutate(timegroups = ifelse(year > 2006 & year <= 2010, "2007-2010", timegroups)) %>%
-    mutate(timegroups = ifelse(year > 2010 & year <= 2012, "2011-2012", timegroups)) %>%
-    mutate(timegroups = ifelse(year == 2013, "2013", timegroups)) %>%
-    mutate(timegroups = ifelse(year == 2014, "2014", timegroups)) %>%
-    mutate(timegroups = ifelse(year == 2015, "2015", timegroups)) %>%
-    mutate(timegroups = ifelse(year == 2016, "2016", timegroups)) %>%
-    mutate(timegroups = ifelse(year == 2017, "2017", timegroups)) %>%
-    mutate(timegroups = ifelse(year == 2018, "2018", timegroups)) %>%
-    mutate(timegroups = ifelse(year == 2019, "2019", timegroups)) %>%
-    mutate(timegroups = ifelse(year == 2020, "2020", timegroups)) %>%
-    mutate(timegroups = ifelse(year == 2021, "2021", timegroups)) %>%
-    mutate(timegroups = ifelse(year == 2022, "2022", timegroups))
-  
-  data = data %>%
-    mutate(timegroups1 = as.character(year)) %>%
-    mutate(timegroups1 = ifelse(year <= 2006, "before 2006", timegroups1)) %>%
-    mutate(timegroups1 = ifelse(year > 2006 & year <= 2014, "2007-2014", timegroups1)) %>%
-    mutate(timegroups1 = ifelse(year > 2014 & year <= 2019, "2015-2019", timegroups1)) %>%
-    mutate(timegroups1 = ifelse(year > 2019, "2020-2022", timegroups1))
+    mutate(timegroups = case_when(year <= 1999 ~ "before 2000",
+                                  year > 1999 & year <= 2006 ~ "2000-2006",
+                                  year > 2006 & year <= 2010 ~ "2007-2010",
+                                  year > 2010 & year <= 2012 ~ "2011-2012",
+                                  year >= 2013 ~ as.character(year))) %>% 
+    mutate(timegroups1 = case_when(year <= 2006 ~ "before 2006",
+                                   year > 2006 & year <= 2014 ~ "2007-2014",
+                                   year > 2014 & year <= 2019 ~ "2015-2019",
+                                   year > 2019 ~ "2020-2022"))
   
   data = removevagrants(data)
 
