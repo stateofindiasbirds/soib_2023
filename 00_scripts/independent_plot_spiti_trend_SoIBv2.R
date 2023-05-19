@@ -11,8 +11,8 @@ library(stringr)
 
 ## independent density
 
-indtrends = read.csv("data_independent/spiti_forplot_spec.csv")
-indtrends_hab = read.csv("data_independent/spiti_forplot_hab.csv")
+indtrends = read.csv("00_data/data_independent/spiti_forplot_spec.csv")
+indtrends_hab = read.csv("00_data/data_independent/spiti_forplot_hab.csv")
 selectspecies = unique(indtrends$COMMON.NAME)
 selectspecies_hab = unique(indtrends_hab$COMMON.NAME)
 

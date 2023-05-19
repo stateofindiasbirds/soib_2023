@@ -3,8 +3,8 @@
 ## read and clean raw data and add important columns like group id, seaonality variables
 ## place raw txt file (India download) in working directory 
 
-readcleanrawdata = function(rawpath = "ebd_IN_relFeb-2023.txt", 
-                            sensitivepath = "ebd_sensitive_relFeb-2023_IN.txt")
+readcleanrawdata = function(rawpath = "00_data/ebd_IN_relFeb-2023.txt", 
+                            sensitivepath = "00_data/ebd_sensitive_relFeb-2023_IN.txt")
 {
   require(lubridate)
   require(tidyverse)
