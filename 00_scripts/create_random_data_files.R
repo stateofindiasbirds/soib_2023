@@ -4,7 +4,7 @@
 
 require(tidyverse)
 
-source('SoIB_v2 functions.R')
+source('00_scripts/SoIBv2_functions.R')
 
 load("dataforanalyses.RData")
 load("randomgroupids.RData")

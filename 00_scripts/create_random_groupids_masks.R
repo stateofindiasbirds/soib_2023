@@ -10,7 +10,7 @@ require(doParallel)
 
 ## woodland
 
-source('SoIB_v2 functions.R')
+source('00_scripts/SoIBv2_functions.R')
 locs = read.csv("masks_analyses/sub_samp_locs_mask_woodland.csv")
 
 n.cores = parallel::detectCores()/2
@@ -41,7 +41,7 @@ gc()
 
 ## cropland
 
-source('SoIB_v2 functions.R')
+source('00_scripts/SoIBv2_functions.R')
 locs = read.csv("masks_analyses/sub_samp_locs_mask_cropland.csv")
 
 n.cores = parallel::detectCores()/2
@@ -73,7 +73,7 @@ gc()
 
 ## oneland
 
-source('SoIB_v2 functions.R')
+source('00_scripts/SoIBv2_functions.R')
 locs = read.csv("masks_analyses/sub_samp_locs_mask_oneland.csv")
 
 n.cores = parallel::detectCores()/2
@@ -106,7 +106,7 @@ gc()
 
 ## pa
 
-source('SoIB_v2 functions.R')
+source('00_scripts/SoIBv2_functions.R')
 locs = read.csv("masks_analyses/sub_samp_locs_mask_pa.csv")
 
 n.cores = parallel::detectCores()/2
