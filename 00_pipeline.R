@@ -19,7 +19,7 @@
 ## writes 'indiaspecieslist.csv' (common and scientific names of all species)
 ## writes 'rawdata.RData' to the home folder
 
-source('SoIB_v2 functions.R')
+source('00_scripts/SoIBv2_functions.R')
 readcleanrawdata("ebd_IN_relFeb-2023.txt","ebd_sensitive_relFeb-2023_IN.txt") 
 
 ## add map and grid variables to the dataset (dataframe)
@@ -28,7 +28,7 @@ readcleanrawdata("ebd_IN_relFeb-2023.txt","ebd_sensitive_relFeb-2023_IN.txt")
 ## data.RData and maps.RData files MUST BE in the working directory
 ## writes 'data.RData' to the home folder
 
-source('SoIB_v2 functions.R')
+source('00_scripts/SoIBv2_functions.R')
 addmapvars()
 
 ## clean up and filter data for analyses
@@ -41,7 +41,7 @@ addmapvars()
 ## amount of data in each temporal bin, full species list (with all attribute columns) 
 ## and selected species list, data
 
-source('SoIB_v2 functions.R')
+source('00_scripts/SoIBv2_functions.R')
 dataspeciesfilter(locationlimit = 15,gridlimit = 4,listlimit = 50)
 
 
@@ -68,12 +68,12 @@ dataspeciesfilter(locationlimit = 15,gridlimit = 4,listlimit = 50)
 ## returns a dataframe with occupancy values
 
 
-source('SoIB_v2 functions.R')
+source('00_scripts/SoIBv2_functions.R')
 occ = SoIBoccupancy(data,species,areag=areag1)
 
 ## for the final run, species = specieslist$COMMON.NAME (or this incrementally)
 
-source('SoIB_v2 functions.R')
+source('00_scripts/SoIBv2_functions.R')
 load("dataforanalyses.RData")
 #load("finaloccupancy.RData")
 
