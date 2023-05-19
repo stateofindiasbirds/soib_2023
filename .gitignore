@@ -11,6 +11,7 @@ dataforanalyses.RData
 dataforanalyses_extra.RData
 maps_pa_sf.RData
 randomgroupids.RData
+lostwithdistance.RData
 
 # raw data files
 *.txt
