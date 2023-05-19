@@ -90,105 +90,66 @@ readcleanrawdata = function(rawpath = "ebd_IN_relFeb-2023.txt",
     mutate(group.id = ifelse(is.na(GROUP.IDENTIFIER), SAMPLING.EVENT.IDENTIFIER, GROUP.IDENTIFIER))
   
   data = data %>%
-    mutate(COMMON.NAME = replace(COMMON.NAME, COMMON.NAME == "Green Warbler", "Greenish Warbler")) %>%
-    mutate(CATEGORY = replace(CATEGORY, COMMON.NAME == "Green/Greenish Warbler",
-                              "species")) %>%
-    mutate(COMMON.NAME = replace(COMMON.NAME, COMMON.NAME == "Green/Greenish Warbler",
-                                 "Greenish Warbler")) %>%
-    mutate(COMMON.NAME = replace(COMMON.NAME, COMMON.NAME == "Amur Stonechat", "Siberian Stonechat")) %>%
-    mutate(CATEGORY = replace(CATEGORY, COMMON.NAME == "Siberian/Amur Stonechat",
-                              "species")) %>%
-    mutate(COMMON.NAME = replace(COMMON.NAME, COMMON.NAME == "Siberian/Amur Stonechat",
-                                 "Siberian Stonechat")) %>%
-    mutate(COMMON.NAME = replace(COMMON.NAME, COMMON.NAME == "Red-necked Stint", "Little Stint")) %>%
-    mutate(CATEGORY = replace(CATEGORY, COMMON.NAME == "Red-necked/Little Stint",
-                              "species")) %>%
-    mutate(COMMON.NAME = replace(COMMON.NAME, COMMON.NAME == "Red-necked Stint/Little",
-                                 "Little Stint")) %>%
-    mutate(COMMON.NAME = replace(COMMON.NAME, COMMON.NAME == "Eastern Yellow Wagtail", "Western Yellow Wagtail")) %>%
-    mutate(CATEGORY = replace(CATEGORY, COMMON.NAME == "Western/Eastern Yellow Wagtail",
-                              "species")) %>%
-    mutate(COMMON.NAME = replace(COMMON.NAME, COMMON.NAME == "Western/Eastern Yellow Wagtail",
-                                 "Western Yellow Wagtail")) %>%
-    mutate(COMMON.NAME = replace(COMMON.NAME, COMMON.NAME == "Himalayan Buzzard", "Common Buzzard")) %>%
-    mutate(CATEGORY = replace(CATEGORY, COMMON.NAME == "Common/Himalayan Buzzard",
-                              "species")) %>%
-    mutate(COMMON.NAME = replace(COMMON.NAME, COMMON.NAME == "Common/Himalayan Buzzard",
-                                 "Common Buzzard")) %>%
-    mutate(COMMON.NAME = replace(COMMON.NAME, COMMON.NAME == "Eastern Marsh-Harrier", "Eurasian Marsh-Harrier")) %>%
-    mutate(CATEGORY = replace(CATEGORY, COMMON.NAME == "Eurasian/Eastern Marsh-Harrier",
-                              "species")) %>%
-    mutate(COMMON.NAME = replace(COMMON.NAME, COMMON.NAME == "Eurasian/Eastern Marsh-Harrier",
-                                 "Eurasian Marsh-Harrier")) %>%
-    mutate(COMMON.NAME = replace(COMMON.NAME, COMMON.NAME == "Greater Sand-Plover", "Lesser Sand-Plover")) %>%
-    mutate(CATEGORY = replace(CATEGORY, COMMON.NAME == "Lesser/Greater Sand-Plover",
-                              "species")) %>%
-    mutate(COMMON.NAME = replace(COMMON.NAME, COMMON.NAME == "Lesser/Greater Sand-Plover",
-                                 "Lesser Sand-Plover")) %>%
-    mutate(COMMON.NAME = replace(COMMON.NAME, COMMON.NAME == "Baikal Bush Warbler", "Spotted Bush Warbler")) %>%
-    mutate(CATEGORY = replace(CATEGORY, COMMON.NAME == "Baikal/Spotted Bush Warbler",
-                              "species")) %>%
-    mutate(COMMON.NAME = replace(COMMON.NAME, COMMON.NAME == "Baikal/Spotted Bush Warbler",
-                                 "Spotted Bush Warbler")) %>%
-    mutate(COMMON.NAME = replace(COMMON.NAME, COMMON.NAME == "Sichuan Leaf Warbler", "Lemon-rumped Warbler")) %>%
-    mutate(CATEGORY = replace(CATEGORY, COMMON.NAME == "Lemon-rumped/Sichuan Leaf Warbler",
-                              "species")) %>%
-    mutate(COMMON.NAME = replace(COMMON.NAME, COMMON.NAME == "Lemon-rumped/Sichuan Leaf Warbler",
-                                 "Lemon-rumped Warbler")) %>%
-    mutate(COMMON.NAME = replace(COMMON.NAME, COMMON.NAME == "Striated Swallow", "Red-rumped Swallow")) %>%
-    mutate(CATEGORY = replace(CATEGORY, COMMON.NAME == "Red-rumped/Striated Swallow",
-                              "species")) %>%
-    mutate(COMMON.NAME = replace(COMMON.NAME, COMMON.NAME == "Red-rumped/Striated Swallow",
-                                 "Red-rumped Swallow")) %>%
-    mutate(COMMON.NAME = replace(COMMON.NAME, COMMON.NAME == "Pale Sand Martin", "Gray-throated Martin")) %>%
-    mutate(CATEGORY = replace(CATEGORY, COMMON.NAME == "Bank Swallow/Pale Sand Martin",
-                              "species")) %>%
-    mutate(COMMON.NAME = replace(COMMON.NAME, COMMON.NAME == "Bank Swallow/Pale Sand Martin",
-                                 "Gray-throated Martin")) %>%
-    mutate(CATEGORY = replace(CATEGORY, COMMON.NAME == "Riparia sp.",
-                              "species")) %>%
-    mutate(COMMON.NAME = replace(COMMON.NAME, COMMON.NAME == "Riparia sp.", 
-                                 "Gray-throated Martin")) %>%
-    mutate(COMMON.NAME = replace(COMMON.NAME, COMMON.NAME == "Mongolian Short-toed Lark", 
-                                 "Greater Short-toed Lark")) %>%
-    mutate(CATEGORY = replace(CATEGORY, COMMON.NAME == "Greater/Mongolian Short-toed Lark",
-                              "species")) %>%
-    mutate(COMMON.NAME = replace(COMMON.NAME, COMMON.NAME == "Greater/Mongolian Short-toed Lark", 
-                                 "Greater Short-toed Lark")) %>%
-    mutate(COMMON.NAME = replace(COMMON.NAME, COMMON.NAME == "Taiga Flycatcher", 
-                                 "Red-breasted Flycatcher")) %>%
-    mutate(CATEGORY = replace(CATEGORY, COMMON.NAME == "Taiga/Red-breasted Flycatcher",
-                              "species")) %>%
-    mutate(COMMON.NAME = replace(COMMON.NAME, COMMON.NAME == "Taiga/Red-breasted Flycatcher", 
-                                 "Red-breasted Flycatcher")) %>%
-    mutate(COMMON.NAME = replace(COMMON.NAME, COMMON.NAME == "Chestnut Munia", 
-                                 "Tricolored Munia")) %>%
-    mutate(CATEGORY = replace(CATEGORY, COMMON.NAME == "Tricolored x Chestnut Munia (hybrid)",
-                                "species")) %>%
-    mutate(COMMON.NAME = replace(COMMON.NAME, COMMON.NAME == "Tricolored x Chestnut Munia (hybrid)", 
-                                   "Tricolored Munia")) %>%
-    mutate(COMMON.NAME = replace(COMMON.NAME, COMMON.NAME == "House Swift", 
-                                 "Little Swift")) %>%
-    mutate(CATEGORY = replace(CATEGORY, COMMON.NAME == "Little/House Swift",
-                                "species")) %>%
-    mutate(COMMON.NAME = replace(COMMON.NAME, COMMON.NAME == "Little/House Swift", 
-                                   "Little Swift")) %>%
-    mutate(COMMON.NAME = replace(COMMON.NAME, COMMON.NAME == "Swinhoe's Snipe", 
-                                 "Pin-tailed Snipe")) %>%
-    mutate(CATEGORY = replace(CATEGORY, COMMON.NAME == "Pin-tailed/Swinhoe's Snipe",
-                              "species")) %>%
-    mutate(COMMON.NAME = replace(COMMON.NAME, COMMON.NAME == "Pin-tailed/Swinhoe's Snipe", 
-                                 "Pin-tailed Snipe")) %>%
-    mutate(COMMON.NAME = replace(COMMON.NAME, COMMON.NAME == "Sykes's Warbler", 
-                                 "Booted Warbler")) %>%
-    mutate(CATEGORY = replace(CATEGORY, COMMON.NAME == "Booted/Sykes's Warbler",
-                              "species")) %>%
-    mutate(COMMON.NAME = replace(COMMON.NAME, COMMON.NAME == "Booted/Sykes's Warbler", 
-                                 "Booted Warbler")) %>%
-    mutate(CATEGORY = replace(CATEGORY, COMMON.NAME == "Iduna sp.",
-                              "species")) %>%
-    mutate(COMMON.NAME = replace(COMMON.NAME, COMMON.NAME == "Iduna sp.", 
-                                 "Booted Warbler"))
+    # need to combine several closely related species and slashes/spuhs
+    # so, first changing their category to species since they will be combined next
+    mutate(CATEGORY = case_when(COMMON.NAME %in% c("Green/Greenish Warbler",
+                                                   "Siberian/Amur Stonechat",
+                                                   "Red-necked/Little Stint",
+                                                   "Western/Eastern Yellow Wagtail",
+                                                   "Common/Himalayan Buzzard",
+                                                   "Eurasian/Eastern Marsh-Harrier",
+                                                   "Lesser/Greater Sand-Plover",
+                                                   "Baikal/Spotted Bush Warbler",
+                                                   "Lemon-rumped/Sichuan Leaf Warbler",
+                                                   "Red-rumped/Striated Swallow",
+                                                   "Bank Swallow/Pale Sand Martin",
+                                                   "Riparia sp.",
+                                                   "Greater/Mongolian Short-toed Lark",
+                                                   "Taiga/Red-breasted Flycatcher",
+                                                   "Tricolored x Chestnut Munia (hybrid)",
+                                                   "Little/House Swift",
+                                                   "Pin-tailed/Swinhoe's Snipe",
+                                                   "Booted/Sykes's Warbler",
+                                                   "Iduna sp.") ~ "species",
+                                TRUE ~ CATEGORY)) %>%
+    # combining species, slashes and spuhs
+    mutate(COMMON.NAME = case_when(
+      (COMMON.NAME == "Green Warbler" | COMMON.NAME == "Green/Greenish Warbler") ~ 
+        "Greenish Warbler",
+      (COMMON.NAME == "Amur Stonechat" | COMMON.NAME == "Siberian/Amur Stonechat") ~ 
+        "Siberian Stonechat",
+      (COMMON.NAME == "Red-necked Stint" | COMMON.NAME == "Red-necked/Little Stint") ~ 
+        "Little Stint",
+      (COMMON.NAME == "Eastern Yellow Wagtail" | COMMON.NAME == "Western/Eastern Yellow Wagtail") ~ 
+        "Western Yellow Wagtail",
+      (COMMON.NAME == "Himalayan Buzzard" | COMMON.NAME == "Common/Himalayan Buzzard") ~ 
+        "Common Buzzard",
+      (COMMON.NAME == "Eastern Marsh-Harrier" | COMMON.NAME == "Eurasian/Eastern Marsh-Harrier") ~ 
+        "Eurasian Marsh-Harrier",
+      (COMMON.NAME == "Greater Sand-Plover" | COMMON.NAME == "Lesser/Greater Sand-Plover") ~ 
+        "Lesser Sand-Plover",
+      (COMMON.NAME == "Baikal Bush Warbler" | COMMON.NAME == "Baikal/Spotted Bush Warbler") ~ 
+        "Spotted Bush Warbler",
+      (COMMON.NAME == "Sichuan Leaf Warbler" | COMMON.NAME == "Lemon-rumped/Sichuan Leaf Warbler") ~ 
+        "Lemon-rumped Warbler",
+      (COMMON.NAME == "Striated Swallow" | COMMON.NAME == "Red-rumped/Striated Swallow") ~ 
+        "Red-rumped Swallow",
+      (COMMON.NAME == "Pale Sand Martin" | COMMON.NAME == "Bank Swallow/Pale Sand Martin" | COMMON.NAME == "Riparia sp.") ~ 
+        "Gray-throated Martin",
+      (COMMON.NAME == "Mongolian Short-toed Lark" | COMMON.NAME == "Greater/Mongolian Short-toed Lark") ~ 
+        "Greater Short-toed Lark",
+      (COMMON.NAME == "Taiga Flycatcher" | COMMON.NAME == "Taiga/Red-breasted Flycatcher") ~ 
+        "Red-breasted Flycatcher",
+      (COMMON.NAME == "Chestnut Munia" | COMMON.NAME == "Tricolored x Chestnut Munia (hybrid)") ~ 
+        "Tricolored Munia",
+      (COMMON.NAME == "House Swift" | COMMON.NAME == "Little/House Swift") ~ 
+        "Little Swift",
+      (COMMON.NAME == "Swinhoe's Snipe" | COMMON.NAME == "Pin-tailed/Swinhoe's Snipe") ~ 
+        "Pin-tailed Snipe",
+      (COMMON.NAME == "Sykes's Warbler" | COMMON.NAME == "Booted/Sykes's Warbler" | COMMON.NAME == "Iduna sp.") ~ 
+        "Booted Warbler",
+      TRUE ~ COMMON.NAME
+    ))
   
   ## setup eBird data ##
   
