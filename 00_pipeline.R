@@ -20,7 +20,7 @@
 ## writes 'rawdata.RData' to the home folder
 
 source('00_scripts/SoIBv2_functions.R')
-readcleanrawdata("ebd_IN_relFeb-2023.txt","ebd_sensitive_relFeb-2023_IN.txt") 
+readcleanrawdata("00_data/ebd_IN_relFeb-2023.txt","00_data/ebd_sensitive_relFeb-2023_IN.txt") 
 
 ## add map and grid variables to the dataset (dataframe)
 ## has to be run after the previous step
