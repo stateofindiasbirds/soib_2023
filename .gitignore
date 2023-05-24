@@ -18,6 +18,9 @@
 *.xlsx
 *.zip
 
+# 200 large CSVs
+dataforsim/
+
 # image outputs
 *.gif
 *.jpeg

@@ -1,6 +1,6 @@
-### readcleanrawdata ########################################
+### 01 readcleanrawdata ########################################
 
-## read and clean raw data and add important columns like group id, seaonality variables
+## read and clean raw data and add important columns like group id, seasonality variables
 ## place raw txt file (India download) in working directory 
 
 readcleanrawdata = function(rawpath = "00_data/ebd_IN_relFeb-2023.txt", 
@@ -186,17 +186,14 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_relFeb-2023.txt",
   rm(data, pos = ".GlobalEnv")
 }
 
-### createmaps ########################################
+### 02 addmapvars ########################################
 
-
-## Refer to the India Maps repository
-
-
-### addmapvars ########################################
-
-
-## prepare data for analyses, add map variables, grids
-## place the 'maps_sf' and "grids_g0_sf" workspaces in the working directory
+# Load sf map objects and add to dataset. 
+# - admin & PA boundaries;
+# - square grids at 5 resolutions (5, 25, 50, 100, 200 km*km), unclipped and clipped to India;
+# - queen and rook neighbours info for 4 grids (25, 50, 100, 200)
+# See the India Maps repo:
+# https://github.com/birdcountindia/india-maps/blob/main/scripts/create_maps_sf.R
 
 addmapvars = function(datapath = "00_data/rawdata.RData", 
                       mappath1 = "00_data/grids_sf_full.RData", 
@@ -231,7 +228,6 @@ addmapvars = function(datapath = "00_data/rawdata.RData",
     st_set_crs(st_crs(india_sf)) %>%
     # PAs
     st_join(pa_sf %>% dplyr::select(NAME)) %>%
-    ###
     # grid cells
     st_join(g0_sf %>% dplyr::select(GRID.G0)) %>% 
     st_join(g1_sf %>% dplyr::select(GRID.G1)) %>% 
@@ -266,7 +262,7 @@ addmapvars = function(datapath = "00_data/rawdata.RData",
 }
 
 
-### completelistcheck ########################################
+###    completelistcheck ########################################
 
 ## remove all probable errors
 ## type can be "trends" or "range"
@@ -321,7 +317,7 @@ completelistcheck = function(data)
     select(-speed,-sut,-hr,-min,-end)
 }
 
-### removevagrants ########################################
+###    removevagrants ########################################
 
 ## remove vagrants
 ## to use in dataspeciesfilter()
@@ -358,13 +354,13 @@ removevagrants = function(data)
 
 
 
-### dataspeciesfilter ########################################
+### 03 dataspeciesfilter ########################################
 
 ## select species for State of India's Birds, and species for historical and recent trends
 ## includes all diurnal endemics (endemicity) and essential species (SelectSpecies)
 
 dataspeciesfilter = function(datapath = "00_data/data.RData",
-                             locationlimit = 15,gridlimit = 4,listlimit = 50)
+                             locationlimit = 15, gridlimit = 4, listlimit = 50)
 {
   require(tidyverse)
   require(DataCombine)
@@ -1799,12 +1795,6 @@ dataspeciesfilter = function(datapath = "00_data/data.RData",
   save(specieslist,restrictedspecieslist,databins,file = "masks_analyses/specieslists_mask_pa.RData")
   save(data,sampledcells,databins,stats,file = "masks_analyses/dataforanalyses_mask_pa.RData")
 }
-
-
-
-
-
-
 
 
 ### expandbyspecies ########################################
