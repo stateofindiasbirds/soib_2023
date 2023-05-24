@@ -272,49 +272,55 @@ completelistcheck = function(data)
 {
   require(tidyverse)
   require(lubridate)
+
+  data = data %>% 
+    # create 2 columns from the "TIME.OBSERVATIONS.STARTED' column
+    mutate(DATETIME = as_datetime(paste("2023-06-01", # any date, we just need the time
+                                        TIME.OBSERVATIONS.STARTED)),
+           hr = hour(DATETIME),
+           min = minute(DATETIME)) %>% 
+    # calculate speed and species/unit time (sut)
+    mutate(speed = EFFORT.DISTANCE.KM*60/DURATION.MINUTES, # kmph
+           sut = no.sp*60/DURATION.MINUTES, # species per hour
+           # calculate hour checklist ended
+           end = floor((hr*60 + min + DURATION.MINUTES)/60))
   
-  # create 2 columns from the "TIME.OBSERVATIONS.STARTED' column
-  temp = data.frame(data$TIME.OBSERVATIONS.STARTED)
-  temp = temp %>%
-    separate(data.TIME.OBSERVATIONS.STARTED, c("hr","min"))
-  data = cbind(data,temp)
+  # set thresholds for speed and sut
+  vel = 20
+  time = 2
   
-  # calculate speed and species/unit time (sut)
-  data = data %>%
-    mutate(speed = EFFORT.DISTANCE.KM*60/DURATION.MINUTES,
-           sut = no.sp*60/DURATION.MINUTES) %>%
-    mutate(hr = as.numeric(hr), min = as.numeric(min)) %>%
-    mutate(end = floor((hr*60+min+DURATION.MINUTES)/60)) # caluclate time checklist ended
   
+  # exclude any list that may in fact be incomplete ###
+  
+  # list of on-paper complete lists
   temp = data %>%
     filter(ALL.SPECIES.REPORTED == 1, PROTOCOL.TYPE != "Incidental") %>%
     group_by(group.id) %>% slice(1)
   
-  # exclude any list that may in fact be incomplete
-  # set threshholds for speed and sut
-  
-  vel = 20
-  time = 2
-  
-  # choose checklists without info on duration with 3 or fewers species
+  # choose checklists without info on duration with 3 or fewer species
   grp = temp %>%
     filter(no.sp <= 3, is.na(DURATION.MINUTES)) %>%
     distinct(group.id)
   grp = grp$group.id
   
-  # exclude records based on verious criteria 
+  # exclude records based on various criteria 
   data = data %>%
-    mutate(ALL.SPECIES.REPORTED = 
-             case_when(ALL.SPECIES.REPORTED == 1 & (EFFORT.DISTANCE.KM > 10 | group.id %in% grp | 
-                                                      speed > vel | (sut < time & no.sp <= 3) | 
-                                                      PROTOCOL.TYPE == "Incidental" | 
-                                                      (!is.na(hr) & ((hr <= 4 & end <= 4) | 
-                                                                       (hr >= 20 & end <= 28)))) ~ 0, 
-                       ALL.SPECIES.REPORTED == 0 ~ 0,
-                       TRUE ~ 1))
-  
-  data = data %>%
-    select(-speed,-sut,-hr,-min,-end)
+    mutate(ALL.SPECIES.REPORTED = case_when(
+      # fake complete lists
+      ALL.SPECIES.REPORTED == 1 & 
+        (EFFORT.DISTANCE.KM > 10 | # remove travelling lists covering >10 km
+           group.id %in% grp | # lists without info on duration with 3 or fewer species
+           speed > vel | # too fast
+           (sut < time & no.sp <= 3) | # species per unit time too slow
+           PROTOCOL.TYPE == "Incidental" | # incidental
+           (!is.na(hr) & ((hr <= 4 & end <= 4) | # nocturnal filter
+                            (hr >= 20 & end <= 28)))) ~ 0, 
+      # true incomplete lists
+      ALL.SPECIES.REPORTED == 0 ~ 0,
+      # true complete lists
+      TRUE ~ 1
+    )) %>% 
+    dplyr::select(-speed,-sut,-hr,-min,-end) 
 }
 
 ###    removevagrants ########################################
@@ -325,6 +331,7 @@ completelistcheck = function(data)
 removevagrants = function(data)
 {
   fullmap = read.csv("SoIB_mapping_2022.csv")
+  
   migspecies = fullmap %>%
     filter(!Migratory.Status.Within.India %in% c("Resident",
                                                  "Resident & Altitudinal Migrant",
@@ -334,21 +341,23 @@ removevagrants = function(data)
                                                  "Resident & Localized Summer Migrant",
                                                  "Resident & Within-India Migrant",
                                                  "Resident (Extirpated)")) %>%
-    select(eBird.English.Name.2022)
-  migspecies = as.vector(migspecies$eBird.English.Name.2022)
+    dplyr::select(eBird.English.Name.2022) %>% 
+    as.vector() %>% 
+    list_c()
   
   d = data %>%
     filter(COMMON.NAME %in% migspecies) %>%
-    group_by(gridg4,month,COMMON.NAME) %>% reframe(nyear = n_distinct(year)) %>%
-    filter(nyear <= 3) %>% select(gridg4,month,COMMON.NAME)
+    group_by(gridg4, month, COMMON.NAME) %>%
+    reframe(nyear = n_distinct(year)) %>%
+    filter(nyear <= 3) %>% 
+    dplyr::select(gridg4, month, COMMON.NAME)
   
-  d = left_join(d,data)
-  d = d %>%
+  d = left_join(d, data) %>%
     filter(year > 2014)
   
-  save(d,file = "00_data/vagrantdata.RData")
+  save(d, file = "00_data/vagrantdata.RData")
   
-  data = anti_join(data,d)
+  data = anti_join(data, d)
   return(data)
 }
 
@@ -360,14 +369,19 @@ removevagrants = function(data)
 ## includes all diurnal endemics (endemicity) and essential species (SelectSpecies)
 
 dataspeciesfilter = function(datapath = "00_data/data.RData",
-                             locationlimit = 15, gridlimit = 4, listlimit = 50)
+                             # thresholds for species to be considered in each analysis
+                             locationlimit = 15, # individual locations
+                             gridlimit = 4, # grid cells
+                             listlimit = 50) # checklists
 {
-  require(tidyverse)
-  require(DataCombine)
+  # 0. preparing data ----------------------------------------------------------
 
-  
   fullmap = read.csv("SoIB_mapping_2022.csv")
-  resspecies = fullmap %>%
+  
+
+  # species info for different slices ###
+  
+  resident = fullmap %>%
     filter(Migratory.Status.Within.India %in% c("Resident",
                                                 "Resident & Altitudinal Migrant",
                                                 "Resident & Winter Migrant",
@@ -376,38 +390,42 @@ dataspeciesfilter = function(datapath = "00_data/data.RData",
                                                 "Resident & Localized Summer Migrant",
                                                 "Resident & Within-India Migrant",
                                                 "Resident (Extirpated)")) %>%
-    select(eBird.English.Name.2022)
-  resident = as.vector(resspecies$eBird.English.Name.2022)
+    dplyr::select(eBird.English.Name.2022) %>% 
+    as.vector() %>% 
+    list_c()
   
-  wdlspecies = fullmap %>%
+  woodland = fullmap %>%
     filter(Habitat.Specialization %in% c("Forest",
                                          "Forest & Plantation")) %>%
-    select(eBird.English.Name.2022)
-  woodland = as.vector(wdlspecies$eBird.English.Name.2022)
+    dplyr::select(eBird.English.Name.2022) %>% 
+    as.vector() %>% 
+    list_c()
   
-  opnspecies = fullmap %>%
+  openland = fullmap %>%
     filter(Habitat.Specialization %in% c("Alpine & Cold Desert",
                                          "Grassland",
                                          "Grassland & Scrub",
                                          "Open Habitat")) %>%
-    select(eBird.English.Name.2022)
-  openland = as.vector(opnspecies$eBird.English.Name.2022)
+    dplyr::select(eBird.English.Name.2022) %>% 
+    as.vector() %>% 
+    list_c()
   
+  
+  
+  # main data filtering ###
   
   load(datapath)
   
-  x1 = paste(nrow(data),"filter 0 observations")
-  x2 = paste(length(unique(data$group.id)),"filter 0 unique checklists")
+  # for stats/summary of data filtering and properties at each step
+  stats1 = paste(nrow(data),"filter 0 observations")
+  stats2 = paste(length(unique(data$group.id)),"filter 0 unique checklists")
   
-  data$gridg0 = as.character(data$gridg0)
-  data$gridg1 = as.character(data$gridg1)
-  data$gridg2 = as.character(data$gridg2)
-  data$gridg3 = as.character(data$gridg3)
-  data$gridg4 = as.character(data$gridg4)
-
   data = data %>%
+    # not considering travelling lists covering > 50km at all
     filter(is.na(EFFORT.DISTANCE.KM) | EFFORT.DISTANCE.KM <= 50) %>%
+    # data quality
     filter(REVIEWED == 0 | APPROVED == 1) %>%
+    # removing exotic species observations
     filter(!EXOTIC.CODE %in% c("X"))
   
   data = data %>%
@@ -421,288 +439,384 @@ dataspeciesfilter = function(datapath = "00_data/data.RData",
                                    year > 2014 & year <= 2019 ~ "2015-2019",
                                    year > 2019 ~ "2020-2022"))
   
-  data = removevagrants(data)
-
-  x3 = paste(nrow(data),"filter 1 observations")
-  x4 = paste(length(unique(data$group.id)),"filter 1 unique checklists")
-  x5 = paste(nrow(data[data$ALL.SPECIES.REPORTED == 1,]),
-             "filter 1 usable observations")
-  x6 = paste(length(unique(data[data$ALL.SPECIES.REPORTED == 1,]$group.id)),
-             "filter 1 unique complete checklists")
   
+  # removing vagrants
+  data = removevagrants(data)
+  
+  stats3 = paste(nrow(data),"filter 1 observations")
+  stats4 = paste(length(unique(data$group.id)),"filter 1 unique checklists")
+  stats5 = paste(nrow(data[data$ALL.SPECIES.REPORTED == 1,]),
+                 "filter 1 usable observations")
+  stats6 = paste(length(unique(data[data$ALL.SPECIES.REPORTED == 1,]$group.id)),
+                 "filter 1 unique complete checklists")
+  
+  # removing false complete lists
   data = completelistcheck(data)
+  
   
   data_base = data
   
   data0 = data_base %>% select(-REVIEWED,-APPROVED,-cyear)
-  save(data0,file = "00_data/dataforanalyses_extra.RData")
+  save(data0, file = "00_data/dataforanalyses_extra.RData")
   
   
-  #### full country
+  
+  # 1. processing: full country ------------------------------------------------------------
   
   data0 = data_base
-  data = data0 %>% select(-CATEGORY,-LOCALITY.ID,-REVIEWED,-APPROVED,-ST_NM,-DISTRICT,
-                         -LOCALITY.TYPE,-pa.name,-maskWdl,-maskCrp,-maskOne,
-                         -LATITUDE,-LONGITUDE,-TIME.OBSERVATIONS.STARTED,-PROTOCOL.TYPE,
-                         -DURATION.MINUTES,-EFFORT.DISTANCE.KM,-day,-cyear,-EXOTIC.CODE)
-
-  x7 = paste(nrow(data[data$ALL.SPECIES.REPORTED == 1,]),
-             "filter 1 usable observations")
-  x8 = paste(length(unique(data[data$ALL.SPECIES.REPORTED == 1,]$group.id)),
-             "filter 2 unique complete checklists")
-  x9 = paste(length(unique(data[data$timegroups == "before 2000" &
-                                  data$ALL.SPECIES.REPORTED == 1,]$group.id)),
-             "pre-2000 checklists")
+  data = data0 %>% select(-CATEGORY,-REVIEWED,-APPROVED,-ST_NM,-DISTRICT,
+                          -LOCALITY.TYPE,-LOCALITY.ID,-pa.name,-maskWdl,-maskCrp,-maskOne,
+                          -LATITUDE,-LONGITUDE,-PROTOCOL.TYPE,-EXOTIC.CODE,-day,-cyear,
+                          -DURATION.MINUTES,-TIME.OBSERVATIONS.STARTED,-EFFORT.DISTANCE.KM)
   
+  stats7 = paste(nrow(data[data$ALL.SPECIES.REPORTED == 1,]),
+                 "filter 1 usable observations")
+  stats8 = paste(length(unique(data[data$ALL.SPECIES.REPORTED == 1,]$group.id)),
+                 "filter 2 unique complete checklists")
+  stats9 = paste(length(unique(data[data$timegroups == "before 2000" &
+                                      data$ALL.SPECIES.REPORTED == 1,]$group.id)),
+                 "pre-2000 checklists")
+  
+  # summary for each timegroup
   databins = data %>%
     filter(ALL.SPECIES.REPORTED == 1) %>%
-    group_by(timegroups) %>% reframe(lists = n_distinct(group.id), year = round(median(year))) %>%
+    group_by(timegroups) %>% 
+    reframe(lists = n_distinct(group.id), 
+            year = round(median(year))) %>%
     arrange(year)
-
+  
+  
+  # historical data (data from before 2000 onwards), used for long-term trends
+  # gives list of species for which we have enough data and this analysis can be done
   datah = data0 %>%
-    filter(ALL.SPECIES.REPORTED == 1, CATEGORY == "species" | CATEGORY == "issf") %>%
-    group_by(COMMON.NAME,timegroups) %>% reframe(locs = n_distinct(LOCALITY.ID), 
-                                                   cells = n_distinct(gridg4)) %>%
-    group_by(COMMON.NAME,timegroups) %>%
+    filter(ALL.SPECIES.REPORTED == 1, 
+           CATEGORY %in% c("species", "issf")) %>%
+    group_by(COMMON.NAME, timegroups) %>%
+    reframe(locs = n_distinct(LOCALITY.ID), 
+            cells = n_distinct(gridg4)) %>%
+    group_by(COMMON.NAME, timegroups) %>%
     filter(locs > locationlimit, cells > gridlimit) %>%
-    group_by(COMMON.NAME) %>% reframe(years = n()) %>%
+    group_by(COMMON.NAME) %>% 
+    reframe(years = n()) %>%
     group_by(COMMON.NAME) %>%
     filter(years == 14) %>%
-    mutate(ht = 1) %>% select (COMMON.NAME,ht)
+    mutate(ht = 1) %>% 
+    dplyr::select(COMMON.NAME, ht)
   
+  # recent data (data from 2015 onwards), used for recent trends
+  # gives list of species for which we have enough data and this analysis can be done
   datar = data0 %>%
-    filter(ALL.SPECIES.REPORTED == 1, CATEGORY == "species" | CATEGORY == "issf", year > 2014) %>%
-    group_by(COMMON.NAME,year) %>% reframe(locs = n_distinct(LOCALITY.ID), 
-                                             cells = n_distinct(gridg4)) %>%
-    group_by(COMMON.NAME,year) %>%
+    filter(ALL.SPECIES.REPORTED == 1, 
+           CATEGORY %in% c("species", "issf"), 
+           year > 2014) %>%
+    group_by(COMMON.NAME, year) %>%
+    reframe(locs = n_distinct(LOCALITY.ID), 
+            cells = n_distinct(gridg4)) %>%
+    group_by(COMMON.NAME, year) %>%
     filter(locs > locationlimit, cells > gridlimit) %>%
-    group_by(COMMON.NAME) %>% reframe(years = n()) %>%
+    group_by(COMMON.NAME) %>% 
+    reframe(years = n()) %>%
     group_by(COMMON.NAME) %>%
     filter(years == 8) %>%
-    mutate(rt = 1) %>% select(COMMON.NAME,rt)
+    mutate(rt = 1) %>% 
+    dplyr::select(COMMON.NAME, rt)
   
+  
+  # for other species that don't qualify simple rules above (restricted range)
   dataresth1 = data0 %>%
-    filter(ALL.SPECIES.REPORTED == 1, CATEGORY == "species" | CATEGORY == "issf") %>%
-    group_by(COMMON.NAME,timegroups) %>% reframe(cells = n_distinct(gridg4)) %>%
-    group_by(COMMON.NAME,timegroups) %>%
+    filter(ALL.SPECIES.REPORTED == 1, 
+           CATEGORY %in% c("species", "issf")) %>%
+    group_by(COMMON.NAME, timegroups) %>%
+    reframe(cells = n_distinct(gridg4)) %>%
+    group_by(COMMON.NAME, timegroups) %>%
     filter(cells <= gridlimit) %>%
-    group_by(COMMON.NAME) %>% reframe(years = n()) %>%
+    group_by(COMMON.NAME) %>% 
+    reframe(years = n()) %>%
     group_by(COMMON.NAME) %>%
     filter(years == 14) %>%
-    select (COMMON.NAME)
+    dplyr::select(COMMON.NAME)
   
-  speciesresth = data.frame(species = intersect(unique(dataresth1$COMMON.NAME),resident))
-  speciesresth$validh = NA
+  speciesresth = data.frame(species = intersect(unique(dataresth1$COMMON.NAME),
+                                                resident),
+                            validh = NA_real_)
   
+  # if the grids in which species has been reported a few times have sufficient lists
+  # from enough years, still consider for analysis
   for (i in 1:length(speciesresth$species))
   {
     tempresth1 = data0 %>%
       filter(COMMON.NAME == speciesresth$species[i]) %>%
-      distinct(gridg1)
-    tempresth1 = tempresth1 %>% left_join(data0)
-    tempresth1 = tempresth1 %>%
-      group_by(timegroups) %>% reframe(n = n_distinct(group.id)) %>%
+      distinct(gridg1) %>%
+      left_join(data0) %>%
+      group_by(timegroups) %>% 
+      reframe(n = n_distinct(group.id)) %>%
       group_by(timegroups) %>%
       filter(n > listlimit)
+    
     if (length(tempresth1$timegroups) == 14)
       speciesresth$validh[speciesresth$species == speciesresth$species[i]] = 1
+    
   }
   
   datarestr1 = data0 %>%
-    filter(ALL.SPECIES.REPORTED == 1, CATEGORY == "species" | CATEGORY == "issf", year > 2014) %>%
-    group_by(COMMON.NAME,timegroups) %>% reframe(cells = n_distinct(gridg4)) %>%
-    group_by(COMMON.NAME,timegroups) %>%
+    filter(ALL.SPECIES.REPORTED == 1, 
+           CATEGORY %in% c("species", "issf"), 
+           year > 2014) %>%
+    group_by(COMMON.NAME, timegroups) %>%
+    reframe(cells = n_distinct(gridg4)) %>%
+    group_by(COMMON.NAME, timegroups) %>%
     filter(cells <= gridlimit) %>%
-    group_by(COMMON.NAME) %>% reframe(years = n()) %>%
+    group_by(COMMON.NAME) %>% 
+    reframe(years = n()) %>%
     group_by(COMMON.NAME) %>%
     filter(years == 8) %>%
-    select (COMMON.NAME)
+    dplyr::select(COMMON.NAME)
   
-  speciesrestr = data.frame(species = intersect(unique(datarestr1$COMMON.NAME),resident))
-  speciesrestr$validr = NA
+  speciesrestr = data.frame(species = intersect(unique(datarestr1$COMMON.NAME),
+                                                resident),
+                            validr = NA_real_)
   
   for (i in 1:length(unique(datarestr1$COMMON.NAME)))
   {
     temprestr1 = data0 %>%
       filter(COMMON.NAME == speciesrestr$species[i]) %>%
-      distinct(gridg1)
-    temprestr1 = temprestr1 %>% left_join(data0)
-    temprestr1 = temprestr1 %>%
+      distinct(gridg1) %>%
+      left_join(data0) %>%
       filter(year > 2014) %>%
-      group_by(timegroups) %>% reframe(n = n_distinct(group.id)) %>%
+      group_by(timegroups) %>% 
+      reframe(n = n_distinct(group.id)) %>%
       group_by(timegroups) %>%
       filter(n > listlimit)
+    
     if (length(temprestr1$timegroups) == 8)
       speciesrestr$validr[speciesrestr$species == speciesrestr$species[i]] = 1
+    
   }
+  
+  
   
   dataf = fullmap
   names(dataf)[1:2] = c("COMMON.NAME","SCIENTIFIC.NAME")
   
-  dataf = left_join(dataf,datah,by = c("COMMON.NAME"))
-  dataf = left_join(dataf,datar,by = c("COMMON.NAME"))
-
+  dataf = dataf %>% 
+    left_join(datah, by = c("COMMON.NAME")) %>% 
+    left_join(datar, by = c("COMMON.NAME"))
+  
   specieslist = dataf %>%
+    # <annotation_pending_AV> what does each variable mean? (e.g., Essential)
+    # what are we finally filtering for?
     filter((Essential == 1 | Endemic.Region != "None" | 
               ht == 1 | rt == 1) & 
              (Breeding.Activity.Period != "Nocturnal" | 
-              Non.Breeding.Activity.Period != "Nocturnal" | 
-              COMMON.NAME == "Jerdon's Courser") & 
+                Non.Breeding.Activity.Period != "Nocturnal" | 
+                COMMON.NAME == "Jerdon's Courser") & 
              (is.na(Discard))) %>%
-    select(COMMON.NAME,ht,rt)
-  dataf$ht[dataf$Breeding.Activity.Period == "Nocturnal" &
-            dataf$Non.Breeding.Activity.Period == "Nocturnal"] = NA
-  dataf$rt[dataf$Breeding.Activity.Period == "Nocturnal" &
-             dataf$Non.Breeding.Activity.Period == "Nocturnal"] = NA
+    dplyr::select(COMMON.NAME, ht, rt)
   
-  specieslist$ht[specieslist$COMMON.NAME %in% c("Besra","Horsfield's Bushlark","Common Flameback",
-                                                "Eastern Orphean Warbler","Richard's Pipit")] = NA
-  specieslist$rt[specieslist$COMMON.NAME %in% c("Besra","Horsfield's Bushlark","Common Flameback",
-                                                "Eastern Orphean Warbler","Richard's Pipit")] = NA
+  # <annotation_pending_AV> why filtering dataf also?
+  dataf <- dataf %>% 
+    mutate(ht = case_when(Breeding.Activity.Period == "Nocturnal" &
+                            Non.Breeding.Activity.Period == "Nocturnal" ~ NA_real_,
+                          TRUE ~ ht),
+           rt = case_when(Breeding.Activity.Period == "Nocturnal" &
+                            Non.Breeding.Activity.Period == "Nocturnal" ~ NA_real_,
+                          TRUE ~ rt))
   
-  restrictedspecieslist  = data.frame(species = specieslist$COMMON.NAME)
-  restrictedspecieslist = left_join(restrictedspecieslist,speciesresth)
-  restrictedspecieslist = left_join(restrictedspecieslist,speciesrestr)
+  # <annotation_pending_AV> why these species?
+  temp <- c("Besra","Horsfield's Bushlark","Common Flameback",
+            "Eastern Orphean Warbler","Richard's Pipit")
   
-  restrictedspecieslist = restrictedspecieslist %>%
-    filter(!is.na(validh) | !is.na(validr))
-
-  names(restrictedspecieslist) = c("COMMON.NAME","ht","rt")
+  specieslist <- specieslist %>% 
+    mutate(ht = case_when(COMMON.NAME %in% temp ~ NA_real_,
+                          TRUE ~ ht),
+           rt = case_when(COMMON.NAME %in% temp ~ NA_real_,
+                          TRUE ~ rt))
   
-  restrictedspecieslist$ht[restrictedspecieslist$COMMON.NAME %in% 
-                             c("Besra","Horsfield's Bushlark","Common Flameback",
-                               "Eastern Orphean Warbler","Richard's Pipit")] = NA
-  restrictedspecieslist$rt[restrictedspecieslist$COMMON.NAME %in% 
-                             c("Besra","Horsfield's Bushlark","Common Flameback",
-                               "Eastern Orphean Warbler","Richard's Pipit")] = NA
   
-  check1 = restrictedspecieslist$COMMON.NAME[!is.na(restrictedspecieslist$ht)]
-  check2 = restrictedspecieslist$COMMON.NAME[!is.na(restrictedspecieslist$rt)]
+  restrictedspecieslist = data.frame(species = specieslist$COMMON.NAME) %>% 
+    left_join(speciesresth) %>% 
+    left_join(speciesrestr) %>%
+    # valid for at least 1 of 2 analyses
+    filter(!is.na(validh) | !is.na(validr)) %>% 
+    magrittr::set_colnames(c("COMMON.NAME", "ht", "rt")) %>% 
+    mutate(ht = case_when(COMMON.NAME %in% temp ~ NA_real_,
+                          TRUE ~ ht),
+           rt = case_when(COMMON.NAME %in% temp ~ NA_real_,
+                          TRUE ~ rt))
   
-  randomcheck_a = data0 %>% filter(ALL.SPECIES.REPORTED == 1, 
-                                COMMON.NAME %in% restrictedspecieslist$COMMON.NAME) %>%
-    group_by(COMMON.NAME) %>% reframe(n = n_distinct(gridg1)) %>%
-    group_by(COMMON.NAME) %>% filter(n > 7)
   
-  randomcheck_b = data0 %>% filter(ALL.SPECIES.REPORTED == 1, 
-                                   COMMON.NAME %in% restrictedspecieslist$COMMON.NAME) %>%
-    group_by(COMMON.NAME) %>% reframe(n = n_distinct(gridg1)) %>%
-    group_by(COMMON.NAME) %>% filter(n <= 7)
+  # <annotation_pending_AV> what exactly are we checking?
+  check1 = restrictedspecieslist %>% 
+    filter(!is.na(ht)) %>% 
+    dplyr::select(COMMON.NAME) %>% as.vector() %>% list_c()
+  check2 = restrictedspecieslist %>% 
+    filter(!is.na(rt)) %>% 
+    dplyr::select(COMMON.NAME) %>% as.vector() %>% list_c()
   
-  restrictedspecieslist_a = restrictedspecieslist %>% filter(COMMON.NAME %in% randomcheck_a$COMMON.NAME)
-  restrictedspecieslist_a$mixed = 1
-  restrictedspecieslist_b = restrictedspecieslist %>% filter(COMMON.NAME %in% randomcheck_b$COMMON.NAME)
-  restrictedspecieslist_b$mixed = 0
+  
+  # <annotation_pending_AV> 
+  randomcheck_a = data0 %>% 
+    filter(ALL.SPECIES.REPORTED == 1, 
+           COMMON.NAME %in% restrictedspecieslist$COMMON.NAME) %>%
+    group_by(COMMON.NAME) %>% 
+    reframe(n = n_distinct(gridg1)) %>%
+    group_by(COMMON.NAME) %>% 
+    filter(n > 7)
+  
+  randomcheck_b = data0 %>% 
+    filter(ALL.SPECIES.REPORTED == 1, 
+           COMMON.NAME %in% restrictedspecieslist$COMMON.NAME) %>%
+    group_by(COMMON.NAME) %>% 
+    reframe(n = n_distinct(gridg1)) %>%
+    group_by(COMMON.NAME) %>% 
+    filter(n <= 7)
+  
+  
+  # <annotation_pending_AV> 
+  restrictedspecieslist_a = restrictedspecieslist %>% 
+    filter(COMMON.NAME %in% randomcheck_a$COMMON.NAME) %>% 
+    mutate(mixed = 1)
+  restrictedspecieslist_b = restrictedspecieslist %>% 
+    filter(COMMON.NAME %in% randomcheck_b$COMMON.NAME) %>% 
+    mutate(mixed = 0)
   
   restrictedspecieslist = rbind(restrictedspecieslist_a,restrictedspecieslist_b)
   
+  
+  # <annotation_pending_AV> 
   t1 = dataf %>%
-    filter((ht == 1 | rt == 1) & (Breeding.Activity.Period != "Nocturnal" |
-                                  Non.Breeding.Activity.Period != "Nocturnal"))
-  x10 = paste(length(t1$COMMON.NAME),"filter 1 number of species")
+    filter((ht == 1 | rt == 1) &
+             (Breeding.Activity.Period != "Nocturnal" |
+                Non.Breeding.Activity.Period != "Nocturnal"))
   t2 = dataf %>%
     filter((Endemic.Region != "None" | 
-              ht == 1 | rt == 1) & (Breeding.Activity.Period != "Nocturnal" |
-                                      Non.Breeding.Activity.Period != "Nocturnal"))
-  x11 = paste(length(t2$COMMON.NAME),"filter 2 number of species")
+              ht == 1 | rt == 1) & 
+             (Breeding.Activity.Period != "Nocturnal" |
+                Non.Breeding.Activity.Period != "Nocturnal"))
   t3 = dataf %>%
-    filter((Essential == 1 | Endemic.Region != "None" | 
-              ht == 1 | rt == 1) & (Breeding.Activity.Period != "Nocturnal" |
-                                      Non.Breeding.Activity.Period != "Nocturnal"))
-  x12 = paste(length(t3$COMMON.NAME),"filter 3 number of species")
+    filter((Essential == 1 | 
+              Endemic.Region != "None" | 
+              ht == 1 | rt == 1) &
+             (Breeding.Activity.Period != "Nocturnal" |
+                Non.Breeding.Activity.Period != "Nocturnal"))
   
-  specieslist1 = specieslist
-  specieslist1$selected = 1
-  specieslist1 = specieslist1 %>% select(COMMON.NAME,selected)
+  stats10 = paste(length(t1$COMMON.NAME),"filter 1 number of species")
+  stats11 = paste(length(t2$COMMON.NAME),"filter 2 number of species")
+  stats12 = paste(length(t3$COMMON.NAME),"filter 3 number of species")
+  
+  
+  # <annotation_pending_AV> 
+  specieslist1 = specieslist %>% 
+    mutate(selected = 1) %>% 
+    dplyr::select(COMMON.NAME, selected)
   
   dataf = dataf %>%
-    select(COMMON.NAME,SCIENTIFIC.NAME,ht,rt)
+    dplyr::select(COMMON.NAME, SCIENTIFIC.NAME, ht, rt) %>% 
+    left_join(specieslist1) %>% 
+    magrittr::set_colnames(c("COMMON.NAME","SCIENTIFIC.NAME",
+                             "Long.Term.Analysis","Current.Analysis",
+                             "Selected.SOIB")) %>%  
+    # converting to table-style with blanks for NAs and Xs for 1s
+    mutate(across(everything(), ~ as.character(.))) %>% 
+    mutate(across(everything(), ~ replace_na(., replace = ""))) %>% 
+    mutate(across(everything(), ~ str_replace(., pattern = "1", replacement = "X"))) %>% 
+    # also including species in checks
+    mutate(Long.Term.Analysis = case_when(COMMON.NAME %in% check1 ~ "X"),
+           Current.Analysis = case_when(COMMON.NAME %in% check2 ~ "X")) %>%
+    dplyr::select("COMMON.NAME","SCIENTIFIC.NAME","Long.Term.Analysis","Current.Analysis",
+                  "Selected.SOIB")
   
-  dataf = left_join(dataf,specieslist1)
-  names(dataf) = c("COMMON.NAME","SCIENTIFIC.NAME","Long.Term.Analysis","Current.Analysis",
-                   "Selected.SOIB")
   
-  dataf[is.na(dataf)] = ""
-  dataf[dataf == 1] = "X"
-  
-  dataf$Long.Term.Analysis[dataf$COMMON.NAME %in% check1] = "X"
-  dataf$Current.Analysis[dataf$COMMON.NAME %in% check2] = "X"
-  
-  dataf = dataf %>% select("COMMON.NAME","SCIENTIFIC.NAME","Long.Term.Analysis","Current.Analysis",
-                           "Selected.SOIB")
-  
-  sampledcells = c(length(unique(data0$gridg0)),length(unique(data0$gridg1)),
-                   length(unique(data0$gridg2)),length(unique(data0$gridg3)),
+  # number of sampled grid cell at each resolution
+  sampledcells = c(length(unique(data0$gridg0)),
+                   length(unique(data0$gridg1)),
+                   length(unique(data0$gridg2)),
+                   length(unique(data0$gridg3)),
                    length(unique(data0$gridg4)))
   
-  stats = c(x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,x11,x12)
+  stats = c(stats1, stats2, stats3, stats4, stats5, stats6,
+            stats7, stats8, stats9, stats10, stats11, stats12)
   
-  #### additional filtering safeguards - proportion of range sampled during every timegroup
   
-  totalrange = data %>%
-    filter(COMMON.NAME %in% dataf$COMMON.NAME, ALL.SPECIES.REPORTED == 1) %>%
-    group_by(COMMON.NAME) %>% reframe(totalrange25km = n_distinct(gridg1))
   
-  proprange2000 = data %>%
-    filter(COMMON.NAME %in% dataf$COMMON.NAME, ALL.SPECIES.REPORTED == 1) %>%
+  # additional filtering safeguards - proportion of range sampled during every timegroup
+  
+  temp = data %>%
+    filter(COMMON.NAME %in% dataf$COMMON.NAME, 
+           ALL.SPECIES.REPORTED == 1)
+  
+  totalrange = temp %>%
+    group_by(COMMON.NAME) %>% 
+    reframe(totalrange25km = n_distinct(gridg1))
+  
+  proprange2000 = temp %>%
     filter(timegroups == "before 2000") %>%
-    group_by(COMMON.NAME) %>% reframe(proprange25km2000 = n_distinct(gridg1))
+    group_by(COMMON.NAME) %>% 
+    reframe(proprange25km2000 = n_distinct(gridg1))
   
-  proprange2022 = data %>%
-    filter(COMMON.NAME %in% dataf$COMMON.NAME, ALL.SPECIES.REPORTED == 1) %>%
+  proprange2022 = temp %>%
     filter(timegroups == "2022") %>%
-    group_by(COMMON.NAME) %>% reframe(proprange25km2022 = n_distinct(gridg1))
+    group_by(COMMON.NAME) %>% 
+    reframe(proprange25km2022 = n_distinct(gridg1))
   
-  proprange.current = data %>%
-    filter(COMMON.NAME %in% dataf$COMMON.NAME, ALL.SPECIES.REPORTED == 1) %>%
+  proprange.current = temp %>%
     filter(timegroups %in% c("2015","2016","2017","2018","2019","2020","2021","2022")) %>%
-    group_by(COMMON.NAME, timegroups) %>% reframe(proprange25km.current = n_distinct(gridg1)) %>%
-    group_by(COMMON.NAME) %>% reframe(proprange25km.current = mean(proprange25km.current))
+    group_by(COMMON.NAME, timegroups) %>% 
+    reframe(proprange25km.current = n_distinct(gridg1)) %>%
+    group_by(COMMON.NAME) %>% 
+    reframe(proprange25km.current = mean(proprange25km.current))
   
-  range25km = left_join(totalrange,proprange2000)
-  range25km = left_join(range25km,proprange.current)
-  range25km = left_join(range25km,proprange2022)
-  range25km = range25km %>%
+  range25km = totalrange %>% 
+    left_join(proprange2000) %>% 
+    left_join(proprange.current) %>% 
+    left_join(proprange2022) %>%
     mutate(proprange25km2000 = proprange25km2000/totalrange25km,
            proprange25km.current = proprange25km.current/totalrange25km,
            proprange25km2022 = proprange25km2022/totalrange25km)
-
   
-  #### additional filtering safeguards - proportional sampling within each 25km grid cell
+  
+  # additional filtering safeguards - proportional sampling within each 25km grid cell
   
   samp5km = data %>%
     filter(ALL.SPECIES.REPORTED == 1) %>%
-    group_by(gridg1) %>% reframe(n = n_distinct(gridg0))
+    group_by(gridg1) %>% 
+    reframe(n = n_distinct(gridg0))
   
   spec25km = data %>%
-    filter(ALL.SPECIES.REPORTED == 1) %>%
-    filter(COMMON.NAME %in% dataf$COMMON.NAME) %>%
-    distinct(COMMON.NAME,gridg1)
+    filter(ALL.SPECIES.REPORTED == 1,
+           COMMON.NAME %in% dataf$COMMON.NAME) %>%
+    distinct(COMMON.NAME, gridg1)
   
-  samp25km5km = spec25km %>% left_join(samp5km) %>%
-    group_by(COMMON.NAME) %>% reframe(mean5km = mean(n), ci5km = 1.96*sd(n)/sqrt(n()))
+  samp25km5km = spec25km %>% 
+    left_join(samp5km) %>%
+    group_by(COMMON.NAME) %>% 
+    reframe(mean5km = mean(n), 
+            ci5km = 1.96*sd(n)/sqrt(n()))
   
-  dataf = dataf %>% left_join(range25km)
-  dataf = dataf %>% left_join(samp25km5km)
+  dataf = dataf %>% left_join(range25km) %>% left_join(samp25km5km)
   
-
-  write.csv(dataf,"fullspecieslist.csv",row.names = F)
+  
+  # <annotation_pending_AV> short, about each file saved
+  write.csv(dataf, file = "fullspecieslist.csv", row.names = F)
+  
   
   locs_write = data0 %>% 
     filter(ALL.SPECIES.REPORTED == 1) %>%
-    distinct(LOCALITY.ID,group.id,month,timegroups)
-  write.csv(locs_write,"sub_samp_locs.csv",row.names = F)
+    distinct(LOCALITY.ID, group.id, month, timegroups)
   
-  save(specieslist,restrictedspecieslist,databins,file = "00_data/specieslists.RData")
-  save(data,sampledcells,databins,stats,file = "00_data/dataforanalyses.RData")
+  write.csv(locs_write, file = "sub_samp_locs.csv", row.names = F)
   
   
+  save(specieslist, restrictedspecieslist, databins, 
+       file = "00_data/specieslists.RData")
+  save(data, sampledcells, databins, stats, 
+       file = "00_data/dataforanalyses.RData")
+  
+
+  # 2. processing: woodland mask -----------------------------------------------------------
+
   
   
-  
-  
-  
-  #### woodland mask
   
   data0 = data_base %>% filter(maskWdl == 1)
   data = data0 %>% select(-CATEGORY,-LOCALITY.ID,-REVIEWED,-APPROVED,-ST_NM,-DISTRICT,
@@ -974,11 +1088,10 @@ dataspeciesfilter = function(datapath = "00_data/data.RData",
   save(data,sampledcells,databins,stats,file = "masks_analyses/dataforanalyses_mask_woodland.RData")
   
   
-  
-  
-  
-  #### cropland mask
-  
+
+  # 3. processing: cropland mask -----------------------------------------------------------
+
+
   data0 = data_base %>% filter(maskCrp == 1)
   data = data0 %>% select(-CATEGORY,-LOCALITY.ID,-REVIEWED,-APPROVED,-ST_NM,-DISTRICT,
                            -LOCALITY.TYPE,-pa.name,-maskWdl,-maskCrp,-maskOne,
@@ -1252,13 +1365,10 @@ dataspeciesfilter = function(datapath = "00_data/data.RData",
   save(data,sampledcells,databins,stats,file = "masks_analyses/dataforanalyses_mask_cropland.RData")
   
   
-  
-  
-  
-  
-  
-  #### ONEland mask
-  
+
+  # 4. processing: ONEland mask ------------------------------------------------------------
+
+
   data0 = data_base %>% filter(maskOne == 1)
   data = data0 %>% select(-CATEGORY,-LOCALITY.ID,-REVIEWED,-APPROVED,-ST_NM,-DISTRICT,
                            -LOCALITY.TYPE,-pa.name,-maskWdl,-maskCrp,-maskOne,
@@ -1534,11 +1644,10 @@ dataspeciesfilter = function(datapath = "00_data/data.RData",
   save(data,sampledcells,databins,stats,file = "masks_analyses/dataforanalyses_mask_oneland.RData")
   
   
-  
-  
-  
-  #### PA mask
-  
+
+  # 5. processing: PA mask -----------------------------------------------------------------
+
+
   data0 = data_base %>% filter(!is.na(pa.name))
   data = data0 %>% select(-CATEGORY,-LOCALITY.ID,-REVIEWED,-APPROVED,-ST_NM,-DISTRICT,
                           -LOCALITY.TYPE,-pa.name,-maskWdl,-maskCrp,-maskOne,
@@ -1794,6 +1903,7 @@ dataspeciesfilter = function(datapath = "00_data/data.RData",
   
   save(specieslist,restrictedspecieslist,databins,file = "masks_analyses/specieslists_mask_pa.RData")
   save(data,sampledcells,databins,stats,file = "masks_analyses/dataforanalyses_mask_pa.RData")
+  
 }
 
 

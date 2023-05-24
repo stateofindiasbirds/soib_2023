@@ -8,7 +8,7 @@ source("00_scripts/SoIBv2_functions.R")
 
 # Run each step in order. May start from in between but progress sequentially down.
 
-# Sequence of steps to clean data starting from .txt file:
+# STEP 1: Sequence of steps to clean data starting from .txt file:
 # - clean the eBird EBD
 # - remove unnecessary columns
 # - add necessary columns
@@ -26,7 +26,7 @@ readcleanrawdata(rawpath = "00_data/ebd_IN_relFeb-2023.txt",
                  sensitivepath = "00_data/ebd_sensitive_relFeb-2023_IN.txt")
 
 
-# Create sf map of SoIB2 habitat masks
+# STEP 2: Create sf map of SoIB2 habitat masks
 # Run:
 # - every time habitat masks (input .json file) are updated
 # Requires:
@@ -38,7 +38,7 @@ readcleanrawdata(rawpath = "00_data/ebd_IN_relFeb-2023.txt",
 source("00_scripts/create_habitat_masks_dataframe.R")
 
 
-# Add map and grid variables to dataset (dataframe)
+# STEP 3: Add map and grid variables to dataset (dataframe)
 # - admin & PA boundaries
 # - SoIB2 habitat masks
 # - square grids at 5 resolutions (5, 25, 50, 100, 200 km*km), unclipped and clipped to India
@@ -59,7 +59,7 @@ source("00_scripts/create_habitat_masks_dataframe.R")
 addmapvars()
 
 
-# Process and filter data for analyses
+# STEP 4: Process and filter data for analyses
 # Run:
 # - after EVERY new EBD download
 # - after loading "rawdata.RData" directly
