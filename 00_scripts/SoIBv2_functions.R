@@ -247,6 +247,7 @@ addmapvars = function(datapath = "00_data/rawdata.RData",
   data = data %>%
     left_join(temp)
   
+  # removes pelagics?
   data = data %>%
     filter(!is.na(X)) %>%
     select(-X)
@@ -330,6 +331,8 @@ completelistcheck = function(data)
 
 removevagrants = function(data)
 {
+  # mapping of SoIB-species-of-interest to a range of variables/classifications
+  # (manually created)
   fullmap = read.csv("SoIB_mapping_2022.csv")
   
   migspecies = fullmap %>%
@@ -376,6 +379,8 @@ dataspeciesfilter = function(datapath = "00_data/data.RData",
 {
   # 0. preparing data ----------------------------------------------------------
 
+  # mapping of SoIB-species-of-interest to a range of variables/classifications
+  # (manually created)
   fullmap = read.csv("SoIB_mapping_2022.csv")
   
 
@@ -456,11 +461,12 @@ dataspeciesfilter = function(datapath = "00_data/data.RData",
   
   data_base = data
   
+
   data0 = data_base %>% select(-REVIEWED,-APPROVED,-cyear)
+  # this file is for uses outside of main eBird trends analyses, has extra columns
   save(data0, file = "00_data/dataforanalyses_extra.RData")
   
-  
-  
+
   # 1. processing: full country ------------------------------------------------------------
   
   data0 = data_base
