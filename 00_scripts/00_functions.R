@@ -212,10 +212,15 @@ addmapvars = function(datapath = "00_data/rawdata.RData",
   load(mappath2)
   load(mappath3)
   load(papath)
+  
   load(maskspath)
   names(habmasks_sf)[1] = "gridg1"
-  india_buff_sf$X = "X"
+  
+  # to later filter pelagics
+  india_buff_sf <- india_buff_sf %>% mutate(INLAND = 1)
 
+  
+  
   sf_use_s2(FALSE)
   
   temp = data %>%
@@ -234,25 +239,23 @@ addmapvars = function(datapath = "00_data/rawdata.RData",
     st_join(g2_sf %>% dplyr::select(GRID.G2)) %>% 
     st_join(g3_sf %>% dplyr::select(GRID.G3)) %>% 
     st_join(g4_sf %>% dplyr::select(GRID.G4)) %>% 
-    st_join(india_buff_sf %>% dplyr::select(X)) %>% 
+    st_join(india_buff_sf %>% dplyr::select(INLAND)) %>% 
     st_drop_geometry()
   
   temp = temp %>% 
     distinct(NAME,GRID.G0,GRID.G1,GRID.G2,GRID.G3,GRID.G4,group.id,X) %>% 
     group_by(group.id) %>% 
     slice(1) %>% 
-    ungroup()
-  names(temp) = c("pa.name","gridg0","gridg1","gridg2","gridg3","gridg4","group.id","X")
+    ungroup() %>% 
+    magrittr::set_colnames(c("pa.name","gridg0","gridg1","gridg2","gridg3",
+                             "gridg4","group.id","INLAND"))
   
-  data = data %>%
-    left_join(temp)
-  
-  # removes pelagics?
-  data = data %>%
-    filter(!is.na(X)) %>%
-    select(-X)
-  
-  data = left_join(data,habmasks_sf)
+  data = data %>% 
+    left_join(temp) %>% 
+    # removes pelagics
+    filter(!is.na(INLAND)) %>% 
+    dplyr::select(-INLAND) %>% 
+    left_join(habmasks_sf)
   
   ### 
   
@@ -260,6 +263,7 @@ addmapvars = function(datapath = "00_data/rawdata.RData",
 
   save(data, file="00_data/data.RData")
   rm(data, pos = ".GlobalEnv")
+  
 }
 
 
