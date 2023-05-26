@@ -11,7 +11,7 @@ library(stringr)
 
 ## independent (encounter rate - detections per km)
 
-indtrends = read.csv("00_data/data_independent/hornbills_papumrf.csv")
+indtrends = read.csv("10_sys-mon/data/hornbills_papumrf.csv")
 sps = "Hornbills in Papum RF"
 
 temp = indtrends
