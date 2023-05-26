@@ -312,6 +312,7 @@ completelistcheck = function(data)
         (EFFORT.DISTANCE.KM > 10 | # remove travelling lists covering >10 km
            group.id %in% grp | # lists without info on duration with 3 or fewer species
            speed > vel | # too fast
+           (DURATION.MINUTES < 3) | # too short
            (sut < time & no.sp <= 3) | # species per unit time too slow
            PROTOCOL.TYPE == "Incidental" | # incidental
            (!is.na(hr) & ((hr <= 4 & end <= 4) | # nocturnal filter
