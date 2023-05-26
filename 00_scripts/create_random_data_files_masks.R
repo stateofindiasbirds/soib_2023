@@ -1,7 +1,7 @@
 ## create N data files using randomgroupids
 
 require(tidyverse)
-source('00_scripts/SoIBv2_functions.R')
+source('00_scripts/00_functions.R')
 
 
 

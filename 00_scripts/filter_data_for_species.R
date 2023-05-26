@@ -3,7 +3,7 @@ require(glue)
 require(tidyverse)
 require(tictoc)
 
-source('00_scripts/SoIBv2_functions.R')
+source('00_scripts/00_functions.R')
 
 
 # 0. preparing data ----------------------------------------------------------

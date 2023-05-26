@@ -6,7 +6,7 @@ require(parallel)
 require(foreach)
 require(doParallel)
 
-source('00_scripts/SoIBv2_functions.R')
+source('00_scripts/00_functions.R')
 locs = read.csv("sub_samp_locs.csv")
 
 n.cores = parallel::detectCores()/2

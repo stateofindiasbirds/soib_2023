@@ -1,4 +1,4 @@
-source('00_scripts/SoIBv2_functions.R')
+source('00_scripts/00_functions.R')
 library(tidyverse)
 library(ggdist)
 library(ggridges)
@@ -11,19 +11,18 @@ library(stringr)
 
 main = read.csv("trends_results/full_results/SoIB_main.csv")
 trends = read.csv("trends_results/full_results/trends.csv")
-qualifying.species = main$eBird.English.Name.2022[!main$SOIBv2.Long.Term.Status %in% 
+qualifying.species = main$eBird.English.Name.2022[!main$SOIBv2.Current.Status %in% 
                                                     c("eBird Data Indecisive","eBird Data Deficient") & 
-                                                    main$Long.Term.Analysis == "X"]
+                                                    main$Current.Analysis == "X"]
 trends = trends %>% filter(COMMON.NAME %in% qualifying.species) %>%
-  filter(timegroups <= 2022)
+  filter(timegroups >= 2015 & timegroups <= 2022)
 
 species = c("White-rumped Vulture","Indian Vulture","Red-headed Vulture","Bearded Vulture",
             "Egyptian Vulture","Eurasian Griffon")
-species = c("Little Ringed Plover","Little Tern","Great Thick-knee","Small Pratincole")
-
-sps = "River Birds"
+sps = "Vultures"
 
 temp = trends %>% 
+  mutate(lci_std = lci_std_recent,mean_std = mean_std_recent,rci_std = rci_std_recent) %>%
   filter(COMMON.NAME %in% species)
 
 t1 = temp[temp$timegroups == 2022,]
@@ -50,8 +49,7 @@ cols1 = cols[c(1:ns)]
 bks1 = sort(unique(temp$COMMON.NAME))
 lbs1 = sort(unique(temp$COMMON.NAME))
 
-tg = c("before 2000", "2000-2006", "2007-2010", "2011-2012", "2013", "2014", "2015", 
-       "2016", "2017", "2018", "2019", "2020", "2021", "2022")
+tg = c("2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022")
 
 temp$rci_std = temp$lci_std = temp$mean_std
 
@@ -163,10 +161,11 @@ if (max(ybreaks) > um)
 
 
 
+
 ######################### get the x-axis right
 
 
-x_tick_pre2000Bas = seq(1999, 2022) + 0.5
+x_tick_preBas = seq(2015, 2022) + 0.5
 
 temp$COMMON.NAMEy = as.character(temp$COMMON.NAME)
 temp$COMMON.NAMEz = as.character(temp$COMMON.NAME)
@@ -193,7 +192,8 @@ for (k in 1:length(temp$COMMON.NAME))
   }
 }
 
-temp$COMMON.NAMEx[temp$timegroupsf != "2000-2006"] = ""
+temp$COMMON.NAMEx[temp$timegroupsf != "2016"] = ""
+
 
 tlow = temp %>%
   select(COMMON.NAME,timegroups) %>%
@@ -204,29 +204,19 @@ tlow = max(tlow$timegroups)
 
 ggp = ggplot(temp, aes(x = timegroups, y = mean_std, col = COMMON.NAME, label = COMMON.NAMEx)) +
   geom_line(linewidth = 2) +
-  geom_text_repel(nudge_x = -2, direction = "y", hjust = "center", size = 4, 
-                  min.segment.length = Inf, fontface = "bold") +
+  geom_text_repel(nudge_x = -0.65, direction = "y", hjust = "center", size = 4, 
+                  min.segment.length = Inf, fontface = c("bold")) +
   #geom_point(size = 3) +
   ggtitle(sps) +
   geom_bracket(
     inherit.aes = FALSE, 
-    xmin = c(2000, 2006, 2010, 2012, seq(2013, 2021)) + 0.5, 
-    xmax = c(2006, 2010, 2012, seq(2013, 2022)) + 0.5,
+    xmin = c(seq(2015, 2021)) + 0.5, 
+    xmax = c(seq(2016, 2022)) + 0.5,
     y.position = lm-0.01*range,
     bracket.shorten = 0.15,
-    tip.length = 0.03,
-    vjust = 2.5,
+    tip.length = 0.04,
+    vjust = 3,
     label = tg[-1],
-    label.size = 3) +
-  geom_bracket(
-    inherit.aes = FALSE, 
-    xmin = c(2015) - 0.5, 
-    xmax = c(2022) + 0.5,
-    y.position = lm-0.05*range,
-    bracket.shorten = 0.15,
-    tip.length = 0.02,
-    vjust = 2.1,
-    label = "Current Trend",
     label.size = 3) +
   scale_colour_manual(breaks = bks1, 
                       labels = lbs1,
@@ -235,12 +225,9 @@ ggp = ggplot(temp, aes(x = timegroups, y = mean_std, col = COMMON.NAME, label = 
                     labels = lbs1,
                     values = cols1) +
   scale_x_continuous(
-    breaks = c(seq(1999, 2022), x_tick_pre2000Bas),
-    labels = c("", "2000", "2001", rep(c(""), 2006-2000-2), 
-               "2006", "2007", rep(c(""), 2010-2006-2), 
-               "2010", "2011", rep(c(""), 2012-2010-2), 
-               paste0(seq(2012, 2022)), rep(c(""), length(x_tick_pre2000Bas))),
-    limits = c(1999.5, 2023.5)) +
+    breaks = c(seq(2016, 2022), x_tick_preBas),
+    labels = c(paste0(seq(2016, 2022)), rep(c(""), length(x_tick_preBas))),
+    limits = c(2015.09, 2022.7)) +
   geom_segment(x = tlow, y = ybreaks[1], xend = 2022, yend = ybreaks[1], linetype = "dotted", linewidth = 0.7, col = tcol) +
   geom_segment(x = tlow, y = ybreaks[2], xend = 2022, yend = ybreaks[2], linetype = "dotted", linewidth = 0.7, col = tcol) +
   geom_segment(x = tlow, y = ybreaks[3], xend = 2022, yend = ybreaks[3], linetype = "dotted", linewidth = 0.7, col = tcol) +
@@ -253,7 +240,7 @@ ggp = ggplot(temp, aes(x = timegroups, y = mean_std, col = COMMON.NAME, label = 
 ggpx = ggp +
   theme(axis.title.x = element_blank(), 
         axis.title.y = element_text(size = 22, colour = "#56697B",
-                                    margin = margin(0, -0.6, 0, 0.4, 'cm')), 
+                                    margin = margin(0, 0.6, 0, 0.4, 'cm')), 
         axis.text.y = element_blank(),
         axis.ticks.y = element_blank()) +
   theme(plot.title = element_text(face = 'bold', size = 20, hjust = 0.5, vjust = -2, colour = pcol))+
@@ -263,17 +250,17 @@ ggpx = ggp +
                      labels = c(ybreaksl[1],ybreaksl[2],ybreaksl[3],
                                 ybreaksl[4],ybreaksl[5]),
                      position = "left")+
-  annotate("text", x = 2023.5, y = ybreaks[1], label = ybreaksl[1], 
+  annotate("text", x = 2022.7, y = ybreaks[1], label = ybreaksl[1], 
            colour = "#56697B", family="Gill Sans MT", size = 6)+
-  annotate("text", x = 2023.5, y = ybreaks[2], label = ybreaksl[2], 
+  annotate("text", x = 2022.7, y = ybreaks[2], label = ybreaksl[2], 
            colour = "#56697B", family="Gill Sans MT", size = 6)+
-  annotate("text", x = 2023.5, y = ybreaks[3], label = ybreaksl[3], 
+  annotate("text", x = 2022.7, y = ybreaks[3], label = ybreaksl[3], 
            colour = "#56697B", family="Gill Sans MT", size = 6)+
-  annotate("text", x = 2023.5, y = ybreaks[4], label = ybreaksl[4], 
+  annotate("text", x = 2022.7, y = ybreaks[4], label = ybreaksl[4], 
            colour = "#56697B", family="Gill Sans MT", size = 6)+
-  annotate("text", x = 2023.5, y = ybreaks[5], label = ybreaksl[5], 
+  annotate("text", x = 2022.7, y = ybreaks[5], label = ybreaksl[5], 
            colour = "#56697B", family="Gill Sans MT", size = 6)+
-  annotate("text", x = 2023.5, y = 100, label = "Pre-2000\nbaseline", 
+  annotate("text", x = 2022.7, y = 100, label = "2015\nbaseline", 
            colour = "black", family="Gill Sans MT", size = 5)+
   coord_cartesian(ylim = c(lm-0.1*range,um+0.1*range), clip="off")+
   theme(panel.grid.major = element_blank(),
@@ -290,10 +277,9 @@ ggpx = ggp +
 
 
 
-
 ggpx3 = ggdraw(ggpx)
 
-name1 = paste("trends_graphs/long-term trends - multiple species/",sps,"_","multiple_species_eBird_trend_SoIBv2.jpg",sep="")
+name1 = paste("trends_graphs/current trends - multiple species/",sps,"_","multiple_species_eBird_trend_recent_SoIBv2.jpg",sep="")
 
 jpeg(name1, units="in", width=11, height=7, res=1000, bg="transparent")
 grid::grid.draw(ggpx3)

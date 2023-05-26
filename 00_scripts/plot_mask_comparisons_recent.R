@@ -1,6 +1,6 @@
 ## compare for a species across masks
 
-source('00_scripts/SoIBv2_functions.R')
+source('00_scripts/00_functions.R')
 library(tidyverse)
 library(ggdist)
 library(ggridges)

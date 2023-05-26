@@ -5,7 +5,7 @@ require(parallel)
 require(foreach)
 require(doParallel)
 
-source('00_scripts/SoIBv2_functions.R')
+source('00_scripts/00_functions.R')
 
 
 
@@ -98,7 +98,7 @@ for (k in 101:200)
 }
 
 rm(list = ls())
-source('00_scripts/SoIBv2_functions.R')
+source('00_scripts/00_functions.R')
 
 
 
@@ -190,7 +190,7 @@ for (k in 101:200)
 }
 
 rm(list = ls())
-source('00_scripts/SoIBv2_functions.R')
+source('00_scripts/00_functions.R')
 
 
 
@@ -283,7 +283,7 @@ for (k in 101:200)
 }
 
 rm(list = ls())
-source('00_scripts/SoIBv2_functions.R')
+source('00_scripts/00_functions.R')
 
 
 

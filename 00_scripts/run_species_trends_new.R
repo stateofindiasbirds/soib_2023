@@ -5,7 +5,7 @@ require(parallel)
 require(foreach)
 require(doParallel)
 
-source('00_scripts/SoIBv2_functions.R')
+source('00_scripts/00_functions.R')
 
 load("00_data/specieslists.RData")
 lsa = specieslist %>% filter(!is.na(ht) | !is.na(rt))
