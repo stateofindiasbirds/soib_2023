@@ -7,11 +7,13 @@
 # RData files
 00_data/rawdata.RData
 00_data/data.RData
-00_data/dataforanalyses.RData
 00_data/dataforanalyses_extra.RData
 00_data/maps_pa_sf.RData
 00_data/randomgroupids.RData
 00_data/lostwithdistance.RData
+
+# for any mask
+dataforanalyses.RData 
 
 # raw data files
 *.txt

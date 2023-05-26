@@ -1,6 +1,7 @@
 
 require(glue) 
 require(tidyverse)
+require(tictoc)
 
 source('00_scripts/SoIBv2_functions.R')
 
@@ -63,6 +64,16 @@ dataspeciesfilter_metadata <- data.frame(MASK = c("none",
          SPECLISTDATA.PATH = glue("{FOLDER}specieslists.RData"),
          DATA.PATH = glue("{FOLDER}dataforanalyses.RData"))
 
+# ensuring folders are created if they don't already exist
+for (i in 1:length(dataspeciesfilter_metadata$FOLDER)) {
+  
+  if (!dir.exists(dataspeciesfilter_metadata$FOLDER[i])) {
+    dir.create(dataspeciesfilter_metadata$FOLDER[i], 
+               recursive = T)
+  }
+  
+}
+
 # for later reference
 save(dataspeciesfilter_metadata, 
      file = "00_data/dataspeciesfilter_metadata.RData")
@@ -118,27 +129,37 @@ data0 = data_base %>% dplyr::select(-REVIEWED,-APPROVED,-cyear)
 save(data0, file = "00_data/dataforanalyses_extra.RData")
 
 
-# 1. processing: full country ------------------------------------------------------------
+# 1. processing: full country -----------------------------------------------
 
+tictoc::tic("dataspeciesfilter for full country")
 dataspeciesfilter(cur_mask = "none")
+tictoc::toc() # 423 sec
 
 
-# 2. processing: woodland mask ------------------------------------------------------------
+# 2. processing: woodland mask ----------------------------------------------
 
+tictoc::tic("dataspeciesfilter for woodland mask")
 dataspeciesfilter(cur_mask = "woodland")
+tictoc::toc() # 211 sec
 
 
-# 3. processing: cropland mask ------------------------------------------------------------
+# 3. processing: cropland mask ----------------------------------------------
 
+tictoc::tic("dataspeciesfilter for cropland mask")
 dataspeciesfilter(cur_mask = "cropland")
+tictoc::toc() # 60 sec
 
 
-# 4. processing: ONEland mask ------------------------------------------------------------
+# 4. processing: ONEland mask -----------------------------------------------
 
+tictoc::tic("dataspeciesfilter for ONEland mask")
 dataspeciesfilter(cur_mask = "ONEland")
+tictoc::toc() # 60 sec
 
 
-# 5. processing: PA mask ------------------------------------------------------------
+# 5. processing: PA mask ----------------------------------------------------
 
+tictoc::tic("dataspeciesfilter for PA mask")
 dataspeciesfilter(cur_mask = "PA")
+tictoc::toc() # 80 sec
 

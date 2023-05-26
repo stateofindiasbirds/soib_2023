@@ -71,15 +71,16 @@ addmapvars()
 #   - "indiaspecieslist.csv" (common and scientific names of all species)
 #   - "SoIB_mapping_2022.csv"
 # Outputs:
+# - "dataspeciesfilter_metadata.RData
 # - "dataforanalyses_extra.RData"
-# - "fullspecieslist.csv" and individual mask versions
-# - "sub_samp_locs.csv" and individual mask versions
-# - "dataforanalyses.RData" and individual mask versions, which contains:
+# - "fullspecieslist.csv" for whole country and individual mask versions
+# - "sub_samp_locs.csv" for whole country and individual mask versions
+# - "dataforanalyses.RData" for whole country and individual mask versions, which contains:
 #   - info on amount of data in each temporal bin
 #   - full species list (with all attribute columns)
 #   - selected species list
 #   - data
-# - specieslists.RData and individual mask versions
+# - specieslists.RData for whole country and individual mask versions
 
 source("00_scripts/filter_data_for_species.R")
 

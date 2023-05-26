@@ -383,14 +383,14 @@ dataspeciesfilter = function(
 ) {
   
   # ensuring only valid cur_mask names are provided
-  if (!(cur_mask %in% unique(dataspeciesfilt_metadata$MASK))) {
+  if (!(cur_mask %in% unique(dataspeciesfilter_metadata$MASK))) {
     return('Invalid mask! Please provide valid mask name, one of: c("none","woodland","cropland","ONEland","PA").')
   }
   
   
   # preparing data for mask ###
   
-  cur_metadata <- dataspeciesfilt_metadata %>% filter(MASK == cur_mask)
+  cur_metadata <- dataspeciesfilter_metadata %>% filter(MASK == cur_mask)
   
   if (cur_mask == "none"){
     data0 = data_base
@@ -593,13 +593,13 @@ dataspeciesfilter = function(
   if (cur_mask == "woodland") {
     
     specieslist <- specieslist %>% 
-      mutate(ht = case_when(!(COMMON.NAME %in% spec_woodland) ~ NA_real_
+      mutate(ht = case_when(!(COMMON.NAME %in% spec_woodland) ~ NA_real_,
                             TRUE ~ ht),
              rt = case_when(!(COMMON.NAME %in% spec_woodland) ~ NA_real_,
                             TRUE ~ rt))
     
     restrictedspecieslist = restrictedspecieslist %>% 
-      mutate(ht = case_when(!(COMMON.NAME %in% spec_woodland) ~ NA_real_
+      mutate(ht = case_when(!(COMMON.NAME %in% spec_woodland) ~ NA_real_,
                             TRUE ~ ht),
              rt = case_when(!(COMMON.NAME %in% spec_woodland) ~ NA_real_,
                             TRUE ~ rt))
@@ -607,13 +607,13 @@ dataspeciesfilter = function(
   } else if (cur_mask %in% c("cropland", "ONEland")) {
     
     specieslist <- specieslist %>% 
-      mutate(ht = case_when(!(COMMON.NAME %in% spec_openland) ~ NA_real_
+      mutate(ht = case_when(!(COMMON.NAME %in% spec_openland) ~ NA_real_,
                             TRUE ~ ht),
              rt = case_when(!(COMMON.NAME %in% spec_openland) ~ NA_real_,
                             TRUE ~ rt))
     
     restrictedspecieslist = restrictedspecieslist %>% 
-      mutate(ht = case_when(!(COMMON.NAME %in% spec_openland) ~ NA_real_
+      mutate(ht = case_when(!(COMMON.NAME %in% spec_openland) ~ NA_real_,
                             TRUE ~ ht),
              rt = case_when(!(COMMON.NAME %in% spec_openland) ~ NA_real_,
                             TRUE ~ rt))
