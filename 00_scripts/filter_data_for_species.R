@@ -2,6 +2,8 @@
 require(glue) 
 require(tidyverse)
 
+source('00_scripts/SoIBv2_functions.R')
+
 
 # 0. preparing data ----------------------------------------------------------
 
