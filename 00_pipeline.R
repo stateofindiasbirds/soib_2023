@@ -81,11 +81,17 @@ addmapvars()
 #   - data
 # - specieslists.RData and individual mask versions
 
-dataspeciesfilter(locationlimit = 15, gridlimit = 4, listlimit = 50)
+source("00_scripts/filter_data_for_species.R")
 
 
 ## create random group IDs
+
+# directly source scripts
+
+
 ## print data files
+
+
 ## run trend analyses
 
 
