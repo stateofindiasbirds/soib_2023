@@ -2,7 +2,7 @@ source('00_scripts/SoIBv2_functions.R')
 library(tidyverse)
 library(VGAM)
 
-main = read.csv("SoIB_mapping_2022.csv")
+main = read.csv("00_data/SoIB_mapping_2022.csv")
 base = read.csv("fullspecieslist_mask_pa.csv")
 base = base %>% select(-SCIENTIFIC.NAME)
 recentcutoff = 2015
@@ -520,7 +520,7 @@ rangecats = c("eBird Data Deficient","Very Restricted","Restricted","Moderate",
               "Large","Very Large")
 
 
-priorityrules = read.csv("priorityclassificationrules.csv")
+priorityrules = read.csv("00_data/priorityclassificationrules.csv")
 main = left_join(main,priorityrules)
 
 

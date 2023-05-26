@@ -10,7 +10,7 @@ source('00_scripts/SoIBv2_functions.R')
 
 # mapping of SoIB-species-of-interest to a range of variables/classifications
 # (manually created)
-fullmap = read.csv("SoIB_mapping_2022.csv")
+fullmap = read.csv("00_data/SoIB_mapping_2022.csv")
 
 
 # <annotation_pending_AV> why these species? why not

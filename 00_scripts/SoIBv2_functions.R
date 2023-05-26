@@ -62,12 +62,12 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_relFeb-2023.txt",
     filter(CATEGORY == "species" | CATEGORY == "issf") %>%
     distinct(COMMON.NAME,SCIENTIFIC.NAME)
   
-  write.csv(temp,"indiaspecieslist.csv", row.names=FALSE)
+  write.csv(temp,"00_data/indiaspecieslist.csv", row.names=FALSE)
   
   ## create location file for LULC
   
   locdat = data %>% distinct(LOCALITY.ID,LATITUDE,LONGITUDE)
-  write.csv(locdat,"eBird_location_data.csv", row.names=FALSE)
+  write.csv(locdat,"00_data/eBird_location_data.csv", row.names=FALSE)
   
   
   ## choosing important columns required for further analyses
@@ -333,7 +333,7 @@ removevagrants = function(data)
 {
   # mapping of SoIB-species-of-interest to a range of variables/classifications
   # (manually created)
-  fullmap = read.csv("SoIB_mapping_2022.csv")
+  fullmap = read.csv("00_data/SoIB_mapping_2022.csv")
   
   migspecies = fullmap %>%
     filter(!Migratory.Status.Within.India %in% c("Resident",
