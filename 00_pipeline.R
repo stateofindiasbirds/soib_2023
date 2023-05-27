@@ -1,5 +1,7 @@
 # necessary packages, functions/scripts, data
 library(tidyverse)
+library(glue)
+library(tictoc)
 
 source("00_scripts/00_functions.R")
 
@@ -43,8 +45,8 @@ source("00_scripts/create_habitat_masks_dataframe.R")
 # - SoIB2 habitat masks
 # - square grids at 5 resolutions (5, 25, 50, 100, 200 km*km), unclipped and clipped to India
 # Run:
-# - after EVERY new EBD download
-# - after loading "rawdata.RData" directly
+# - every time habitat masks or other maps are updated
+# - every time "rawdata.RData" is updated
 # Requires:
 # - tidyverse, sf
 # - Data (ALL in 00_data/):
@@ -61,9 +63,7 @@ addmapvars()
 
 # STEP 4: Process and filter data for analyses
 # Run:
-# - after EVERY new EBD download
-# - after loading "rawdata.RData" directly
-# - after loading "data.RData" directly
+# - every time "data.RData" is updated
 # Requires:
 # - tidyverse, lubridate
 # - data files (ALL in 00_data/):
@@ -71,7 +71,7 @@ addmapvars()
 #   - "indiaspecieslist.csv" (common and scientific names of all species)
 #   - "SoIB_mapping_2022.csv"
 # Outputs:
-# - "dataspeciesfilter_metadata.RData
+# - "dataspeciesfilter_metadata.RData"
 # - "dataforanalyses_extra.RData"
 # - "fullspecieslist.csv" for whole country and individual mask versions
 # - "sub_samp_locs.csv" for whole country and individual mask versions
@@ -85,9 +85,48 @@ addmapvars()
 source("00_scripts/filter_data_for_species.R")
 
 
-## create random group IDs
+# STEP 5: Subsample data for locations (create set of randomly selected GROUP.IDs)
+# <annotation_pending_AV> why do we do this in the first place?
+# Run:
+# - every time "sub_samp_locs.csv" is updated
+# Requires:
+# - tidyverse, parallel, foreach, doParallel
+# - data files (ALL in 00_data/):
+#   - "sub_samp_locs.csv" for whole country and individual mask versions
+# Outputs:
+# - "randomgroupids.RData" for whole country and individual mask versions
 
-# directly source scripts
+load("00_data/dataspeciesfilter_metadata.RData")
+
+dataspeciesfilter_metadata <- dataspeciesfilter_metadata %>% 
+  mutate(RAND.GROUP.IDS.PATH = glue("{FOLDER}randomgroupids.RData"))
+
+
+# not functionising because parallelisation doesn't work inside functions
+cur_mask <- "none"
+tictoc::tic("generated random group IDs for full country")
+source("00_scripts/create_random_groupids.R")
+tictoc::toc() # 83 min
+
+cur_mask <- "woodland"
+tictoc::tic("generated random group IDs for woodland")
+source("00_scripts/create_random_groupids.R")
+tictoc::toc() # 2331 sec (38 min)
+
+cur_mask <- "cropland"
+tictoc::tic("generated random group IDs for cropland")
+source("00_scripts/create_random_groupids.R")
+tictoc::toc() # 833 sec (14 min)
+
+cur_mask <- "ONEland"
+tictoc::tic("generated random group IDs for ONEland")
+source("00_scripts/create_random_groupids.R")
+tictoc::toc() # 463 sec (8 min)
+
+cur_mask <- "PA"
+tictoc::tic("generated random group IDs for PA")
+source("00_scripts/create_random_groupids.R")
+tictoc::toc() # 409 sec (7 min)
 
 
 ## print data files

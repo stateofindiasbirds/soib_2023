@@ -1288,14 +1288,19 @@ SoIBoccupancy = function(data,species,areag)
 
 
 
-#### create a set of locations
-## locs is a data frame with location, group id info
+###    create a set of locations ########################################
+
+# <annotation_pending_AV> why do we do this in the first place?
+
+# locs is a data frame with location, group id info
 
 createrandomlocs = function(locs)
 {
   require(tidyverse)
+  
   locs1 = locs %>% 
-    group_by(LOCALITY.ID,month,timegroups) %>% sample_n(1)
+    group_by(LOCALITY.ID, month, timegroups) %>% sample_n(1)
+  
   return(locs1$group.id)
 }
 
