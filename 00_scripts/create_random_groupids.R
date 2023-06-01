@@ -1,4 +1,4 @@
-# preparing data for specific mask (this is the only part that changes)
+# preparing data for specific mask (this is the only part that changes, but automatically)
 cur_metadata <- dataspeciesfilter_metadata %>% filter(MASK == cur_mask)
 read_path <- cur_metadata$LOCS.PATH
 write_path <- cur_metadata$RAND.GROUP.IDS.PATH

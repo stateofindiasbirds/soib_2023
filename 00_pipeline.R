@@ -85,12 +85,17 @@ addmapvars()
 source("00_scripts/filter_data_for_species.R")
 
 
-# STEP 5: Subsample data for locations (create set of randomly selected GROUP.IDs)
+# PART 2 ------------------------------------------------------------------
+
+# Preparing data for trends analysis
+
+
+# STEP 1: Subsample data for locations (create set of randomly selected GROUP.IDs)
 # <annotation_pending_AV> why do we do this in the first place?
 # Run:
 # - every time "sub_samp_locs.csv" is updated
 # Requires:
-# - tidyverse, parallel, foreach, doParallel
+# - tidyverse, parallel, foreach, doParallel, tictoc
 # - data files (ALL in 00_data/):
 #   - "sub_samp_locs.csv" for whole country and individual mask versions
 # Outputs:
@@ -125,7 +130,52 @@ source("00_scripts/create_random_groupids.R")
 tictoc::toc() # 409 sec (7 min)
 
 
-## print data files
+
+# STEP 2: Create subsampled data files using subsampled GROUP.IDs
+# Run:
+# - after above step (P2, S1)
+# Requires:
+# - tidyverse, tictoc
+# - data files (ALL in 00_data/):
+#   - "dataforanalyses.RData" for whole country and individual mask versions
+#   - "randomgroupids.RData" for whole country and individual mask versions
+# Outputs:
+# - "dataforsim/dataX.csv" for whole country and individual mask versions
+
+load("00_data/dataspeciesfilter_metadata.RData")
+
+
+# FULL COUNTRY
+
+cur_mask <- "none"
+my_assignment <- 201:400 # CHANGE FOR YOUR SUBSET
+tictoc::tic(glue("Generated subsampled data for full country (# {min(my_assignment)}:{max(my_assignment)})"))
+source("00_scripts/create_random_datafiles.R")
+tictoc::toc() 
+
+
+# INDIVIDUAL MASKS
+
+cur_mask <- "woodland"
+tictoc::tic("Generated subsampled data for woodland")
+source("00_scripts/create_random_datafiles.R")
+tictoc::toc() 
+
+cur_mask <- "cropland"
+tictoc::tic("Generated subsampled data for cropland")
+source("00_scripts/create_random_datafiles.R")
+tictoc::toc() 
+
+cur_mask <- "ONEland"
+tictoc::tic("Generated subsampled data for ONEland")
+source("00_scripts/create_random_datafiles.R")
+tictoc::toc() 
+
+cur_mask <- "PA"
+tictoc::tic("Generated subsampled data for PA")
+source("00_scripts/create_random_datafiles.R")
+tictoc::toc() 
+
 
 
 ## run trend analyses
@@ -133,7 +183,7 @@ tictoc::toc() # 409 sec (7 min)
 
 
 
-  ###################                       PART 2                     ###################################
+  ###################                       PART 3                     ###################################
 ## provide "dataforanalyses.RData", "neighbours.RData", "indiaspecieslist.csv" and 
 ## "Migratory Status - Migratory Status.csv"
 
