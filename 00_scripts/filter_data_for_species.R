@@ -62,7 +62,9 @@ dataspeciesfilter_metadata <- data.frame(MASK = c("none",
   mutate(FULLSPECLIST.PATH = glue("{FOLDER}fullspecieslist.csv"),
          LOCS.PATH = glue("{FOLDER}sub_samp_locs.csv"),
          SPECLISTDATA.PATH = glue("{FOLDER}specieslists.RData"),
-         DATA.PATH = glue("{FOLDER}dataforanalyses.RData"))
+         DATA.PATH = glue("{FOLDER}dataforanalyses.RData"),
+         RAND.GROUP.IDS.PATH = glue("{FOLDER}randomgroupids.RData"),
+         SIMDATA.PATHONLY = glue("{FOLDER}dataforsim/"))
 
 # ensuring folders are created if they don't already exist
 for (i in 1:length(dataspeciesfilter_metadata$FOLDER)) {

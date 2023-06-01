@@ -98,10 +98,6 @@ source("00_scripts/filter_data_for_species.R")
 
 load("00_data/dataspeciesfilter_metadata.RData")
 
-dataspeciesfilter_metadata <- dataspeciesfilter_metadata %>% 
-  mutate(RAND.GROUP.IDS.PATH = glue("{FOLDER}randomgroupids.RData"))
-
-
 # not functionising because parallelisation doesn't work inside functions
 cur_mask <- "none"
 tictoc::tic("generated random group IDs for full country")
