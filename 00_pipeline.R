@@ -61,7 +61,42 @@ source("00_scripts/create_habitat_masks_dataframe.R")
 addmapvars()
 
 
-# STEP 4: Process and filter data for analyses
+# STEP 4: create and save metadata for processing analyses for various masks
+# Run:
+# - every time analysis skeleton/various masks are updated
+# Requires:
+# - tidyverse, glue
+# Outputs:
+# - "analyses_metadata.RData"
+analyses_metadata <- data.frame(MASK = c("none", 
+                                                  "woodland", "cropland", "ONEland", 
+                                                  "PA")) %>% 
+  mutate(FOLDER = case_when(MASK == "none" ~ "01_analyses_full/", 
+                            TRUE ~ glue("01_analyses_mask-{MASK}/"))) %>% 
+  mutate(FULLSPECLIST.PATH = glue("{FOLDER}fullspecieslist.csv"),
+         LOCS.PATH = glue("{FOLDER}sub_samp_locs.csv"),
+         SPECLISTDATA.PATH = glue("{FOLDER}specieslists.RData"),
+         DATA.PATH = glue("{FOLDER}dataforanalyses.RData"),
+         RAND.GROUP.IDS.PATH = glue("{FOLDER}randomgroupids.RData"),
+         SIMDATA.PATHONLY = glue("{FOLDER}dataforsim/"))
+
+# ensuring folders are created if they don't already exist
+for (i in 1:length(analyses_metadata$FOLDER)) {
+  
+  if (!dir.exists(analyses_metadata$FOLDER[i])) {
+    dir.create(analyses_metadata$FOLDER[i], 
+               recursive = T)
+  }
+  
+}
+
+# for later reference
+save(analyses_metadata, 
+     file = "00_data/analyses_metadata.RData")
+
+
+
+# STEP 5: Process and filter data for analyses
 # Run:
 # - every time "data.RData" is updated
 # Requires:
@@ -71,7 +106,7 @@ addmapvars()
 #   - "indiaspecieslist.csv" (common and scientific names of all species)
 #   - "SoIB_mapping_2022.csv"
 # Outputs:
-# - "dataspeciesfilter_metadata.RData"
+# - "analyses_metadata.RData"
 # - "dataforanalyses_extra.RData"
 # - "fullspecieslist.csv" for whole country and individual mask versions
 # - "sub_samp_locs.csv" for whole country and individual mask versions
@@ -101,7 +136,7 @@ source("00_scripts/filter_data_for_species.R")
 # Outputs:
 # - "randomgroupids.RData" for whole country and individual mask versions
 
-load("00_data/dataspeciesfilter_metadata.RData")
+load("00_data/analyses_metadata.RData")
 
 # not functionising because parallelisation doesn't work inside functions
 cur_mask <- "none"
@@ -142,7 +177,7 @@ tictoc::toc() # 409 sec (7 min)
 # Outputs:
 # - "dataforsim/dataX.csv" for whole country and individual mask versions
 
-load("00_data/dataspeciesfilter_metadata.RData")
+load("00_data/analyses_metadata.RData")
 
 
 # FULL COUNTRY

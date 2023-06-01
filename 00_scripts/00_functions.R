@@ -388,14 +388,14 @@ dataspeciesfilter = function(
 ) {
   
   # ensuring only valid cur_mask names are provided
-  if (!(cur_mask %in% unique(dataspeciesfilter_metadata$MASK))) {
+  if (!(cur_mask %in% unique(analyses_metadata$MASK))) {
     return('Invalid mask! Please provide valid mask name, one of: c("none","woodland","cropland","ONEland","PA").')
   }
   
   
   # preparing data for mask ###
   
-  cur_metadata <- dataspeciesfilter_metadata %>% filter(MASK == cur_mask)
+  cur_metadata <- analyses_metadata %>% filter(MASK == cur_mask)
   
   if (cur_mask == "none"){
     data0 = data_base

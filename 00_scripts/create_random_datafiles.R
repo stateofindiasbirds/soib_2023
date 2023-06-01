@@ -1,7 +1,7 @@
 require(tidyverse)
 
 # preparing data for specific mask (this is the only part that changes, but automatically)
-cur_metadata <- dataspeciesfilter_metadata %>% filter(MASK == cur_mask)
+cur_metadata <- analyses_metadata %>% filter(MASK == cur_mask)
 read_path_data <- cur_metadata$DATA.PATH
 read_path_groupids <- cur_metadata$RAND.GROUP.IDS.PATH
 

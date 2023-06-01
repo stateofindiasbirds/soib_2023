@@ -53,34 +53,6 @@ spec_openland = fullmap %>%
   list_c()
 
 
-# metadata for processing dataspeciesfilter for various masks ###
-dataspeciesfilter_metadata <- data.frame(MASK = c("none", 
-                                                  "woodland", "cropland", "ONEland", 
-                                                  "PA")) %>% 
-  mutate(FOLDER = case_when(MASK == "none" ~ "01_analyses_full/", 
-                            TRUE ~ glue("01_analyses_mask-{MASK}/"))) %>% 
-  mutate(FULLSPECLIST.PATH = glue("{FOLDER}fullspecieslist.csv"),
-         LOCS.PATH = glue("{FOLDER}sub_samp_locs.csv"),
-         SPECLISTDATA.PATH = glue("{FOLDER}specieslists.RData"),
-         DATA.PATH = glue("{FOLDER}dataforanalyses.RData"),
-         RAND.GROUP.IDS.PATH = glue("{FOLDER}randomgroupids.RData"),
-         SIMDATA.PATHONLY = glue("{FOLDER}dataforsim/"))
-
-# ensuring folders are created if they don't already exist
-for (i in 1:length(dataspeciesfilter_metadata$FOLDER)) {
-  
-  if (!dir.exists(dataspeciesfilter_metadata$FOLDER[i])) {
-    dir.create(dataspeciesfilter_metadata$FOLDER[i], 
-               recursive = T)
-  }
-  
-}
-
-# for later reference
-save(dataspeciesfilter_metadata, 
-     file = "00_data/dataspeciesfilter_metadata.RData")
-
-
 # 0. main data filtering -----------------------------------------------------
 
 load("00_data/data.RData")
