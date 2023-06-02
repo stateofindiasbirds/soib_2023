@@ -9,30 +9,20 @@ library(extrafont)
 library(stringr)
 
 
-main = read.csv("trends_results/full_results/SoIB_main.csv")
-trends = read.csv("trends_results/full_results/trends.csv")
-qualifying.species = main$eBird.English.Name.2022[!main$SOIBv2.Current.Status %in% 
-                                                    c("eBird Data Indecisive","eBird Data Deficient") & 
-                                                    main$Current.Analysis == "X"]
-trends = trends %>% filter(COMMON.NAME %in% qualifying.species) %>%
-  filter(timegroups >= 2015 & timegroups <= 2022)
+## independent (encounter rate - detections per km)
 
-species = c("White-rumped Vulture","Indian Vulture","Red-headed Vulture","Bearded Vulture",
-            "Egyptian Vulture","Eurasian Griffon")
-sps = "Vultures"
+indtrends = read.csv("data_independent/hornbills_papumrf.csv")
+sps = "Hornbills in Papum RF"
 
-temp = trends %>% 
-  mutate(lci_std = lci_std_recent,mean_std = mean_std_recent,rci_std = rci_std_recent) %>%
-  filter(COMMON.NAME %in% species)
+temp = indtrends
 
 t1 = temp[temp$timegroups == 2022,]
-t1 = t1 %>% arrange(desc(mean_std))
+t1 = t1 %>% arrange(desc(mean))
 order = t1$COMMON.NAME
 
 
 temp$COMMON.NAME = factor(temp$COMMON.NAME, 
-                          levels = order)
-
+                      levels = order)
 
 #loadfonts(device = "win")
 
@@ -51,115 +41,19 @@ lbs1 = sort(unique(temp$COMMON.NAME))
 
 tg = c("2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022")
 
-temp$rci_std = temp$lci_std = temp$mean_std
+#loadfonts(device = "win")
 
-maxci = temp$rci_std
-minci = temp$lci_std
+range = max(temp$cir)-min(temp$cil)
 
-liml = min(minci[!is.na(minci)])
+liml = min(temp$cil)-0.1*range
+if (liml < 0)
+  liml = 0
 lm = liml
-liml = plyr::round_any(liml,50,floor)
-
-limu = max(maxci[!is.na(maxci)])
+limu = max(temp$cir)+0.1*range
 um = limu
-limu = plyr::round_any(limu,50,ceiling)
-
-if ((limu-liml) < 100 & liml < 0)
-  liml = liml - 50
-if ((limu-liml) < 100 & limu > 0)
-  limu = limu + 50
-
-range = limu-liml
 
 ybreaks = seq(liml,limu,length.out=5)
-
-if (any(ybreaks != 100))
-{
-  tmpx = sort((abs(ybreaks-100)))
-  tmp = tmpx[1]
-  tmp1 = ybreaks - tmp
-  tmp2 = ybreaks + tmp
-  if (any(tmp1 == 100) & min(tmp1) >= 0)
-  {
-    ybreaks = tmp1
-    liml = plyr::round_any(ybreaks[1],50,floor)
-  }
-  if (min(tmp1) < 0 & any(tmp1 == 100))
-  {
-    ybreaks = ybreaks + tmpx[2]
-    limu = plyr::round_any(ybreaks[5],50,ceiling)
-    limu = limu + round(0.01*(limu-liml))
-  }
-  if (any(tmp2 == 100))
-  {
-    ybreaks = tmp2
-    limu = plyr::round_any(ybreaks[5],50,ceiling)
-    limu = limu + round(0.01*(limu-liml))
-  }
-  
-  ybreaks = plyr::round_any(ybreaks,10,round)
-}
-
-ybreaksl = rep("",5)
-
-for (j in 1:5)
-{
-  ybreaksl[j] = paste("+",(ybreaks[j]-100),"%",sep="")
-  if (ybreaks[j] <= 100)
-    ybreaksl[j] = paste((ybreaks[j]-100),"%",sep="")
-}
-
-ybreaksl[ybreaks == 100] = ""
-
-
-
-
-
-
-######################### fix the one extra, important line
-
-t1$lci_std = t1$rci_std = t1$mean_std
-
-for (i in 1:length(t1$COMMON.NAME))
-{
-  if (t1$lci_std[i] <= 100 & t1$rci_std[i] >= 100)
-    comp = 100
-  
-  if (t1$lci_std[i] > 100 & t1$lci_std[i] <= 125)
-    comp = 125
-  if (t1$lci_std[i] > 125 & t1$lci_std[i] <= 150)
-    comp = 125
-  if (t1$lci_std[i] > 150 & t1$lci_std[i] <= 200)
-    comp = 150  
-  if (t1$lci_std[i] > 200)
-    comp = 200  
-  
-  if (t1$rci_std[i] < 100 & t1$rci_std[i] >= 75)
-    comp = 75
-  if (t1$rci_std[i] < 75 & t1$rci_std[i] >= 50)
-    comp = 75
-  if (t1$rci_std[i] < 50)
-    comp = 50
-  
-  target.index = which(abs(ybreaks - comp) == min(abs(ybreaks - comp)))
-  target.index = target.index[1]
-  ybreaks[target.index] = comp
-  
-  ybreaksl[target.index] = paste("+",(ybreaks[target.index]-100),"%",sep="")
-  if (ybreaks[target.index] <= 100)
-    ybreaksl[target.index] = paste((ybreaks[target.index]-100),"%",sep="")
-}
-
-ybreaksl[ybreaks == 100] = ""
-
-if (min(ybreaks) < lm)
-  lm = min(ybreaks)
-if (max(ybreaks) > um)
-  um = max(ybreaks)
-
-
-
-
+ybreaksl = round(ybreaks,2)
 
 
 ######################### get the x-axis right
@@ -192,18 +86,23 @@ for (k in 1:length(temp$COMMON.NAME))
   }
 }
 
-temp$COMMON.NAMEx[temp$timegroupsf != "2016"] = ""
-
+temp$COMMON.NAMEx[temp$timegroups != "2016"] = ""
 
 tlow = temp %>%
   select(COMMON.NAME,timegroups) %>%
   arrange(COMMON.NAME,timegroups) %>%
-  group_by(COMMON.NAME) %>% slice(2) %>% ungroup()
+  group_by(COMMON.NAME) %>% slice(1) %>% ungroup()
 
 tlow = max(tlow$timegroups)
 
-ggp = ggplot(temp, aes(x = timegroups, y = mean_std, col = COMMON.NAME, label = COMMON.NAMEx)) +
-  geom_line(linewidth = 2) +
+
+
+pd = position_dodge(0.3)
+
+ggp = ggplot(temp, aes(x = timegroups, y = mean, col = COMMON.NAME, label = COMMON.NAMEx)) +
+  geom_line(linewidth = 2, position = pd) +
+  geom_errorbar(aes(ymin = cil, ymax = cir), linewidth = 1, width = 0.2, position = pd) +
+  #geom_point(size = 3) +
   geom_text_repel(nudge_x = -0.65, direction = "y", hjust = "center", size = 4, 
                   min.segment.length = Inf, fontface = c("bold")) +
   #geom_point(size = 3) +
@@ -214,10 +113,10 @@ ggp = ggplot(temp, aes(x = timegroups, y = mean_std, col = COMMON.NAME, label = 
     xmax = c(seq(2016, 2022)) + 0.5,
     y.position = lm-0.01*range,
     bracket.shorten = 0.15,
-    tip.length = 0.04,
-    vjust = 3,
+    tip.length = 0.0004,
+    vjust = 2,
     label = tg[-1],
-    label.size = 3) +
+    label.size = 4) +
   scale_colour_manual(breaks = bks1, 
                       labels = lbs1,
                       values = cols1) +
@@ -235,7 +134,7 @@ ggp = ggplot(temp, aes(x = timegroups, y = mean_std, col = COMMON.NAME, label = 
   geom_segment(x = tlow, y = ybreaks[5], xend = 2022, yend = ybreaks[5], linetype = "dotted", linewidth = 0.7, col = tcol) +
   geom_segment(x = tlow, y = 100, xend = 2022, yend = 100, linetype = "solid", linewidth = 0.9, col = tcol) +
   xlab("Time-steps") +
-  ylab("Change in eBird Abundance Index")
+  ylab("Density (count per ha)")
 
 ggpx = ggp +
   theme(axis.title.x = element_blank(), 
@@ -275,12 +174,9 @@ ggpx = ggp +
         panel.background = element_rect(fill = "transparent",colour = NA))+
   guides(colour = "none")
 
-
-
 ggpx3 = ggdraw(ggpx)
 
-name1 = paste("trends_graphs/current trends - multiple species/",sps,"_","multiple_species_eBird_trend_recent_SoIBv2.jpg",sep="")
-
-jpeg(name1, units="in", width=11, height=7, res=1000, bg="transparent")
+name = paste("trends_graphs/independent trends/",sps,"_","independent.jpg",sep="")
+jpeg(name, units="in", width=11, height=7, res=1000, bg="transparent")
 grid::grid.draw(ggpx3)
 dev.off()

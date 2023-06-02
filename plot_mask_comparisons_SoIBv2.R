@@ -1,3 +1,5 @@
+## compare for a species across masks
+
 source('SoIB_v2 functions.R')
 library(tidyverse)
 library(ggdist)
@@ -8,30 +10,111 @@ library(cowplot)
 library(extrafont)
 library(stringr)
 
-
 main = read.csv("trends_results/full_results/SoIB_main.csv")
+main$Mask = "Country as a whole"
 trends = read.csv("trends_results/full_results/trends.csv")
+trends$Mask = "Country as a whole"
+
+main.woodland = read.csv("trends_results/mask_woodland/SoIB_main_mask_woodland.csv")
+main.woodland$Mask = "Grids with threshold woodland"
+trends.woodland = read.csv("trends_results/mask_woodland/trends_mask_woodland.csv")
+trends.woodland$Mask = "Grids with threshold woodland"
+
+main.pa = read.csv("trends_results/mask_pa/SoIB_main_mask_pa.csv")
+main.pa$Mask = "Protected areas"
+trends.pa = read.csv("trends_results/mask_pa/trends_mask_pa.csv")
+trends.pa$Mask = "Protected areas"
+
+main.crop = read.csv("trends_results/mask_cropland/SoIB_main_mask_cropland.csv")
+main.crop$Mask = "Grids with threshold cropland"
+trends.crop = read.csv("trends_results/mask_cropland/trends_mask_cropland.csv")
+trends.crop$Mask = "Grids with threshold cropland"
+
+main.one = read.csv("trends_results/mask_one/SoIB_main_mask_oneland.csv")
+main.one$Mask = "Grids with threshold ONEs"
+trends.one = read.csv("trends_results/mask_one/trends_mask_oneland.csv")
+trends.one$Mask = "Grids with threshold ONEs"
+
 qualifying.species = main$eBird.English.Name.2022[!main$SOIBv2.Long.Term.Status %in% 
                                                     c("eBird Data Indecisive","eBird Data Deficient") & 
                                                     main$Long.Term.Analysis == "X"]
+qualifying.species.woodland = main.woodland$eBird.English.Name.2022[!main.woodland$SOIBv2.Long.Term.Status %in% 
+                                                                      c("eBird Data Indecisive","eBird Data Deficient") & 
+                                                                      main.woodland$Long.Term.Analysis == "X"]
+qualifying.species.pa = main.pa$eBird.English.Name.2022[!main.pa$SOIBv2.Long.Term.Status %in% 
+                                                          c("eBird Data Indecisive","eBird Data Deficient") & 
+                                                          main.pa$Long.Term.Analysis == "X"]
+qualifying.species.crop = main.crop$eBird.English.Name.2022[!main.crop$SOIBv2.Long.Term.Status %in% 
+                                                              c("eBird Data Indecisive","eBird Data Deficient") & 
+                                                              main.crop$Long.Term.Analysis == "X"]
+qualifying.species.one = main.one$eBird.English.Name.2022[!main.one$SOIBv2.Long.Term.Status %in% 
+                                                            c("eBird Data Indecisive","eBird Data Deficient") & 
+                                                            main.one$Long.Term.Analysis == "X"]
+
+
+trends = trends %>% filter(COMMON.NAME %in% qualifying.species)
+trends.woodland = trends.woodland %>% filter(COMMON.NAME %in% qualifying.species.woodland)
+trends.pa = trends.pa %>% filter(COMMON.NAME %in% qualifying.species.pa)
+trends.crop = trends.crop %>% filter(COMMON.NAME %in% qualifying.species.crop)
+trends.one = trends.one %>% filter(COMMON.NAME %in% qualifying.species.one)
+
+trends = rbind(trends,trends.woodland,trends.pa,trends.crop,trends.one)
+
+qualifying.species.x = union(qualifying.species.woodland,qualifying.species.pa)
+qualifying.species.x = union(qualifying.species.x,qualifying.species.crop)
+qualifying.species.x = union(qualifying.species.x,qualifying.species.one)
+qualifying.species = intersect(qualifying.species,qualifying.species.x)
+
 trends = trends %>% filter(COMMON.NAME %in% qualifying.species) %>%
   filter(timegroups <= 2022)
 
-
 for (z in qualifying.species)
 {
+
   temp = trends %>% 
     filter(COMMON.NAME %in% z)
   
-  t1 = temp[temp$timegroups == 2022,]
+  temp$COMMON.NAME = temp$Mask
   
-  scol = "#869B27"
+  cols.masks = data.frame(Mask = c("Country as a whole","Grids with threshold woodland","Protected areas","Grids with threshold cropland","Grids with threshold ONEs"),
+                          cols = c("#CC6666","#869B27","#66CC99","#B69AC9","#E49B36"))
+  cols.masks = cols.masks %>% filter(Mask %in% temp$COMMON.NAME)
+  
+  
+  t1 = temp[temp$timegroups == 2022,]
+  t1 = t1 %>% arrange(desc(mean_std))
+  order = t1$COMMON.NAME
+  
+  cols.masks$Mask = factor(cols.masks$Mask, levels = order)
+  cols.masks = cols.masks %>% arrange(Mask)
+  
+  
+  temp$COMMON.NAME = factor(temp$COMMON.NAME, 
+                            levels = order)
+  
+  
+  #loadfonts(device = "win")
+  
+  cols = c("#869B27", "#31954E", "#E49B36", "#CC6666", "#78CAE0", "#9999CC", "#493F3D",
+           "#B69AC9", "#A13E2B", "#EA5599", "#000000", "#66CC99")
+  #cols = c("#41726c","#2d809b","#e0d27b","#8cc48c","#55bfaf")
   tcol = "black"
   pcol = "#A13E2B"
-  #loadfonts(device = "win")
+  
+  
+  cols = cols.masks$cols
+  
+  ns = length(unique(temp$COMMON.NAME))
+  
+  
+  cols1 = cols[c(1:ns)]
+  bks1 = sort(unique(temp$COMMON.NAME))
+  lbs1 = sort(unique(temp$COMMON.NAME))
   
   tg = c("before 2000", "2000-2006", "2007-2010", "2011-2012", "2013", "2014", "2015", 
          "2016", "2017", "2018", "2019", "2020", "2021", "2022")
+  
+  temp$rci_std = temp$lci_std = temp$mean_std
   
   maxci = temp$rci_std
   minci = temp$lci_std
@@ -95,34 +178,40 @@ for (z in qualifying.species)
   
   
   
+  
   ######################### fix the one extra, important line
   
-  if (t1$lci_std <= 100 & t1$rci_std >= 100)
-    comp = 100
+  t1$lci_std = t1$rci_std = t1$mean_std
   
-  if (t1$lci_std > 100 & t1$lci_std <= 125)
-    comp = 125
-  if (t1$lci_std > 125 & t1$lci_std <= 150)
-    comp = 125
-  if (t1$lci_std > 150 & t1$lci_std <= 200)
-    comp = 150  
-  if (t1$lci_std > 200)
-    comp = 200  
-  
-  if (t1$rci_std < 100 & t1$rci_std >= 75)
-    comp = 75
-  if (t1$rci_std < 75 & t1$rci_std >= 50)
-    comp = 75
-  if (t1$rci_std < 50)
-    comp = 50
-  
-  target.index = which(abs(ybreaks - comp) == min(abs(ybreaks - comp)))
-  target.index = target.index[1]
-  ybreaks[target.index] = comp
-  
-  ybreaksl[target.index] = paste("+",(ybreaks[target.index]-100),"%",sep="")
-  if (ybreaks[target.index] <= 100)
-    ybreaksl[target.index] = paste((ybreaks[target.index]-100),"%",sep="")
+  for (i in 1:length(t1$COMMON.NAME))
+  {
+    if (t1$lci_std[i] <= 100 & t1$rci_std[i] >= 100)
+      comp = 100
+    
+    if (t1$lci_std[i] > 100 & t1$lci_std[i] <= 125)
+      comp = 125
+    if (t1$lci_std[i] > 125 & t1$lci_std[i] <= 150)
+      comp = 125
+    if (t1$lci_std[i] > 150 & t1$lci_std[i] <= 200)
+      comp = 150  
+    if (t1$lci_std[i] > 200)
+      comp = 200  
+    
+    if (t1$rci_std[i] < 100 & t1$rci_std[i] >= 75)
+      comp = 75
+    if (t1$rci_std[i] < 75 & t1$rci_std[i] >= 50)
+      comp = 75
+    if (t1$rci_std[i] < 50)
+      comp = 50
+    
+    target.index = which(abs(ybreaks - comp) == min(abs(ybreaks - comp)))
+    target.index = target.index[1]
+    ybreaks[target.index] = comp
+    
+    ybreaksl[target.index] = paste("+",(ybreaks[target.index]-100),"%",sep="")
+    if (ybreaks[target.index] <= 100)
+      ybreaksl[target.index] = paste((ybreaks[target.index]-100),"%",sep="")
+  }
   
   ybreaksl[ybreaks == 100] = ""
   
@@ -134,22 +223,51 @@ for (z in qualifying.species)
   
   
   
+  
   ######################### get the x-axis right
   
   sps = z
   
   x_tick_pre2000Bas = seq(1999, 2022) + 0.5
   
+  temp$COMMON.NAMEy = as.character(temp$COMMON.NAME)
+  temp$COMMON.NAMEz = as.character(temp$COMMON.NAME)
+  temp$COMMON.NAMEx = ""
+  
+  
+  for (k in 1:length(temp$COMMON.NAME))
+  {
+    
+    temp$COMMON.NAMEx[k] = as.character(temp$COMMON.NAME[k])
+    
+    if (nchar(temp$COMMON.NAMEy[k]) > 18)
+    {
+      temp$COMMON.NAMEy[k] = word(temp$COMMON.NAME[k],1,-2)
+      temp$COMMON.NAMEz[k] = word(temp$COMMON.NAME[k],-1)
+      
+      if (nchar(temp$COMMON.NAMEy[k]) > 18)
+      {
+        temp$COMMON.NAMEy[k] = word(temp$COMMON.NAME[k],1,-3)
+        temp$COMMON.NAMEz[k] = word(temp$COMMON.NAME[k],-2,-1)
+      }
+      
+      temp$COMMON.NAMEx[k] = paste(temp$COMMON.NAMEy[k],"\n",temp$COMMON.NAMEz[k],sep="")
+    }
+  }
+  
+  temp$COMMON.NAMEx[temp$timegroupsf != "2000-2006"] = ""
   tlow = temp %>%
     select(COMMON.NAME,timegroups) %>%
     arrange(COMMON.NAME,timegroups) %>%
     group_by(COMMON.NAME) %>% slice(2) %>% ungroup()
-  
+    
   tlow = max(tlow$timegroups)
   
-  ggp = ggplot(temp, aes(x = timegroups, y = mean_std, ymin = lci_std, ymax = rci_std)) +
-    geom_lineribbon(fill = scol, col = "black", linewidth = 0.7, alpha = 1) +
-    geom_point(size = 3, color = "black") +
+  ggp = ggplot(temp, aes(x = timegroups, y = mean_std, col = COMMON.NAME, label = COMMON.NAMEx)) +
+    geom_line(linewidth = 2) +
+    geom_text_repel(nudge_x = -2, direction = "y", hjust = "center", size = 4, 
+                    min.segment.length = Inf, fontface = "bold") +
+    #geom_point(size = 3) +
     ggtitle(sps) +
     geom_bracket(
       inherit.aes = FALSE, 
@@ -171,14 +289,19 @@ for (z in qualifying.species)
       vjust = 2.1,
       label = "Current Trend",
       label.size = 3) +
+    scale_colour_manual(breaks = bks1, 
+                        labels = lbs1,
+                        values = cols1) +
+    scale_fill_manual(breaks = bks1, 
+                      labels = lbs1,
+                      values = cols1) +
     scale_x_continuous(
-      expand=c(0,0),
       breaks = c(seq(1999, 2022), x_tick_pre2000Bas),
       labels = c("", "2000", "2001", rep(c(""), 2006-2000-2), 
                  "2006", "2007", rep(c(""), 2010-2006-2), 
                  "2010", "2011", rep(c(""), 2012-2010-2), 
                  paste0(seq(2012, 2022)), rep(c(""), length(x_tick_pre2000Bas))),
-      limits = c(2000, 2024.7)) +
+      limits = c(1999.5, 2023.5)) +
     geom_segment(x = tlow, y = ybreaks[1], xend = 2022, yend = ybreaks[1], linetype = "dotted", linewidth = 0.7, col = tcol) +
     geom_segment(x = tlow, y = ybreaks[2], xend = 2022, yend = ybreaks[2], linetype = "dotted", linewidth = 0.7, col = tcol) +
     geom_segment(x = tlow, y = ybreaks[3], xend = 2022, yend = ybreaks[3], linetype = "dotted", linewidth = 0.7, col = tcol) +
@@ -227,16 +350,12 @@ for (z in qualifying.species)
     guides(colour = "none")
   
   
-  ggpx1 = ggdraw(ggpx)
+  ggpx3 = ggdraw(ggpx)
   
-  name1 = paste("trends_graphs/long-term trends - single species/",sps,"_","eBird_trend_SoIBv2.jpg",sep="")
-  #name2 = paste(sps,"_","eBird_trend_SoIBv2.svg",sep="")
+  name1 = paste("trends_graphs/long-term trends - masks/",sps,"_","mask_comparison_eBird_trend_SoIBv2.jpg",sep="")
   
   jpeg(name1, units="in", width=11, height=7, res=1000, bg="transparent")
-  grid::grid.draw(ggpx1)
+  grid::grid.draw(ggpx3)
   dev.off()
-  
-  #print(ggpx1)
-  #ggsave(file=name2, units="in", width=11, height=7)
-}
 
+}
