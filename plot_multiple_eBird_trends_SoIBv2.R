@@ -12,16 +12,45 @@ library(stringr)
 main = read.csv("trends_results/full_results/SoIB_main.csv")
 trends = read.csv("trends_results/full_results/trends.csv")
 qualifying.species = main$eBird.English.Name.2022[!main$SOIBv2.Long.Term.Status %in% 
-                                                    c("eBird Data Indecisive","eBird Data Deficient") & 
+                                                    c("eBird Data Inconclusive","eBird Data Deficient") & 
                                                     main$Long.Term.Analysis == "X"]
 trends = trends %>% filter(COMMON.NAME %in% qualifying.species) %>%
   filter(timegroups <= 2022)
 
-species = c("White-rumped Vulture","Indian Vulture","Red-headed Vulture","Bearded Vulture",
-            "Egyptian Vulture","Eurasian Griffon")
-species = c("Little Ringed Plover","Little Tern","Great Thick-knee","Small Pratincole")
+cols = c("#869B27", "#31954E", "#E49B36", "#CC6666", "#78CAE0", "#9999CC", "#493F3D",
+         "#B69AC9", "#A13E2B", "#EA5599", "#000000", "#66CC99")
 
-sps = "River Birds"
+
+species = c("Little Ringed Plover","Little Tern","Great Thick-knee","Small Pratincole")
+species = c("Black-rumped Flameback","White-naped Woodpecker","White-bellied Woodpecker",
+            "Yellow-crowned Woodpecker","Brown-capped Pygmy Woodpecker")
+#cols = c("#869B27", "#31954E", "#78CAE0", "#CC6666", "#E49B36", "#9999CC", "#493F3D",
+#         "#B69AC9", "#A13E2B", "#EA5599", "#000000", "#66CC99")
+species = c("Ashy-crowned Sparrow-Lark","Great Gray Shrike","Rufous-tailed Lark",
+            "Yellow-billed Babbler","Jerdon's Bushlark")
+species = c("Northern Pintail","Northern Shoveler","Indian Spot-billed Duck",
+            "Cotton Pygmy-Goose")
+species = c("White-rumped Vulture","Indian Vulture","Red-headed Vulture",
+            "Egyptian Vulture","Eurasian Griffon")
+#cols = c("#869B27", "#78CAE0", "#CC6666", "#E49B36", "#31954E", "#9999CC", "#493F3D",
+#         "#B69AC9", "#A13E2B", "#EA5599", "#000000", "#66CC99")
+species = c("Brahminy Kite","Black Kite","Shikra","Eurasian Marsh-Harrier",
+            "Short-toed Snake-Eagle","Pallid Harrier")
+species = c("Spot-billed Pelican","Black-headed Ibis","Glossy Ibis","Painted Stork",
+            "Great Cormorant")
+#cols = c("#869B27", "#31954E", "#CC6666", "#78CAE0", "#9999CC", "#493F3D",
+#         "#B69AC9", "#A13E2B", "#EA5599", "#000000", "#66CC99")
+species = c("Ashy Prinia","Rock Pigeon","Indian Peafowl","House Sparrow")
+species = c("Indian Gray Hornbill","Malabar Gray Hornbill","Oriental Pied-Hornbill")
+species = c("Lesser Sand-Plover","Terek Sandpiper","Whimbrel","Curlew Sandpiper",
+            "Eurasian Curlew")
+species = c("Black-rumped Flameback","White-naped Woodpecker","White-bellied Woodpecker",
+            "Yellow-crowned Woodpecker","Brown-capped Pygmy Woodpecker",
+            "Gray-headed Woodpecker")
+cols = c("#869B27", "#31954E", "#78CAE0", "#CC6666", "#E49B36", "#9999CC", "#493F3D",
+         "#B69AC9", "#A13E2B", "#EA5599", "#000000", "#66CC99")
+
+sps = "Woodpeckers"
 
 temp = trends %>% 
   filter(COMMON.NAME %in% species)
@@ -37,8 +66,7 @@ temp$COMMON.NAME = factor(temp$COMMON.NAME,
 
 #loadfonts(device = "win")
 
-cols = c("#869B27", "#31954E", "#E49B36", "#CC6666", "#78CAE0", "#9999CC", "#493F3D",
-         "#B69AC9", "#A13E2B", "#EA5599", "#000000", "#66CC99")
+
 #cols = c("#41726c","#2d809b","#e0d27b","#8cc48c","#55bfaf")
 tcol = "black"
 pcol = "#A13E2B"

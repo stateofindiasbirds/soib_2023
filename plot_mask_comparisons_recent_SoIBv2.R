@@ -36,19 +36,19 @@ trends.one = read.csv("trends_results/mask_one/trends_mask_oneland.csv")
 trends.one$Mask = "Grids with threshold ONEs"
 
 qualifying.species = main$eBird.English.Name.2022[!main$SOIBv2.Long.Term.Status %in% 
-                                                    c("eBird Data Indecisive","eBird Data Deficient") & 
+                                                    c("eBird Data Inconclusive","eBird Data Deficient") & 
                                                     main$Current.Analysis == "X"]
 qualifying.species.woodland = main.woodland$eBird.English.Name.2022[!main.woodland$SOIBv2.Long.Term.Status %in% 
-                                                                      c("eBird Data Indecisive","eBird Data Deficient") & 
+                                                                      c("eBird Data Inconclusive","eBird Data Deficient") & 
                                                                       main.woodland$Current.Analysis == "X"]
 qualifying.species.pa = main.pa$eBird.English.Name.2022[!main.pa$SOIBv2.Long.Term.Status %in% 
-                                                          c("eBird Data Indecisive","eBird Data Deficient") & 
+                                                          c("eBird Data Inconclusive","eBird Data Deficient") & 
                                                           main.pa$Current.Analysis == "X"]
 qualifying.species.crop = main.crop$eBird.English.Name.2022[!main.crop$SOIBv2.Long.Term.Status %in% 
-                                                              c("eBird Data Indecisive","eBird Data Deficient") & 
+                                                              c("eBird Data Inconclusive","eBird Data Deficient") & 
                                                               main.crop$Current.Analysis == "X"]
 qualifying.species.one = main.one$eBird.English.Name.2022[!main.one$SOIBv2.Long.Term.Status %in% 
-                                                            c("eBird Data Indecisive","eBird Data Deficient") & 
+                                                            c("eBird Data Inconclusive","eBird Data Deficient") & 
                                                             main.one$Current.Analysis == "X"]
 
 

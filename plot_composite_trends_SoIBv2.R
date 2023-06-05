@@ -12,7 +12,7 @@ main = read.csv("trends_results/full_results/SoIB_main.csv")
 trends = read.csv("trends_results/full_results/trends.csv")
 
 qualifying.species = main$eBird.English.Name.2022[!main$SOIBv2.Long.Term.Status %in% 
-                                                    c("eBird Data Indecisive","eBird Data Deficient") & 
+                                                    c("eBird Data Inconclusive","eBird Data Deficient") & 
                                                     main$Long.Term.Analysis == "X"]
 
 trends = trends %>% filter(COMMON.NAME %in% qualifying.species) %>%
@@ -1947,10 +1947,10 @@ trends.woodland = read.csv("trends_results/mask_woodland/trends_mask_woodland.cs
 trends.woodland$Mask = "Grids with threshold woodland"
 
 qualifying.species = main$eBird.English.Name.2022[!main$SOIBv2.Long.Term.Status %in% 
-                                                    c("eBird Data Indecisive","eBird Data Deficient") & 
+                                                    c("eBird Data Inconclusive","eBird Data Deficient") & 
                                                     main$Long.Term.Analysis == "X"]
 qualifying.species.woodland = main.woodland$eBird.English.Name.2022[!main.woodland$SOIBv2.Long.Term.Status %in% 
-                                                    c("eBird Data Indecisive","eBird Data Deficient") & 
+                                                    c("eBird Data Inconclusive","eBird Data Deficient") & 
                                                     main.woodland$Long.Term.Analysis == "X"]
 qualifying.species = intersect(qualifying.species,qualifying.species.woodland)
 
@@ -2300,10 +2300,10 @@ trends.pa = read.csv("trends_results/mask_pa/trends_mask_pa.csv")
 trends.pa$Mask = "Protected areas"
 
 qualifying.species = main$eBird.English.Name.2022[!main$SOIBv2.Long.Term.Status %in% 
-                                                    c("eBird Data Indecisive","eBird Data Deficient") & 
+                                                    c("eBird Data Inconclusive","eBird Data Deficient") & 
                                                     main$Long.Term.Analysis == "X"]
 qualifying.species.pa = main.pa$eBird.English.Name.2022[!main.pa$SOIBv2.Long.Term.Status %in% 
-                                                                      c("eBird Data Indecisive","eBird Data Deficient") & 
+                                                                      c("eBird Data Inconclusive","eBird Data Deficient") & 
                                                                       main.pa$Long.Term.Analysis == "X"]
 qualifying.species = intersect(qualifying.species,qualifying.species.pa)
 
@@ -2655,13 +2655,13 @@ trends.one = read.csv("trends_results/mask_one/trends_mask_oneland.csv")
 trends.one$Mask = "Grids with threshold ONEs"
 
 qualifying.species = main$eBird.English.Name.2022[!main$SOIBv2.Long.Term.Status %in% 
-                                                    c("eBird Data Indecisive","eBird Data Deficient") & 
+                                                    c("eBird Data Inconclusive","eBird Data Deficient") & 
                                                     main$Long.Term.Analysis == "X"]
 qualifying.species.crop = main.crop$eBird.English.Name.2022[!main.crop$SOIBv2.Long.Term.Status %in% 
-                                                          c("eBird Data Indecisive","eBird Data Deficient") & 
+                                                          c("eBird Data Inconclusive","eBird Data Deficient") & 
                                                           main.crop$Long.Term.Analysis == "X"]
 qualifying.species.one = main.one$eBird.English.Name.2022[!main.one$SOIBv2.Long.Term.Status %in% 
-                                                             c("eBird Data Indecisive","eBird Data Deficient") & 
+                                                             c("eBird Data Inconclusive","eBird Data Deficient") & 
                                                              main.one$Long.Term.Analysis == "X"]
 qualifying.species = intersect(qualifying.species,qualifying.species.crop)
 qualifying.species = intersect(qualifying.species,qualifying.species.one)

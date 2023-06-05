@@ -9,18 +9,14 @@ library(extrafont)
 library(stringr)
 
 
-## independent density
+## independent counts
 
-indtrends = read.csv("data_independent/spiti_forplot_spec.csv")
-indtrends_hab = read.csv("data_independent/spiti_forplot_hab.csv")
+indtrends = read.csv("data_independent/vembanad_AWC_v4.csv")
+indtrends_tot = read.csv("data_independent/vembanad_AWC_total.csv")
 selectspecies = unique(indtrends$COMMON.NAME)
-selectspecies_hab = unique(indtrends_hab$COMMON.NAME)
 
 tg = as.character(indtrends$timegroups)
-indtrends = indtrends %>% 
-  filter(!is.na(mean), !((cir-mean) > 0.3 & cir/mean > 2))
-indtrends_hab = indtrends_hab %>% 
-  filter(!is.na(mean), !((cir-mean) > 0.3 & cir/mean > 2))
+
 
 cols = c("#869B27", "#31954E", "#E49B36", "#CC6666", "#78CAE0", "#9999CC", "#493F3D",
          "#B69AC9", "#A13E2B", "#EA5599", "#000000", "#66CC99")
@@ -38,6 +34,7 @@ for (i in 1:length(selectspecies))
   
   #loadfonts(device = "win")
   
+  temp$cil = temp$cir = temp$mean
   range = max(temp$cir[!is.na(temp$cir)])-min(temp$cil[!is.na(temp$cil)])
   
   liml = min(temp$cil[!is.na(temp$cil)])-0.1*range
@@ -47,14 +44,16 @@ for (i in 1:length(selectspecies))
   limu = max(temp$cir[!is.na(temp$cir)])+0.1*range
   um = limu
   
-  ybreaks = seq(liml,limu,length.out=5)
-  ybreaksl = round(ybreaks,2)
+  ybreaks = round(seq(liml,limu,length.out=5),-2)
+  if (sps == "Oriental Darter")
+    ybreaks = round(seq(liml,limu,length.out=5),-1)
+  ybreaksl = round(ybreaks,0)
   
   
   ######################### get the x-axis right
   
   
-  x_tick_preBas = seq(2001, 2022) + 0.5
+  x_tick_preBas = seq(2000, 2023) + 0.5
   
   tlow = temp %>%
     select(COMMON.NAME,timegroups) %>%
@@ -62,17 +61,16 @@ for (i in 1:length(selectspecies))
     group_by(COMMON.NAME) %>% slice(1) %>% ungroup()
   
   tlow = max(tlow$timegroups)
-  sps = paste(sps,"in Spiti",sep=" ")
+  sps = paste(sps,"at Vembanad AWC",sep=" ")
   
   ggp = ggplot(temp, aes(x = timegroups, y = mean)) +
     geom_line(linewidth = 2, col = scol) +
-    geom_errorbar(aes(ymin = cil, ymax = cir), linewidth = 0.5, width = 0.2, col = scol) +
     #geom_point(size = 3) +
     ggtitle(sps) +
     geom_bracket(
       inherit.aes = FALSE, 
-      xmin = c(seq(2001, 2021)) + 0.5, 
-      xmax = c(seq(2002, 2022)) + 0.5,
+      xmin = c(seq(2000, 2022)) + 0.5, 
+      xmax = c(seq(2001, 2023)) + 0.5,
       y.position = lm-0.01*range,
       bracket.shorten = 0.15,
       tip.length = 0.025,
@@ -81,16 +79,16 @@ for (i in 1:length(selectspecies))
       label.size = 3) +
     scale_x_continuous(
       expand=c(0,0),
-      breaks = c(seq(2002, 2022), x_tick_preBas),
-      labels = c(paste0(seq(2002, 2022)), rep(c(""), length(x_tick_preBas))),
-      limits = c(2000, 2024.5)) +
-    geom_segment(x = tlow, y = ybreaks[1], xend = 2022, yend = ybreaks[1], linetype = "dotted", linewidth = 0.7, col = tcol) +
-    geom_segment(x = tlow, y = ybreaks[2], xend = 2022, yend = ybreaks[2], linetype = "dotted", linewidth = 0.7, col = tcol) +
-    geom_segment(x = tlow, y = ybreaks[3], xend = 2022, yend = ybreaks[3], linetype = "dotted", linewidth = 0.7, col = tcol) +
-    geom_segment(x = tlow, y = ybreaks[4], xend = 2022, yend = ybreaks[4], linetype = "dotted", linewidth = 0.7, col = tcol) +
-    geom_segment(x = tlow, y = ybreaks[5], xend = 2022, yend = ybreaks[5], linetype = "dotted", linewidth = 0.7, col = tcol) +
+      breaks = c(seq(2001, 2023), x_tick_preBas),
+      labels = c(paste0(seq(2001, 2023)), rep(c(""), length(x_tick_preBas))),
+      limits = c(1999, 2025.5)) +
+    geom_segment(x = tlow, y = ybreaks[1], xend = 2023, yend = ybreaks[1], linetype = "dotted", linewidth = 0.7, col = tcol) +
+    geom_segment(x = tlow, y = ybreaks[2], xend = 2023, yend = ybreaks[2], linetype = "dotted", linewidth = 0.7, col = tcol) +
+    geom_segment(x = tlow, y = ybreaks[3], xend = 2023, yend = ybreaks[3], linetype = "dotted", linewidth = 0.7, col = tcol) +
+    geom_segment(x = tlow, y = ybreaks[4], xend = 2023, yend = ybreaks[4], linetype = "dotted", linewidth = 0.7, col = tcol) +
+    geom_segment(x = tlow, y = ybreaks[5], xend = 2023, yend = ybreaks[5], linetype = "dotted", linewidth = 0.7, col = tcol) +
     xlab("Time-steps") +
-    ylab("Density (count per ha)")
+    ylab("Count")
   
   ggpx = ggp +
     theme(axis.title.x = element_blank(), 
@@ -105,15 +103,15 @@ for (i in 1:length(selectspecies))
                        labels = c(ybreaksl[1],ybreaksl[2],ybreaksl[3],
                                   ybreaksl[4],ybreaksl[5]),
                        position = "left")+
-    annotate("text", x = 2023.5, y = ybreaks[1], label = ybreaksl[1], 
+    annotate("text", x = 2024.5, y = ybreaks[1], label = ybreaksl[1], 
              colour = "#56697B", family="Gill Sans MT", size = 6)+
-    annotate("text", x = 2023.5, y = ybreaks[2], label = ybreaksl[2], 
+    annotate("text", x = 2024.5, y = ybreaks[2], label = ybreaksl[2], 
              colour = "#56697B", family="Gill Sans MT", size = 6)+
-    annotate("text", x = 2023.5, y = ybreaks[3], label = ybreaksl[3], 
+    annotate("text", x = 2024.5, y = ybreaks[3], label = ybreaksl[3], 
              colour = "#56697B", family="Gill Sans MT", size = 6)+
-    annotate("text", x = 2023.5, y = ybreaks[4], label = ybreaksl[4], 
+    annotate("text", x = 2024.5, y = ybreaks[4], label = ybreaksl[4], 
              colour = "#56697B", family="Gill Sans MT", size = 6)+
-    annotate("text", x = 2023.5, y = ybreaks[5], label = ybreaksl[5], 
+    annotate("text", x = 2024.5, y = ybreaks[5], label = ybreaksl[5], 
              colour = "#56697B", family="Gill Sans MT", size = 6)+
     coord_cartesian(ylim = c(lm-0.1*range,um+0.1*range), clip="off")+
     theme(panel.grid.major = element_blank(),
@@ -130,7 +128,7 @@ for (i in 1:length(selectspecies))
   
   ggpx3 = ggdraw(ggpx)
   
-  name = paste("trends_graphs/independent trends/spiti monitoring/",sps,".jpg",sep="")
+  name = paste("trends_graphs/independent trends/vembanad AWC/",sps,".jpg",sep="")
   jpeg(name, units="in", width=11, height=7, res=1000, bg="transparent")
   grid::grid.draw(ggpx3)
   dev.off()
@@ -139,13 +137,12 @@ for (i in 1:length(selectspecies))
 
 
 
-
 ######## composite
 
-temp = indtrends_hab
-sps = "Habitats in Spiti"
+temp = indtrends[!indtrends$COMMON.NAME %in% c("Whiskered Tern"),]
+sps = "AWC count at Vembanad"
 
-t1 = temp[temp$timegroups == 2022,]
+t1 = temp[temp$timegroups == 2023,]
 t1 = t1 %>% arrange(desc(mean))
 order = t1$COMMON.NAME
 
@@ -169,8 +166,8 @@ lm = liml
 limu = max(temp$cir[!is.na(temp$cir)])+0.1*range
 um = limu
 
-ybreaks = round(seq(liml,limu,length.out=5),1)
-ybreaksl = round(ybreaks,1)
+ybreaks = round(seq(liml,limu,length.out=5),-2)
+ybreaksl = round(ybreaks,0)
 
 
 
@@ -180,7 +177,7 @@ ybreaksl = round(ybreaks,1)
 ######################### get the x-axis right
 
 
-x_tick_preBas = seq(2001, 2022) + 0.5
+x_tick_preBas = seq(2000, 2023) + 0.5
 
 temp$COMMON.NAMEy = as.character(temp$COMMON.NAME)
 temp$COMMON.NAMEz = as.character(temp$COMMON.NAME)
@@ -230,8 +227,8 @@ ggp = ggplot(temp, aes(x = timegroups, y = mean, col = COMMON.NAME, label = COMM
   ggtitle(sps) +
   geom_bracket(
     inherit.aes = FALSE, 
-    xmin = c(seq(2001, 2021)) + 0.5, 
-    xmax = c(seq(2002, 2022)) + 0.5,
+    xmin = c(seq(2000, 2022)) + 0.5, 
+    xmax = c(seq(2001, 2023)) + 0.5,
     y.position = lm-0.01*range,
     bracket.shorten = 0.15,
     tip.length = 0.025,
@@ -245,16 +242,16 @@ ggp = ggplot(temp, aes(x = timegroups, y = mean, col = COMMON.NAME, label = COMM
                     labels = lbs1,
                     values = cols1) +
   scale_x_continuous(
-    breaks = c(seq(2002, 2022), x_tick_preBas),
-    labels = c(paste0(seq(2002, 2022)), rep(c(""), length(x_tick_preBas))),
-    limits = c(1999.5, 2023.5)) +
-  geom_segment(x = tlow, y = ybreaks[1], xend = 2022, yend = ybreaks[1], linetype = "dotted", linewidth = 0.7, col = tcol) +
-  geom_segment(x = tlow, y = ybreaks[2], xend = 2022, yend = ybreaks[2], linetype = "dotted", linewidth = 0.7, col = tcol) +
-  geom_segment(x = tlow, y = ybreaks[3], xend = 2022, yend = ybreaks[3], linetype = "dotted", linewidth = 0.7, col = tcol) +
-  geom_segment(x = tlow, y = ybreaks[4], xend = 2022, yend = ybreaks[4], linetype = "dotted", linewidth = 0.7, col = tcol) +
-  geom_segment(x = tlow, y = ybreaks[5], xend = 2022, yend = ybreaks[5], linetype = "dotted", linewidth = 0.7, col = tcol) +
+    breaks = c(seq(2001, 2023), x_tick_preBas),
+    labels = c(paste0(seq(2001, 2023)), rep(c(""), length(x_tick_preBas))),
+    limits = c(1998.5, 2024.5)) +
+  geom_segment(x = tlow, y = ybreaks[1], xend = 2023, yend = ybreaks[1], linetype = "dotted", linewidth = 0.7, col = tcol) +
+  geom_segment(x = tlow, y = ybreaks[2], xend = 2023, yend = ybreaks[2], linetype = "dotted", linewidth = 0.7, col = tcol) +
+  geom_segment(x = tlow, y = ybreaks[3], xend = 2023, yend = ybreaks[3], linetype = "dotted", linewidth = 0.7, col = tcol) +
+  geom_segment(x = tlow, y = ybreaks[4], xend = 2023, yend = ybreaks[4], linetype = "dotted", linewidth = 0.7, col = tcol) +
+  geom_segment(x = tlow, y = ybreaks[5], xend = 2023, yend = ybreaks[5], linetype = "dotted", linewidth = 0.7, col = tcol) +
   xlab("Time-steps") +
-  ylab("Density (per ha)")
+  ylab("Count")
 
 ggpx = ggp +
   theme(axis.title.x = element_blank(), 
@@ -269,15 +266,15 @@ ggpx = ggp +
                      labels = c(ybreaksl[1],ybreaksl[2],ybreaksl[3],
                                 ybreaksl[4],ybreaksl[5]),
                      position = "left")+
-  annotate("text", x = 2023.5, y = ybreaks[1], label = ybreaksl[1], 
+  annotate("text", x = 2024.5, y = ybreaks[1], label = ybreaksl[1], 
            colour = "#56697B", family="Gill Sans MT", size = 6)+
-  annotate("text", x = 2023.5, y = ybreaks[2], label = ybreaksl[2], 
+  annotate("text", x = 2024.5, y = ybreaks[2], label = ybreaksl[2], 
            colour = "#56697B", family="Gill Sans MT", size = 6)+
-  annotate("text", x = 2023.5, y = ybreaks[3], label = ybreaksl[3], 
+  annotate("text", x = 2024.5, y = ybreaks[3], label = ybreaksl[3], 
            colour = "#56697B", family="Gill Sans MT", size = 6)+
-  annotate("text", x = 2023.5, y = ybreaks[4], label = ybreaksl[4], 
+  annotate("text", x = 2024.5, y = ybreaks[4], label = ybreaksl[4], 
            colour = "#56697B", family="Gill Sans MT", size = 6)+
-  annotate("text", x = 2023.5, y = ybreaks[5], label = ybreaksl[5], 
+  annotate("text", x = 2024.5, y = ybreaks[5], label = ybreaksl[5], 
            colour = "#56697B", family="Gill Sans MT", size = 6)+
   coord_cartesian(ylim = c(lm-0.1*range,um+0.1*range), clip="off")+
   theme(panel.grid.major = element_blank(),
@@ -295,7 +292,116 @@ ggpx = ggp +
 
 ggpx3 = ggdraw(ggpx)
 
-name = paste("trends_graphs/independent trends/spiti monitoring/composites/",sps,".jpg",sep="")
+name = paste("trends_graphs/independent trends/vembanad AWC/composites/",sps,".jpg",sep="")
+jpeg(name, units="in", width=11, height=7, res=1000, bg="transparent")
+grid::grid.draw(ggpx3)
+dev.off()
+
+
+
+
+
+#### AWC Vembanad total
+
+sps = "Aggregated waterbird count in Vembanad AWC"
+temp = indtrends_tot
+scol = "#869B27"
+
+#loadfonts(device = "win")
+
+temp$cil = temp$cir = temp$mean
+temp$COMMON.NAME = "Total"
+range = max(temp$cir[!is.na(temp$cir)])-min(temp$cil[!is.na(temp$cil)])
+
+liml = min(temp$cil[!is.na(temp$cil)])-0.1*range
+if (liml < 0)
+  liml = 0
+lm = liml
+limu = max(temp$cir[!is.na(temp$cir)])+0.1*range
+um = limu
+
+ybreaks = round(seq(liml,limu,length.out=5),-2)
+ybreaksl = round(ybreaks,0)
+
+
+######################### get the x-axis right
+
+
+x_tick_preBas = seq(2000, 2023) + 0.5
+
+tlow = temp %>%
+  select(COMMON.NAME,timegroups) %>%
+  arrange(COMMON.NAME,timegroups) %>%
+  group_by(COMMON.NAME) %>% slice(1) %>% ungroup()
+
+tlow = max(tlow$timegroups)
+
+ggp = ggplot(temp, aes(x = timegroups, y = mean)) +
+  geom_line(linewidth = 2, col = scol) +
+  #geom_point(size = 3) +
+  ggtitle(sps) +
+  geom_bracket(
+    inherit.aes = FALSE, 
+    xmin = c(seq(2000, 2022)) + 0.5, 
+    xmax = c(seq(2001, 2023)) + 0.5,
+    y.position = lm-0.01*range,
+    bracket.shorten = 0.15,
+    tip.length = 0.025,
+    vjust = 2,
+    label = tg,
+    label.size = 3) +
+  scale_x_continuous(
+    expand=c(0,0),
+    breaks = c(seq(2001, 2023), x_tick_preBas),
+    labels = c(paste0(seq(2001, 2023)), rep(c(""), length(x_tick_preBas))),
+    limits = c(1999, 2025.5)) +
+  geom_segment(x = tlow, y = ybreaks[1], xend = 2023, yend = ybreaks[1], linetype = "dotted", linewidth = 0.7, col = tcol) +
+  geom_segment(x = tlow, y = ybreaks[2], xend = 2023, yend = ybreaks[2], linetype = "dotted", linewidth = 0.7, col = tcol) +
+  geom_segment(x = tlow, y = ybreaks[3], xend = 2023, yend = ybreaks[3], linetype = "dotted", linewidth = 0.7, col = tcol) +
+  geom_segment(x = tlow, y = ybreaks[4], xend = 2023, yend = ybreaks[4], linetype = "dotted", linewidth = 0.7, col = tcol) +
+  geom_segment(x = tlow, y = ybreaks[5], xend = 2023, yend = ybreaks[5], linetype = "dotted", linewidth = 0.7, col = tcol) +
+  xlab("Time-steps") +
+  ylab("Count")
+
+ggpx = ggp +
+  theme(axis.title.x = element_blank(), 
+        axis.title.y = element_text(size = 22, colour = "#56697B",
+                                    margin = margin(0, -0.6, 0, 0.4, 'cm')), 
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank()) +
+  theme(plot.title = element_text(face = 'bold', size = 20, hjust = 0.5, vjust = -2, colour = pcol))+
+  theme(text=element_text(family="Gill Sans MT")) +
+  scale_y_continuous(expand=c(0,0),
+                     breaks = c(ybreaks[1],ybreaks[2],ybreaks[3],ybreaks[4],ybreaks[5]),
+                     labels = c(ybreaksl[1],ybreaksl[2],ybreaksl[3],
+                                ybreaksl[4],ybreaksl[5]),
+                     position = "left")+
+  annotate("text", x = 2024.5, y = ybreaks[1], label = ybreaksl[1], 
+           colour = "#56697B", family="Gill Sans MT", size = 6)+
+  annotate("text", x = 2024.5, y = ybreaks[2], label = ybreaksl[2], 
+           colour = "#56697B", family="Gill Sans MT", size = 6)+
+  annotate("text", x = 2024.5, y = ybreaks[3], label = ybreaksl[3], 
+           colour = "#56697B", family="Gill Sans MT", size = 6)+
+  annotate("text", x = 2024.5, y = ybreaks[4], label = ybreaksl[4], 
+           colour = "#56697B", family="Gill Sans MT", size = 6)+
+  annotate("text", x = 2024.5, y = ybreaks[5], label = ybreaksl[5], 
+           colour = "#56697B", family="Gill Sans MT", size = 6)+
+  coord_cartesian(ylim = c(lm-0.1*range,um+0.1*range), clip="off")+
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        plot.margin=unit(c(0,0,0,0), "cm"),
+        legend.title = element_blank(),
+        axis.line.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        plot.background = element_rect(fill = "transparent",colour = NA),
+        panel.background = element_rect(fill = "transparent",colour = NA))+
+  guides(colour = "none")
+
+ggpx3 = ggdraw(ggpx)
+
+name = paste("trends_graphs/independent trends/vembanad AWC/total/",sps,".jpg",sep="")
 jpeg(name, units="in", width=11, height=7, res=1000, bg="transparent")
 grid::grid.draw(ggpx3)
 dev.off()

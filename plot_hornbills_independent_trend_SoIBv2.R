@@ -52,8 +52,8 @@ lm = liml
 limu = max(temp$cir)+0.1*range
 um = limu
 
-ybreaks = seq(liml,limu,length.out=5)
-ybreaksl = round(ybreaks,2)
+ybreaks = round(seq(liml,limu,length.out=5),1)
+ybreaksl = round(ybreaks,1)
 
 
 ######################### get the x-axis right
@@ -134,7 +134,7 @@ ggp = ggplot(temp, aes(x = timegroups, y = mean, col = COMMON.NAME, label = COMM
   geom_segment(x = tlow, y = ybreaks[5], xend = 2022, yend = ybreaks[5], linetype = "dotted", linewidth = 0.7, col = tcol) +
   geom_segment(x = tlow, y = 100, xend = 2022, yend = 100, linetype = "solid", linewidth = 0.9, col = tcol) +
   xlab("Time-steps") +
-  ylab("Density (count per ha)")
+  ylab("Encounter rate (per km)")
 
 ggpx = ggp +
   theme(axis.title.x = element_blank(), 
