@@ -12,8 +12,19 @@ main = left_join(main,base,by=c("eBird.English.Name.2022"="COMMON.NAME"))
 main$longtermrci = main$longtermmean = main$longtermlci = NA 
 main$currentsloperci = main$currentslopemean = main$currentslopelci = NA
 
+#################### sensitivity
+
 sens = main %>% select(eBird.English.Name.2022)
-sens$currentsloperci = sens$currentslopemean = sens$currentslopelci = NA
+sens$currentsloperci1 = sens$currentslopemean1 = sens$currentslopelci1 = NA
+sens$currentsloperci2 = sens$currentslopemean2 = sens$currentslopelci2 = NA
+sens$currentsloperci3 = sens$currentslopemean3 = sens$currentslopelci3 = NA
+sens$currentsloperci4 = sens$currentslopemean4 = sens$currentslopelci4 = NA
+sens$currentsloperci5 = sens$currentslopemean5 = sens$currentslopelci5 = NA
+sens$currentsloperci6 = sens$currentslopemean6 = sens$currentslopelci6 = NA
+sens$currentsloperci7 = sens$currentslopemean7 = sens$currentslopelci7 = NA
+sens$currentsloperci8 = sens$currentslopemean8 = sens$currentslopelci8 = NA
+
+################### sensitivity
 
 file_names = dir("trends_mask_oneland") #where you have your files
 trends = do.call(rbind,lapply(paste("trends_mask_oneland/",file_names,sep=""),read.csv))
@@ -289,6 +300,10 @@ for (i in unique(modtrends_recent$COMMON.NAME))
   ct = 0
   sl = numeric(1000)
   slse = numeric(1000)
+  
+  sl.sens1 = sl.sens2 = sl.sens3 = sl.sens4 = sl.sens5 = sl.sens6 = sl.sens7 = sl.sens8 = numeric(1000)
+  slse.sens1 = slse.sens2 = slse.sens3 = slse.sens4 = slse.sens5 = slse.sens6 = slse.sens7 = slse.sens8 = numeric(1000)
+  
   for (z in 1:1000)
   {
     ct = ct + 1
@@ -306,6 +321,111 @@ for (i in unique(modtrends_recent$COMMON.NAME))
     dense = pd1$se.fit[1]
     sl[z] = 100*errordiv(num,den,numse,dense)[1]
     slse[z] = errordiv(num,den,numse,dense)[2]
+    
+    #################################### sensitivity analysis
+    
+    fit1.sens = with(temp[temp$timegroups != 2015,],lm(val~timegroups))
+    
+    pd1 = predict(fit1.sens,
+                  data.frame(timegroups = unique(temp$timegroups[temp$timegroups != 2015])),se = T)
+    num = pd1$fit[2]-pd1$fit[1]
+    den = abs(pd1$fit[1])
+    numse = sqrt(pd1$se.fit[1]^2 + pd1$se.fit[2]^2)
+    dense = pd1$se.fit[1]
+    sl.sens1[z] = 100*errordiv(num,den,numse,dense)[1]
+    slse.sens1[z] = errordiv(num,den,numse,dense)[2]
+    
+    
+    fit1.sens = with(temp[temp$timegroups != 2016,],lm(val~timegroups))
+    
+    pd1 = predict(fit1.sens,
+                  data.frame(timegroups = unique(temp$timegroups[temp$timegroups != 2016])),se = T)
+    num = pd1$fit[2]-pd1$fit[1]
+    den = abs(pd1$fit[1])
+    numse = sqrt(pd1$se.fit[1]^2 + pd1$se.fit[2]^2)
+    dense = pd1$se.fit[1]
+    sl.sens2[z] = 100*errordiv(num,den,numse,dense)[1]
+    slse.sens2[z] = errordiv(num,den,numse,dense)[2]
+    
+    
+    fit1.sens = with(temp[temp$timegroups != 2017,],lm(val~timegroups))
+    
+    pd1 = predict(fit1.sens,
+                  data.frame(timegroups = unique(temp$timegroups[temp$timegroups != 2017])),se = T)
+    num = pd1$fit[2]-pd1$fit[1]
+    den = abs(pd1$fit[1])
+    numse = sqrt(pd1$se.fit[1]^2 + pd1$se.fit[2]^2)
+    dense = pd1$se.fit[1]
+    sl.sens3[z] = 100*errordiv(num,den,numse,dense)[1]
+    slse.sens3[z] = errordiv(num,den,numse,dense)[2]
+    
+    
+    fit1.sens = with(temp[temp$timegroups != 2018,],lm(val~timegroups))
+    
+    pd1 = predict(fit1.sens,
+                  data.frame(timegroups = unique(temp$timegroups[temp$timegroups != 2018])),se = T)
+    num = pd1$fit[2]-pd1$fit[1]
+    den = abs(pd1$fit[1])
+    numse = sqrt(pd1$se.fit[1]^2 + pd1$se.fit[2]^2)
+    dense = pd1$se.fit[1]
+    sl.sens4[z] = 100*errordiv(num,den,numse,dense)[1]
+    slse.sens4[z] = errordiv(num,den,numse,dense)[2]
+    
+    
+    
+    fit1.sens = with(temp[temp$timegroups != 2019,],lm(val~timegroups))
+    
+    pd1 = predict(fit1.sens,
+                  data.frame(timegroups = unique(temp$timegroups[temp$timegroups != 2019])),se = T)
+    num = pd1$fit[2]-pd1$fit[1]
+    den = abs(pd1$fit[1])
+    numse = sqrt(pd1$se.fit[1]^2 + pd1$se.fit[2]^2)
+    dense = pd1$se.fit[1]
+    sl.sens5[z] = 100*errordiv(num,den,numse,dense)[1]
+    slse.sens5[z] = errordiv(num,den,numse,dense)[2]
+    
+    
+    
+    fit1.sens = with(temp[temp$timegroups != 2020,],lm(val~timegroups))
+    
+    pd1 = predict(fit1.sens,
+                  data.frame(timegroups = unique(temp$timegroups[temp$timegroups != 2020])),se = T)
+    num = pd1$fit[2]-pd1$fit[1]
+    den = abs(pd1$fit[1])
+    numse = sqrt(pd1$se.fit[1]^2 + pd1$se.fit[2]^2)
+    dense = pd1$se.fit[1]
+    sl.sens6[z] = 100*errordiv(num,den,numse,dense)[1]
+    slse.sens6[z] = errordiv(num,den,numse,dense)[2]
+    
+    
+    
+    fit1.sens = with(temp[temp$timegroups != 2021,],lm(val~timegroups))
+    
+    pd1 = predict(fit1.sens,
+                  data.frame(timegroups = unique(temp$timegroups[temp$timegroups != 2021])),se = T)
+    num = pd1$fit[2]-pd1$fit[1]
+    den = abs(pd1$fit[1])
+    numse = sqrt(pd1$se.fit[1]^2 + pd1$se.fit[2]^2)
+    dense = pd1$se.fit[1]
+    sl.sens7[z] = 100*errordiv(num,den,numse,dense)[1]
+    slse.sens7[z] = errordiv(num,den,numse,dense)[2]
+    
+    
+    
+    fit1.sens = with(temp[temp$timegroups != 2022,],lm(val~timegroups))
+    
+    pd1 = predict(fit1.sens,
+                  data.frame(timegroups = unique(temp$timegroups[temp$timegroups != 2022])),se = T)
+    num = pd1$fit[2]-pd1$fit[1]
+    den = abs(pd1$fit[1])
+    numse = sqrt(pd1$se.fit[1]^2 + pd1$se.fit[2]^2)
+    dense = pd1$se.fit[1]
+    sl.sens8[z] = 100*errordiv(num,den,numse,dense)[1]
+    slse.sens8[z] = errordiv(num,den,numse,dense)[2]
+    
+    
+    
+    #####################################
     
     pd = predict(fit,newdata,se = T)
     
@@ -329,6 +449,74 @@ for (i in unique(modtrends_recent$COMMON.NAME))
   main$currentslopemean[main$eBird.English.Name.2022 == i] = mean(sl)
   main$currentsloperci[main$eBird.English.Name.2022 == i] = mean(sl) + 1.96*se.slope
   
+  ######################### sensitivity
+  
+  sl.sens1 = as.numeric(sl.sens1)
+  slse.sens1 = as.numeric(slse.sens1)
+  se.slope.sens1 = sd(sl.sens1) + sqrt(sum(slse.sens1^2)/length(slse.sens1))
+  
+  sens$currentslopelci1[sens$eBird.English.Name.2022 == i] = mean(sl.sens1) - 1.96*se.slope.sens1
+  sens$currentslopemean1[sens$eBird.English.Name.2022 == i] = mean(sl.sens1)
+  sens$currentsloperci1[sens$eBird.English.Name.2022 == i] = mean(sl.sens1) + 1.96*se.slope.sens1
+  
+  sl.sens2 = as.numeric(sl.sens2)
+  slse.sens2 = as.numeric(slse.sens2)
+  se.slope.sens2 = sd(sl.sens2) + sqrt(sum(slse.sens2^2)/length(slse.sens2))
+  
+  sens$currentslopelci2[sens$eBird.English.Name.2022 == i] = mean(sl.sens2) - 1.96*se.slope.sens2
+  sens$currentslopemean2[sens$eBird.English.Name.2022 == i] = mean(sl.sens2)
+  sens$currentsloperci2[sens$eBird.English.Name.2022 == i] = mean(sl.sens2) + 1.96*se.slope.sens2
+  
+  sl.sens3 = as.numeric(sl.sens3)
+  slse.sens3 = as.numeric(slse.sens3)
+  se.slope.sens3 = sd(sl.sens3) + sqrt(sum(slse.sens3^2)/length(slse.sens3))
+  
+  sens$currentslopelci3[sens$eBird.English.Name.2022 == i] = mean(sl.sens3) - 1.96*se.slope.sens3
+  sens$currentslopemean3[sens$eBird.English.Name.2022 == i] = mean(sl.sens3)
+  sens$currentsloperci3[sens$eBird.English.Name.2022 == i] = mean(sl.sens3) + 1.96*se.slope.sens3
+  
+  sl.sens4 = as.numeric(sl.sens4)
+  slse.sens4 = as.numeric(slse.sens4)
+  se.slope.sens4 = sd(sl.sens4) + sqrt(sum(slse.sens4^2)/length(slse.sens4))
+  
+  sens$currentslopelci4[sens$eBird.English.Name.2022 == i] = mean(sl.sens4) - 1.96*se.slope.sens4
+  sens$currentslopemean4[sens$eBird.English.Name.2022 == i] = mean(sl.sens4)
+  sens$currentsloperci4[sens$eBird.English.Name.2022 == i] = mean(sl.sens4) + 1.96*se.slope.sens4
+  
+  sl.sens5 = as.numeric(sl.sens5)
+  slse.sens5 = as.numeric(slse.sens5)
+  se.slope.sens5 = sd(sl.sens5) + sqrt(sum(slse.sens5^2)/length(slse.sens5))
+  
+  sens$currentslopelci5[sens$eBird.English.Name.2022 == i] = mean(sl.sens5) - 1.96*se.slope.sens5
+  sens$currentslopemean5[sens$eBird.English.Name.2022 == i] = mean(sl.sens5)
+  sens$currentsloperci5[sens$eBird.English.Name.2022 == i] = mean(sl.sens5) + 1.96*se.slope.sens5
+  
+  sl.sens6 = as.numeric(sl.sens6)
+  slse.sens6 = as.numeric(slse.sens6)
+  se.slope.sens6 = sd(sl.sens6) + sqrt(sum(slse.sens6^2)/length(slse.sens6))
+  
+  sens$currentslopelci6[sens$eBird.English.Name.2022 == i] = mean(sl.sens6) - 1.96*se.slope.sens6
+  sens$currentslopemean6[sens$eBird.English.Name.2022 == i] = mean(sl.sens6)
+  sens$currentsloperci6[sens$eBird.English.Name.2022 == i] = mean(sl.sens6) + 1.96*se.slope.sens6
+  
+  sl.sens7 = as.numeric(sl.sens7)
+  slse.sens7 = as.numeric(slse.sens7)
+  se.slope.sens7 = sd(sl.sens7) + sqrt(sum(slse.sens7^2)/length(slse.sens7))
+  
+  sens$currentslopelci7[sens$eBird.English.Name.2022 == i] = mean(sl.sens7) - 1.96*se.slope.sens7
+  sens$currentslopemean7[sens$eBird.English.Name.2022 == i] = mean(sl.sens7)
+  sens$currentsloperci7[sens$eBird.English.Name.2022 == i] = mean(sl.sens7) + 1.96*se.slope.sens7
+  
+  sl.sens8 = as.numeric(sl.sens8)
+  slse.sens8 = as.numeric(slse.sens8)
+  se.slope.sens8 = sd(sl.sens8) + sqrt(sum(slse.sens8^2)/length(slse.sens8))
+  
+  sens$currentslopelci8[sens$eBird.English.Name.2022 == i] = mean(sl.sens8) - 1.96*se.slope.sens8
+  sens$currentslopemean8[sens$eBird.English.Name.2022 == i] = mean(sl.sens8)
+  sens$currentsloperci8[sens$eBird.English.Name.2022 == i] = mean(sl.sens8) + 1.96*se.slope.sens8
+  
+  ########################
+  
   pred = pred %>%
     mutate(lci_bt = 100*exp(mean-1.96*se)/val, mean_bt = 100*exp(mean)/val, rci_bt = 100*exp(mean+1.96*se)/val) %>%
     group_by(COMMON.NAME,timegroups) %>% 
@@ -343,6 +531,10 @@ for (i in unique(modtrends_recent$COMMON.NAME))
   
   print(i)
 }
+
+
+write.csv(sens,"trends_results/mask_one/current_sensitivity.csv",row.names=F)
+
 
 #ext_trends = ext_trends %>% select(-c(lci_bt,mean_bt,rci_bt))
 
@@ -504,33 +696,121 @@ write.csv(main,"trends_results/mask_one/SoIB_main_mask_oneland_wocats.csv",row.n
 
 ## assign categories to trends and occupancy
 
-main = read.csv("trends_results/mask_one/SoIB_main_mask_oneland_wocats.csv")
+
+main = read.csv("trends_results/mask_one/SoIB_main_wocats.csv")
 
 main = main %>%
   mutate(SOIBv2.Long.Term.Status = 
            case_when(is.na(longtermmean) ~ "eBird Data Deficient",
-                     (longtermrci-longtermmean)/longtermmean > 0.5 ~ "eBird Data Indecisive",
+                     (longtermrci-longtermmean)/longtermmean > 0.5 ~ "eBird Data Inconclusive",
                      longtermrci <= 50 ~ "Rapid Decline",
                      longtermrci <= 75 ~ "Decline",
                      longtermlci >= 150 ~ "Rapid Increase",
                      longtermlci >= 125 ~ "Increase",
-                     (longtermrci < 100 & longtermlci < 100) ~ "eBird Data Indecisive",
-                     longtermlci <= 50 ~ "eBird Data Indecisive",
-                     (longtermrci > 100 & longtermlci > 100) ~ "eBird Data Indecisive",
-                     longtermrci >= 150 ~ "eBird Data Indecisive",
+                     longtermrci < 100 ~ "eBird Data Inconclusive",
+                     longtermlci <= 50 ~ "eBird Data Inconclusive",
+                     longtermlci > 100 ~ "eBird Data Inconclusive",
+                     longtermrci >= 150 ~ "eBird Data Inconclusive",
                      TRUE ~ "Stable")
   ) %>%
   mutate(SOIBv2.Current.Status = 
            case_when(is.na(currentslopemean) ~ "eBird Data Deficient",
-                     (currentsloperci-currentslopelci) > 6 ~ "eBird Data Indecisive",
+                     (currentsloperci-currentslopelci) > 6 ~ "eBird Data Inconclusive",
                      currentsloperci <= -2.7 ~ "Rapid Decline",
                      currentsloperci <= -1.1 ~ "Decline",
                      currentslopelci >= 1.6 ~ "Rapid Increase",
                      currentslopelci >= 0.9 ~ "Increase",
-                     currentslopelci <= -2.7 ~ "eBird Data Indecisive",
-                     currentsloperci >= 1.6 ~ "eBird Data Indecisive",
+                     currentsloperci < 0 ~ "eBird Data Inconclusive",
+                     currentslopelci > 0 ~ "eBird Data Inconclusive",
                      TRUE ~ "Stable")
   )
+
+## sensitivity check
+
+sens = read.csv("trends_results/mask_one/current_sensitivity.csv")
+
+for (i in 1:8)
+{
+  sens$currentslopelci = sens[,2+(i-1)*3]
+  sens$currentslopemean = sens[,3+(i-1)*3]
+  sens$currentsloperci = sens[,4+(i-1)*3]
+  
+  sensx = sens %>%
+    mutate(SOIBv2.Current.Status.Sens = 
+             case_when(is.na(currentslopemean) ~ "eBird Data Deficient",
+                       (currentsloperci-currentslopelci) > 6 ~ "eBird Data Inconclusive",
+                       currentsloperci <= -2.7 ~ "Rapid Decline",
+                       currentsloperci <= -1.1 ~ "Decline",
+                       currentslopelci >= 1.6 ~ "Rapid Increase",
+                       currentslopelci >= 0.9 ~ "Increase",
+                       currentsloperci < 0 ~ "eBird Data Inconclusive",
+                       currentslopelci > 0 ~ "eBird Data Inconclusive",
+                       TRUE ~ "Stable")
+    ) %>%
+    select(eBird.English.Name.2022,SOIBv2.Current.Status.Sens)
+  
+  if (i == 1)
+  {
+    sensy = left_join(main,sensx)
+    sensy = sensy %>% select(eBird.English.Name.2022,SOIBv2.Current.Status,SOIBv2.Current.Status.Sens)
+    names(sensy)[i+2] = paste("s",i,sep='')
+  }
+  
+  if (i > 1)
+  {
+    sensy = left_join(sensy,sensx)
+    names(sensy)[i+2] = paste("s",i,sep='')
+  }
+}
+
+sensy = sensy %>%
+  filter(!SOIBv2.Current.Status %in% c("eBird Data Deficient","eBird Data Inconclusive"))
+
+ind1 = numeric(0)
+ind2 = numeric(0)
+ind3 = numeric(0)
+ind4 = numeric(0)
+ind5 = numeric(0)
+ind6 = numeric(0)
+ind7 = numeric(0)
+
+for (i in 1:length(sensy$eBird.English.Name.2022))
+{
+  cts = as.vector(sensy[i,-1])
+  if (length(unique(cts)) == 1)
+    ind1 = c(ind1,i)
+  
+  if (length(unique(cts)) == 2 & "eBird Data Inconclusive" %in% cts)
+    ind2 = c(ind2,i)
+  
+  if (("Decline" %in% cts | "Rapid Decline" %in% cts) & 
+      ("Stable" %in% cts | "Increase" %in% cts | "Rapid Increase" %in% cts))
+    ind3 = c(ind3,i)
+  
+  if (("Increase" %in% cts | "Rapid Increase" %in% cts) & 
+      ("Stable" %in% cts | "Decline" %in% cts | "Rapid Decline" %in% cts))
+    ind4 = c(ind4,i)
+  
+  if (length(cts[cts == "eBird Data Inconclusive"]) >= 4)
+    ind5 = c(ind5,i)
+  
+  if (cts[1] == "Rapid Decline" & "Decline" %in% cts)
+    ind6 = c(ind6,i)
+  
+  if (cts[1] == "Rapid Increase" & "Increase" %in% cts)
+    ind7 = c(ind7,i)
+}
+
+ind.rem = union(ind3,ind4)
+ind.rem = union(ind.rem,ind5)
+
+ind6 = setdiff(ind6,ind.rem)
+ind7 = setdiff(ind7,ind.rem)
+
+
+main$SOIBv2.Current.Status[main$eBird.English.Name.2022 %in% sensy$eBird.English.Name.2022[ind.rem]] = "eBird Data Inconclusive"
+main$SOIBv2.Current.Status[main$eBird.English.Name.2022 %in% sensy$eBird.English.Name.2022[ind6]] = "Decline"
+main$SOIBv2.Current.Status[main$eBird.English.Name.2022 %in% sensy$eBird.English.Name.2022[ind7]] = "Increase"
 
 main$SOIBv2.Long.Term.Status[main$Selected.SOIB != "X"] = NA
 main$SOIBv2.Current.Status[main$Selected.SOIB != "X"] = NA
@@ -538,7 +818,7 @@ main$SOIB.Range.Status[main$Selected.SOIB != "X"] = NA
 
 
 
-trendcats = c("Rapid Decline","Decline","eBird Data Deficient","eBird Data Indecisive",
+trendcats = c("Rapid Decline","Decline","eBird Data Deficient","eBird Data Inconclusive",
               "Stable","Increase","Rapid Increase")
 rangecats = c("eBird Data Deficient","Very Restricted","Restricted","Moderate",
               "Large","Very Large")
@@ -548,7 +828,7 @@ priorityrules = read.csv("00_data/priorityclassificationrules.csv")
 main = left_join(main,priorityrules)
 
 
-unce = c("eBird Data Deficient","eBird Data Indecisive")
+unce = c("eBird Data Deficient","eBird Data Inconclusive")
 rest = c("Very Restricted","Restricted")
 decl = c("Decline","Rapid Decline")
 

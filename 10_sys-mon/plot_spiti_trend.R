@@ -65,7 +65,7 @@ for (i in 1:length(selectspecies))
   sps = paste(sps,"in Spiti",sep=" ")
   
   ggp = ggplot(temp, aes(x = timegroups, y = mean)) +
-    geom_line(linewidth = 0.7, col = scol) +
+    geom_line(linewidth = 2, col = scol) +
     geom_errorbar(aes(ymin = cil, ymax = cir), linewidth = 0.5, width = 0.2, col = scol) +
     #geom_point(size = 3) +
     ggtitle(sps) +
@@ -169,8 +169,8 @@ lm = liml
 limu = max(temp$cir[!is.na(temp$cir)])+0.1*range
 um = limu
 
-ybreaks = seq(liml,limu,length.out=5)
-ybreaksl = round(ybreaks,2)
+ybreaks = round(seq(liml,limu,length.out=5),1)
+ybreaksl = round(ybreaks,1)
 
 
 

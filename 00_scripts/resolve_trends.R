@@ -700,26 +700,26 @@ main = read.csv("trends_results/full_results/SoIB_main_wocats.csv")
 main = main %>%
   mutate(SOIBv2.Long.Term.Status = 
            case_when(is.na(longtermmean) ~ "eBird Data Deficient",
-                     (longtermrci-longtermmean)/longtermmean > 0.5 ~ "eBird Data Indecisive",
+                     (longtermrci-longtermmean)/longtermmean > 0.5 ~ "eBird Data Inconclusive",
                      longtermrci <= 50 ~ "Rapid Decline",
                      longtermrci <= 75 ~ "Decline",
                      longtermlci >= 150 ~ "Rapid Increase",
                      longtermlci >= 125 ~ "Increase",
-                     longtermrci < 100 ~ "eBird Data Indecisive",
-                     longtermlci <= 50 ~ "eBird Data Indecisive",
-                     longtermlci > 100 ~ "eBird Data Indecisive",
-                     longtermrci >= 150 ~ "eBird Data Indecisive",
+                     longtermrci < 100 ~ "eBird Data Inconclusive",
+                     longtermlci <= 50 ~ "eBird Data Inconclusive",
+                     longtermlci > 100 ~ "eBird Data Inconclusive",
+                     longtermrci >= 150 ~ "eBird Data Inconclusive",
                      TRUE ~ "Stable")
   ) %>%
   mutate(SOIBv2.Current.Status = 
            case_when(is.na(currentslopemean) ~ "eBird Data Deficient",
-                     (currentsloperci-currentslopelci) > 6 ~ "eBird Data Indecisive",
+                     (currentsloperci-currentslopelci) > 6 ~ "eBird Data Inconclusive",
                      currentsloperci <= -2.7 ~ "Rapid Decline",
                      currentsloperci <= -1.1 ~ "Decline",
                      currentslopelci >= 1.6 ~ "Rapid Increase",
                      currentslopelci >= 0.9 ~ "Increase",
-                     currentsloperci < 0 ~ "eBird Data Indecisive",
-                     currentslopelci > 0 ~ "eBird Data Indecisive",
+                     currentsloperci < 0 ~ "eBird Data Inconclusive",
+                     currentslopelci > 0 ~ "eBird Data Inconclusive",
                      TRUE ~ "Stable")
   )
 
@@ -736,13 +736,13 @@ for (i in 1:8)
   sensx = sens %>%
     mutate(SOIBv2.Current.Status.Sens = 
              case_when(is.na(currentslopemean) ~ "eBird Data Deficient",
-                       (currentsloperci-currentslopelci) > 6 ~ "eBird Data Indecisive",
+                       (currentsloperci-currentslopelci) > 6 ~ "eBird Data Inconclusive",
                        currentsloperci <= -2.7 ~ "Rapid Decline",
                        currentsloperci <= -1.1 ~ "Decline",
                        currentslopelci >= 1.6 ~ "Rapid Increase",
                        currentslopelci >= 0.9 ~ "Increase",
-                       currentsloperci < 0 ~ "eBird Data Indecisive",
-                       currentslopelci > 0 ~ "eBird Data Indecisive",
+                       currentsloperci < 0 ~ "eBird Data Inconclusive",
+                       currentslopelci > 0 ~ "eBird Data Inconclusive",
                        TRUE ~ "Stable")
     ) %>%
     select(eBird.English.Name.2022,SOIBv2.Current.Status.Sens)
@@ -762,7 +762,7 @@ for (i in 1:8)
 }
 
 sensy = sensy %>%
-  filter(!SOIBv2.Current.Status %in% c("eBird Data Deficient","eBird Data Indecisive"))
+  filter(!SOIBv2.Current.Status %in% c("eBird Data Deficient","eBird Data Inconclusive"))
 
 ind1 = numeric(0)
 ind2 = numeric(0)
@@ -778,7 +778,7 @@ for (i in 1:length(sensy$eBird.English.Name.2022))
   if (length(unique(cts)) == 1)
     ind1 = c(ind1,i)
   
-  if (length(unique(cts)) == 2 & "eBird Data Indecisive" %in% cts)
+  if (length(unique(cts)) == 2 & "eBird Data Inconclusive" %in% cts)
     ind2 = c(ind2,i)
   
   if (("Decline" %in% cts | "Rapid Decline" %in% cts) & 
@@ -789,7 +789,7 @@ for (i in 1:length(sensy$eBird.English.Name.2022))
       ("Stable" %in% cts | "Decline" %in% cts | "Rapid Decline" %in% cts))
     ind4 = c(ind4,i)
   
-  if (length(cts[cts == "eBird Data Indecisive"]) >= 4)
+  if (length(cts[cts == "eBird Data Inconclusive"]) >= 4)
     ind5 = c(ind5,i)
   
   if (cts[1] == "Rapid Decline" & "Decline" %in% cts)
@@ -806,7 +806,7 @@ ind6 = setdiff(ind6,ind.rem)
 ind7 = setdiff(ind7,ind.rem)
 
 
-main$SOIBv2.Current.Status[main$eBird.English.Name.2022 %in% sensy$eBird.English.Name.2022[ind.rem]] = "eBird Data Indecisive"
+main$SOIBv2.Current.Status[main$eBird.English.Name.2022 %in% sensy$eBird.English.Name.2022[ind.rem]] = "eBird Data Inconclusive"
 main$SOIBv2.Current.Status[main$eBird.English.Name.2022 %in% sensy$eBird.English.Name.2022[ind6]] = "Decline"
 main$SOIBv2.Current.Status[main$eBird.English.Name.2022 %in% sensy$eBird.English.Name.2022[ind7]] = "Increase"
 
@@ -816,7 +816,7 @@ main$SOIB.Range.Status[main$Selected.SOIB != "X"] = NA
 
 
 
-trendcats = c("Rapid Decline","Decline","eBird Data Deficient","eBird Data Indecisive",
+trendcats = c("Rapid Decline","Decline","eBird Data Deficient","eBird Data Inconclusive",
               "Stable","Increase","Rapid Increase")
 rangecats = c("eBird Data Deficient","Very Restricted","Restricted","Moderate",
               "Large","Very Large")
@@ -826,7 +826,7 @@ priorityrules = read.csv("00_data/priorityclassificationrules.csv")
 main = left_join(main,priorityrules)
 
 
-unce = c("eBird Data Deficient","eBird Data Indecisive")
+unce = c("eBird Data Deficient","eBird Data Inconclusive")
 rest = c("Very Restricted","Restricted")
 decl = c("Decline","Rapid Decline")
 
