@@ -26,8 +26,6 @@ species = c("Black-rumped Flameback","White-naped Woodpecker","White-bellied Woo
             "Yellow-crowned Woodpecker","Brown-capped Pygmy Woodpecker")
 #cols = c("#869B27", "#31954E", "#78CAE0", "#CC6666", "#E49B36", "#9999CC", "#493F3D",
 #         "#B69AC9", "#A13E2B", "#EA5599", "#000000", "#66CC99")
-species = c("Ashy-crowned Sparrow-Lark","Great Gray Shrike","Rufous-tailed Lark",
-            "Yellow-billed Babbler","Jerdon's Bushlark")
 species = c("Northern Pintail","Northern Shoveler","Indian Spot-billed Duck",
             "Cotton Pygmy-Goose")
 species = c("White-rumped Vulture","Indian Vulture","Red-headed Vulture",
@@ -37,7 +35,7 @@ species = c("White-rumped Vulture","Indian Vulture","Red-headed Vulture",
 species = c("Brahminy Kite","Black Kite","Shikra","Eurasian Marsh-Harrier",
             "Short-toed Snake-Eagle","Pallid Harrier")
 species = c("Spot-billed Pelican","Black-headed Ibis","Glossy Ibis","Painted Stork",
-            "Great Cormorant")
+            "Eurasian Spoonbill","Great Cormorant")
 #cols = c("#869B27", "#31954E", "#CC6666", "#78CAE0", "#9999CC", "#493F3D",
 #         "#B69AC9", "#A13E2B", "#EA5599", "#000000", "#66CC99")
 species = c("Ashy Prinia","Rock Pigeon","Indian Peafowl","House Sparrow")
@@ -47,10 +45,20 @@ species = c("Lesser Sand-Plover","Terek Sandpiper","Whimbrel","Curlew Sandpiper"
 species = c("Black-rumped Flameback","White-naped Woodpecker","White-bellied Woodpecker",
             "Yellow-crowned Woodpecker","Brown-capped Pygmy Woodpecker",
             "Gray-headed Woodpecker")
-cols = c("#869B27", "#31954E", "#78CAE0", "#CC6666", "#E49B36", "#9999CC", "#493F3D",
-         "#B69AC9", "#A13E2B", "#EA5599", "#000000", "#66CC99")
+species = c("Northern Shoveler","Garganey","Cotton Pygmy-Goose",
+            "Common Merganser","Ruddy Shelduck",
+            "Tufted Duck")
+#cols = c("#869B27", "#31954E", "#78CAE0", "#CC6666", "#E49B36", "#9999CC", "#493F3D",
+#         "#B69AC9", "#A13E2B", "#EA5599", "#000000", "#66CC99")
+species = c("Ashy-crowned Sparrow-Lark","Great Gray Shrike","Rufous-tailed Lark",
+            "Yellow-billed Babbler","Eurasian Kestrel","Jerdon's Bushlark")
+species = c("Spot-billed Pelican","Black-headed Ibis","Glossy Ibis","Painted Stork",
+            "Eurasian Spoonbill","Great Cormorant")
+cols = c("#869B27", "#31954E", "#CC6666", "#78CAE0", "#9999CC", "#E49B36",
+         "#B69AC9", "#A13E2B", "#493F3D", "#000000", "#66CC99")
 
-sps = "Woodpeckers"
+
+sps = "Large Waterbirds"
 
 temp = trends %>% 
   filter(COMMON.NAME %in% species)
