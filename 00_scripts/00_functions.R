@@ -407,6 +407,9 @@ dataspeciesfilter = function(
     data0 = data_base %>% filter(maskOne == 1)
   } else if (cur_mask == "PA"){
     data0 = data_base %>% filter(!is.na(pa.name))
+  } else {
+    # states
+    data0 = data_base %>% filter(ST_NM == cur_mask)
   } 
   
   

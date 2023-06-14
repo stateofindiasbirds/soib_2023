@@ -69,10 +69,12 @@ addmapvars()
 # Outputs:
 # - "analyses_metadata.RData"
 analyses_metadata <- data.frame(MASK = c("none", 
-                                                  "woodland", "cropland", "ONEland", 
-                                                  "PA")) %>% 
+                                         "woodland", "cropland", "ONEland", 
+                                         "PA",
+                                         "Kerala")) %>% 
   mutate(FOLDER = case_when(MASK == "none" ~ "01_analyses_full/", 
-                            TRUE ~ glue("01_analyses_mask-{MASK}/"))) %>% 
+                            MASK %in% c("woodland", "cropland", "ONEland", "PA") ~ glue("01_analyses_mask-{MASK}/"),
+                            TRUE ~ glue("01_analyses_states/{MASK}/"))) %>% 
   mutate(FULLSPECLIST.PATH = glue("{FOLDER}fullspecieslist.csv"),
          LOCS.PATH = glue("{FOLDER}sub_samp_locs.csv"),
          SPECLISTDATA.PATH = glue("{FOLDER}specieslists.RData"),
@@ -116,6 +118,8 @@ save(analyses_metadata,
 #   - selected species list
 #   - data
 # - specieslists.RData for whole country and individual mask versions
+
+load("00_data/analyses_metadata.RData")
 
 source("00_scripts/filter_data_for_species.R")
 
@@ -164,6 +168,11 @@ tictoc::tic("generated random group IDs for PA")
 source("00_scripts/create_random_groupids.R")
 tictoc::toc() # 409 sec (7 min)
 
+cur_mask <- "Kerala"
+tictoc::tic("generated random group IDs for Kerala")
+source("00_scripts/create_random_groupids.R")
+tictoc::toc() # 
+
 
 
 # STEP 2: Create subsampled data files using subsampled GROUP.IDs
@@ -211,7 +220,10 @@ tictoc::tic("Generated subsampled data for PA")
 source("00_scripts/create_random_datafiles.R")
 tictoc::toc() 
 
-
+cur_mask <- "Kerala"
+tictoc::tic("Generated subsampled data for Kerala")
+source("00_scripts/create_random_datafiles.R")
+tictoc::toc() # 
 
 ## run trend analyses
 
