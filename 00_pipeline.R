@@ -246,37 +246,37 @@ load("00_data/analyses_metadata.RData")
 # not functionising because parallelisation doesn't work inside functions
 cur_mask <- "none"
 my_assignment <- 122:200 # CHANGE FOR YOUR SUBSET
-tictoc::tic("ran species trends for full country")
+tictoc::tic(glue("Species trends for full country (sims {min(my_assignment)}--{max(my_assignment)})"))
 source("00_scripts/run_species_trends.R")
 tictoc::toc() 
 
 cur_mask <- "woodland"
 my_assignment <- 101:200 # CHANGE FOR YOUR SUBSET
-tictoc::tic("ran species trends for woodland")
+tictoc::tic(glue("Species trends for woodland (sims {min(my_assignment)}--{max(my_assignment)})"))
 source("00_scripts/run_species_trends.R")
 tictoc::toc() 
 
 cur_mask <- "cropland"
 my_assignment <- 101:200 # CHANGE FOR YOUR SUBSET
-tictoc::tic("ran species trends for cropland")
+tictoc::tic(glue("Species trends for cropland (sims {min(my_assignment)}--{max(my_assignment)})"))
 source("00_scripts/run_species_trends.R")
 tictoc::toc() 
 
 cur_mask <- "ONEland"
 my_assignment <- 101:200 # CHANGE FOR YOUR SUBSET
-tictoc::tic("ran species trends for ONEland")
+tictoc::tic(glue("Species trends for ONEland (sims {min(my_assignment)}--{max(my_assignment)})"))
 source("00_scripts/run_species_trends.R")
 tictoc::toc() 
 
 cur_mask <- "PA"
 my_assignment <- 49:200 # CHANGE FOR YOUR SUBSET
-tictoc::tic("ran species trends for PA")
+tictoc::tic(glue("Species trends for PA (sims {min(my_assignment)}--{max(my_assignment)})"))
 source("00_scripts/run_species_trends.R")
-tictoc::toc() 
+tictoc::toc() # 195 sec for 1 sim (~ 11 hours for 200 sim)
 
 cur_mask <- "Kerala"
 my_assignment <- 1:200 # CHANGE FOR YOUR SUBSET
-tictoc::tic("ran species trends for Kerala")
+tictoc::tic(glue("Species trends for Kerala (sims {min(my_assignment)}--{max(my_assignment)})"))
 source("00_scripts/run_species_trends.R")
 tictoc::toc() # 
 

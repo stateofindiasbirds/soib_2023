@@ -1308,18 +1308,23 @@ createrandomlocs = function(locs)
 }
 
 
+###    singlespeciesrun (run models) ########################################
 
-singlespeciesrun = function(data,species,specieslist,restrictedspecieslist)
+singlespeciesrun = function(data, species, specieslist, restrictedspecieslist)
 {
   require(tidyverse)
   require(merTools)
   
   data1 = data
+  
+  # <annotation_pending_AV> why this intermediate specieslist1 object? 
+  # can't we do with just the second one?
   specieslist1 = specieslist %>% filter(COMMON.NAME %in% species)
+  specieslist2 = specieslist1 %>% filter(COMMON.NAME == species)
   
-  specieslist2 = specieslist1 %>%
-    dplyr::filter(COMMON.NAME == species)
-  
+  # three different flags for three different model types that will be run.
+  # 0 is normal model, with full random effects. depending on restricted species,
+  # model changes slightly.
   flag = 0
   if (species %in% restrictedspecieslist$COMMON.NAME)
   {
@@ -1328,89 +1333,96 @@ singlespeciesrun = function(data,species,specieslist,restrictedspecieslist)
     specieslist2$ht = restrictedlist1$ht
     specieslist2$rt = restrictedlist1$rt
     
-    if (restrictedlist1$mixed == 0)
+    if (restrictedlist1$mixed == 0) {
       flag = 2
+    }
   }
   
-  ## filters data based on whether the species has been selected for long-term trends (ht) 
-  ## or short-term trends (rt) 
+  # filters data based on whether the species has been selected for long-term trends (ht) 
+  # or short-term trends (rt) 
+  # (if only recent, then need to filter for recent years. else, use all years so no filter.)
   
   if (is.na(specieslist2$ht) & !is.na(specieslist2$rt))
   {
-    data1 = data1 %>%
-      filter(year >= 2015)
+    data1 = data1 %>% filter(year >= 2015)
   }
   
-  temp = data1 %>%
+  data1 = data1 %>%
     filter(COMMON.NAME == species) %>%
-    distinct(gridg3,month)
-  data1 = temp %>% left_join(data1)
+    distinct(gridg3, month) %>% 
+    left_join(data1)
+  
+  tm = data1 %>% distinct(timegroups)
+  #rm(data, pos = ".GlobalEnv")
   
   datay = data1 %>%
-    group_by(gridg3,gridg1,group.id) %>% slice(1) %>% ungroup %>%
-    group_by(gridg3,gridg1) %>% reframe(medianlla = median(no.sp)) %>%
-    group_by(gridg3) %>% reframe(medianlla = mean(medianlla)) %>%
+    group_by(gridg3, gridg1, group.id) %>% 
+    slice(1) %>% 
+    group_by(gridg3, gridg1) %>% 
+    reframe(medianlla = median(no.sp)) %>%
+    group_by(gridg3) %>% 
+    reframe(medianlla = mean(medianlla)) %>%
     reframe(medianlla = round(mean(medianlla)))
   
   medianlla = datay$medianlla
   
   
-  ## expand dataframe to include absences as well
-  
-  ed = expandbyspecies(data1,species)
-  
-  ed$month = as.numeric(ed$month)
-  ed$month[ed$month %in% c(12,1,2)] = "Win"
-  ed$month[ed$month %in% c(3,4,5)] = "Sum"
-  ed$month[ed$month %in% c(6,7,8)] = "Mon"
-  ed$month[ed$month %in% c(9,10,11)] = "Aut"
-  ed$month = as.factor(ed$month)
-  
-  tm = unique(data1$timegroups)
-  #rm(data, pos = ".GlobalEnv")
-  
-  ## the model
+  # expand dataframe to include absences as well
+  ed = expandbyspecies(data1, species) %>% 
+    # converting months to seasons
+    mutate(month = as.numeric(month)) %>% 
+    mutate(month = case_when(month %in% c(12,1,2) ~ "Win",
+                             month %in% c(3,4,5) ~ "Sum",
+                             month %in% c(6,7,8) ~ "Mon",
+                             month %in% c(9,10,11) ~ "Aut")) %>% 
+    mutate(month = as.factor(month))
+
+
+  # the model ---------------------------------------------------------------
   
   if (flag == 0)
   {
-    m1 = glmer(OBSERVATION.COUNT ~ month + month:log(no.sp) + timegroups + (1|gridg3/gridg1), data = ed, 
-               family=binomial(link = 'cloglog'), nAGQ = 0, control = glmerControl(optimizer = "bobyqa"))
+    m1 = glmer(OBSERVATION.COUNT ~ month + month:log(no.sp) + timegroups + (1|gridg3/gridg1), 
+               data = ed, family = binomial(link = 'cloglog'), 
+               nAGQ = 0, control = glmerControl(optimizer = "bobyqa"))
   }
   
   if (flag == 1)
   {
-    m1 = glmer(OBSERVATION.COUNT ~ month + month:log(no.sp) + timegroups + (1|gridg1), data = ed, 
-               family=binomial(link = 'cloglog'), nAGQ = 0, control = glmerControl(optimizer = "bobyqa"))
+    m1 = glmer(OBSERVATION.COUNT ~ month + month:log(no.sp) + timegroups + (1|gridg1), 
+               data = ed, family = binomial(link = 'cloglog'), 
+               nAGQ = 0, control = glmerControl(optimizer = "bobyqa"))
   }
   
   if (flag == 2)
   {
-    m1 = glm(OBSERVATION.COUNT ~ month + month:log(no.sp) + timegroups, data = ed, 
-             family=binomial(link = 'cloglog'))
+    m1 = glm(OBSERVATION.COUNT ~ month + month:log(no.sp) + timegroups, 
+             data = ed, family = binomial(link = 'cloglog'))
   }
   
-  ## prepare a new data file to predict
-  
-  f = data.frame(unique(tm))
-  f = do.call("rbind", replicate(length(unique(ed$month)),f,simplify=F))
-  names(f) = "timegroups"
-  f$month = rep(unique(ed$month), each = length(f$timegroups)/length(unique(ed$month)))
-  ltemp = data.frame(timegroups = f$timegroups,
-                     no.sp = medianlla, month = f$month,
-                     gridg1 = data1$gridg1[1], gridg3 = data1$gridg3[1])
-  
-  f1 = data.frame(timegroups = tm)
-  
-  f2 = data.frame(freq = numeric(length(ltemp$no.sp)))
-  f2$se = numeric(length(ltemp$no.sp))
-  f2$timegroups = ltemp$timegroups
+
+  # predicting from model ---------------------------------------------------
+
+  # prepare a new data file to predict
+  ltemp <- ed %>% 
+    group_by(month) %>% 
+    reframe(timegroups = unique(tm$timegroups)) %>% 
+    mutate(no.sp = medianlla,
+           # <annotation_pending_AV> why taking 1st value?
+           gridg1 = data1$gridg1[1], 
+           gridg3 = data1$gridg3[1])
+
+  f2 <- ltemp %>% 
+    dplyr::select(timegroups) %>% 
+    # this is not actually needed
+    mutate(freq = 0, se = 0)
   
   
   if (flag != 2)
   {
     #pred = predict(m1, newdata = ltemp, type = "response", re.form = NA, allow.new.levels=TRUE)
     pred = predictInterval(m1, newdata = ltemp, which = "fixed",
-                        level = 0.48, type = "linear.prediction")
+                           level = 0.48, type = "linear.prediction")
     f2$freqt = pred$fit
     f2$set = pred$fit-pred$lwr
   }
@@ -1422,22 +1434,24 @@ singlespeciesrun = function(data,species,specieslist,restrictedspecieslist)
     f2$set = pred$se.fit
   }
   
-  fx = f2 %>%
+  f1 = f2 %>%
     filter(!is.na(freqt) & !is.na(se)) %>%
-    group_by(timegroups) %>% reframe(freq = mean(freqt), se = mean(set))
-  f1 = left_join(f1,fx)
+    group_by(timegroups) %>% 
+    reframe(freq = mean(freqt), se = mean(set)) %>% 
+    right_join(tm) %>% 
+    left_join(databins %>% distinct(timegroups, year)) %>% 
+    rename(timegroupsf = timegroups,
+           timegroups = year) %>% 
+    mutate(timegroupsf = factor(timegroupsf, 
+                               levels = c("before 2000","2000-2006","2007-2010",
+                                          "2011-2012","2013","2014","2015","2016",
+                                          "2017","2018","2019","2020","2021","2022"))) %>% 
+    complete(timegroupsf) %>% 
+    arrange(timegroupsf)
   
-  f1$timegroups = factor(f1$timegroups, levels = c("before 2000","2000-2006","2007-2010",
-                                                   "2011-2012","2013","2014","2015","2016",
-                                                   "2017","2018","2019","2020","2021","2022"))
-  f1 = f1[order(f1$timegroups),]
-  names(f1)[1] = "timegroupsf"
-  mp = data.frame(timegroupsf = c("before 2000","2000-2006","2007-2010",
-                                  "2011-2012","2013","2014","2015","2016",
-                                  "2017","2018","2019","2020","2021","2022"), 
-                  timegroups = as.numeric(databins$year))
-  f1 = left_join(mp,f1)
   
-  tocomb = c(species,f1$freq,f1$se)
+  tocomb = c(species, f1$freq, f1$se)
   return(tocomb)
+  # each species's tocomb becomes one column in final trends0 output object
+  
 }

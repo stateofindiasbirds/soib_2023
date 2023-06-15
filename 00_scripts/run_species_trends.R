@@ -51,7 +51,7 @@ for (k in cur_assignment)
     as.character()
 
   
-  tictoc::tic(glue("Species trends for full country: {k}/{max(cur_assignment)}"))
+  tictoc::tic(glue("Species trends for {cur_mask}: {k}/{max(cur_assignment)}"))
   
   # read data files
   data = read.csv(data_path) %>% 
@@ -81,42 +81,27 @@ for (k in cur_assignment)
                      specieslist = specieslist, 
                      restrictedspecieslist = restrictedspecieslist)
   
-  trends = data.frame(trends0)
+  parallel::stopCluster(cl = my.cluster)
   
-  # <annotation_pending_AV>
-  # also maybe rename objects to be more informative?
-  len = length(as.vector(trends[,1]))
-  n = len/29
-  spnames = as.vector(trends[1,])
-  sq = -seq(1, len, 29)
-  trends = trends[sq,]
-  names(trends) = spnames
-  a = rep(c("freq", "se"), each = 14)
-  a1 = rep(a, n)
-  tg = c("before 2000","2000-2006","2007-2010",
-         "2011-2012","2013","2014","2015","2016",
-         "2017","2018","2019","2020","2021","2022")
-  #b1 = rep(1:n,each=28)
-  databins1 = rep(databins$year, n * 2)
-  tg1 = rep(tg, n * 2)
-  
-  trends$timegroups = databins1
-  trends$timegroupsf = tg1
-  trends$type = a1
-  trends$sl = k
-  
-  trends = trends %>% 
+  trends = data.frame(trends0) %>% 
+    # converting first row of species names (always true) to column names
+    magrittr::set_colnames(.[1,]) %>% 
+    slice(-1) %>% 
+    # will always have 28 rows
+    mutate(timegroupsf = rep(databins$timegroups, 2),
+           timegroups = rep(databins$year, 2),
+           type = rep(c("freq", "se"), each = 14),
+           sl = k) %>%  # sim number
+    # pivoting species names longer
     pivot_longer(-c(timegroups, timegroupsf, sl, type), 
-                        values_to = "value", names_to = "COMMON.NAME") %>% 
-    pivot_wider(names_from = type, values_from = value)
-  
-  speclen = length(unique(trends$COMMON.NAME))
-  trends$sp = rep(1:speclen, 14 * n)
-  
-  trends = trends %>%
+                 values_to = "value", names_to = "COMMON.NAME") %>% 
+    pivot_wider(names_from = type, values_from = value) %>% 
+    # numerical ID for species names, for arranging
+    mutate(sp = row_number(), .by = timegroupsf) %>%
     arrange(sl, sp) %>%
-    select(sl, COMMON.NAME, timegroupsf, timegroups, freq, se, 
-           -sp)
+    dplyr::select(-sp) %>% 
+    # reordering
+    relocate(sl, COMMON.NAME, timegroupsf, timegroups, freq, se)
   
   write.csv(trends, file = write_path, row.names = F)
 
@@ -125,13 +110,3 @@ for (k in cur_assignment)
   gc()
   
 }
-
-
-
-
-
-
- 
-
-
-
