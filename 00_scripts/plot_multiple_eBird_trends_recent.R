@@ -17,14 +17,14 @@ qualifying.species = main$eBird.English.Name.2022[!main$SOIBv2.Current.Status %i
 trends = trends %>% filter(COMMON.NAME %in% qualifying.species) %>%
   filter(timegroups >= 2015 & timegroups <= 2022)
 
-cols = c("#869B27", "#31954E", "#E49B36", "#CC6666", "#78CAE0", "#9999CC", "#493F3D",
-         "#B69AC9", "#A13E2B", "#EA5599", "#000000", "#66CC99")
+cols = c("#31954E", "#EA5599", "#CC6666", "#78CAE0", "#9999CC", "#E49B36", 
+         "#B69AC9", "#493F3D", "#A13E2B", "#000000", "#66CC99")
 species = c("White-rumped Vulture","Indian Vulture","Red-headed Vulture",
             "Egyptian Vulture")
 #species = c("Black-rumped Flameback","Yellow-crowned Woodpecker")
 #cols = c("#869B27", "#E49B36")
-species = c("Spot-billed Pelican","Black-headed Ibis","Glossy Ibis","Painted Stork",
-            "Oriental Darter","Great Cormorant")
+species = c("Spot-billed Pelican","Black-headed Ibis","Painted Stork",
+            "Eurasian Spoonbill","Oriental Darter","Great Cormorant")
 
 sps = "Large Waterbirds"
 

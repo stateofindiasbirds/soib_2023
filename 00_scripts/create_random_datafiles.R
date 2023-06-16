@@ -17,6 +17,10 @@ if (cur_mask == "none") {
   
 } else {
   
+  if (!exists("my_assignment")) {
+    return("'my_assignment' is empty! Please specify IDs of data files assigned to you.")
+  }
+  
   # woodland mask needs more sims
   if (cur_mask == "woodland") {
     no_sim <- 300

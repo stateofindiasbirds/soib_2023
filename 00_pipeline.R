@@ -69,16 +69,19 @@ addmapvars()
 # Outputs:
 # - "analyses_metadata.RData"
 analyses_metadata <- data.frame(MASK = c("none", 
-                                                  "woodland", "cropland", "ONEland", 
-                                                  "PA")) %>% 
+                                         "woodland", "cropland", "ONEland", 
+                                         "PA",
+                                         "Kerala")) %>% 
   mutate(FOLDER = case_when(MASK == "none" ~ "01_analyses_full/", 
-                            TRUE ~ glue("01_analyses_mask-{MASK}/"))) %>% 
+                            MASK %in% c("woodland", "cropland", "ONEland", "PA") ~ glue("01_analyses_mask-{MASK}/"),
+                            TRUE ~ glue("01_analyses_states/{MASK}/"))) %>% 
   mutate(FULLSPECLIST.PATH = glue("{FOLDER}fullspecieslist.csv"),
          LOCS.PATH = glue("{FOLDER}sub_samp_locs.csv"),
          SPECLISTDATA.PATH = glue("{FOLDER}specieslists.RData"),
          DATA.PATH = glue("{FOLDER}dataforanalyses.RData"),
          RAND.GROUP.IDS.PATH = glue("{FOLDER}randomgroupids.RData"),
-         SIMDATA.PATHONLY = glue("{FOLDER}dataforsim/"))
+         SIMDATA.PATHONLY = glue("{FOLDER}dataforsim/"),
+         TRENDS.PATHONLY = glue("{FOLDER}trends/"))
 
 # ensuring folders are created if they don't already exist
 for (i in 1:length(analyses_metadata$FOLDER)) {
@@ -116,6 +119,8 @@ save(analyses_metadata,
 #   - selected species list
 #   - data
 # - specieslists.RData for whole country and individual mask versions
+
+load("00_data/analyses_metadata.RData")
 
 source("00_scripts/filter_data_for_species.R")
 
@@ -164,6 +169,11 @@ tictoc::tic("generated random group IDs for PA")
 source("00_scripts/create_random_groupids.R")
 tictoc::toc() # 409 sec (7 min)
 
+cur_mask <- "Kerala"
+tictoc::tic("generated random group IDs for Kerala")
+source("00_scripts/create_random_groupids.R")
+tictoc::toc() # 
+
 
 
 # STEP 2: Create subsampled data files using subsampled GROUP.IDs
@@ -211,10 +221,64 @@ tictoc::tic("Generated subsampled data for PA")
 source("00_scripts/create_random_datafiles.R")
 tictoc::toc() 
 
+cur_mask <- "Kerala"
+tictoc::tic("Generated subsampled data for Kerala")
+source("00_scripts/create_random_datafiles.R")
+tictoc::toc() # 
 
+
+
+# STEP 3: Run trends models for all selected species
+# Run:
+# - after above step (P2, S2)
+# Requires:
+# - tidyverse, tictoc, lme4, VGAM, parallel, foreach, doParallel
+# - data files (ALL in 00_data/):
+#   - "dataforanalyses.RData" for whole country and individual mask versions
+#   - "specieslists.RData" for whole country and individual mask versions
+# Outputs:
+# - "trends/trendsX.csv" for whole country and individual mask versions
 
 ## run trend analyses
 
+load("00_data/analyses_metadata.RData")
+
+# not functionising because parallelisation doesn't work inside functions
+cur_mask <- "none"
+my_assignment <- 122:200 # CHANGE FOR YOUR SUBSET
+tictoc::tic("ran species trends for full country")
+source("00_scripts/run_species_trends.R")
+tictoc::toc() 
+
+cur_mask <- "woodland"
+my_assignment <- 101:200 # CHANGE FOR YOUR SUBSET
+tictoc::tic("ran species trends for woodland")
+source("00_scripts/run_species_trends.R")
+tictoc::toc() 
+
+cur_mask <- "cropland"
+my_assignment <- 101:200 # CHANGE FOR YOUR SUBSET
+tictoc::tic("ran species trends for cropland")
+source("00_scripts/run_species_trends.R")
+tictoc::toc() 
+
+cur_mask <- "ONEland"
+my_assignment <- 101:200 # CHANGE FOR YOUR SUBSET
+tictoc::tic("ran species trends for ONEland")
+source("00_scripts/run_species_trends.R")
+tictoc::toc() 
+
+cur_mask <- "PA"
+my_assignment <- 49:200 # CHANGE FOR YOUR SUBSET
+tictoc::tic("ran species trends for PA")
+source("00_scripts/run_species_trends.R")
+tictoc::toc() 
+
+cur_mask <- "Kerala"
+my_assignment <- 1:200 # CHANGE FOR YOUR SUBSET
+tictoc::tic("ran species trends for Kerala")
+source("00_scripts/run_species_trends.R")
+tictoc::toc() # 
 
 
 

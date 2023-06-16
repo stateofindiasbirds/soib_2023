@@ -22,6 +22,7 @@ randomgroupids.RData
 
 # 200 large CSVs
 dataforsim/
+trends/
 
 # image outputs
 *.gif

@@ -3,7 +3,7 @@ library(tidyverse)
 library(VGAM)
 
 main = read.csv("00_data/SoIB_mapping_2022.csv")
-base = read.csv("fullspecieslist_mask_pa.csv")
+base = read.csv("01_analyses_states/Kerala/fullspecieslist.csv")
 base = base %>% select(-SCIENTIFIC.NAME)
 recentcutoff = 2015
 
@@ -26,8 +26,8 @@ sens$currentsloperci8 = sens$currentslopemean8 = sens$currentslopelci8 = NA
 
 ################### sensitivity
 
-file_names = dir("trends_mask_pa") #where you have your files
-trends = do.call(rbind,lapply(paste("trends_mask_pa/",file_names,sep=""),read.csv))
+file_names = dir("trends") #where you have your files
+trends = do.call(rbind,lapply(paste("01_analyses_states/Kerala/trends/",file_names,sep=""),read.csv))
 totsims = length(unique(trends$sl))
 
 ## remove problem species from current and long-term trends
@@ -509,7 +509,7 @@ for (i in unique(modtrends_recent$COMMON.NAME))
 }
 
 
-write.csv(sens,"trends_results/mask_pa/current_sensitivity.csv",row.names=F)
+write.csv(sens,"01_analyses_states/Kerala/trends/current_sensitivity.csv",row.names=F)
 
 
 #ext_trends = ext_trends %>% select(-c(lci_bt,mean_bt,rci_bt))
@@ -562,7 +562,7 @@ trends$rci_comb_std[!is.na(trends$rci_ext_std)] = trends$rci_ext_std[!is.na(tren
 
 trends$lci_comb_std[trends$lci_comb_std<0] = 0
 
-write.csv(trends,"trends_results/mask_pa/trends_mask_pa.csv",row.names=F)
+write.csv(trends,"01_analyses_states/Kerala/trends/trends.csv",row.names=F)
 
 # 2023
 
@@ -673,7 +673,7 @@ write.csv(main,"trends_results/mask_pa/SoIB_main_mask_pa_wocats.csv",row.names=F
 ## assign categories to trends and occupancy
 
 
-main = read.csv("trends_results/mask_pa/SoIB_main_wocats.csv")
+main = read.csv("01_analyses_states/Kerala/trends/SoIB_main_wocats.csv")
 
 main = main %>%
   mutate(SOIBv2.Long.Term.Status = 
@@ -703,7 +703,7 @@ main = main %>%
 
 ## sensitivity check
 
-sens = read.csv("trends_results/mask_pa/current_sensitivity.csv")
+sens = read.csv("01_analyses_states/Kerala/trends/current_sensitivity.csv")
 
 for (i in 1:8)
 {
@@ -827,7 +827,7 @@ main = main %>%
          longtermmean = longtermmean-100,
          longtermrci = longtermrci-100)
 
-write.csv(main,"trends_results/mask_pa/SoIB_main_mask_pa.csv",row.names=F)
+write.csv(main,"01_analyses_states/Kerala/trends/SoIB_main.csv",row.names=F)
 
 ## small investigations
 
@@ -847,6 +847,6 @@ species_summary = data.frame(Category = c("Selected for SoIB","Long-term Analysi
                                            as.vector(table(main$Long.Term.Analysis))[2],
                                            as.vector(table(main$Current.Analysis))[2]))
 
-write.csv(summary_status,"trends_results/mask_pa/summary_status_mask_pa.csv",row.names=F)
-write.csv(priority_summary,"trends_results/mask_pa/priority_status_mask_pa.csv",row.names=F)
-write.csv(species_summary,"trends_results/mask_pa/species_status_mask_pa.csv",row.names=F)
+write.csv(summary_status,"01_analyses_states/Kerala/trends/summary_status.csv",row.names=F)
+write.csv(priority_summary,"01_analyses_states/Kerala/trends/priority_status.csv",row.names=F)
+write.csv(species_summary,"01_analyses_states/Kerala/trends/species_status.csv",row.names=F)
