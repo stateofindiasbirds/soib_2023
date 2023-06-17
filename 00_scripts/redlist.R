@@ -9,8 +9,8 @@ TrendYears <- MaxYear - MinYear + 1
 threegenperiod <- 2 * (TrendYears - 1) + 100
 
 # Read latest BLI 3gen values
-threegen <- read.csv("3genbli.csv") # No in repository. Contact paintedstork@gmail.com
-soib <- read.csv("SoIB_main.csv")   # Available in rep. after SoIB2 runs
+threegen <- read.csv("00_data/3genbli.csv") # No in repository. Contact paintedstork@gmail.com
+soib <- read.csv("01_analyses_full/SoIB_main.csv")   # Available in rep. after SoIB2 runs
 
 # Remove unwanted fields from freq
 soib <- soib %>% select ("India.Checklist.Common.Name",
@@ -150,4 +150,4 @@ colnames(redlist) <- c ("Species",
                      "Projected Decline"
                      )
 
-write.csv(redlist, "redlist.csv", row.names = FALSE)
+write.csv(redlist, "01_analyses_full/redlist.csv", row.names = FALSE)
