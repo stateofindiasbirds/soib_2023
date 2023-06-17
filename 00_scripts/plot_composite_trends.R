@@ -8,8 +8,8 @@ library(cowplot)
 library(extrafont)
 library(stringr)
 
-main = read.csv("trends_results/full_results/SoIB_main.csv")
-trends = read.csv("trends_results/full_results/trends.csv")
+main = read.csv("01_analyses_full/SoIB_main.csv")
+trends = read.csv("01_analyses_full/trends.csv")
 
 qualifying.species = main$eBird.English.Name.2022[!main$SOIBv2.Long.Term.Status %in% 
                                                     c("eBird Data Inconclusive","eBird Data Deficient") & 
@@ -316,7 +316,7 @@ ggpx = ggp +
 
 ggpx3 = ggdraw(ggpx)
 
-name1 = "trends_graphs/composites/dietguilds_composite_trend_SoIBv2.jpg"
+name1 = "01_analyses_full/graphs/composites/dietguilds_composite_trend_SoIBv2.jpg"
 #name2 = "dietguilds_composite_trend_SoIBv2.svg"
 
 jpeg(name1, units="in", width=11, height=7, res=1000, bg="transparent")
@@ -627,7 +627,7 @@ ggpx = ggp +
 
 ggpx3 = ggdraw(ggpx)
 
-name1 = "trends_graphs/composites/habitats_composite_trend_SoIBv2.jpg"
+name1 = "01_analyses_full/graphs/composites/habitats_composite_trend_SoIBv2.jpg"
 #name2 = "habitats_composite_trend_SoIBv2.svg"
 
 jpeg(name1, units="in", width=11, height=7, res=1000, bg="transparent")
@@ -941,7 +941,7 @@ ggpx = ggp +
 
 ggpx3 = ggdraw(ggpx)
 
-name1 = "trends_graphs/composites/endemics_composite_trend_SoIBv2.jpg"
+name1 = "01_analyses_full/graphs/composites/endemics_composite_trend_SoIBv2.jpg"
 #name2 = "endemics_composite_trend_SoIBv2.svg"
 
 jpeg(name1, units="in", width=11, height=7, res=1000, bg="transparent")
@@ -1268,7 +1268,7 @@ ggpx = ggp +
 
 ggpx3 = ggdraw(ggpx)
 
-name1 = "trends_graphs/composites/migrants_composite_trend_SoIBv2.jpg"
+name1 = "01_analyses_full/graphs/composites/migrants_composite_trend_SoIBv2.jpg"
 #name2 = "migrants_composite_trend_SoIBv2.svg"
 
 jpeg(name1, units="in", width=11, height=7, res=1000, bg="transparent")
@@ -1601,7 +1601,7 @@ ggpx = ggp +
 
 ggpx3 = ggdraw(ggpx)
 
-name1 = "trends_graphs/composites/shorebirds_composite_trend_SoIBv2.jpg"
+name1 = "01_analyses_full/graphs/composites/shorebirds_composite_trend_SoIBv2.jpg"
 #name2 = "shorebirds_composite_trend_SoIBv2.svg"
 
 jpeg(name1, units="in", width=11, height=7, res=1000, bg="transparent")
@@ -1916,7 +1916,7 @@ ggpx = ggp +
 
 ggpx3 = ggdraw(ggpx)
 
-name1 = "trends_graphs/composites/raptors_composite_trend_SoIBv2.jpg"
+name1 = "01_analyses_full/graphs/composites/raptors_composite_trend_SoIBv2.jpg"
 #name2 = "raptors_composite_trend_SoIBv2.svg"
 
 jpeg(name1, units="in", width=11, height=7, res=1000, bg="transparent")
@@ -2267,7 +2267,7 @@ ggpx = ggp +
 
 ggpx3 = ggdraw(ggpx)
 
-name1 = "trends_graphs/composites/woodland_mask_composite_trend_SoIBv2.jpg"
+name1 = "01_analyses_full/graphs/composites/woodland_mask_composite_trend_SoIBv2.jpg"
 #name2 = "woodland_mask_composite_trend_SoIBv2.svg"
 
 jpeg(name1, units="in", width=11, height=7, res=1000, bg="transparent")
@@ -2618,7 +2618,7 @@ ggpx = ggp +
 
 ggpx3 = ggdraw(ggpx)
 
-name1 = "trends_graphs/composites/pa_mask_composite_trend_SoIBv2.jpg"
+name1 = "01_analyses_full/graphs/composites/pa_mask_composite_trend_SoIBv2.jpg"
 #name2 = "pa_mask_composite_trend_SoIBv2.svg"
 
 jpeg(name1, units="in", width=11, height=7, res=1000, bg="transparent")
@@ -2978,7 +2978,7 @@ ggpx = ggp +
 
 ggpx3 = ggdraw(ggpx)
 
-name1 = "trends_graphs/composites/open_mask_composite_trend_SoIBv2.jpg"
+name1 = "01_analyses_full/graphs/composites/open_mask_composite_trend_SoIBv2.jpg"
 #name2 = "open_mask_composite_trend_SoIBv2.svg"
 
 jpeg(name1, units="in", width=11, height=7, res=1000, bg="transparent")

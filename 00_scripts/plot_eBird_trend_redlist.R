@@ -7,7 +7,7 @@ library(cowplot)
 library(extrafont)
 
 
-trends = read.csv("trends.csv")
+trends = read.csv("01_analyses_full/trends.csv")
 temp = trends %>% 
   mutate(lci_std = lci_comb_std,mean_std = mean_comb_std,rci_std = rci_comb_std) %>%
   filter(timegroups >= 2014 & timegroups <= 2027) %>%
@@ -142,7 +142,7 @@ ggpx = ggp +
 ggpx1 = ggdraw(ggpx)
 
 sps = as.character(temp$COMMON.NAME[1])
-name = paste(sps,"_","eBird_trend_redlist_SoIBv2.jpg",sep="")
+name = paste("01_analyses_full/graphs/redlist",sps,"_","eBird_trend_redlist_SoIBv2.jpg",sep="")
 
 jpeg(name, units="in", width=11, height=7, res=1000, bg="transparent")
 grid::grid.draw(ggpx1)

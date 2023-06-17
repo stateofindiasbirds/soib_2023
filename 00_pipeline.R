@@ -81,7 +81,9 @@ analyses_metadata <- data.frame(MASK = c("none",
          DATA.PATH = glue("{FOLDER}dataforanalyses.RData"),
          RAND.GROUP.IDS.PATH = glue("{FOLDER}randomgroupids.RData"),
          SIMDATA.PATHONLY = glue("{FOLDER}dataforsim/"),
-         TRENDS.PATHONLY = glue("{FOLDER}trends/"))
+         TRENDS.PATHONLY = glue("{FOLDER}trends/"),
+         SOIBMAIN.PATH = glue("{FOLDER}SoIB_main.csv"),
+         TRENDS.OUTPATH = glue("{FOLDER}trends.csv"))
 
 # ensuring folders are created if they don't already exist
 for (i in 1:length(analyses_metadata$FOLDER)) {
@@ -228,7 +230,9 @@ tictoc::toc() #
 
 
 
-# STEP 3: Run trends models for all selected species
+# PART 3 ------------------------------------------------------------------
+
+# STEP 1: Run trends models for all selected species
 # Run:
 # - after above step (P2, S2)
 # Requires:
@@ -238,8 +242,6 @@ tictoc::toc() #
 #   - "specieslists.RData" for whole country and individual mask versions
 # Outputs:
 # - "trends/trendsX.csv" for whole country and individual mask versions
-
-## run trend analyses
 
 load("00_data/analyses_metadata.RData")
 
