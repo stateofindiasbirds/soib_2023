@@ -1,3 +1,97 @@
+###    removeprobablemistakes ########################################
+
+# function to remove probable mistakes, during cleaning of raw data (improving data quality)
+
+# probable mistakes can be of different types:
+#   1. entire checklists
+#   2. species-checklist combinations
+#   3. species-observer combinations
+#   4. species-admin unit (state or district) combinations
+#   5. species-latlong combinations
+#   6. latlong-admin unit (state or district) combinations
+
+rm_prob_mistakes <- function(data) {
+  
+  
+  # 1. entire checklists
+  
+  mistake1 <- data %>% 
+    filter(group.id %in% c("S52427664","S52427820","S56787688","S52402064",
+                           "S53042612","S33740440")) %>% 
+    distinct(group.id)
+  
+  
+  # 2. species-checklist combinations
+  
+  mistake2 <- data %>% 
+    filter((COMMON.NAME == "Nilgiri Pipit" & group.id %in% c("S29668163","S29668256")) |
+             (COMMON.NAME == "Ashambu Laughingthrush" & group.id %in% c("S56229913","S56933026")) |
+             (COMMON.NAME == "Asian Barred Owlet" & group.id %in% c("G2041445")) |
+             (COMMON.NAME == "Blue-eared Kingfisher" & group.id %in% c("S32961812")) |
+             (COMMON.NAME == "Blue-capped Redstart" & group.id %in% c("S53495281")) |
+             (COMMON.NAME == "Painted Bush-Quail" & group.id %in% c("S27051065")) |
+             (COMMON.NAME == "Blue-fronted Redstart" & group.id %in% c("S21233304")) |
+             (COMMON.NAME == "Brown Hornbill" & group.id %in% c("S43551831")) |
+             (COMMON.NAME == "Common Hill Myna" & group.id %in% c("S52357374","S53043299",
+                                                                  "G3013891","S42764844",
+                                                                  "S46360523","S27918190"))) %>% 
+    distinct(COMMON.NAME, group.id)
+  
+  # 3. species-observer combinations
+  
+  mistake3 <- data %>% 
+    filter((OBSERVER.ID == "obsr483752" &
+              COMMON.NAME %in% c("Nilgiri Pipit", "Ashambu Laughingthrush")) |
+           (OBSERVER.ID == "obsr483769" & 
+              COMMON.NAME %in% c("Nilgiri Pipit", "Ashambu Laughingthrush",
+                                 "Painted Bush-Quail", "Blue-eared Kingfisher"))) %>% 
+    distinct(OBSERVER.ID, COMMON.NAME)
+  
+  # 4. species-admin unit (state or district) combinations
+  
+  mistake4 <- data %>% 
+    filter((COMMON.NAME == "Jungle Prinia" & 
+              STATE %in% c("Uttarakhand","Jammu and Kashmir","Chandigarh",
+                           "Punjab","Himachal Pradesh") & 
+              !(COUNTY %in% c("Haridwar"))) | # JuPr from states except Haridwar, UL
+           (COMMON.NAME == "Orange Minivet" &
+              STATE %in% c("Gujarat") & 
+              COUNTY %in% c("Narmada","Navsari","The Dangs")) | # OrMi from these dist in GJ
+           (COMMON.NAME == "Brown-cheeked Fulvetta" &
+              STATE %in% c("Sikkim"))) %>% 
+    distinct(COMMON.NAME, STATE, COUNTY)
+  
+  # 5. species-latlong combinations
+  
+  mistake5 <- data %>% 
+    filter((COMMON.NAME == "White-naped Tit" & LONGITUDE > 80) |
+             (COMMON.NAME == "Nilgiri Pipit" & LONGITUDE > 80 & LATITUDE > 15)) %>% 
+    distinct(COMMON.NAME, LONGITUDE, LATITUDE)
+  
+  # 6. latlong-admin unit (state or district) combinations
+  
+  # sometimes when lists are submitted, there is a mismatch between admin units and coordinates
+  
+  mistake6 <- data %>% 
+    filter((STATE == "Kerala" & COUNTY == "Idukki" & LONGITUDE > 78)) %>% 
+    distinct(STATE, COUNTY, LONGITUDE, LATITUDE)
+  
+  
+  # removing probable mistakes from data
+  
+  filtered <- data %>% 
+    anti_join(mistake1) %>% 
+    anti_join(mistake2) %>% 
+    anti_join(mistake3) %>% 
+    anti_join(mistake4) %>% 
+    anti_join(mistake5) %>% 
+    anti_join(mistake6)
+  
+  return(filtered)
+  
+}
+
+
 ### 01 readcleanrawdata ########################################
 
 ## read and clean raw data and add important columns like group id, seasonality variables
@@ -150,6 +244,10 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_relFeb-2023.txt",
         "Booted Warbler",
       TRUE ~ COMMON.NAME
     ))
+  
+  # # removing probable mistakes
+  # data <- rm_prob_mistakes(data)
+  
   
   ## setup eBird data ##
   
