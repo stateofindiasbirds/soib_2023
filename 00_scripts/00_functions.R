@@ -889,6 +889,7 @@ expandbyspecies = function(data, species)
 
 ### error operations ########################################
 
+# <annotation_pending_AV>
 errordiv = function(x1,x2,se1,se2)
 {
   r = x1/x2
@@ -906,12 +907,16 @@ erroradd = function(vec)
   return(err)
 }
 
-simerrordiv = function(x1,x2,se1,se2)
+# <annotation_pending_AV>
+simerrordiv = function(x1, x2, se1, se2)
 {
-  tp = data.frame(num = clogloglink(rnorm(1000,x1,se1), inverse = T), 
-                  den = clogloglink(rnorm(1000,x2,se2), inverse = T))
-  tp = tp %>%
-    reframe(rat = num/den, val = num)
+  # takes untransformed (link) mean and SE values, and generates normal dist. from 1000 sims,
+  # then transformed 
+  # after the function, lower and upper quantiles are selected as limits of 95% CI
+  tp = data.frame(num = clogloglink(rnorm(1000, x1, se1), inverse = T), 
+                  den = clogloglink(rnorm(1000, x2, se2), inverse = T)) %>%
+    reframe(rat = num/den, 
+            val = num)
 
   return(tp)
 }
