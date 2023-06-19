@@ -12,6 +12,7 @@ source('00_scripts/00_functions.R')
 
 recentcutoff = 2015
 
+###
 
 # data processing and prep ------------------------------------------------
 
@@ -296,12 +297,13 @@ modtrends = na.omit(trends) %>% # NAs are all spp. not included in long-term
   arrange(COMMON.NAME, timegroups) %>%
   # getting trends values of first year (only for long-term, i.e., pre-2000)
   group_by(COMMON.NAME) %>% 
+  # _trans are link-scale, "mean" is back-transformed
   mutate(m1 = first(mean_trans),
-         m2 = first(mean),
+         mean_year1 = first(mean),
          s1 = first(se_trans)) %>% 
   ungroup() %>% 
   # for calculating change in abundance index (as % change)
-  mutate(mean_std = 100*mean/m2)
+  mutate(mean_std = 100*mean/mean_year1) # back-transformed so value is % of year1 value
 
 set.seed(10) # for simulations
 modtrends = modtrends %>% 
@@ -358,11 +360,11 @@ modtrends_recent = trends %>%
   # getting trends values of first year (only for current)
   group_by(COMMON.NAME) %>% 
   mutate(m1 = first(mean_trans),
-         m2 = first(mean),
+         mean_year1 = first(mean),
          s1 = first(se_trans)) %>% 
   ungroup() %>% 
   # for calculating change in abundance index (as % change)
-  mutate(mean_std_recent = 100*mean/m2)
+  mutate(mean_std_recent = 100*mean/mean_year1)
 
 # Getting CIs for each year
 set.seed(10)
@@ -664,7 +666,7 @@ sl_data_sens <- temp_sims %>%
 sens <- sens %>%
   left_join(sl_data_sens, by = c("eBird.English.Name.2022" = "COMMON.NAME"))
 
-write.csv(sens, "trends_results/full_results/current_sensitivity.csv", row.names = F)
+write.csv(sens, "01_analyses_full/current_sensitivity.csv", row.names = F)
 
 
 # calculations: trends (current): PROJ ------------------------------------
@@ -708,7 +710,7 @@ toc()
 trends = trends %>% 
   left_join(modtrends) %>% 
   left_join(modtrends_recent) %>%
-  dplyr::select(COMMON.NAME, timegroupsf, timegroups, mean_trans, se_trans,
+  dplyr::select(timegroups, COMMON.NAME, timegroupsf, mean_trans, se_trans,
                 lci, mean, rci, lci_std, mean_std, rci_std,
                 lci_std_recent, mean_std_recent, rci_std_recent) %>% 
   right_join(trends_framework) %>% 
@@ -726,7 +728,13 @@ trends = trends %>%
                                   !is.na(rci_ext_std) ~ rci_ext_std)) %>% 
   # truncating LCI at 0
   mutate(lci_comb_std = case_when(lci_comb_std < 0 ~ 0, 
-                                  TRUE ~ lci_comb_std))
+                                  TRUE ~ lci_comb_std)) %>% 
+  # ensuring correct order of columns
+  relocate(timegroups, COMMON.NAME, timegroupsf, mean_trans, se_trans,
+           lci, mean, rci, lci_std, mean_std, rci_std,
+           lci_std_recent, mean_std_recent, rci_std_recent,
+           lci_ext_std, mean_ext_std, rci_ext_std,
+           lci_comb_std, mean_comb_std, rci_comb_std)
 
 write.csv(trends, "01_analyses_full/trends.csv", row.names = F)
 
@@ -745,82 +753,92 @@ tojoin <- map(2023:2029, ~ trends %>%
 
 main <- main %>% left_join(tojoin)
 
-write.csv(main, "trends_results/full_results/SoIB_main_wocats.csv", row.names = F)
+write.csv(main, "01_analyses_full/SoIB_main_wocats.csv", row.names = F)
 
 
-# calculations: assign SoIB categories to trends and occupancy (w/ sensitivity analysis) ----
+# classification: assign SoIB Status categories to trends (w/ sensitivity analysis) ----
 
-main = read.csv("trends_results/full_results/SoIB_main_wocats.csv")
+# classifying into SoIB Status for long-term and current
 
-main = main %>%
-  mutate(SOIBv2.Long.Term.Status = 
-           case_when(is.na(longtermmean) ~ "eBird Data Deficient",
-                     (longtermrci-longtermmean)/longtermmean > 0.5 ~ "eBird Data Inconclusive",
-                     longtermrci <= 50 ~ "Rapid Decline",
-                     longtermrci <= 75 ~ "Decline",
-                     longtermlci >= 150 ~ "Rapid Increase",
-                     longtermlci >= 125 ~ "Increase",
-                     longtermrci < 100 ~ "eBird Data Inconclusive",
-                     longtermlci <= 50 ~ "eBird Data Inconclusive",
-                     longtermlci > 100 ~ "eBird Data Inconclusive",
-                     longtermrci >= 150 ~ "eBird Data Inconclusive",
-                     TRUE ~ "Stable")
-  ) %>%
-  mutate(SOIBv2.Current.Status = 
-           case_when(is.na(currentslopemean) ~ "eBird Data Deficient",
-                     (currentsloperci-currentslopelci) > 6 ~ "eBird Data Inconclusive",
-                     currentsloperci <= -2.7 ~ "Rapid Decline",
-                     currentsloperci <= -1.1 ~ "Decline",
-                     currentslopelci >= 1.6 ~ "Rapid Increase",
-                     currentslopelci >= 0.9 ~ "Increase",
-                     currentsloperci < 0 ~ "eBird Data Inconclusive",
-                     currentslopelci > 0 ~ "eBird Data Inconclusive",
-                     TRUE ~ "Stable")
+# taking upper limit of CI for declines, and lower limit for increases
+
+main = read.csv("01_analyses_full/SoIB_main_wocats.csv") %>%
+  mutate(
+    SOIBv2.Long.Term.Status = case_when(
+      
+      is.na(longtermmean) ~ "eBird Data Deficient",
+      # for declines
+      (longtermrci-longtermmean)/longtermmean > 0.5 ~ "eBird Data Inconclusive",
+      longtermrci <= 50 ~ "Rapid Decline",
+      longtermrci <= 75 ~ "Decline",
+      # for increases
+      longtermlci >= 150 ~ "Rapid Increase",
+      longtermlci >= 125 ~ "Increase",
+      longtermrci < 100 ~ "eBird Data Inconclusive",
+      longtermlci <= 50 ~ "eBird Data Inconclusive",
+      longtermlci > 100 ~ "eBird Data Inconclusive",
+      longtermrci >= 150 ~ "eBird Data Inconclusive",
+      TRUE ~ "Stable"
+      
+      ),
+    
+    SOIBv2.Current.Status = case_when(
+      
+      is.na(currentslopemean) ~ "eBird Data Deficient",
+      (currentsloperci-currentslopelci) > 6 ~ "eBird Data Inconclusive",
+      currentsloperci <= -2.7 ~ "Rapid Decline",
+      currentsloperci <= -1.1 ~ "Decline",
+      currentslopelci >= 1.6 ~ "Rapid Increase",
+      currentslopelci >= 0.9 ~ "Increase",
+      currentsloperci < 0 ~ "eBird Data Inconclusive",
+      currentslopelci > 0 ~ "eBird Data Inconclusive",
+      TRUE ~ "Stable"
+      
+      )
   )
 
 
 # sensitivity check ###
 
-# changes classifications based on sensitivity analyses ???
+# changes classifications based on sensitivity analyses
 
-sens = read.csv("trends_results/full_results/current_sensitivity.csv")
+sens <- read.csv("01_analyses_full/current_sensitivity.csv")
 
-for (i in 1:8)
-{
-  sens$currentslopelci = sens[,2+(i-1)*3]
-  sens$currentslopemean = sens[,3+(i-1)*3]
-  sens$currentsloperci = sens[,4+(i-1)*3]
+# classifying the sens values to SoIB categories
+sens_cat <- map(1:8, ~ {
   
-  sensx = sens %>%
-    mutate(SOIBv2.Current.Status.Sens = 
-             case_when(is.na(currentslopemean) ~ "eBird Data Deficient",
-                       (currentsloperci-currentslopelci) > 6 ~ "eBird Data Inconclusive",
-                       currentsloperci <= -2.7 ~ "Rapid Decline",
-                       currentsloperci <= -1.1 ~ "Decline",
-                       currentslopelci >= 1.6 ~ "Rapid Increase",
-                       currentslopelci >= 0.9 ~ "Increase",
-                       currentsloperci < 0 ~ "eBird Data Inconclusive",
-                       currentslopelci > 0 ~ "eBird Data Inconclusive",
-                       TRUE ~ "Stable")
-    ) %>%
-    select(eBird.English.Name.2022,SOIBv2.Current.Status.Sens)
+  sens %>%
+    # selecting the corresponding column each time
+    mutate(currentslopelci = .[[2 + (.x - 1) * 3]],
+           currentslopemean = .[[3 + (.x - 1) * 3]],
+           currentsloperci = .[[4 + (.x - 1) * 3]]) %>%
+    mutate(SOIBv2.Current.Status.Sens = case_when(
+      
+      is.na(currentslopemean) ~ "eBird Data Deficient",
+      (currentsloperci - currentslopelci) > 6 ~ "eBird Data Inconclusive",
+      currentsloperci <= -2.7 ~ "Rapid Decline",
+      currentsloperci <= -1.1 ~ "Decline",
+      currentslopelci >= 1.6 ~ "Rapid Increase",
+      currentslopelci >= 0.9 ~ "Increase",
+      currentsloperci < 0 ~ "eBird Data Inconclusive",
+      currentslopelci > 0 ~ "eBird Data Inconclusive",
+      TRUE ~ "Stable"
+      
+    )) %>%
+    dplyr::select(eBird.English.Name.2022, SOIBv2.Current.Status.Sens) %>% 
+    magrittr::set_colnames(c("eBird.English.Name.2022", glue("s{.x}")))
   
-  if (i == 1)
-  {
-    sensy = left_join(main,sensx)
-    sensy = sensy %>% select(eBird.English.Name.2022,SOIBv2.Current.Status,SOIBv2.Current.Status.Sens)
-    names(sensy)[i+2] = paste("s",i,sep='')
-  }
-  
-  if (i > 1)
-  {
-    sensy = left_join(sensy,sensx)
-    names(sensy)[i+2] = paste("s",i,sep='')
-  }
-}
+}) %>%
+  reduce(full_join) 
 
-sensy = sensy %>%
-  filter(!SOIBv2.Current.Status %in% c("eBird Data Deficient","eBird Data Inconclusive"))
+sens_cat <- main %>% 
+  dplyr::select(eBird.English.Name.2022, SOIBv2.Current.Status) %>% 
+  left_join(sens_cat) %>%
+  filter(!SOIBv2.Current.Status %in% c("eBird Data Deficient", "eBird Data Inconclusive"))
+
+
+# creating empty vectors that will be filled with indices of species that fall
+# under 7 criteria
 
 ind1 = numeric(0)
 ind2 = numeric(0)
@@ -830,104 +848,154 @@ ind5 = numeric(0)
 ind6 = numeric(0)
 ind7 = numeric(0)
 
-for (i in 1:length(sensy$eBird.English.Name.2022))
-{
-  cts = as.vector(sensy[i,-1])
-  if (length(unique(cts)) == 1)
-    ind1 = c(ind1,i)
-  
-  if (length(unique(cts)) == 2 & "eBird Data Inconclusive" %in% cts)
-    ind2 = c(ind2,i)
-  
-  if (("Decline" %in% cts | "Rapid Decline" %in% cts) & 
-      ("Stable" %in% cts | "Increase" %in% cts | "Rapid Increase" %in% cts))
-    ind3 = c(ind3,i)
-  
-  if (("Increase" %in% cts | "Rapid Increase" %in% cts) & 
-      ("Stable" %in% cts | "Decline" %in% cts | "Rapid Decline" %in% cts))
-    ind4 = c(ind4,i)
-  
-  if (length(cts[cts == "eBird Data Inconclusive"]) >= 4)
-    ind5 = c(ind5,i)
-  
-  if (cts[1] == "Rapid Decline" & "Decline" %in% cts)
-    ind6 = c(ind6,i)
-  
-  if (cts[1] == "Rapid Increase" & "Increase" %in% cts)
-    ind7 = c(ind7,i)
-}
+for (i in 1:length(sens_cat$eBird.English.Name.2022)) {
+    
+    categs = as.vector(sens_cat[i,-1])
+    
+    # species with same category across all columns
+    if (length(unique(categs)) == 1) 
+      (ind1 = c(ind1, i))
+    
+    # species with any one category but also Inconclusive
+    if (length(unique(categs)) == 2 & "eBird Data Inconclusive" %in% categs) 
+      (ind2 = c(ind2, i))
 
-ind.rem = union(ind3,ind4)
-ind.rem = union(ind.rem,ind5)
+    # species classed as some decline, but elsewhere classed as some non-decline
+    if (("Decline" %in% categs | "Rapid Decline" %in% categs) & 
+        ("Stable" %in% categs | "Increase" %in% categs | "Rapid Increase" %in% categs)) 
+      (ind3 = c(ind3, i))
+    
+    # species classed as some increase, but elsewhere classed as some non-increase
+    if (("Increase" %in% categs | "Rapid Increase" %in% categs) & 
+        ("Stable" %in% categs | "Decline" %in% categs | "Rapid Decline" %in% categs))
+      (ind4 = c(ind4, i))
+    
+    # species classed Inconclusive in >= 4 out of 9 columns
+    if (length(categs[categs == "eBird Data Inconclusive"]) >= 4)
+      (ind5 = c(ind5, i))
+    
+    # species with Rapid Decline in main trend and only Decline in drop-trends
+    if (categs[1] == "Rapid Decline" & "Decline" %in% categs)
+      (ind6 = c(ind6, i))
+    
+    # species with Rapid Increase in main trend and only Increase in drop-trends
+    if (categs[1] == "Rapid Increase" & "Increase" %in% categs)
+      (ind7 = c(ind7, i))
+    
+  }
 
-ind6 = setdiff(ind6,ind.rem)
-ind7 = setdiff(ind7,ind.rem)
+ind.rem = ind3 %>% union(ind4) %>% union(ind5)# to be removed (Inconclusive)
+
+ind6 = ind6 %>% setdiff(ind.rem)
+ind7 = ind7 %>% setdiff(ind.rem)
+
+spec_ind.rem <- sens_cat$eBird.English.Name.2022[ind.rem]
+spec_ind6 <- sens_cat$eBird.English.Name.2022[ind6]
+spec_ind7 <- sens_cat$eBird.English.Name.2022[ind7]
 
 
-main$SOIBv2.Current.Status[main$eBird.English.Name.2022 %in% sensy$eBird.English.Name.2022[ind.rem]] = "eBird Data Inconclusive"
-main$SOIBv2.Current.Status[main$eBird.English.Name.2022 %in% sensy$eBird.English.Name.2022[ind6]] = "Decline"
-main$SOIBv2.Current.Status[main$eBird.English.Name.2022 %in% sensy$eBird.English.Name.2022[ind7]] = "Increase"
+main <- main %>%
+  # changing classification where needed
+  mutate(SOIBv2.Current.Status = case_when(
+    
+    eBird.English.Name.2022 %in% spec_ind.rem ~ "eBird Data Inconclusive",
+    eBird.English.Name.2022 %in% spec_ind6 ~ "Decline",
+    eBird.English.Name.2022 %in% spec_ind7 ~ "Increase",
+    TRUE ~ SOIBv2.Current.Status
+    
+  )) %>% 
+  mutate(across(c(SOIBv2.Long.Term.Status, SOIBv2.Current.Status, SOIB.Range.Status),
+                ~ if_else(Selected.SOIB != "X", NA_character_, .)))
 
-main$SOIBv2.Long.Term.Status[main$Selected.SOIB != "X"] = NA
-main$SOIBv2.Current.Status[main$Selected.SOIB != "X"] = NA
-main$SOIB.Range.Status[main$Selected.SOIB != "X"] = NA
 
+# classification: assign SoIB Priority status (based on trends and occupancy) -----
 
+cats_trend = c("Rapid Decline", "Decline", "eBird Data Deficient", 
+               "eBird Data Inconclusive", "Stable", "Increase", "Rapid Increase")
+cats_range = c("eBird Data Deficient", "Very Restricted", "Restricted", 
+               "Moderate", "Large", "Very Large")
 
-trendcats = c("Rapid Decline","Decline","eBird Data Deficient","eBird Data Inconclusive",
-              "Stable","Increase","Rapid Increase")
-rangecats = c("eBird Data Deficient","Very Restricted","Restricted","Moderate",
-              "Large","Very Large")
+cats_decline = c("Decline", "Rapid Decline")
+cats_uncertain = c("eBird Data Deficient", "eBird Data Inconclusive")
+cats_restricted = c("Very Restricted", "Restricted")
 
 
 priorityrules = read.csv("00_data/priorityclassificationrules.csv")
-main = left_join(main,priorityrules)
 
 
-unce = c("eBird Data Deficient","eBird Data Inconclusive")
-rest = c("Very Restricted","Restricted")
-decl = c("Decline","Rapid Decline")
-
-main = main %>%
+main = main %>% 
+  left_join(priorityrules) %>%
   mutate(SOIBv2.Priority.Status = as.character(SOIBv2.Priority.Status)) %>%
-  mutate(SOIBv2.Priority.Status = 
-           case_when(SOIBv2.Long.Term.Status %in% unce & SOIBv2.Current.Status %in% unce &
-                       IUCN.Category %in% c("Endangered","Critically Endangered") ~ "High",
-                     SOIBv2.Long.Term.Status %in% decl & SOIBv2.Current.Status %in% decl &
-                       IUCN.Category %in% c("Endangered","Critically Endangered") ~ "High",
-                     SOIBv2.Long.Term.Status %in% unce & SOIBv2.Current.Status %in% unce &
-                       SOIB.Range.Status %in% rest &
-                       IUCN.Category %in% c("Vulnerable") ~ "High",
-                     SOIBv2.Long.Term.Status %in% unce & SOIBv2.Current.Status %in% unce &
-                       IUCN.Category %in% c("Near Threatened","Vulnerable") & SOIBv2.Priority.Status == "Low" ~ "Moderate",
-                     TRUE ~ SOIBv2.Priority.Status))
+  # changing priority rules based on IUCN category (which isn't considered in rules)
+  mutate(SOIBv2.Priority.Status = case_when(
+    
+    SOIBv2.Long.Term.Status %in% cats_uncertain & 
+      SOIBv2.Current.Status %in% cats_uncertain &
+      IUCN.Category %in% c("Endangered", "Critically Endangered") ~ "High",
+    
+    SOIBv2.Long.Term.Status %in% cats_decline & 
+      SOIBv2.Current.Status %in% cats_decline &
+      IUCN.Category %in% c("Endangered", "Critically Endangered") ~ "High",
+    
+    SOIBv2.Long.Term.Status %in% cats_uncertain & 
+      SOIBv2.Current.Status %in% cats_uncertain &
+      SOIB.Range.Status %in% cats_restricted &
+      IUCN.Category %in% c("Vulnerable") ~ "High",
+    
+    SOIBv2.Long.Term.Status %in% cats_uncertain & 
+      SOIBv2.Current.Status %in% cats_uncertain &
+      IUCN.Category %in% c("Near Threatened", "Vulnerable") & 
+      SOIBv2.Priority.Status == "Low" ~ "Moderate",
+    
+    TRUE ~ SOIBv2.Priority.Status
+    
+  )) %>%
+  # converting percentage-of-year1 to percentage-change 
+  mutate(across(c(longtermlci, longtermmean, longtermrci),
+                ~ . - 100)) %>% 
+  # ensuring correct order of columns
+  relocate(eBird.English.Name.2022, eBird.Scientific.Name.2022, eBird.Code, Order, Family, 
+           SOIB.Concern.Status, SOIB.Long.Term.Status, SOIB.Current.Status, SOIB.Range.Status, 
+           Breeding.Activity.Period, Non.Breeding.Activity.Period,
+           Diet.Guild, India.Endemic, Subcontinent.Endemic, Himalayas.Endemic, Endemic.Region, 
+           Habitat.Specialization, Migratory.Status.Within.India, Essential, Discard,
+           India.Checklist.Common.Name, India.Checklist.Scientific.Name, 
+           BLI.Common.Name, BLI.Scientific.Name, IUCN.Category, WPA.Schedule,
+           CITES.Appendix, CMS.Appendix, Onepercent.Estimates, 
+           Long.Term.Analysis, Current.Analysis, Selected.SOIB, 
+           totalrange25km, proprange25km2000, proprange25km.current, proprange25km2022, mean5km, ci5km, 
+           longtermlci, longtermmean, longtermrci, currentslopelci, currentslopemean, currentsloperci, 
+           proj2023.lci, proj2023.mean, proj2023.rci, proj2024.lci, proj2024.mean, proj2024.rci, 
+           proj2025.lci, proj2025.mean, proj2025.rci, proj2026.lci, proj2026.mean, proj2026.rci, 
+           proj2027.lci, proj2027.mean, proj2027.rci, proj2028.lci, proj2028.mean, proj2028.rci, 
+           proj2029.lci, proj2029.mean, proj2029.rci, 
+           SOIBv2.Long.Term.Status, SOIBv2.Current.Status, SOIBv2.Priority.Status)
 
-main = main %>%
-  mutate(longtermlci = longtermlci-100,
-         longtermmean = longtermmean-100,
-         longtermrci = longtermrci-100)
-
-write.csv(main,"01_analyses_full/SoIB_main.csv",row.names=F)
+write.csv(main, "01_analyses_full/SoIB_main.csv", row.names = F)
 
 
-# calculations: small investigations --------------------------------------
+# summaries -------------------------------------------------------------------
 
+summary_status = data.frame(Category = cats_trend) %>% 
+  left_join(main %>% 
+              count(SOIBv2.Long.Term.Status) %>% 
+              magrittr::set_colnames(c("Category", "Long.Term"))) %>% 
+  left_join(main %>% 
+              count(SOIBv2.Current.Status) %>% 
+              magrittr::set_colnames(c("Category", "Current")))
 
-summary_status = data.frame(Category = trendcats)
-a = data.frame(table(main$SOIBv2.Long.Term.Status))
-names(a) = c("Category","Long.Term")
-b = data.frame(table(main$SOIBv2.Current.Status))
-names(b) = c("Category","Current")
-summary_status = left_join(summary_status,a)
-summary_status = left_join(summary_status,b)
+priority_summary = main %>% 
+  filter(!is.na(SOIBv2.Priority.Status)) %>% # count() counts NA also
+  count(SOIBv2.Priority.Status) %>% 
+  magrittr::set_colnames(c("Category","N.species"))
 
-priority_summary = data.frame(table(main$SOIBv2.Priority.Status))
-names(priority_summary) = c("Category","N.species")
+species_summary <- main %>%
+  summarise(across(c(Selected.SOIB, Long.Term.Analysis, Current.Analysis),
+                   # adds up cases where condition is true
+                   ~ sum(. == "X"))) %>% 
+  magrittr::set_colnames(c("Selected for SoIB","Long-term Analysis","Current Analysis")) %>% 
+  pivot_longer(everything(), names_to = "Category", values_to = "N.species")
 
-species_summary = data.frame(Category = c("Selected for SoIB","Long-term Analysis","Current Analysis"),
-                             N.species = c(as.vector(table(main$Selected.SOIB))[2],
-                                           as.vector(table(main$Long.Term.Analysis))[2],
-                                           as.vector(table(main$Current.Analysis))[2]))
 
 write.csv(summary_status,"trends_results/full_results/summary_status.csv",row.names=F)
 write.csv(priority_summary,"trends_results/full_results/priority_status.csv",row.names=F)
