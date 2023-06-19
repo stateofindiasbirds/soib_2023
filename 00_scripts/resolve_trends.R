@@ -1,7 +1,17 @@
 # preparing data for specific mask (this is the only part that changes, but automatically)
 cur_metadata <- analyses_metadata %>% filter(MASK == cur_mask)
+
+# read paths
 base_path <- cur_metadata$FULLSPECLIST.PATH
 trends_pathonly <- cur_metadata$TRENDS.PATHONLY
+# write paths
+cursens_path <- cur_metadata$CURSENS.PATH 
+trends_outpath <- cur_metadata$TRENDS.OUTPATH
+mainwocats_path <- cur_metadata$SOIBMAIN.WOCATS.PATH
+main_path <- cur_metadata$SOIBMAIN.PATH
+summary_path <- cur_metadata$SUMMARY.PATH
+priority_path <- cur_metadata$PRIORITY.PATH
+specsum_path <- cur_metadata$SPECSUM.PATH
 
 ###
 
@@ -619,54 +629,38 @@ sl_data_sens <- temp_sims %>%
     
     
   }) %>%
+  
+  # mean and SE of slope
   group_by(COMMON.NAME) %>%
-  reframe(mean.slope1 = mean(sl1),
-          se.slope1 = sd(sl1) + sqrt(sum(slse1^2)/length(slse1)),
-          mean.slope2 = mean(sl2),
-          se.slope2 = sd(sl2) + sqrt(sum(slse2^2)/length(slse2)),
-          mean.slope3 = mean(sl3),
-          se.slope3 = sd(sl3) + sqrt(sum(slse3^2)/length(slse1)),
-          mean.slope4 = mean(sl4),
-          se.slope4 = sd(sl4) + sqrt(sum(slse4^2)/length(slse1)),
-          mean.slope5 = mean(sl5),
-          se.slope5 = sd(sl5) + sqrt(sum(slse5^2)/length(slse1)),
-          mean.slope6 = mean(sl6),
-          se.slope6 = sd(sl6) + sqrt(sum(slse6^2)/length(slse1)),
-          mean.slope7 = mean(sl7),
-          se.slope7 = sd(sl7) + sqrt(sum(slse7^2)/length(slse1)),
-          mean.slope8 = mean(sl8),
-          se.slope8 = sd(sl8) + sqrt(sum(slse8^2)/length(slse1))) %>%
+  reframe(across(
+    
+    .cols = matches("^sl\\d+$"), # sl1 to sl8 but not "slse"s
+    .fn = list(mean.slope = ~ mean(.),
+               se.slope = ~ sd(.) + sqrt(sum(get(str_replace(cur_column(), "sl", "slse"))^2) / 
+                                           length(.))),
+    .names = c("{.fn}_{.col}")
+    
+  )) %>% 
+  rename_with(~ str_remove(., "_sl")) %>%
+  
+  # (mean + SE) to (LCI, mean, RCI)
   group_by(COMMON.NAME) %>%
-  reframe(currentslopelci1 = mean.slope1 - 1.96*se.slope1,
-          currentslopemean1 = mean.slope1,
-          currentsloperci1 = mean.slope1 + 1.96*se.slope1,
-          currentslopelci2 = mean.slope2 - 1.96*se.slope2,
-          currentslopemean2 = mean.slope2,
-          currentsloperci2 = mean.slope2 + 1.96*se.slope2,
-          currentslopelci3 = mean.slope3 - 1.96*se.slope3,
-          currentslopemean3 = mean.slope3,
-          currentsloperci3 = mean.slope3 + 1.96*se.slope3,
-          currentslopelci4 = mean.slope4 - 1.96*se.slope4,
-          currentslopemean4 = mean.slope4,
-          currentsloperci4 = mean.slope4 + 1.96*se.slope4,
-          currentslopelci5 = mean.slope5 - 1.96*se.slope5,
-          currentslopemean5 = mean.slope5,
-          currentsloperci5 = mean.slope5 + 1.96*se.slope5,
-          currentslopelci6 = mean.slope6 - 1.96*se.slope6,
-          currentslopemean6 = mean.slope6,
-          currentsloperci6 = mean.slope6 + 1.96*se.slope6,
-          currentslopelci7 = mean.slope7 - 1.96*se.slope7,
-          currentslopemean7 = mean.slope7,
-          currentsloperci7 = mean.slope7 + 1.96*se.slope7,
-          currentslopelci8 = mean.slope8 - 1.96*se.slope8,
-          currentslopemean8 = mean.slope8,
-          currentsloperci8 = mean.slope8 + 1.96*se.slope8)
+  reframe(across(
+    
+    .cols = starts_with("mean.slope"), 
+    .fn = list(lci = ~ . - 1.96 * get(str_replace(cur_column(), "mean", "se")),
+               mean = ~ .,
+               rci = ~ . + 1.96 * get(str_replace(cur_column(), "mean", "se"))),
+    .names = c("currentslope{.fn}{.col}")
+    
+  )) %>%
+  rename_with(~ str_remove(., "mean.slope"))
 
 # joining to data object
 sens <- sens %>%
   left_join(sl_data_sens, by = c("eBird.English.Name.2022" = "COMMON.NAME"))
 
-write.csv(sens, "01_analyses_full/current_sensitivity.csv", row.names = F)
+write.csv(sens, file = cursens_path, row.names = F)
 
 
 # calculations: trends (current): PROJ ------------------------------------
@@ -736,7 +730,7 @@ trends = trends %>%
            lci_ext_std, mean_ext_std, rci_ext_std,
            lci_comb_std, mean_comb_std, rci_comb_std)
 
-write.csv(trends, "01_analyses_full/trends.csv", row.names = F)
+write.csv(trends, file = trends_outpath, row.names = F)
 
 
 
@@ -753,7 +747,7 @@ tojoin <- map(2023:2029, ~ trends %>%
 
 main <- main %>% left_join(tojoin)
 
-write.csv(main, "01_analyses_full/SoIB_main_wocats.csv", row.names = F)
+write.csv(main, file = mainwocats_path, row.names = F)
 
 
 # classification: assign SoIB Status categories to trends (w/ sensitivity analysis) ----
@@ -762,7 +756,7 @@ write.csv(main, "01_analyses_full/SoIB_main_wocats.csv", row.names = F)
 
 # taking upper limit of CI for declines, and lower limit for increases
 
-main = read.csv("01_analyses_full/SoIB_main_wocats.csv") %>%
+main = read.csv(mainwocats_path) %>%
   mutate(
     SOIBv2.Long.Term.Status = case_when(
       
@@ -802,7 +796,7 @@ main = read.csv("01_analyses_full/SoIB_main_wocats.csv") %>%
 
 # changes classifications based on sensitivity analyses
 
-sens <- read.csv("01_analyses_full/current_sensitivity.csv")
+sens <- read.csv(cursens_path)
 
 # classifying the sens values to SoIB categories
 sens_cat <- map(1:8, ~ {
@@ -971,7 +965,7 @@ main = main %>%
            proj2029.lci, proj2029.mean, proj2029.rci, 
            SOIBv2.Long.Term.Status, SOIBv2.Current.Status, SOIBv2.Priority.Status)
 
-write.csv(main, "01_analyses_full/SoIB_main.csv", row.names = F)
+write.csv(main, file = main_path, row.names = F)
 
 
 # summaries -------------------------------------------------------------------
@@ -997,6 +991,6 @@ species_summary <- main %>%
   pivot_longer(everything(), names_to = "Category", values_to = "N.species")
 
 
-write.csv(summary_status,"trends_results/full_results/summary_status.csv",row.names=F)
-write.csv(priority_summary,"trends_results/full_results/priority_status.csv",row.names=F)
-write.csv(species_summary,"trends_results/full_results/species_status.csv",row.names=F)
+write.csv(summary_status, file = summary_path, row.names = F)
+write.csv(priority_summary, file = priority_path, row.names = F)
+write.csv(species_summary, file = specsum_path, row.names = F)

@@ -80,20 +80,27 @@ analyses_metadata <- data.frame(MASK = c("none",
          SPECLISTDATA.PATH = glue("{FOLDER}specieslists.RData"),
          DATA.PATH = glue("{FOLDER}dataforanalyses.RData"),
          RAND.GROUP.IDS.PATH = glue("{FOLDER}randomgroupids.RData"),
+         
          SIMDATA.PATHONLY = glue("{FOLDER}dataforsim/"),
          TRENDS.PATHONLY = glue("{FOLDER}trends/"),
-         SOIBMAIN.PATH = glue("{FOLDER}SoIB_main.csv"),
-         TRENDS.OUTPATH = glue("{FOLDER}trends.csv"))
+         RESULTS = glue("{FOLDER}results/"),
+         
+         CURSENS.PATH = glue("{RESULTS}current_sensitivity.csv"),
+         TRENDS.OUTPATH = glue("{RESULTS}trends.csv"),
+         SOIBMAIN.WOCATS.PATH = glue("{RESULTS}SoIB_main_wocats.csv"),
+         SOIBMAIN.PATH = glue("{RESULTS}SoIB_main.csv"),
+         SUMMARY.PATH = glue("{RESULTS}summary_status.csv"),
+         PRIORITY.PATH = glue("{RESULTS}priority_status.csv"),
+         SPECSUM.PATH = glue("{RESULTS}species_status.csv"))
 
 # ensuring folders are created if they don't already exist
-for (i in 1:length(analyses_metadata$FOLDER)) {
+walk2(analyses_metadata$FOLDER, analyses_metadata$RESULTS, ~ {
   
-  if (!dir.exists(analyses_metadata$FOLDER[i])) {
-    dir.create(analyses_metadata$FOLDER[i], 
-               recursive = T)
-  }
+  if (!dir.exists(.x)) {dir.create(.x, recursive = TRUE)}
   
-}
+  if (!dir.exists(.y)) {dir.create(.y, recursive = TRUE)}
+  
+})
 
 # for later reference
 save(analyses_metadata, 
