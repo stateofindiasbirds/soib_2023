@@ -80,18 +80,27 @@ analyses_metadata <- data.frame(MASK = c("none",
          SPECLISTDATA.PATH = glue("{FOLDER}specieslists.RData"),
          DATA.PATH = glue("{FOLDER}dataforanalyses.RData"),
          RAND.GROUP.IDS.PATH = glue("{FOLDER}randomgroupids.RData"),
+         
          SIMDATA.PATHONLY = glue("{FOLDER}dataforsim/"),
-         TRENDS.PATHONLY = glue("{FOLDER}trends/"))
+         TRENDS.PATHONLY = glue("{FOLDER}trends/"),
+         RESULTS = glue("{FOLDER}results/"),
+         
+         CURSENS.PATH = glue("{RESULTS}current_sensitivity.csv"),
+         TRENDS.OUTPATH = glue("{RESULTS}trends.csv"),
+         SOIBMAIN.WOCATS.PATH = glue("{RESULTS}SoIB_main_wocats.csv"),
+         SOIBMAIN.PATH = glue("{RESULTS}SoIB_main.csv"),
+         SUMMARY.PATH = glue("{RESULTS}summary_status.csv"),
+         PRIORITY.PATH = glue("{RESULTS}priority_status.csv"),
+         SPECSUM.PATH = glue("{RESULTS}species_status.csv"))
 
 # ensuring folders are created if they don't already exist
-for (i in 1:length(analyses_metadata$FOLDER)) {
+walk2(analyses_metadata$FOLDER, analyses_metadata$RESULTS, ~ {
   
-  if (!dir.exists(analyses_metadata$FOLDER[i])) {
-    dir.create(analyses_metadata$FOLDER[i], 
-               recursive = T)
-  }
+  if (!dir.exists(.x)) {dir.create(.x, recursive = TRUE)}
   
-}
+  if (!dir.exists(.y)) {dir.create(.y, recursive = TRUE)}
+  
+})
 
 # for later reference
 save(analyses_metadata, 
@@ -228,7 +237,9 @@ tictoc::toc() #
 
 
 
-# STEP 3: Run trends models for all selected species
+# PART 3 ------------------------------------------------------------------
+
+# STEP 1: Run trends models for all selected species
 # Run:
 # - after above step (P2, S2)
 # Requires:
@@ -239,44 +250,42 @@ tictoc::toc() #
 # Outputs:
 # - "trends/trendsX.csv" for whole country and individual mask versions
 
-## run trend analyses
-
 load("00_data/analyses_metadata.RData")
 
 # not functionising because parallelisation doesn't work inside functions
 cur_mask <- "none"
 my_assignment <- 122:200 # CHANGE FOR YOUR SUBSET
-tictoc::tic("ran species trends for full country")
+tictoc::tic(glue("Species trends for full country (sims {min(my_assignment)}--{max(my_assignment)})"))
 source("00_scripts/run_species_trends.R")
 tictoc::toc() 
 
 cur_mask <- "woodland"
 my_assignment <- 101:200 # CHANGE FOR YOUR SUBSET
-tictoc::tic("ran species trends for woodland")
+tictoc::tic(glue("Species trends for woodland (sims {min(my_assignment)}--{max(my_assignment)})"))
 source("00_scripts/run_species_trends.R")
 tictoc::toc() 
 
 cur_mask <- "cropland"
 my_assignment <- 101:200 # CHANGE FOR YOUR SUBSET
-tictoc::tic("ran species trends for cropland")
+tictoc::tic(glue("Species trends for cropland (sims {min(my_assignment)}--{max(my_assignment)})"))
 source("00_scripts/run_species_trends.R")
 tictoc::toc() 
 
 cur_mask <- "ONEland"
 my_assignment <- 101:200 # CHANGE FOR YOUR SUBSET
-tictoc::tic("ran species trends for ONEland")
+tictoc::tic(glue("Species trends for ONEland (sims {min(my_assignment)}--{max(my_assignment)})"))
 source("00_scripts/run_species_trends.R")
 tictoc::toc() 
 
 cur_mask <- "PA"
 my_assignment <- 49:200 # CHANGE FOR YOUR SUBSET
-tictoc::tic("ran species trends for PA")
+tictoc::tic(glue("Species trends for PA (sims {min(my_assignment)}--{max(my_assignment)})"))
 source("00_scripts/run_species_trends.R")
-tictoc::toc() 
+tictoc::toc() # 195 sec for 1 sim (~ 11 hours for 200 sim)
 
 cur_mask <- "Kerala"
 my_assignment <- 1:200 # CHANGE FOR YOUR SUBSET
-tictoc::tic("ran species trends for Kerala")
+tictoc::tic(glue("Species trends for Kerala (sims {min(my_assignment)}--{max(my_assignment)})"))
 source("00_scripts/run_species_trends.R")
 tictoc::toc() # 
 

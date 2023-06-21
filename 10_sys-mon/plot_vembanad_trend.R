@@ -1,4 +1,5 @@
-source('SoIB_v2 functions.R')
+source('00_scripts/00_functions.R')
+
 library(tidyverse)
 library(ggdist)
 library(ggridges)
@@ -11,8 +12,8 @@ library(stringr)
 
 ## independent counts
 
-indtrends = read.csv("data_independent/vembanad_AWC_v4.csv")
-indtrends_tot = read.csv("data_independent/vembanad_AWC_total.csv")
+indtrends = read.csv("10_sys-mon/data/vembanad_AWC_v4.csv")
+indtrends_tot = read.csv("10_sys-mon/data/vembanad_AWC_total.csv")
 selectspecies = unique(indtrends$COMMON.NAME)
 
 tg = as.character(indtrends$timegroups)
@@ -128,7 +129,7 @@ for (i in 1:length(selectspecies))
   
   ggpx3 = ggdraw(ggpx)
   
-  name = paste("trends_graphs/independent trends/vembanad AWC/",sps,".jpg",sep="")
+  name = paste("10_sys-mon/outputs/vembanad AWC/",sps,".jpg",sep="")
   jpeg(name, units="in", width=11, height=7, res=1000, bg="transparent")
   grid::grid.draw(ggpx3)
   dev.off()
@@ -292,7 +293,7 @@ ggpx = ggp +
 
 ggpx3 = ggdraw(ggpx)
 
-name = paste("trends_graphs/independent trends/vembanad AWC/composites/",sps,".jpg",sep="")
+name = paste("10_sys-mon/outputs/vembanad AWC/composites/",sps,".jpg",sep="")
 jpeg(name, units="in", width=11, height=7, res=1000, bg="transparent")
 grid::grid.draw(ggpx3)
 dev.off()
@@ -401,7 +402,7 @@ ggpx = ggp +
 
 ggpx3 = ggdraw(ggpx)
 
-name = paste("trends_graphs/independent trends/vembanad AWC/total/",sps,".jpg",sep="")
+name = paste("10_sys-mon/outputs/vembanad AWC/total/",sps,".jpg",sep="")
 jpeg(name, units="in", width=11, height=7, res=1000, bg="transparent")
 grid::grid.draw(ggpx3)
 dev.off()

@@ -9,8 +9,8 @@ library(extrafont)
 library(stringr)
 
 
-main = read.csv("trends_results/full_results/SoIB_main.csv")
-trends = read.csv("trends_results/full_results/trends.csv")
+main = read.csv("01_analyses_full/SoIB_main.csv")
+trends = read.csv("01_analyses_full/trends.csv")
 qualifying.species = main$eBird.English.Name.2022[!main$SOIBv2.Current.Status %in% 
                                                     c("eBird Data Indecisive","eBird Data Deficient") & 
                                                     main$Current.Analysis == "X"]
@@ -217,7 +217,7 @@ for (z in qualifying.species)
   
   sps = as.character(temp$COMMON.NAME[1])
   
-  name = paste("trends_graphs/current trends - single species/",sps,"_","eBird_trend_recent_SoIBv2.jpg",sep="")
+  name = paste("01_analyses_full/graphs/current trends - single species/",sps,"_","eBird_trend_recent_SoIBv2.jpg",sep="")
   
   jpeg(name, units="in", width=11, height=7, res=1000, bg="transparent")
   grid::grid.draw(ggpx1)
