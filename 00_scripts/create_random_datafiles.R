@@ -30,6 +30,8 @@ if (cur_mask == "none") {
   
   cur_assignment <- 1:no_sim
   
+  rm(no_sim)
+  
 }
 
 
@@ -68,7 +70,7 @@ for (i in cur_assignment)
 }
 
 # cleaning up memory
-rm(no_sim, cur_assignment, cur_metadata, read_path_data, read_path_groupids, 
+rm(cur_assignment, cur_metadata, read_path_data, read_path_groupids, 
    write_path, data_filt,
    data, sampledcells, databins, stats, randomgroupids)
 
