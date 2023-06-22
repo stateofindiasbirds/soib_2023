@@ -758,37 +758,44 @@ write.csv(main, file = mainwocats_path, row.names = F)
 
 main = read.csv(mainwocats_path) %>%
   mutate(
+    
     SOIBv2.Long.Term.Status = case_when(
-      
       is.na(longtermmean) ~ "eBird Data Deficient",
+      (longtermrci-longtermmean)/longtermmean > 0.5 ~ "eBird Data Inconclusive", # arbitrary
+      # else
       # for declines
-      (longtermrci-longtermmean)/longtermmean > 0.5 ~ "eBird Data Inconclusive",
-      longtermrci <= 50 ~ "Rapid Decline",
-      longtermrci <= 75 ~ "Decline",
+      longtermrci <= 50 ~ "Rapid Decline", # -100% to -50%
+      longtermrci > 50 & longtermrci <= 75 ~ "Decline", # -50% to -25%
       # for increases
-      longtermlci >= 150 ~ "Rapid Increase",
-      longtermlci >= 125 ~ "Increase",
-      longtermrci < 100 ~ "eBird Data Inconclusive",
-      longtermlci <= 50 ~ "eBird Data Inconclusive",
-      longtermlci > 100 ~ "eBird Data Inconclusive",
-      longtermrci >= 150 ~ "eBird Data Inconclusive",
+      longtermlci >= 150 ~ "Rapid Increase", # +50% to inf
+      longtermlci < 150 & longtermlci >= 125 ~ "Increase", # +25% to +50%
+      # stable vs inconclusive:
+      # if CI is completely below or above the baseline, can't be stable
+      longtermlci > 100 | longtermrci < 100 ~ "eBird Data Inconclusive",
+      # if one limit is in the Stable zone but other limit passes to Rapid X, can't be stable
+      longtermlci <= 50 | longtermrci >= 150 ~ "eBird Data Inconclusive",
       TRUE ~ "Stable"
-      
-      ),
+      # OR:
+      # (longtermlci > 50 & longtermlci <= 100) &
+      #   (longtermrci >= 100 & longtermrci < 150) ~ "Stable",
+      # TRUE ~ "eBird Data Inconclusive"
+    ),
     
     SOIBv2.Current.Status = case_when(
-      
       is.na(currentslopemean) ~ "eBird Data Deficient",
-      (currentsloperci-currentslopelci) > 6 ~ "eBird Data Inconclusive",
+      (currentsloperci-currentslopelci) > 6 ~ "eBird Data Inconclusive", # arbitrary
+      # <annotation_pending_AV> decline and increase values?
+      # decreases
       currentsloperci <= -2.7 ~ "Rapid Decline",
-      currentsloperci <= -1.1 ~ "Decline",
+      currentsloperci > -2.7 & currentsloperci <= -1.1 ~ "Decline",
+      # increases
       currentslopelci >= 1.6 ~ "Rapid Increase",
-      currentslopelci >= 0.9 ~ "Increase",
-      currentsloperci < 0 ~ "eBird Data Inconclusive",
-      currentslopelci > 0 ~ "eBird Data Inconclusive",
+      currentslopelci < 1.6 & currentslopelci >= 0.9 ~ "Increase",
+      # if slope with SE is fully positive or negative, can't be stable
+      currentsloperci < 0 | currentslopelci > 0 ~ "eBird Data Inconclusive",
       TRUE ~ "Stable"
-      
       )
+    
   )
 
 
