@@ -410,6 +410,36 @@ rm_prob_mistakes <- function(data) {
           "S34445220", "S49119922", "S49093664", "S51694576", "S51622883", "S51574436", 
           "S23316254", "S100847433"
         )) |
+        (COMMON.NAME == "Gray-capped Pygmy-Woodpecker" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S41837249", "S123481885", "S123481763"
+        )) |
+        (COMMON.NAME == "Yellow-crowned Woodpecker" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S107614307", "S20771789", "S102318890", "S97666255", "S20984579", "S130292003", 
+          "S30690535", "S83525192", "S67567907", "S54939377", "S12986602", "S21066887", 
+          "S27776308", "S99810128", "S105199435", "S20984001", "S83651761", "S100753045", 
+          "S75584532", "S130110370", "S79891811", "S97649289", "S73351975", "S84321356", 
+          "S121428995", "S104838445", "S91378204", "S91325314", "S25212483", "S42508301", 
+          "S42123207", "S17161898", "S43339137"
+        )) |
+        (COMMON.NAME == "Himalayan Woodpecker" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S93107065", "S98163060", "S104353995"
+        )) |
+        (COMMON.NAME == "Crimson-breasted Woodpecker" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S69094558", "S111383639"
+        )) |
+        (COMMON.NAME == "Bay Woodpecker" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S100839555", "S87608823"
+        )) |
+        (COMMON.NAME == "Greater Flameback" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S83806959", "S83782788", "S120435273", "S99313952"
+        )) |
+        (COMMON.NAME == "White-naped Woodpecker" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S42083278", "S79269582", "S79305049", "S126591969", "S103884006", "S76831810", 
+          "S76831815", "S39121313", "S55543325", "S126182052", "S99322453", "S62562356", 
+          "S83372753", "S83375929", "S83602975", "S83377660", "S124180452", "S78300659",
+          "S53080073", "S22920069", "S44109834", "S126520371", "S101258273", "S97548325",
+          "S116834034", "S20984124", "S125666345", "S50413848", "S26660708"
+        )) |
     ) %>% 
     distinct(COMMON.NAME, SAMPLING.EVENT.IDENTIFIER)
   
@@ -428,7 +458,7 @@ rm_prob_mistakes <- function(data) {
         "Crested Serpent-Eagle", "Short-toed Snake-Eagle", "Changeable Hawk-Eagle",
         "Black Eagle", "Tawny Eagle", "Eurasian Sparrowhawk", "Jungle Owlet",
         "Blue-bearded Bee-eater", "Chestnut-headed Bee-eater", "Brown-headed Barbet",
-        "White-cheeked Barbet", "Brown-capped Pygmy-Woodpecker"
+        "White-cheeked Barbet", "Brown-capped Pygmy-Woodpecker", "Yellow-crowned Woodpecker"
       ) |
         OBSERVER.ID == "obsr701947" & COMMON.NAME == "Common Tern"
     ) %>% 
@@ -593,6 +623,20 @@ rm_prob_mistakes <- function(data) {
         (COMMON.NAME == "Brown-capped Pygmy-Woodpecker" & COUNTY %in% c(
           "Darjeeling", "Jalpaiguri", "Ajmer", "Bhilwara", "Solapur", "Ahmednagar", 
           "Nanded", "Thanjavur", "Puducherry"
+        )) |
+        (COMMON.NAME == "Yellow-crowned Woodpecker" & COUNTY %in% c(
+          "Kendrapara", "Kannur"
+        )) |
+        (COMMON.NAME == "Brown-fronted Woodpecker" & COUNTY == "Darjeeling") |
+        (COMMON.NAME == "Himalayan Woodpecker" & COUNTY %in% c(
+          "Jammu", "Reasi", "Rajouri"
+        )) |
+        (COMMON.NAME == "Greater Flameback" & COUNTY %in% c(
+          "Lower Dibang Valley", "East Siang", "Lohit", "Muzaffarnagar", "Bijnor"
+        )) |
+        (COMMON.NAME == "White-naped Woodpecker" & COUNTY %in% c(
+          "Theni", "Madurai", "Namakkal", "Virudhunagar", "Tiruvannamalai", "Parbhani", 
+          "Bikaner", "Churu", "Jhunjhunu", "Jaipur", "Ajmer", "Alwar", "Morena", "Bareilly"
         )) |
     ) %>% 
     distinct(COMMON.NAME, STATE, COUNTY)
