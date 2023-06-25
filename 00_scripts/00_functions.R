@@ -340,11 +340,9 @@ removevagrants = function(data)
   migspecies = fullmap %>%
     filter(!Migratory.Status.Within.India %in% c("Resident",
                                                  "Resident & Altitudinal Migrant",
-                                                 "Resident & Winter Migrant",
-                                                 "Resident & Summer Migrant",
                                                  "Resident & Local Migrant",
                                                  "Resident & Localized Summer Migrant",
-                                                 "Resident & Within-India Migrant",
+                                                 "Altitudinal Migrant",
                                                  "Resident (Extirpated)")) %>%
     dplyr::select(eBird.English.Name.2022) %>% 
     as.vector() %>% 
