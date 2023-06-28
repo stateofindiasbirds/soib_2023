@@ -9,8 +9,8 @@ library(extrafont)
 library(stringr)
 
 
-main = read.csv("trends_results/full_results/SoIB_main.csv")
-trends = read.csv("trends_results/full_results/trends.csv")
+main = read.csv("01_analyses_full/SoIB_main.csv")
+trends = read.csv("01_analyses_full/trends.csv")
 qualifying.species = main$eBird.English.Name.2022[!main$SOIBv2.Long.Term.Status %in% 
                                                     c("eBird Data Indecisive","eBird Data Deficient") & 
                                                     main$Long.Term.Analysis == "X"]
@@ -229,7 +229,7 @@ for (z in qualifying.species)
   
   ggpx1 = ggdraw(ggpx)
   
-  name1 = paste("trends_graphs/long-term trends - single species/",sps,"_","eBird_trend_SoIBv2.jpg",sep="")
+  name1 = paste("01_analyses_full/graphs/long-term trends - single species/",sps,"_","eBird_trend_SoIBv2.jpg",sep="")
   #name2 = paste(sps,"_","eBird_trend_SoIBv2.svg",sep="")
   
   jpeg(name1, units="in", width=11, height=7, res=1000, bg="transparent")

@@ -176,7 +176,7 @@ ggpx = ggp +
 
 ggpx3 = ggdraw(ggpx)
 
-name = paste("trends_graphs/independent trends/",sps,"_","independent.jpg",sep="")
+name = paste("10_sys-mon/outputs/papum hornbills/",sps,"_","independent.jpg",sep="")
 jpeg(name, units="in", width=11, height=7, res=1000, bg="transparent")
 grid::grid.draw(ggpx3)
 dev.off()

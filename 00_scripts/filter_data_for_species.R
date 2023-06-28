@@ -137,3 +137,9 @@ tictoc::tic("dataspeciesfilter for PA mask")
 dataspeciesfilter(cur_mask = "PA")
 tictoc::toc() # 80 sec
 
+
+# 6. processing: Kerala state ---------------------------------------------
+
+tictoc::tic("dataspeciesfilter for Kerala state")
+dataspeciesfilter(cur_mask = "Kerala")
+tictoc::toc() # 140 sec

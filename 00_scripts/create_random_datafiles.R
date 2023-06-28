@@ -17,6 +17,10 @@ if (cur_mask == "none") {
   
 } else {
   
+  if (!exists("my_assignment")) {
+    return("'my_assignment' is empty! Please specify IDs of data files assigned to you.")
+  }
+  
   # woodland mask needs more sims
   if (cur_mask == "woodland") {
     no_sim <- 300
@@ -25,6 +29,8 @@ if (cur_mask == "none") {
   }
   
   cur_assignment <- 1:no_sim
+  
+  rm(no_sim)
   
 }
 
@@ -64,7 +70,7 @@ for (i in cur_assignment)
 }
 
 # cleaning up memory
-rm(no_sim, cur_assignment, cur_metadata, read_path_data, read_path_groupids, 
+rm(cur_assignment, cur_metadata, read_path_data, read_path_groupids, 
    write_path, data_filt,
    data, sampledcells, databins, stats, randomgroupids)
 

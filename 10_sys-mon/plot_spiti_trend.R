@@ -130,7 +130,7 @@ for (i in 1:length(selectspecies))
   
   ggpx3 = ggdraw(ggpx)
   
-  name = paste("trends_graphs/independent trends/spiti monitoring/",sps,".jpg",sep="")
+  name = paste("10_sys-mon/outputs/spiti monitoring/",sps,".jpg",sep="")
   jpeg(name, units="in", width=11, height=7, res=1000, bg="transparent")
   grid::grid.draw(ggpx3)
   dev.off()
@@ -295,7 +295,7 @@ ggpx = ggp +
 
 ggpx3 = ggdraw(ggpx)
 
-name = paste("trends_graphs/independent trends/spiti monitoring/composites/",sps,".jpg",sep="")
+name = paste("10_sys-mon/outputs/spiti monitoring/composites/",sps,".jpg",sep="")
 jpeg(name, units="in", width=11, height=7, res=1000, bg="transparent")
 grid::grid.draw(ggpx3)
 dev.off()

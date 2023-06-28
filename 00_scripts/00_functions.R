@@ -1,10 +1,11 @@
+
 ### 01 readcleanrawdata ########################################
 
 ## read and clean raw data and add important columns like group id, seasonality variables
 ## place raw txt file (India download) in working directory 
 
-readcleanrawdata = function(rawpath = "00_data/ebd_IN_relFeb-2023.txt", 
-                            sensitivepath = "00_data/ebd_sensitive_relFeb-2023_IN.txt")
+readcleanrawdata = function(rawpath = "00_data/ebd_IN_relMay-2023.txt", 
+                            sensitivepath = "00_data/ebd_sensitive_relMay-2023_IN.txt")
 {
   require(lubridate)
   require(tidyverse)
@@ -78,90 +79,20 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_relFeb-2023.txt",
           "LATITUDE","LONGITUDE","OBSERVATION.DATE","TIME.OBSERVATIONS.STARTED",
           "OBSERVER.ID","PROTOCOL.TYPE",
           "DURATION.MINUTES","EFFORT.DISTANCE.KM",
-          "ALL.SPECIES.REPORTED","group.id")
+          "ALL.SPECIES.REPORTED","group.id","SAMPLING.EVENT.IDENTIFIER")
   
 
   # no of days in every month, and cumulative number
   days = c(31,28,31,30,31,30,31,31,30,31,30,31)
   cdays = c(0,31,59,90,120,151,181,212,243,273,304,334)
   
-  # create a column "group.id" which can help remove duplicate checklists
   data = data %>%
-    mutate(group.id = ifelse(is.na(GROUP.IDENTIFIER), SAMPLING.EVENT.IDENTIFIER, GROUP.IDENTIFIER))
-  
-  data = data %>%
-    # need to combine several closely related species and slashes/spuhs
-    # so, first changing their category to species since they will be combined next
-    mutate(CATEGORY = case_when(COMMON.NAME %in% c("Green/Greenish Warbler",
-                                                   "Siberian/Amur Stonechat",
-                                                   "Red-necked/Little Stint",
-                                                   "Western/Eastern Yellow Wagtail",
-                                                   "Common/Himalayan Buzzard",
-                                                   "Eurasian/Eastern Marsh-Harrier",
-                                                   "Lesser/Greater Sand-Plover",
-                                                   "Baikal/Spotted Bush Warbler",
-                                                   "Lemon-rumped/Sichuan Leaf Warbler",
-                                                   "Red-rumped/Striated Swallow",
-                                                   "Bank Swallow/Pale Sand Martin",
-                                                   "Riparia sp.",
-                                                   "Greater/Mongolian Short-toed Lark",
-                                                   "Taiga/Red-breasted Flycatcher",
-                                                   "Tricolored x Chestnut Munia (hybrid)",
-                                                   "Little/House Swift",
-                                                   "Pin-tailed/Swinhoe's Snipe",
-                                                   "Booted/Sykes's Warbler",
-                                                   "Iduna sp.") ~ "species",
-                                TRUE ~ CATEGORY)) %>%
-    # combining species, slashes and spuhs
-    mutate(COMMON.NAME = case_when(
-      (COMMON.NAME == "Green Warbler" | COMMON.NAME == "Green/Greenish Warbler") ~ 
-        "Greenish Warbler",
-      (COMMON.NAME == "Amur Stonechat" | COMMON.NAME == "Siberian/Amur Stonechat") ~ 
-        "Siberian Stonechat",
-      (COMMON.NAME == "Red-necked Stint" | COMMON.NAME == "Red-necked/Little Stint") ~ 
-        "Little Stint",
-      (COMMON.NAME == "Eastern Yellow Wagtail" | COMMON.NAME == "Western/Eastern Yellow Wagtail") ~ 
-        "Western Yellow Wagtail",
-      (COMMON.NAME == "Himalayan Buzzard" | COMMON.NAME == "Common/Himalayan Buzzard") ~ 
-        "Common Buzzard",
-      (COMMON.NAME == "Eastern Marsh-Harrier" | COMMON.NAME == "Eurasian/Eastern Marsh-Harrier") ~ 
-        "Eurasian Marsh-Harrier",
-      (COMMON.NAME == "Greater Sand-Plover" | COMMON.NAME == "Lesser/Greater Sand-Plover") ~ 
-        "Lesser Sand-Plover",
-      (COMMON.NAME == "Baikal Bush Warbler" | COMMON.NAME == "Baikal/Spotted Bush Warbler") ~ 
-        "Spotted Bush Warbler",
-      (COMMON.NAME == "Sichuan Leaf Warbler" | COMMON.NAME == "Lemon-rumped/Sichuan Leaf Warbler") ~ 
-        "Lemon-rumped Warbler",
-      (COMMON.NAME == "Striated Swallow" | COMMON.NAME == "Red-rumped/Striated Swallow") ~ 
-        "Red-rumped Swallow",
-      (COMMON.NAME == "Pale Sand Martin" | COMMON.NAME == "Bank Swallow/Pale Sand Martin" | COMMON.NAME == "Riparia sp.") ~ 
-        "Gray-throated Martin",
-      (COMMON.NAME == "Mongolian Short-toed Lark" | COMMON.NAME == "Greater/Mongolian Short-toed Lark") ~ 
-        "Greater Short-toed Lark",
-      (COMMON.NAME == "Taiga Flycatcher" | COMMON.NAME == "Taiga/Red-breasted Flycatcher") ~ 
-        "Red-breasted Flycatcher",
-      (COMMON.NAME == "Chestnut Munia" | COMMON.NAME == "Tricolored x Chestnut Munia (hybrid)") ~ 
-        "Tricolored Munia",
-      (COMMON.NAME == "House Swift" | COMMON.NAME == "Little/House Swift") ~ 
-        "Little Swift",
-      (COMMON.NAME == "Swinhoe's Snipe" | COMMON.NAME == "Pin-tailed/Swinhoe's Snipe") ~ 
-        "Pin-tailed Snipe",
-      (COMMON.NAME == "Sykes's Warbler" | COMMON.NAME == "Booted/Sykes's Warbler" | COMMON.NAME == "Iduna sp.") ~ 
-        "Booted Warbler",
-      TRUE ~ COMMON.NAME
-    ))
-  
-  ## setup eBird data ##
-  
-  ## filter species, slice by single group ID, remove repetitions
-  ## remove repeats by retaining only a single group.id + species combination
-  ## set date, add month, year and day columns using package LUBRIDATE
-  ## add number of species/list length column (no.sp), for list length analyses (lla)
-  
-  
-  data = data %>%
-    group_by(group.id,COMMON.NAME) %>% slice(1) %>% ungroup %>%
+    # create a column "group.id" which can help remove duplicate checklists
+    mutate(group.id = ifelse(is.na(GROUP.IDENTIFIER), 
+                             SAMPLING.EVENT.IDENTIFIER, GROUP.IDENTIFIER)) %>%
     dplyr::select(all_of(imp)) %>%
+    # other useful columns
+    # set date, add month, year and day columns using package LUBRIDATE
     mutate(OBSERVATION.DATE = as.Date(OBSERVATION.DATE), 
            month = month(OBSERVATION.DATE),
            day = day(OBSERVATION.DATE) + cdays[month], 
@@ -170,20 +101,86 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_relFeb-2023.txt",
            cyear = year(OBSERVATION.DATE)) %>%
     dplyr::select(-c("OBSERVATION.DATE")) %>%
     mutate(year = ifelse(month > 5, cyear, cyear-1)) %>% # from June to May
-    group_by(group.id) %>% mutate(no.sp = n_distinct(COMMON.NAME)) %>%
-    ungroup
+    # add number of species/list length column (no.sp), for list length analyses (lla)
+    group_by(group.id) %>% 
+    mutate(no.sp = n_distinct(COMMON.NAME)) %>%
+    ungroup()
   
-  data = data %>% filter(year < 2023)
-  names(data)[names(data) == "STATE"] = "ST_NM"
-  names(data)[names(data) == "COUNTY"] = "DISTRICT"
   
-  ## remove probable mistakes
+  # remove probable mistakes
+  source("00_scripts/rm_prob_mistakes.R")
+  data <- rm_prob_mistakes(data)
+
   
-  assign("data",data,.GlobalEnv)
+  # need to combine several closely related species and slashes/spuhs
+  # so, first changing their category to species since they will be combined next
+  data = data %>%
+    mutate(CATEGORY = case_when(COMMON.NAME %in% c(
+      "Green/Greenish Warbler", "Siberian/Amur Stonechat", "Red-necked/Little Stint",
+      "Western/Eastern Yellow Wagtail", "Common/Himalayan Buzzard",
+      "Eurasian/Eastern Marsh-Harrier", "Lesser/Greater Sand-Plover", "Baikal/Spotted Bush Warbler",
+      "Lemon-rumped/Sichuan Leaf Warbler", "Red-rumped/Striated Swallow",
+      "Bank Swallow/Pale Sand Martin", "Riparia sp.", "Greater/Mongolian Short-toed Lark",
+      "Taiga/Red-breasted Flycatcher", "Tricolored x Chestnut Munia (hybrid)", "Little/House Swift", 
+      "Pin-tailed/Swinhoe's Snipe", "Booted/Sykes's Warbler", "Iduna sp."
+      ) ~ "species",
+      TRUE ~ CATEGORY)) %>%
+    # combining species, slashes and spuhs
+    mutate(COMMON.NAME = case_when(
+      COMMON.NAME %in% c("Green Warbler", "Green/Greenish Warbler") ~ "Greenish Warbler",
+      COMMON.NAME %in% c("Amur Stonechat", "Siberian/Amur Stonechat") ~ "Siberian Stonechat",
+      COMMON.NAME %in% c("Red-necked Stint", "Red-necked/Little Stint") ~ "Little Stint",
+      COMMON.NAME %in% c("Eastern Yellow Wagtail", 
+                         "Western/Eastern Yellow Wagtail") ~ "Western Yellow Wagtail",
+      COMMON.NAME %in% c("Himalayan Buzzard", 
+                         "Common/Himalayan Buzzard") ~ "Common Buzzard",
+      COMMON.NAME %in% c("Eastern Marsh-Harrier", 
+                         "Eurasian/Eastern Marsh-Harrier") ~ "Eurasian Marsh-Harrier",
+      COMMON.NAME %in% c("Greater Sand-Plover", 
+                         "Lesser/Greater Sand-Plover") ~ "Lesser Sand-Plover",
+      COMMON.NAME %in% c("Baikal Bush Warbler", 
+                         "Baikal/Spotted Bush Warbler") ~ "Spotted Bush Warbler",
+      COMMON.NAME %in% c("Sichuan Leaf Warbler", 
+                         "Lemon-rumped/Sichuan Leaf Warbler") ~ "Lemon-rumped Warbler",
+      COMMON.NAME %in% c("Striated Swallow", 
+                         "Red-rumped/Striated Swallow") ~ "Red-rumped Swallow",
+      COMMON.NAME %in% c("Pale Sand Martin", "Bank Swallow/Pale Sand Martin", 
+                          "Riparia sp.") ~ "Gray-throated Martin",
+      COMMON.NAME %in% c("Mongolian Short-toed Lark", 
+                         "Greater/Mongolian Short-toed Lark") ~ "Greater Short-toed Lark",
+      COMMON.NAME %in% c("Taiga Flycatcher", 
+                         "Taiga/Red-breasted Flycatcher") ~ "Red-breasted Flycatcher",
+      COMMON.NAME %in% c("Chestnut Munia", 
+                         "Tricolored x Chestnut Munia (hybrid)") ~ "Tricolored Munia",
+      COMMON.NAME %in% c("House Swift", "Little/House Swift") ~ "Little Swift",
+      COMMON.NAME %in% c("Swinhoe's Snipe", 
+                         "Pin-tailed/Swinhoe's Snipe") ~ "Pin-tailed Snipe",
+      COMMON.NAME %in% c("Sykes's Warbler", "Booted/Sykes's Warbler",
+                         "Iduna sp.") ~ "Booted Warbler",
+      TRUE ~ COMMON.NAME
+    ))
+  
+  
+  ## setup eBird data ##
+  
+  ## slice by single group ID, remove repetitions
+  ## remove repeats by retaining only a single group.id + species combination
+  
+  data = data %>%
+    group_by(group.id, COMMON.NAME) %>% 
+    slice(1) %>% 
+    ungroup() %>% 
+    filter(year < 2023) %>% 
+    rename(ST_NM = STATE,
+           DISTRICT = COUNTY) %>% 
+    dplyr::select(-SAMPLING.EVENT.IDENTIFIER)
+  
+  assign("data", data, .GlobalEnv)
   
   # save workspace
-  save(data, file="00_data/rawdata.RData")
+  save(data, file = "00_data/rawdata.RData")
   rm(data, pos = ".GlobalEnv")
+  
 }
 
 ### 02 addmapvars ########################################
@@ -407,6 +404,9 @@ dataspeciesfilter = function(
     data0 = data_base %>% filter(maskOne == 1)
   } else if (cur_mask == "PA"){
     data0 = data_base %>% filter(!is.na(pa.name))
+  } else {
+    # states
+    data0 = data_base %>% filter(ST_NM == cur_mask)
   } 
   
   
@@ -886,6 +886,7 @@ expandbyspecies = function(data, species)
 
 ### error operations ########################################
 
+# <annotation_pending_AV>
 errordiv = function(x1,x2,se1,se2)
 {
   r = x1/x2
@@ -903,12 +904,16 @@ erroradd = function(vec)
   return(err)
 }
 
-simerrordiv = function(x1,x2,se1,se2)
+# <annotation_pending_AV>
+simerrordiv = function(x1, x2, se1, se2)
 {
-  tp = data.frame(num = clogloglink(rnorm(1000,x1,se1), inverse = T), 
-                  den = clogloglink(rnorm(1000,x2,se2), inverse = T))
-  tp = tp %>%
-    reframe(rat = num/den, val = num)
+  # takes untransformed (link) mean and SE values, and generates normal dist. from 1000 sims,
+  # then transformed 
+  # after the function, lower and upper quantiles are selected as limits of 95% CI
+  tp = data.frame(num = clogloglink(rnorm(1000, x1, se1), inverse = T), 
+                  den = clogloglink(rnorm(1000, x2, se2), inverse = T)) %>%
+    reframe(rat = num/den, 
+            val = num)
 
   return(tp)
 }
@@ -1305,18 +1310,23 @@ createrandomlocs = function(locs)
 }
 
 
+###    singlespeciesrun (run models) ########################################
 
-singlespeciesrun = function(data,species,specieslist,restrictedspecieslist)
+singlespeciesrun = function(data, species, specieslist, restrictedspecieslist)
 {
   require(tidyverse)
   require(merTools)
   
   data1 = data
+  
+  # <annotation_pending_AV> why this intermediate specieslist1 object? 
+  # can't we do with just the second one?
   specieslist1 = specieslist %>% filter(COMMON.NAME %in% species)
+  specieslist2 = specieslist1 %>% filter(COMMON.NAME == species)
   
-  specieslist2 = specieslist1 %>%
-    dplyr::filter(COMMON.NAME == species)
-  
+  # three different flags for three different model types that will be run.
+  # 0 is normal model, with full random effects. depending on restricted species,
+  # model changes slightly.
   flag = 0
   if (species %in% restrictedspecieslist$COMMON.NAME)
   {
@@ -1325,89 +1335,96 @@ singlespeciesrun = function(data,species,specieslist,restrictedspecieslist)
     specieslist2$ht = restrictedlist1$ht
     specieslist2$rt = restrictedlist1$rt
     
-    if (restrictedlist1$mixed == 0)
+    if (restrictedlist1$mixed == 0) {
       flag = 2
+    }
   }
   
-  ## filters data based on whether the species has been selected for long-term trends (ht) 
-  ## or short-term trends (rt) 
+  # filters data based on whether the species has been selected for long-term trends (ht) 
+  # or short-term trends (rt) 
+  # (if only recent, then need to filter for recent years. else, use all years so no filter.)
   
   if (is.na(specieslist2$ht) & !is.na(specieslist2$rt))
   {
-    data1 = data1 %>%
-      filter(year >= 2015)
+    data1 = data1 %>% filter(year >= 2015)
   }
   
-  temp = data1 %>%
+  data1 = data1 %>%
     filter(COMMON.NAME == species) %>%
-    distinct(gridg3,month)
-  data1 = temp %>% left_join(data1)
+    distinct(gridg3, month) %>% 
+    left_join(data1)
+  
+  tm = data1 %>% distinct(timegroups)
+  #rm(data, pos = ".GlobalEnv")
   
   datay = data1 %>%
-    group_by(gridg3,gridg1,group.id) %>% slice(1) %>% ungroup %>%
-    group_by(gridg3,gridg1) %>% reframe(medianlla = median(no.sp)) %>%
-    group_by(gridg3) %>% reframe(medianlla = mean(medianlla)) %>%
+    group_by(gridg3, gridg1, group.id) %>% 
+    slice(1) %>% 
+    group_by(gridg3, gridg1) %>% 
+    reframe(medianlla = median(no.sp)) %>%
+    group_by(gridg3) %>% 
+    reframe(medianlla = mean(medianlla)) %>%
     reframe(medianlla = round(mean(medianlla)))
   
   medianlla = datay$medianlla
   
   
-  ## expand dataframe to include absences as well
-  
-  ed = expandbyspecies(data1,species)
-  
-  ed$month = as.numeric(ed$month)
-  ed$month[ed$month %in% c(12,1,2)] = "Win"
-  ed$month[ed$month %in% c(3,4,5)] = "Sum"
-  ed$month[ed$month %in% c(6,7,8)] = "Mon"
-  ed$month[ed$month %in% c(9,10,11)] = "Aut"
-  ed$month = as.factor(ed$month)
-  
-  tm = unique(data1$timegroups)
-  #rm(data, pos = ".GlobalEnv")
-  
-  ## the model
+  # expand dataframe to include absences as well
+  ed = expandbyspecies(data1, species) %>% 
+    # converting months to seasons
+    mutate(month = as.numeric(month)) %>% 
+    mutate(month = case_when(month %in% c(12,1,2) ~ "Win",
+                             month %in% c(3,4,5) ~ "Sum",
+                             month %in% c(6,7,8) ~ "Mon",
+                             month %in% c(9,10,11) ~ "Aut")) %>% 
+    mutate(month = as.factor(month))
+
+
+  # the model ---------------------------------------------------------------
   
   if (flag == 0)
   {
-    m1 = glmer(OBSERVATION.COUNT ~ month + month:log(no.sp) + timegroups + (1|gridg3/gridg1), data = ed, 
-               family=binomial(link = 'cloglog'), nAGQ = 0, control = glmerControl(optimizer = "bobyqa"))
+    m1 = glmer(OBSERVATION.COUNT ~ month + month:log(no.sp) + timegroups + (1|gridg3/gridg1), 
+               data = ed, family = binomial(link = 'cloglog'), 
+               nAGQ = 0, control = glmerControl(optimizer = "bobyqa"))
   }
   
   if (flag == 1)
   {
-    m1 = glmer(OBSERVATION.COUNT ~ month + month:log(no.sp) + timegroups + (1|gridg1), data = ed, 
-               family=binomial(link = 'cloglog'), nAGQ = 0, control = glmerControl(optimizer = "bobyqa"))
+    m1 = glmer(OBSERVATION.COUNT ~ month + month:log(no.sp) + timegroups + (1|gridg1), 
+               data = ed, family = binomial(link = 'cloglog'), 
+               nAGQ = 0, control = glmerControl(optimizer = "bobyqa"))
   }
   
   if (flag == 2)
   {
-    m1 = glm(OBSERVATION.COUNT ~ month + month:log(no.sp) + timegroups, data = ed, 
-             family=binomial(link = 'cloglog'))
+    m1 = glm(OBSERVATION.COUNT ~ month + month:log(no.sp) + timegroups, 
+             data = ed, family = binomial(link = 'cloglog'))
   }
   
-  ## prepare a new data file to predict
-  
-  f = data.frame(unique(tm))
-  f = do.call("rbind", replicate(length(unique(ed$month)),f,simplify=F))
-  names(f) = "timegroups"
-  f$month = rep(unique(ed$month), each = length(f$timegroups)/length(unique(ed$month)))
-  ltemp = data.frame(timegroups = f$timegroups,
-                     no.sp = medianlla, month = f$month,
-                     gridg1 = data1$gridg1[1], gridg3 = data1$gridg3[1])
-  
-  f1 = data.frame(timegroups = tm)
-  
-  f2 = data.frame(freq = numeric(length(ltemp$no.sp)))
-  f2$se = numeric(length(ltemp$no.sp))
-  f2$timegroups = ltemp$timegroups
+
+  # predicting from model ---------------------------------------------------
+
+  # prepare a new data file to predict
+  ltemp <- ed %>% 
+    group_by(month) %>% 
+    reframe(timegroups = unique(tm$timegroups)) %>% 
+    mutate(no.sp = medianlla,
+           # <annotation_pending_AV> why taking 1st value?
+           gridg1 = data1$gridg1[1], 
+           gridg3 = data1$gridg3[1])
+
+  f2 <- ltemp %>% 
+    dplyr::select(timegroups) %>% 
+    # this is not actually needed
+    mutate(freq = 0, se = 0)
   
   
   if (flag != 2)
   {
     #pred = predict(m1, newdata = ltemp, type = "response", re.form = NA, allow.new.levels=TRUE)
     pred = predictInterval(m1, newdata = ltemp, which = "fixed",
-                        level = 0.48, type = "linear.prediction")
+                           level = 0.48, type = "linear.prediction")
     f2$freqt = pred$fit
     f2$set = pred$fit-pred$lwr
   }
@@ -1419,22 +1436,24 @@ singlespeciesrun = function(data,species,specieslist,restrictedspecieslist)
     f2$set = pred$se.fit
   }
   
-  fx = f2 %>%
+  f1 = f2 %>%
     filter(!is.na(freqt) & !is.na(se)) %>%
-    group_by(timegroups) %>% reframe(freq = mean(freqt), se = mean(set))
-  f1 = left_join(f1,fx)
+    group_by(timegroups) %>% 
+    reframe(freq = mean(freqt), se = mean(set)) %>% 
+    right_join(tm) %>% 
+    left_join(databins %>% distinct(timegroups, year)) %>% 
+    rename(timegroupsf = timegroups,
+           timegroups = year) %>% 
+    mutate(timegroupsf = factor(timegroupsf, 
+                               levels = c("before 2000","2000-2006","2007-2010",
+                                          "2011-2012","2013","2014","2015","2016",
+                                          "2017","2018","2019","2020","2021","2022"))) %>% 
+    complete(timegroupsf) %>% 
+    arrange(timegroupsf)
   
-  f1$timegroups = factor(f1$timegroups, levels = c("before 2000","2000-2006","2007-2010",
-                                                   "2011-2012","2013","2014","2015","2016",
-                                                   "2017","2018","2019","2020","2021","2022"))
-  f1 = f1[order(f1$timegroups),]
-  names(f1)[1] = "timegroupsf"
-  mp = data.frame(timegroupsf = c("before 2000","2000-2006","2007-2010",
-                                  "2011-2012","2013","2014","2015","2016",
-                                  "2017","2018","2019","2020","2021","2022"), 
-                  timegroups = as.numeric(databins$year))
-  f1 = left_join(mp,f1)
   
-  tocomb = c(species,f1$freq,f1$se)
+  tocomb = c(species, f1$freq, f1$se)
   return(tocomb)
+  # each species's tocomb becomes one column in final trends0 output object
+  
 }

@@ -10,30 +10,46 @@ library(cowplot)
 library(extrafont)
 library(stringr)
 
-main = read.csv("trends_results/full_results/SoIB_main.csv")
+load("00_data/analyses_metadata.RData")
+
+cur_metadata <- analyses_metadata %>% filter(MASK == "none")
+main = read.csv(cur_metadata$SOIBMAIN.PATH)
 main$Mask = "Country as a whole"
-trends = read.csv("trends_results/full_results/trends.csv")
+trends = read.csv(cur_metadata$TRENDS.OUTPATH)
 trends$Mask = "Country as a whole"
 
-main.woodland = read.csv("trends_results/mask_woodland/SoIB_main_mask_woodland.csv")
+cur_metadata <- analyses_metadata %>% filter(MASK == "woodland")
+main.woodland = read.csv(cur_metadata$SOIBMAIN.PATH)
 main.woodland$Mask = "Grids with threshold woodland"
-trends.woodland = read.csv("trends_results/mask_woodland/trends_mask_woodland.csv")
+trends.woodland = read.csv(cur_metadata$TRENDS.OUTPATH)
 trends.woodland$Mask = "Grids with threshold woodland"
 
-main.pa = read.csv("trends_results/mask_pa/SoIB_main_mask_pa.csv")
+cur_metadata <- analyses_metadata %>% filter(MASK == "PA")
+main.pa = read.csv(cur_metadata$SOIBMAIN.PATH)
 main.pa$Mask = "Protected areas"
-trends.pa = read.csv("trends_results/mask_pa/trends_mask_pa.csv")
+trends.pa = read.csv(cur_metadata$TRENDS.OUTPATH)
 trends.pa$Mask = "Protected areas"
 
-main.crop = read.csv("trends_results/mask_cropland/SoIB_main_mask_cropland.csv")
+cur_metadata <- analyses_metadata %>% filter(MASK == "cropland")
+main.crop = read.csv(cur_metadata$SOIBMAIN.PATH)
 main.crop$Mask = "Grids with threshold cropland"
-trends.crop = read.csv("trends_results/mask_cropland/trends_mask_cropland.csv")
+trends.crop = read.csv(cur_metadata$TRENDS.OUTPATH)
 trends.crop$Mask = "Grids with threshold cropland"
 
-main.one = read.csv("trends_results/mask_one/SoIB_main_mask_oneland.csv")
+cur_metadata <- analyses_metadata %>% filter(MASK == "ONEland")
+main.one = read.csv(cur_metadata$SOIBMAIN.PATH)
 main.one$Mask = "Grids with threshold ONEs"
-trends.one = read.csv("trends_results/mask_one/trends_mask_oneland.csv")
+trends.one = read.csv(cur_metadata$TRENDS.OUTPATH)
 trends.one$Mask = "Grids with threshold ONEs"
+
+# creating output folder (for mask comparisons) if doesn't exist already
+if (!dir.exists("01_analyses_mask-compar/graphs/")) {
+  dir.create("01_analyses_mask-compar/graphs/", 
+             recursive = T)
+}
+
+
+
 
 qualifying.species = main$eBird.English.Name.2022[!main$SOIBv2.Long.Term.Status %in% 
                                                     c("eBird Data Inconclusive","eBird Data Deficient") & 
@@ -352,7 +368,7 @@ for (z in qualifying.species)
   
   ggpx3 = ggdraw(ggpx)
   
-  name1 = paste("trends_graphs/long-term trends - masks/",sps,"_","mask_comparison_eBird_trend_SoIBv2.jpg",sep="")
+  name1 = paste("01_analyses_mask-compar/graphs/long-term trends - masks/",sps,"_","mask_comparison_eBird_trend_SoIBv2.jpg",sep="")
   
   jpeg(name1, units="in", width=11, height=7, res=1000, bg="transparent")
   grid::grid.draw(ggpx3)
