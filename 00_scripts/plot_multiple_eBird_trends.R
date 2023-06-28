@@ -40,8 +40,6 @@ species = c("Spot-billed Pelican","Black-headed Ibis","Glossy Ibis","Painted Sto
 #         "#B69AC9", "#A13E2B", "#EA5599", "#000000", "#66CC99")
 species = c("Ashy Prinia","Rock Pigeon","Indian Peafowl","House Sparrow")
 species = c("Indian Gray Hornbill","Malabar Gray Hornbill","Oriental Pied-Hornbill")
-species = c("Lesser Sand-Plover","Terek Sandpiper","Whimbrel","Curlew Sandpiper",
-            "Eurasian Curlew")
 species = c("Black-rumped Flameback","White-naped Woodpecker","White-bellied Woodpecker",
             "Yellow-crowned Woodpecker","Brown-capped Pygmy Woodpecker",
             "Gray-headed Woodpecker")
@@ -54,11 +52,15 @@ species = c("Ashy-crowned Sparrow-Lark","Great Gray Shrike","Rufous-tailed Lark"
             "Yellow-billed Babbler","Eurasian Kestrel","Jerdon's Bushlark")
 species = c("Spot-billed Pelican","Black-headed Ibis","Glossy Ibis","Painted Stork",
             "Eurasian Spoonbill","Great Cormorant")
-cols = c("#869B27", "#31954E", "#CC6666", "#78CAE0", "#9999CC", "#E49B36",
-         "#B69AC9", "#A13E2B", "#493F3D", "#000000", "#66CC99")
+#cols = c("#869B27", "#31954E", "#CC6666", "#78CAE0", "#9999CC", "#E49B36",
+#         "#B69AC9", "#A13E2B", "#493F3D", "#000000", "#66CC99")
+species = c("Large-billed Crow","Olive-backed Pipit","Greater Coucal")
+species = c("Lesser Sand-Plover","Terek Sandpiper","Whimbrel","Curlew Sandpiper",
+            "Eurasian Curlew")
+species = c("Ashy Prinia","Indian Peafowl","Indian Courser","Red-necked Falcon")
 
 
-sps = "Large Waterbirds"
+sps = "Common birds in India"
 
 temp = trends %>% 
   filter(COMMON.NAME %in% species)
