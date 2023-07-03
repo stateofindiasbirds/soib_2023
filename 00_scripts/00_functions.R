@@ -53,20 +53,19 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_relMay-2023.txt",
   
   
   # merge both data frames
-  data = rbind(data,sesp)
+  data = rbind(data, sesp) %>%
+    # remove unapproved records and records of escapees
+    filter(REVIEWED == 0 | APPROVED == 1) %>%
+    filter(!EXOTIC.CODE %in% c("X"))
   
   # create and write a file with common names and scientific names of all Indian species
   # useful for mapping
   temp = data %>%
-    filter(REVIEWED == 0 | APPROVED == 1) %>%
-    filter(!EXOTIC.CODE %in% c("X")) %>%
     filter(CATEGORY == "species" | CATEGORY == "issf") %>%
     distinct(COMMON.NAME,SCIENTIFIC.NAME)
-  
   write.csv(temp,"00_data/indiaspecieslist.csv", row.names=FALSE)
   
-  ## create location file for LULC
-  
+  # create location file for LULC
   locdat = data %>% distinct(LOCALITY.ID,LATITUDE,LONGITUDE)
   write.csv(locdat,"00_data/eBird_location_data.csv", row.names=FALSE)
   
@@ -240,7 +239,7 @@ addmapvars = function(datapath = "00_data/rawdata.RData",
     st_drop_geometry()
   
   temp = temp %>% 
-    distinct(NAME,GRID.G0,GRID.G1,GRID.G2,GRID.G3,GRID.G4,group.id,X) %>% 
+    distinct(NAME, GRID.G0, GRID.G1, GRID.G2, GRID.G3, GRID.G4, group.id, INLAND) %>% 
     group_by(group.id) %>% 
     slice(1) %>% 
     ungroup() %>% 

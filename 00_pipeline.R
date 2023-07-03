@@ -24,8 +24,8 @@ source("00_scripts/00_functions.R")
 # - "eBird_location_data.csv"
 # - "rawdata.RData"
 
-readcleanrawdata(rawpath = "00_data/ebd_IN_relFeb-2023.txt", 
-                 sensitivepath = "00_data/ebd_sensitive_relFeb-2023_IN.txt")
+readcleanrawdata(rawpath = "00_data/ebd_IN_relMay-2023.txt", 
+                 sensitivepath = "00_data/ebd_sensitive_relMay-2023_IN.txt")
 
 
 # STEP 2: Create sf map of SoIB2 habitat masks
@@ -145,7 +145,7 @@ source("00_scripts/filter_data_for_species.R")
 # - every time "sub_samp_locs.csv" is updated
 # Requires:
 # - tidyverse, parallel, foreach, doParallel, tictoc
-# - data files (ALL in 00_data/):
+# - data files:
 #   - "sub_samp_locs.csv" for whole country and individual mask versions
 # Outputs:
 # - "randomgroupids.RData" for whole country and individual mask versions
@@ -156,7 +156,7 @@ load("00_data/analyses_metadata.RData")
 cur_mask <- "none"
 tictoc::tic("generated random group IDs for full country")
 source("00_scripts/create_random_groupids.R")
-tictoc::toc() # 83 min
+tictoc::toc() # 86 min
 
 cur_mask <- "woodland"
 tictoc::tic("generated random group IDs for woodland")
@@ -202,10 +202,10 @@ load("00_data/analyses_metadata.RData")
 # FULL COUNTRY
 
 cur_mask <- "none"
-my_assignment <- 201:400 # CHANGE FOR YOUR SUBSET
+my_assignment <- 1:100 # CHANGE FOR YOUR SUBSET
 tictoc::tic(glue("Generated subsampled data for full country (# {min(my_assignment)}:{max(my_assignment)})"))
 source("00_scripts/create_random_datafiles.R")
-tictoc::toc() 
+tictoc::toc() # 462 min (~ 8 h)
 
 
 # INDIVIDUAL MASKS
@@ -254,7 +254,7 @@ load("00_data/analyses_metadata.RData")
 
 # not functionising because parallelisation doesn't work inside functions
 cur_mask <- "none"
-my_assignment <- 122:200 # CHANGE FOR YOUR SUBSET
+my_assignment <- 1:100 # CHANGE FOR YOUR SUBSET
 tictoc::tic(glue("Species trends for full country (sims {min(my_assignment)}--{max(my_assignment)})"))
 source("00_scripts/run_species_trends.R")
 tictoc::toc() 

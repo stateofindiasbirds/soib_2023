@@ -707,6 +707,7 @@ rm_prob_mistakes <- function(data) {
         (COMMON.NAME == "Common Hill Myna" & SAMPLING.EVENT.IDENTIFIER == "S116961493") |
         (COMMON.NAME == "Crimson Sunbird" & SAMPLING.EVENT.IDENTIFIER == "S24091153") |
         (COMMON.NAME == "Nilgiri Flowerpecker" & SAMPLING.EVENT.IDENTIFIER == "S71620639") |
+        (COMMON.NAME == "Plain Flowerpecker" & SAMPLING.EVENT.IDENTIFIER == "S96532466") |
         (COMMON.NAME == "Loten’s Sunbird" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S131759647", "S129292698", "S129077407", "S103800034"
         ))
@@ -1128,7 +1129,7 @@ rm_prob_mistakes <- function(data) {
           STATE == "West Bengal" & year > 1981
         )) 
     ) %>% 
-    distinct(COMMON.NAME, STATE, COUNTY, month) 
+    distinct(COMMON.NAME, STATE, COUNTY, month, year) 
   
 
 # 6. species-latlong-admin unit (state or district) combinations (or regions) --------
