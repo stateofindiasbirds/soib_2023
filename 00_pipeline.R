@@ -244,7 +244,7 @@ tictoc::toc() #
 # - after above step (P2, S2)
 # Requires:
 # - tidyverse, tictoc, lme4, VGAM, parallel, foreach, doParallel
-# - data files (ALL in 00_data/):
+# - data files:
 #   - "dataforanalyses.RData" for whole country and individual mask versions
 #   - "specieslists.RData" for whole country and individual mask versions
 # Outputs:
@@ -257,7 +257,7 @@ cur_mask <- "none"
 my_assignment <- 1:100 # CHANGE FOR YOUR SUBSET
 tictoc::tic(glue("Species trends for full country (sims {min(my_assignment)}--{max(my_assignment)})"))
 source("00_scripts/run_species_trends.R")
-tictoc::toc() 
+tictoc::toc() # 102 hours
 
 cur_mask <- "woodland"
 my_assignment <- 101:200 # CHANGE FOR YOUR SUBSET
@@ -288,6 +288,51 @@ my_assignment <- 1:200 # CHANGE FOR YOUR SUBSET
 tictoc::tic(glue("Species trends for Kerala (sims {min(my_assignment)}--{max(my_assignment)})"))
 source("00_scripts/run_species_trends.R")
 tictoc::toc() # 
+
+
+
+# STEP 2: Resolve trends for all selected species and generate necessary outputs
+# Run:
+# - after above step (P3, S1)
+# Requires:
+# - tidyverse, tictoc, VGAM
+# - data files:
+#   - fullspecieslist.csv
+#   - trends/trendsX.csv for whole country and individual mask versions
+# Outputs: several
+
+load("00_data/analyses_metadata.RData")
+
+# not functionising because parallelisation doesn't work inside functions
+cur_mask <- "none"
+tictoc::tic(glue("Resolved trends for full country"))
+source("00_scripts/resolve_trends.R")
+tictoc::toc() 
+
+cur_mask <- "woodland"
+tictoc::tic(glue("Resolved trends for {cur_mask}"))
+source("00_scripts/resolve_trends.R")
+tictoc::toc() 
+
+cur_mask <- "cropland"
+tictoc::tic(glue("Resolved trends for {cur_mask}"))
+source("00_scripts/resolve_trends.R")
+tictoc::toc() 
+
+cur_mask <- "ONEland"
+tictoc::tic(glue("Resolved trends for {cur_mask}"))
+source("00_scripts/resolve_trends.R")
+tictoc::toc() 
+
+cur_mask <- "PA"
+tictoc::tic(glue("Resolved trends for {cur_mask}"))
+source("00_scripts/resolve_trends.R")
+tictoc::toc() 
+
+cur_mask <- "Kerala"
+tictoc::tic(glue("Resolved trends for {cur_mask}"))
+source("00_scripts/resolve_trends.R")
+tictoc::toc() 
 
 
 
