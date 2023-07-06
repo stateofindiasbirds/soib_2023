@@ -1,5 +1,57 @@
+###   error operations ########################################
 
-### 01 readcleanrawdata ########################################
+# <annotation_pending_AV>
+errordiv = function(x1,x2,se1,se2)
+{
+  r = x1/x2
+  t = data.frame(se1/x1,se2/x2)
+  ser = r*sqrt(t[,1]^2 + t[,2]^2)
+  a = data.frame(freq = numeric(length(r)))
+  a$freq = r
+  a$se = ser
+  return(a)
+}
+
+erroradd = function(vec)
+{
+  err = sqrt(sum(vec^2))
+  return(err)
+}
+
+# <annotation_pending_AV>
+simerrordiv = function(x1, x2, se1, se2)
+{
+  # takes untransformed (link) mean and SE values, and generates normal dist. from 1000 sims,
+  # then transformed 
+  # after the function, lower and upper quantiles are selected as limits of 95% CI
+  tp = data.frame(num = clogloglink(rnorm(1000, x1, se1), inverse = T), 
+                  den = clogloglink(rnorm(1000, x2, se2), inverse = T)) %>%
+    reframe(rat = num/den, 
+            val = num)
+  
+  return(tp)
+}
+
+
+###   create a set of locations ########################################
+
+# <annotation_pending_AV> why do we do this in the first place?
+
+# locs is a data frame with location, group id info
+
+createrandomlocs = function(locs)
+{
+  require(tidyverse)
+  
+  locs1 = locs %>% 
+    group_by(LOCALITY.ID, month, timegroups) %>% sample_n(1)
+  
+  return(locs1$group.id)
+}
+
+
+
+### readcleanrawdata ########################################
 
 ## read and clean raw data and add important columns like group id, seasonality variables
 ## place raw txt file (India download) in working directory 
@@ -182,7 +234,7 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_relMay-2023.txt",
   
 }
 
-### 02 addmapvars ########################################
+### addmapvars ########################################
 
 # Load sf map objects and add to dataset. 
 # - admin & PA boundaries;
@@ -263,7 +315,7 @@ addmapvars = function(datapath = "00_data/rawdata.RData",
 }
 
 
-###    completelistcheck ########################################
+### completelistcheck ########################################
 
 ## remove all probable errors
 ## type can be "trends" or "range"
@@ -325,7 +377,7 @@ completelistcheck = function(data)
     dplyr::select(-speed,-sut,-hr,-min,-end) 
 }
 
-###    removevagrants ########################################
+### removevagrants ########################################
 
 ## remove vagrants
 ## to use in dataspeciesfilter()
@@ -365,7 +417,7 @@ removevagrants = function(data)
 
 
 
-###    dataspeciesfilter ########################################
+### dataspeciesfilter ########################################
 
 # <annotation_pending_AV> elaborate below
 # select species for State of India's Birds, and species for historical and recent trends
@@ -821,125 +873,54 @@ dataspeciesfilter = function(
 
 ### expandbyspecies ########################################
 
+# for occupancy
 
-## ensure that the working directory has list of India's birds with scientific names 
-## (just a safety mechanism for the function to work for small subsets, needs to be enabled if required)
-## only need to input data, the species of interest and the complete list of India's bird species
-## also groupspecs if required (a dataframe with all relevant list level info), it is defaulted to data
+# ensure that the working directory has list of India's birds with scientific names 
+# (just a safety mechanism for the function to work for small subsets, needs to be enabled if required)
+# only need to input data, the species of interest and the complete list of India's bird species
+# also groupspecs if required (a dataframe with all relevant list level info), it is defaulted to data
 
 expandbyspecies = function(data, species)
 {
   require(tidyverse)
   
-  data$gridg1 = as.factor(data$gridg1)
-  data$gridg2 = as.factor(data$gridg2)
-  data$gridg3 = as.factor(data$gridg3)
-  data$gridg4 = as.factor(data$gridg4)
+  data <- data %>% 
+    mutate(across(contains("gridg"), ~ as.factor(.))) %>% 
+    mutate(timegroups = as.factor(timegroups))
 
-  data$timegroups = as.factor(data$timegroups)
-  
-  ## considers only complete lists
+  # considers only complete lists
   
   checklistinfo = data %>%
-    distinct(gridg1,gridg2,gridg3,gridg4,
-             ALL.SPECIES.REPORTED,OBSERVER.ID,
+    distinct(gridg1, gridg2, gridg3, gridg4, 
+             ALL.SPECIES.REPORTED, OBSERVER.ID, 
              #city,
              #DURATION.MINUTES,EFFORT.DISTANCE.KM,
-             group.id,month,year,no.sp,timegroups,
-             timegroups1)
-  
-  checklistinfo = checklistinfo %>%
+             group.id, month, year, no.sp, timegroups, timegroups1) %>%
     filter(ALL.SPECIES.REPORTED == 1) %>%
-    group_by(group.id) %>% slice(1) %>% ungroup
+    group_by(group.id) %>% 
+    slice(1) %>% 
+    ungroup()
   
-  ## expand data frame to include all bird species in every list
-  
-  expanded = checklistinfo
-  expanded$COMMON.NAME = species
-  
-  ## join the two, deal with NAs next
-  
-  expanded = left_join(expanded,data)
-  expanded = expanded %>%
+  # expand data frame to include the bird species in every list
+  expanded = checklistinfo %>% 
+    mutate(COMMON.NAME = species) %>% 
+    left_join(data) %>%
     dplyr::select(-c("COMMON.NAME","gridg2","gridg4","OBSERVER.ID",
                      "ALL.SPECIES.REPORTED","group.id","year","timegroups1",
-                     "gridg0","DATETIME"))
-  
-  ## deal with NAs
-  
-  expanded = expanded %>% mutate(OBSERVATION.COUNT = replace(OBSERVATION.COUNT, is.na(OBSERVATION.COUNT), "0"))
-  
-  
-  expanded = expanded %>%
-    mutate(OBSERVATION.COUNT=replace(OBSERVATION.COUNT, OBSERVATION.COUNT != "0", "1"))
-  
-  
-  
-  expanded$OBSERVATION.COUNT = as.numeric(expanded$OBSERVATION.COUNT)
+                     "gridg0","DATETIME")) %>% 
+  # deal with NAs (column is character)
+  mutate(OBSERVATION.COUNT = case_when(is.na(OBSERVATION.COUNT) ~ 0,
+                                       OBSERVATION.COUNT != "0" ~ 1, 
+                                       TRUE ~ as.numeric(OBSERVATION.COUNT)))
 
   return(expanded)
 }
 
 
 
-### error operations ########################################
+### run models ########################################
 
-# <annotation_pending_AV>
-errordiv = function(x1,x2,se1,se2)
-{
-  r = x1/x2
-  t = data.frame(se1/x1,se2/x2)
-  ser = r*sqrt(t[,1]^2 + t[,2]^2)
-  a = data.frame(freq = numeric(length(r)))
-  a$freq = r
-  a$se = ser
-  return(a)
-}
-
-erroradd = function(vec)
-{
-  err = sqrt(sum(vec^2))
-  return(err)
-}
-
-# <annotation_pending_AV>
-simerrordiv = function(x1, x2, se1, se2)
-{
-  # takes untransformed (link) mean and SE values, and generates normal dist. from 1000 sims,
-  # then transformed 
-  # after the function, lower and upper quantiles are selected as limits of 95% CI
-  tp = data.frame(num = clogloglink(rnorm(1000, x1, se1), inverse = T), 
-                  den = clogloglink(rnorm(1000, x2, se2), inverse = T)) %>%
-    reframe(rat = num/den, 
-            val = num)
-
-  return(tp)
-}
-
-
-
-
-
-
-###    create a set of locations ########################################
-
-# <annotation_pending_AV> why do we do this in the first place?
-
-# locs is a data frame with location, group id info
-
-createrandomlocs = function(locs)
-{
-  require(tidyverse)
-  
-  locs1 = locs %>% 
-    group_by(LOCALITY.ID, month, timegroups) %>% sample_n(1)
-  
-  return(locs1$group.id)
-}
-
-
-###    singlespeciesrun (run models) ########################################
-
+# trends
 singlespeciesrun = function(data, species, specieslist, restrictedspecieslist)
 {
   require(tidyverse)
@@ -1087,7 +1068,7 @@ singlespeciesrun = function(data, species, specieslist, restrictedspecieslist)
 }
 
 
-
+# occupancy
 occupancyrun = function(data, i, speciesforocc, nb8g1)
 {
   require(tidyverse)
