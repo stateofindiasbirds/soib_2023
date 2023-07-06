@@ -752,7 +752,7 @@ write.csv(main, file = mainwocats_path, row.names = F)
 
 # classification: assign SoIB Status categories (w/ sensitivity analysis) ----
 
-# classifying into SoIB Status for long-term and current
+# classifying into SoIB Status for long-term and current trends and range
 
 # taking upper limit of CI for declines, and lower limit for increases
 
@@ -927,7 +927,7 @@ cats_range = c("Historical", "Very Restricted", "Restricted",
 
 cats_decline = c("Decline", "Rapid Decline")
 cats_uncertain = c("eBird Data Deficient", "eBird Data Inconclusive")
-cats_restricted = c("Historical","Very Restricted", "Restricted")
+cats_restricted = c("Historical", "Very Restricted", "Restricted")
 
 
 priorityrules = read.csv("00_data/priorityclassificationrules.csv")
@@ -951,7 +951,7 @@ main = main %>%
     
     SOIBv2.Long.Term.Status %in% cats_uncertain & 
       SOIBv2.Current.Status %in% cats_uncertain &
-      SOIB.Range.Status %in% cats_restricted &
+      SOIBv2.Range.Status %in% cats_restricted &
       IUCN.Category %in% c("Vulnerable") ~ "High",
     
     SOIBv2.Long.Term.Status %in% cats_uncertain & 
@@ -975,13 +975,17 @@ main = main %>%
            BLI.Common.Name, BLI.Scientific.Name, IUCN.Category, WPA.Schedule,
            CITES.Appendix, CMS.Appendix, Onepercent.Estimates, 
            Long.Term.Analysis, Current.Analysis, Selected.SOIB, 
-           totalrange25km, proprange25km2000, proprange25km.current, proprange25km2022, mean5km, ci5km, 
-           longtermlci, longtermmean, longtermrci, currentslopelci, currentslopemean, currentsloperci, 
+           totalrange25km, proprange25km2000, proprange25km.current, proprange25km2022, 
+           mean5km, ci5km, 
+           longtermlci, longtermmean, longtermrci, 
+           currentslopelci, currentslopemean, currentsloperci, 
+           rangelci, rangemean, rangerci,
            proj2023.lci, proj2023.mean, proj2023.rci, proj2024.lci, proj2024.mean, proj2024.rci, 
            proj2025.lci, proj2025.mean, proj2025.rci, proj2026.lci, proj2026.mean, proj2026.rci, 
            proj2027.lci, proj2027.mean, proj2027.rci, proj2028.lci, proj2028.mean, proj2028.rci, 
            proj2029.lci, proj2029.mean, proj2029.rci, 
-           SOIBv2.Long.Term.Status, SOIBv2.Current.Status, SOIBv2.Range.Status, SOIBv2.Priority.Status)
+           SOIBv2.Long.Term.Status, SOIBv2.Current.Status, SOIBv2.Range.Status, 
+           SOIBv2.Priority.Status)
 
 write.csv(main, file = main_path, row.names = F)
 
