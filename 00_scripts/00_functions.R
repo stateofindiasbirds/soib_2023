@@ -862,7 +862,8 @@ expandbyspecies = function(data, species)
   expanded = left_join(expanded,data)
   expanded = expanded %>%
     dplyr::select(-c("COMMON.NAME","gridg2","gridg4","OBSERVER.ID",
-                     "ALL.SPECIES.REPORTED","group.id","year","timegroups1"))
+                     "ALL.SPECIES.REPORTED","group.id","year","timegroups1",
+                     "gridg0","DATETIME"))
   
   ## deal with NAs
   
@@ -917,376 +918,6 @@ simerrordiv = function(x1, x2, se1, se2)
 
 
 
-
-
-
-### occupancy ########################################
-
-## occupancy analyses for bird abundance/range, reports area in units of 10000 sq. km.
-## Requires tidyverse, reshape2, data.table and unmarked
-## type = trivial, null, nosp, nosptime, nb, nosptimenb
-
-occufreq = function(data, species, areag, rerun = F, datatofill)
-{
-  require(tidyverse)
-  require(reshape2)
-  require(data.table)
-  require(unmarked)
-  
-  load("00_data/neighbours.RData")
-  
-  migstatus = read.csv("Migratory Status - Migratory Status.csv")
-
-  migstatus = migstatus %>%
-    mutate(mig = 
-             case_when(!is.na(Summer.Visitor) & !is.na(Winter.Visitor) ~ "LM",
-                       !is.na(Resident) & !is.na(Winter.Visitor) ~ "LM",
-                       !is.na(Summer.Visitor) & !is.na(Resident) ~ "LM",
-                       !is.na(Summer.Visitor) ~ "S",
-                       !is.na(Winter.Visitor) | !is.na(Strictly.Passage) ~ "W/P",
-                       !is.na(Uncertain.Vagrant) & is.na(Resident) ~ "U",
-                       TRUE ~ "R")
-    ) %>%
-    select(eBird.English.Name,mig)
-  
-  migstatus$mig[migstatus$eBird.English.Name %in% c("Himalayan Cuckoo","Common Cuckoo",
-                                                    "Watercock")] = "S"
-  
-  migstatus$mig[migstatus$eBird.English.Name %in% c("Indian Skimmer","Black-bellied Tern",
-                                                    "Black-capped Kingfisher",
-                                                    "Mountain Chiffchaff","Red-rumped Swallow",
-                                                    "Fire-capped Tit")] = "R"
-  
-  migstatus$mig[migstatus$eBird.English.Name %in% c("Smoky Warbler","Wallcreeper",
-                                                    "Long-billed Pipit")] = "W/P"
-  
-  if(rerun)
-  {
-    species = datatofill$species
-    
-    temp = datatofill %>%
-      filter((!is.na(trivB) & (is.na(occB) | is.na(occB.ci))) | 
-               (!is.na(trivM) & (is.na(occM) | is.na(occM.ci))))
-    
-    species = species[species %in% temp$species]
-  }
-  
-  migstatus = migstatus %>%
-    filter(eBird.English.Name %in% species)
-  
-  species = as.character(migstatus$eBird.English.Name)
-  speciesf = species
-  mig = migstatus$mig
-  migf = mig
-  
-  spec = species[mig == "LM"]
-  species = c(species,spec)
-  mig[mig == "LM"] = "MS"
-  mig = c(mig,rep("MW",length(spec)))
-  
-  data = data %>%
-    filter(year > 2013)
-  
-  data = data %>%
-    mutate(OBSERVATION.COUNT = replace(OBSERVATION.COUNT, !is.na(OBSERVATION.COUNT), "1"))
-  
-  data$OBSERVATION.COUNT = as.numeric(data$OBSERVATION.COUNT)
-  
-  # create dataframe to store occupancy and detection proabability 
-  # estimates across species and spatial resolutions
-  
-
-  est = array(data=NA,dim=c(length(speciesf),11),
-              dimnames=list(speciesf,c("detprobB","occB","occB.ci","trivB","sampareaB","detprobM",
-                                       "occM","occM.ci","trivM","sampareaM","status")))
-  
-  if(rerun)
-  {
-    est[,1] = datatofill$detprobB
-    est[,2] = datatofill$occB*10000
-    est[,3] = datatofill$occB.ci*10000
-    est[,4] = datatofill$trivB*10000
-    est[,5] = datatofill$sampareaB*10000
-    est[,6] = datatofill$detprobM
-    est[,7] = datatofill$occM*10000
-    est[,8] = datatofill$occM.ci*10000
-    est[,9] = datatofill$trivM*10000
-    est[,10] = datatofill$sampareaM*10000
-    est[,11] = datatofill$migstatus
-    
-    if (migstatus == "LM")
-    {
-      index = 1:length(species)
-      x = numeric(0)
-      
-      for (i in unique(species))
-      {
-        temp = datatofill %>%
-          filter(species == i, migstatus == "LM")
-        
-        if (length(temp$species) != 0)
-        {
-          if (!is.na(temp$trivB) & (!is.na(temp$occB) & !is.na(temp$occB.ci)))
-          {
-            x1 = intersect(index[species == i], index[mig == "MS"])
-            x = c(x,index[x1])
-          }
-          if (!is.na(temp$trivM) & (!is.na(temp$occM) & !is.na(temp$occM.ci)))
-          {
-            x2 = intersect(index[species == i], index[mig == "MW"])
-            x = c(x,index[x2])
-          }
-        }
-      }
-      species = species[-x]
-      mig = mig[-x]
-    }
-    
-
-  }
-
-  for(s in 1:length(species))
-  {
-    if(rerun)
-    {
-      if (is.na(datatofill$sampareaB[s]) & is.na(datatofill$sampareaM[s]))
-        next
-    }
-    
-    if (mig[s] == "S" | mig[s] == "W/P")
-    {
-      temp1 = data %>%
-        filter(COMMON.NAME == species[s]) %>%
-        distinct(month)
-      
-      datac = temp1 %>% left_join(data)
-    }
-    
-    if (mig[s] == "R" | mig[s] == "U")
-    {
-      datac = data
-    }
-    
-    if (mig[s] == "MS")
-    {
-      datac = data %>%
-        filter(month %in% c(5:8))
-    }
-    
-    if (mig[s] == "MW")
-    {
-      datac = data %>%
-        filter(month %in% c(11:12,1:2))
-    }
-    
-    datay = datac %>%
-      group_by(gridg1,group.id) %>% slice(1) %>% ungroup %>%
-      group_by(gridg1) %>% reframe(medianlla = median(no.sp)) %>%
-      group_by(gridg1) %>%
-      reframe(medianlla = round(mean(medianlla)))
-    medianlla = datay$medianlla
-    
-    sampledarea = left_join(datac,areag,by = c("gridg1" = "id"))
-    sampledarea = sampledarea %>% distinct(gridg1,area)
-    len = length(sampledarea$area)
-    sampledarea = sum(sampledarea$area)
-    
-    if (length(datac$COMMON.NAME[datac$COMMON.NAME == species[s]]) == 0)
-    {
-      estdf = data.frame(rep(rownames(est)))
-      names(estdf) = "species"
-      
-      estdf$detprobB = NA
-      estdf$occB = NA
-      estdf$occB.ci = NA
-      estdf$trivB = NA
-      estdf$sampareaB = NA
-      estdf$detprobM = NA
-      estdf$occM = NA
-      estdf$occM.ci = NA
-      estdf$trivM = NA
-      estdf$sampareaM = NA
-      
-      names(migstatus)[2] = "migstatus"
-      estdf = left_join(estdf,migstatus,by = c("species" = "eBird.English.Name"))
-      
-      return(estdf)
-    }
-    
-    selexp = expandbyspecies(datac,species[s])
-    
-    selexp = selexp[sample(1:nrow(selexp)),]
-    
-    selexp$month[selexp$month %in% c(11,12,1,2)] = "Win"
-    selexp$month[selexp$month %in% c(3,4,5,6)] = "Sum"
-    selexp$month[selexp$month %in% c(7,8,9,10)] = "Mon"
-    
-    nb8g = nb8g1
-    lpg = selexp %>%
-      group_by(gridg1) %>% summarize(lpg = n())
-    listcutoff = quantile(lpg$lpg, 0.95, na.rm=TRUE)
-    inc = datac %>%
-      mutate(gridg = gridg1)
-    selexp = selexp %>% 
-      arrange(gridg1) %>%
-      mutate(gridg = gridg1) %>%
-      group_by(gridg) %>% mutate(group.id = 1:n()) %>% ungroup %>%
-      left_join(areag,by = c("gridg" = "id"))
-      
-    
-    nbt = selexp %>%
-      group_by(gridg) %>% summarize(fl = sum(OBSERVATION.COUNT)) %>%
-      mutate(fl=replace(fl, fl > 1, 1))
-    nbt$nb8 = 0
-      
-    nbti = inc %>%
-      filter(COMMON.NAME == species[s]) %>%
-      left_join(areag,by = c("gridg" = "id")) %>%
-      group_by(gridg) %>% summarize(fl = sum(OBSERVATION.COUNT), area = mean(area)) %>%
-      mutate(fl=replace(fl, fl > 1, 1))
-      
-    fil = sum(nbti$fl*nbti$area)
-      
-      
-    setDT(selexp)
-    
-    det = dcast(selexp, gridg ~ group.id, value.var = "OBSERVATION.COUNT")
-    cov.month = dcast(selexp, gridg ~ group.id, value.var = "month")
-    cov.nosp = dcast(selexp, gridg ~ group.id, value.var = "no.sp")
-    
-    det = setDF(det)
-    cov.month = setDF(cov.month)
-    cov.nosp = setDF(cov.nosp)
-    
-    det = det[,1:listcutoff]
-    cov.month = cov.month[,1:listcutoff]
-    cov.nosp = cov.nosp[,1:listcutoff]
-      
-    nbt$gridg = as.character(nbt$gridg)
-    nbti$gridg = as.character(nbti$gridg)
-
-    for (i in 1:length(nbt$gridg))
-    {
-      temp = as.numeric(nb8g[[nbt$gridg[i]]])
-      sm = sum(nbti[nbti$gridg %in% temp,]$fl)/length(temp)
-      nbt$nb8[i] = sm
-    }
-        
-    nbt$gridg = as.character(nbt$gridg)
-    tp = nbt
-    tp1 = nbt %>% select(-fl)
-    #tp = left_join(nbti,tp1)
-    nbt = nbt[,-2]
-    
-    nbtx = tp[tp$fl != 1,]
-    
-    detn = data.frame(gridg = det[,1])
-    detn= left_join(detn,nbt)
-
-    umf = unmarkedFrameOccu(y=det[,-1], siteCovs = data.frame(nb8g = detn$nb8), 
-                            obsCovs = list(cov1 = cov.nosp[,-1], 
-                            cov2 = cov.month[,-1]))
-    
-    
-    if (mig[s] == "R")
-    {
-      occ_det = tryCatch({occu(~log(cov1)*cov2 ~nb8g, data=umf, starts = c(0,0,0,0,0,0,0,0))},
-                         error = function(cond){"skip"})
-      
-      newdat1 = data.frame(cov1=medianlla, cov2=factor(c("Mon","Win","Sum")))
-      newdat2 = data.frame(nb8g=nbtx$nb8)
-    }
-    
-    if (mig[s] != "R")
-    {
-      occ_det = tryCatch({occu(~log(cov1) ~nb8g, data=umf, starts = c(0,0,0,0))},
-                         error = function(cond){"skip"})
-      
-      newdat1 = data.frame(cov1=medianlla)
-      newdat2 = data.frame(nb8g=nbtx$nb8)
-    }
-    
-
-    if (!is.character(occ_det))
-    {
-      f1 = predict(occ_det, newdata = newdat1, type = "det")
-      f1 = mean(f1$Predicted)
-      f2 = predict(occ_det, newdata = newdat2, type = "state")
-      f2$nb = newdat2$nb8g
-      f2$gridg = nbtx$gridg
-      f2 = left_join(f2,areag,by = c("gridg" = "id"))
-      f2 = f2 %>% filter(!is.na(Predicted))
-      f2a = sum(f2$Predicted*f2$area) + fil
-      f2b = round((erroradd(f2$SE*f2$area))*1.96)
-      
-      
-      if (mig[s] == "R" | mig[s] == "MS" | mig[s] == "S")
-      {
-        est[species[s],"detprobB"] =  f1
-        est[species[s],"occB"] = f2a
-        est[species[s],"occB.ci"] = f2b
-      }
-      
-      if (mig[s] == "W/P" | mig[s] == "MW" | mig[s] == "U")
-      {
-        est[species[s],"detprobM"] =  f1
-        est[species[s],"occM"] = f2a
-        est[species[s],"occM.ci"] = f2b
-      }
-
-    }
-    
-    if (mig[s] == "R" | mig[s] == "MS" | mig[s] == "S")
-    {
-      est[species[s],"trivB"] = fil
-      est[species[s],"sampareaB"] = sampledarea
-    }
-    
-    if (mig[s] == "W/P" | mig[s] == "MW" | mig[s] == "U")
-    {
-      est[species[s],"trivM"] = fil
-      est[species[s],"sampareaM"] = sampledarea
-    }
-  }  
-  estdf = data.frame(rep(rownames(est)))
-  names(estdf) = "species"
-
-  
-  estdf$detprobB = round(as.numeric(est[,1]),3)
-  estdf$occB = round(as.numeric(est[,2]),3)/10000
-  estdf$occB.ci = round(as.numeric(est[,3]),3)/10000
-  estdf$trivB = round(as.numeric(est[,4]),3)/10000
-  estdf$sampareaB = round(as.numeric(est[,5]),3)/10000
-  estdf$detprobM = round(as.numeric(est[,6]),3)
-  estdf$occM = round(as.numeric(est[,7]),3)/10000
-  estdf$occM.ci = round(as.numeric(est[,8]),3)/10000
-  estdf$trivM = round(as.numeric(est[,9]),3)/10000
-  estdf$sampareaM = round(as.numeric(est[,10]),3)/10000
-  
-  names(migstatus)[2] = "migstatus"
-  estdf = left_join(estdf,migstatus,by = c("species" = "eBird.English.Name"))
-
-  return(estdf)
-}
-
-SoIBoccupancy = function(data,species,areag)
-{
-  a = occufreq(data,species,areag)
-  c = 0
-  repeat
-  {
-    c = c + 1
-    temp = a %>%
-      filter((!is.na(trivB) & (is.na(occB) | is.na(occB.ci))) | 
-               (!is.na(trivM) & (is.na(occM) | is.na(occM.ci))))
-    if(length(temp$species) == 0)
-      break
-    if(c == 10)
-      break
-    a = occufreq(data,species,areag,rerun=T,datatofill=a)
-  }
-  return(a)
-}
 
 
 
@@ -1452,5 +1083,179 @@ singlespeciesrun = function(data, species, specieslist, restrictedspecieslist)
   tocomb = c(species, f1$freq, f1$se)
   return(tocomb)
   # each species's tocomb becomes one column in final trends0 output object
+  
+}
+
+
+
+occupancyrun = function(data, i, speciesforocc, nb8g1)
+{
+  require(tidyverse)
+  require(reshape2)
+  require(data.table)
+  require(unmarked)
+  
+  
+  species = speciesforocc$eBird.English.Name.2022[i]
+  status = speciesforocc$status[i]
+  
+  if (status == "R")
+  {
+    datac = data
+  }
+  if (status == "M")
+  {
+    temp1 = data %>%
+      filter(COMMON.NAME == species) %>%
+      distinct(month)
+    
+    datac = temp1 %>% left_join(data)
+  }
+  if (status == "MP")
+  {
+    temp1 = data %>%
+      filter(month %in% c(9:11,3:5)) %>%
+      filter(COMMON.NAME == species) %>%
+      distinct(month)
+    
+    datac = temp1 %>% left_join(data)
+  }
+  if (status == "MS")
+  {
+    temp1 = data %>%
+      filter(month %in% c(5:8)) %>%
+      filter(COMMON.NAME == species) %>%
+      distinct(month)
+    
+    datac = temp1 %>% left_join(data)
+  }
+  if (status == "MW")
+  {
+    temp1 = data %>%
+      filter(month %in% c(11:12,1:2)) %>%
+      filter(COMMON.NAME == species) %>%
+      distinct(month)
+    
+    datac = temp1 %>% left_join(data)
+  }
+  
+  
+  datay = datac %>%
+    group_by(gridg1,group.id) %>% slice(1) %>% ungroup %>%
+    group_by(gridg1) %>% reframe(medianlla = median(no.sp)) %>%
+    reframe(medianlla = round(mean(medianlla)))
+  medianlla = datay$medianlla
+  
+  
+  selexp = expandbyspecies(datac, species) %>% 
+    # converting months to seasons
+    mutate(month = as.numeric(month)) %>% 
+    mutate(month = case_when(month %in% c(12,1,2) ~ "Win",
+                             month %in% c(3,4,5) ~ "Sum",
+                             month %in% c(6,7,8) ~ "Mon",
+                             month %in% c(9,10,11) ~ "Aut")) %>% 
+    mutate(month = as.factor(month))
+  
+  selexp = selexp[sample(1:nrow(selexp)),]
+  
+  
+  nb8g = nb8g1
+  lpg = selexp %>%
+    group_by(gridg1) %>% summarize(lpg = n())
+  listcutoff = quantile(lpg$lpg, 0.95, na.rm=TRUE)
+  inc = datac %>%
+    mutate(gridg = gridg1)
+  selexp = selexp %>%
+    arrange(gridg1) %>%
+    mutate(gridg = gridg1) %>%
+    group_by(gridg) %>% mutate(group.id = 1:n()) %>% ungroup
+  
+  
+  nbt = selexp %>%
+    group_by(gridg) %>% summarize(fl = sum(OBSERVATION.COUNT)) %>%
+    mutate(fl=replace(fl, fl > 1, 1))
+  nbt$nb8 = 0
+  
+  nbti = inc %>%
+    filter(COMMON.NAME == species) %>%
+    group_by(gridg) %>% summarize(fl = sum(OBSERVATION.COUNT)) %>%
+    mutate(fl=replace(fl, fl > 1, 1))
+  
+  setDT(selexp)
+  
+  det = dcast(selexp, gridg ~ group.id, value.var = "OBSERVATION.COUNT")
+  cov.month = dcast(selexp, gridg ~ group.id, value.var = "month")
+  cov.nosp = dcast(selexp, gridg ~ group.id, value.var = "no.sp")
+  
+  det = setDF(det)
+  cov.month = setDF(cov.month)
+  cov.nosp = setDF(cov.nosp)
+  
+  det = det[,1:listcutoff]
+  cov.month = cov.month[,1:listcutoff]
+  cov.nosp = cov.nosp[,1:listcutoff]
+  
+  nbt$gridg = as.character(nbt$gridg)
+  nbti$gridg = as.character(nbti$gridg)
+  
+  for (j in 1:length(nbt$gridg))
+  {
+    temp = as.numeric(nb8g[[nbt$gridg[j]]])
+    sm = sum(nbti[nbti$gridg %in% temp,]$fl)/length(temp)
+    nbt$nb8[j] = sm
+  }
+  
+  nbt$gridg = as.character(nbt$gridg)
+  tp = nbt
+  tp1 = nbt %>% select(-fl)
+  #tp = left_join(nbti,tp1)
+  nbt = nbt[,-2]
+  
+  nbtx = tp[tp$fl != 1,]
+  
+  detn = data.frame(gridg = det[,1])
+  detn= left_join(detn,nbt)
+  
+  umf = unmarkedFrameOccu(y=det[,-1], siteCovs = data.frame(nb8g = detn$nb8), 
+                          obsCovs = list(cov1 = cov.nosp[,-1], 
+                                         cov2 = cov.month[,-1]))
+  
+  if (status == "R")
+  {
+    occ_det = tryCatch({occu(~log(cov1)*cov2 ~nb8g, data=umf, starts = c(0,0,0,0,0,0,0,0,0,0), 
+                             engine = "C")},
+                       error = function(cond){"skip"})
+    
+    newdat1 = data.frame(cov1=medianlla, cov2=factor(c("Sum","Mon","Aut","Win")))
+    newdat2 = data.frame(nb8g=nbtx$nb8)
+  }
+  
+  if (status != "R")
+  {
+    occ_det = tryCatch({occu(~log(cov1) ~nb8g, data=umf, starts = c(0,0,0,0), 
+                             engine = "C")},
+                       error = function(cond){"skip"})
+    
+    newdat1 = data.frame(cov1=medianlla)
+    newdat2 = data.frame(nb8g=nbtx$nb8)
+  }
+  
+  if (!is.character(occ_det))
+  {
+    f1 = predict(occ_det, newdata = newdat1, type = "det")
+    f1 = mean(f1$Predicted)
+    f2 = predict(occ_det, newdata = newdat2, type = "state")
+    f2$nb = newdat2$nb8g
+    f2$gridg = nbtx$gridg
+    f2 = f2 %>% filter(!is.na(Predicted))
+    f2$detprob = f1
+    f2$status = status
+    f2$COMMON.NAME = species
+    names(f2)[1:2] = c("occupancy","se")
+    f2 = f2 %>% dplyr::select(-lower,-upper)
+  }
+  
+  tocomb = f2
+  return(tocomb)
   
 }

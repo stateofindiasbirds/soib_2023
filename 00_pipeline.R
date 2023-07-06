@@ -347,45 +347,6 @@ tictoc::toc()
 ## provides occupancy estimates for one or many species
 ## select one or more Indian bird species
 ## requires tidyverse, reshape2, data.table, unmarked
-## "neighbours.RData", "indiaspecieslist", "Migratory Status - Migratory Status.csv" 
-## MUST BE in the home folder
-## returns a dataframe with occupancy values
-
-
-source('00_scripts/SoIBv2_functions.R')
-occ = SoIBoccupancy(data,species,areag=areag1)
-
-## for the final run, species = specieslist$COMMON.NAME (or this incrementally)
-
-source('00_scripts/SoIBv2_functions.R')
-load("00_data/dataforanalyses.RData")
-#load("finaloccupancy.RData")
-
-#occ = SoIBoccupancy(data,species = specieslist$COMMON.NAME[1],areag = areag1)
-
-occ = read.csv("occ.csv")
-speciesleft = setdiff(specieslist$COMMON.NAME,occ$species)
-
-#for (i in 2:length(specieslist$COMMON.NAME))
-for (i in 1:length(speciesleft))
-{
-  #occ1 = SoIBoccupancy(data,species = specieslist$COMMON.NAME[i],areag = areag1)
-  occ1 = SoIBoccupancy(data,species = speciesleft[i],areag = areag1)
-  occ = rbind(occ,occ1)
-  write.csv(occ,"occ.csv",row.names=FALSE)
-}
-
-for (i in 1:length(restrictedspecieslist$COMMON.NAME))
-{
-  species = restrictedspecieslist$COMMON.NAME[i]
-  start = Sys.time()
-  tre <- freqtrendsrestricted(data,species,specieslist = restrictedspecieslist,nsim = 1000)
-  #tre <- freqtrends(data,species,specieslist = restrictedspecieslist)
-  name = paste(species,".RData",sep="")
-  save(tre,file = name)
-  end = Sys.time()
-  print(end-start)
-}
 
 
 
