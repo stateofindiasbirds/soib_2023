@@ -17,7 +17,8 @@ fullmap = read.csv("00_data/SoIB_mapping_2022.csv")
 # do this step along with the step combining e.g. Green/Greenish?
 # species frequently misidentified and therefore ignored in analyses ###
 spec_misid <- c("Besra","Horsfield's Bushlark","Common Flameback",
-                "Eastern Orphean Warbler","Richard's Pipit")
+                "Eastern Orphean Warbler","Richard's Pipit",
+                "Asian Palm Swift")
 
 
 # species info for different slices ###
