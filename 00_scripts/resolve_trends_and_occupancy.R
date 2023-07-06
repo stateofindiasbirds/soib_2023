@@ -977,13 +977,13 @@ main = main %>%
            Long.Term.Analysis, Current.Analysis, Selected.SOIB, 
            totalrange25km, proprange25km2000, proprange25km.current, proprange25km2022, 
            mean5km, ci5km, 
-           longtermlci, longtermmean, longtermrci, 
-           currentslopelci, currentslopemean, currentsloperci, 
-           rangelci, rangemean, rangerci,
            proj2023.lci, proj2023.mean, proj2023.rci, proj2024.lci, proj2024.mean, proj2024.rci, 
            proj2025.lci, proj2025.mean, proj2025.rci, proj2026.lci, proj2026.mean, proj2026.rci, 
            proj2027.lci, proj2027.mean, proj2027.rci, proj2028.lci, proj2028.mean, proj2028.rci, 
            proj2029.lci, proj2029.mean, proj2029.rci, 
+           longtermlci, longtermmean, longtermrci, 
+           currentslopelci, currentslopemean, currentsloperci, 
+           rangelci, rangemean, rangerci,
            SOIBv2.Long.Term.Status, SOIBv2.Current.Status, SOIBv2.Range.Status, 
            SOIBv2.Priority.Status)
 
