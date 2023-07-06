@@ -26,10 +26,13 @@ analyses_metadata <- data.frame(MASK = c("none",
          
          SIMDATA.PATHONLY = glue("{FOLDER}dataforsim/"),
          TRENDS.PATHONLY = glue("{FOLDER}trends/"),
+         OCCU.PRES.PATHONLY = glue("{FOLDER}occupancy-presence/"),
+         OCCU.MOD.PATHONLY = glue("{FOLDER}occupancy-model/"),
          RESULTS = glue("{FOLDER}results/"),
          
          CURSENS.PATH = glue("{RESULTS}current_sensitivity.csv"),
          TRENDS.OUTPATH = glue("{RESULTS}trends.csv"),
+         OCCU.OUTPATH = glue("{RESULTS}occupancy/"),
          SOIBMAIN.WOCATS.PATH = glue("{RESULTS}SoIB_main_wocats.csv"),
          SOIBMAIN.PATH = glue("{RESULTS}SoIB_main.csv"),
          SUMMARY.PATH = glue("{RESULTS}summary_status.csv"),

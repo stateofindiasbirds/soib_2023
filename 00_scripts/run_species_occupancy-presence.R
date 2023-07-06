@@ -168,7 +168,7 @@ for (i in vec)
   
   f2 = datac
   f2 = f2 %>% distinct(gridg1)
-  f2$actual = 1
+  f2$presence = 1
   f2$status = status
   f2$COMMON.NAME = species
   
