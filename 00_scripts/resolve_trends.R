@@ -750,7 +750,7 @@ main <- main %>% left_join(tojoin)
 write.csv(main, file = mainwocats_path, row.names = F)
 
 
-# classification: assign SoIB Status categories to trends (w/ sensitivity analysis) ----
+# classification: assign SoIB Status categories (w/ sensitivity analysis) ----
 
 # classifying into SoIB Status for long-term and current
 
@@ -794,7 +794,16 @@ main = read.csv(mainwocats_path) %>%
       # if slope with SE is fully positive or negative, can't be stable
       currentsloperci < 0 | currentslopelci > 0 ~ "eBird Data Inconclusive",
       TRUE ~ "Stable"
-      )
+      ),
+    
+    SOIBv2.Range.Status = case_when(
+      rangemean == 0 ~ "Historical",
+      rangerci < 0.75 ~ "Very Restricted",
+      rangerci < 4.25 ~ "Restricted",
+      rangelci > 100 ~ "Very Large",
+      rangelci > 25 ~ "Large",
+      TRUE ~ "Moderate"
+    )
     
   )
 
@@ -913,12 +922,12 @@ main <- main %>%
 
 cats_trend = c("Rapid Decline", "Decline", "eBird Data Deficient", 
                "eBird Data Inconclusive", "Stable", "Increase", "Rapid Increase")
-cats_range = c("eBird Data Deficient", "Very Restricted", "Restricted", 
+cats_range = c("Historical", "Very Restricted", "Restricted", 
                "Moderate", "Large", "Very Large")
 
 cats_decline = c("Decline", "Rapid Decline")
 cats_uncertain = c("eBird Data Deficient", "eBird Data Inconclusive")
-cats_restricted = c("Very Restricted", "Restricted")
+cats_restricted = c("Historical","Very Restricted", "Restricted")
 
 
 priorityrules = read.csv("00_data/priorityclassificationrules.csv")
@@ -929,6 +938,8 @@ main = main %>%
   mutate(SOIBv2.Priority.Status = as.character(SOIBv2.Priority.Status)) %>%
   # changing priority rules based on IUCN category (which isn't considered in rules)
   mutate(SOIBv2.Priority.Status = case_when(
+    
+    IUCN.Category %in% c("Extinct in the Wild", "Extinct") ~ "Low",
     
     SOIBv2.Long.Term.Status %in% cats_uncertain & 
       SOIBv2.Current.Status %in% cats_uncertain &
@@ -970,7 +981,7 @@ main = main %>%
            proj2025.lci, proj2025.mean, proj2025.rci, proj2026.lci, proj2026.mean, proj2026.rci, 
            proj2027.lci, proj2027.mean, proj2027.rci, proj2028.lci, proj2028.mean, proj2028.rci, 
            proj2029.lci, proj2029.mean, proj2029.rci, 
-           SOIBv2.Long.Term.Status, SOIBv2.Current.Status, SOIBv2.Priority.Status)
+           SOIBv2.Long.Term.Status, SOIBv2.Current.Status, SOIBv2.Range.Status, SOIBv2.Priority.Status)
 
 write.csv(main, file = main_path, row.names = F)
 
@@ -983,7 +994,10 @@ summary_status = data.frame(Category = cats_trend) %>%
               magrittr::set_colnames(c("Category", "Long.Term"))) %>% 
   left_join(main %>% 
               count(SOIBv2.Current.Status) %>% 
-              magrittr::set_colnames(c("Category", "Current")))
+              magrittr::set_colnames(c("Category", "Current"))) %>% 
+  left_join(main %>% 
+              count(SOIBv2.Range.Status) %>% 
+              magrittr::set_colnames(c("Category", "Range")))
 
 priority_summary = main %>% 
   filter(!is.na(SOIBv2.Priority.Status)) %>% # count() counts NA also

@@ -12,7 +12,7 @@ my_assignment <- 1:100 # CHANGE FOR YOUR SUBSET
 # STEP 1: Create subsampled data files using subsampled GROUP.IDs
 # Requires:
 # - tidyverse, tictoc
-# - data files (ALL in 00_data/):
+# - data files:
 #   - "dataforanalyses.RData"
 #   - "randomgroupids.RData"
 # Outputs:
@@ -30,7 +30,7 @@ tictoc::toc()
 # STEP 2: Run trends models for all selected species
 # Requires:
 # - tidyverse, tictoc, lme4, VGAM, parallel, foreach, doParallel
-# - data files (ALL in 00_data/):
+# - data files:
 #   - "dataforanalyses.RData"
 #   - "specieslists.RData"
 # Outputs:

@@ -24,8 +24,8 @@ source("00_scripts/00_functions.R")
 # - "eBird_location_data.csv"
 # - "rawdata.RData"
 
-readcleanrawdata(rawpath = "00_data/ebd_IN_relFeb-2023.txt", 
-                 sensitivepath = "00_data/ebd_sensitive_relFeb-2023_IN.txt")
+readcleanrawdata(rawpath = "00_data/ebd_IN_relMay-2023.txt", 
+                 sensitivepath = "00_data/ebd_sensitive_relMay-2023_IN.txt")
 
 
 # STEP 2: Create sf map of SoIB2 habitat masks
@@ -145,7 +145,7 @@ source("00_scripts/filter_data_for_species.R")
 # - every time "sub_samp_locs.csv" is updated
 # Requires:
 # - tidyverse, parallel, foreach, doParallel, tictoc
-# - data files (ALL in 00_data/):
+# - data files:
 #   - "sub_samp_locs.csv" for whole country and individual mask versions
 # Outputs:
 # - "randomgroupids.RData" for whole country and individual mask versions
@@ -156,7 +156,7 @@ load("00_data/analyses_metadata.RData")
 cur_mask <- "none"
 tictoc::tic("generated random group IDs for full country")
 source("00_scripts/create_random_groupids.R")
-tictoc::toc() # 83 min
+tictoc::toc() # 86 min
 
 cur_mask <- "woodland"
 tictoc::tic("generated random group IDs for woodland")
@@ -202,10 +202,10 @@ load("00_data/analyses_metadata.RData")
 # FULL COUNTRY
 
 cur_mask <- "none"
-my_assignment <- 201:400 # CHANGE FOR YOUR SUBSET
+my_assignment <- 1:100 # CHANGE FOR YOUR SUBSET
 tictoc::tic(glue("Generated subsampled data for full country (# {min(my_assignment)}:{max(my_assignment)})"))
 source("00_scripts/create_random_datafiles.R")
-tictoc::toc() 
+tictoc::toc() # 462 min (~ 8 h)
 
 
 # INDIVIDUAL MASKS
@@ -244,7 +244,7 @@ tictoc::toc() #
 # - after above step (P2, S2)
 # Requires:
 # - tidyverse, tictoc, lme4, VGAM, parallel, foreach, doParallel
-# - data files (ALL in 00_data/):
+# - data files:
 #   - "dataforanalyses.RData" for whole country and individual mask versions
 #   - "specieslists.RData" for whole country and individual mask versions
 # Outputs:
@@ -254,10 +254,10 @@ load("00_data/analyses_metadata.RData")
 
 # not functionising because parallelisation doesn't work inside functions
 cur_mask <- "none"
-my_assignment <- 122:200 # CHANGE FOR YOUR SUBSET
+my_assignment <- 1:100 # CHANGE FOR YOUR SUBSET
 tictoc::tic(glue("Species trends for full country (sims {min(my_assignment)}--{max(my_assignment)})"))
 source("00_scripts/run_species_trends.R")
-tictoc::toc() 
+tictoc::toc() # 102 hours
 
 cur_mask <- "woodland"
 my_assignment <- 101:200 # CHANGE FOR YOUR SUBSET
@@ -291,6 +291,51 @@ tictoc::toc() #
 
 
 
+# STEP 2: Resolve trends for all selected species and generate necessary outputs
+# Run:
+# - after above step (P3, S1)
+# Requires:
+# - tidyverse, tictoc, VGAM
+# - data files:
+#   - fullspecieslist.csv
+#   - trends/trendsX.csv for whole country and individual mask versions
+# Outputs: several
+
+load("00_data/analyses_metadata.RData")
+
+# not functionising because parallelisation doesn't work inside functions
+cur_mask <- "none"
+tictoc::tic(glue("Resolved trends for full country"))
+source("00_scripts/resolve_trends.R")
+tictoc::toc() 
+
+cur_mask <- "woodland"
+tictoc::tic(glue("Resolved trends for {cur_mask}"))
+source("00_scripts/resolve_trends.R")
+tictoc::toc() 
+
+cur_mask <- "cropland"
+tictoc::tic(glue("Resolved trends for {cur_mask}"))
+source("00_scripts/resolve_trends.R")
+tictoc::toc() 
+
+cur_mask <- "ONEland"
+tictoc::tic(glue("Resolved trends for {cur_mask}"))
+source("00_scripts/resolve_trends.R")
+tictoc::toc() 
+
+cur_mask <- "PA"
+tictoc::tic(glue("Resolved trends for {cur_mask}"))
+source("00_scripts/resolve_trends.R")
+tictoc::toc() 
+
+cur_mask <- "Kerala"
+tictoc::tic(glue("Resolved trends for {cur_mask}"))
+source("00_scripts/resolve_trends.R")
+tictoc::toc() 
+
+
+
   ###################                       PART 3                     ###################################
 ## provide "dataforanalyses.RData", "neighbours.RData", "indiaspecieslist.csv" and 
 ## "Migratory Status - Migratory Status.csv"
@@ -302,45 +347,6 @@ tictoc::toc() #
 ## provides occupancy estimates for one or many species
 ## select one or more Indian bird species
 ## requires tidyverse, reshape2, data.table, unmarked
-## "neighbours.RData", "indiaspecieslist", "Migratory Status - Migratory Status.csv" 
-## MUST BE in the home folder
-## returns a dataframe with occupancy values
-
-
-source('00_scripts/SoIBv2_functions.R')
-occ = SoIBoccupancy(data,species,areag=areag1)
-
-## for the final run, species = specieslist$COMMON.NAME (or this incrementally)
-
-source('00_scripts/SoIBv2_functions.R')
-load("00_data/dataforanalyses.RData")
-#load("finaloccupancy.RData")
-
-#occ = SoIBoccupancy(data,species = specieslist$COMMON.NAME[1],areag = areag1)
-
-occ = read.csv("occ.csv")
-speciesleft = setdiff(specieslist$COMMON.NAME,occ$species)
-
-#for (i in 2:length(specieslist$COMMON.NAME))
-for (i in 1:length(speciesleft))
-{
-  #occ1 = SoIBoccupancy(data,species = specieslist$COMMON.NAME[i],areag = areag1)
-  occ1 = SoIBoccupancy(data,species = speciesleft[i],areag = areag1)
-  occ = rbind(occ,occ1)
-  write.csv(occ,"occ.csv",row.names=FALSE)
-}
-
-for (i in 1:length(restrictedspecieslist$COMMON.NAME))
-{
-  species = restrictedspecieslist$COMMON.NAME[i]
-  start = Sys.time()
-  tre <- freqtrendsrestricted(data,species,specieslist = restrictedspecieslist,nsim = 1000)
-  #tre <- freqtrends(data,species,specieslist = restrictedspecieslist)
-  name = paste(species,".RData",sep="")
-  save(tre,file = name)
-  end = Sys.time()
-  print(end-start)
-}
 
 
 

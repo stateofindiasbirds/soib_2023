@@ -1,4 +1,4 @@
-SOIBv2.Long.Term.Status,SOIBv2.Current.Status,SOIB.Range.Status,SOIBv2.Priority.Status
+SOIBv2.Long.Term.Status,SOIBv2.Current.Status,SOIBv2.Range.Status,SOIBv2.Priority.Status
 Rapid Decline,Rapid Decline,Very Restricted,High
 Decline,Rapid Decline,Very Restricted,High
 eBird Data Deficient,Rapid Decline,Very Restricted,High
@@ -244,3 +244,52 @@ eBird Data Inconclusive,Rapid Increase,Large,Low
 Stable,Rapid Increase,Large,Low
 Increase,Rapid Increase,Large,Low
 Rapid Increase,Rapid Increase,Large,Low
+Rapid Decline,Rapid Decline,Historical,Low
+Decline,Rapid Decline,Historical,Low
+eBird Data Deficient,Rapid Decline,Historical,Low
+eBird Data Inconclusive,Rapid Decline,Historical,Low
+Stable,Rapid Decline,Historical,Low
+Increase,Rapid Decline,Historical,Low
+Rapid Increase,Rapid Decline,Historical,Low
+Rapid Decline,Decline,Historical,Low
+Decline,Decline,Historical,Low
+eBird Data Deficient,Decline,Historical,Low
+eBird Data Inconclusive,Decline,Historical,Low
+Stable,Decline,Historical,Low
+Increase,Decline,Historical,Low
+Rapid Increase,Decline,Historical,Low
+Rapid Decline,eBird Data Deficient,Historical,Low
+Decline,eBird Data Deficient,Historical,Low
+eBird Data Deficient,eBird Data Deficient,Historical,Low
+eBird Data Inconclusive,eBird Data Deficient,Historical,Low
+Stable,eBird Data Deficient,Historical,Low
+Increase,eBird Data Deficient,Historical,Low
+Rapid Increase,eBird Data Deficient,Historical,Low
+Rapid Decline,eBird Data Inconclusive,Historical,Low
+Decline,eBird Data Inconclusive,Historical,Low
+eBird Data Deficient,eBird Data Inconclusive,Historical,Low
+eBird Data Inconclusive,eBird Data Inconclusive,Historical,Low
+Stable,eBird Data Inconclusive,Historical,Low
+Increase,eBird Data Inconclusive,Historical,Low
+Rapid Increase,eBird Data Inconclusive,Historical,Low
+Rapid Decline,Stable,Historical,Low
+Decline,Stable,Historical,Low
+eBird Data Deficient,Stable,Historical,Low
+eBird Data Inconclusive,Stable,Historical,Low
+Stable,Stable,Historical,Low
+Increase,Stable,Historical,Low
+Rapid Increase,Stable,Historical,Low
+Rapid Decline,Increase,Historical,Low
+Decline,Increase,Historical,Low
+eBird Data Deficient,Increase,Historical,Low
+eBird Data Inconclusive,Increase,Historical,Low
+Stable,Increase,Historical,Low
+Increase,Increase,Historical,Low
+Rapid Increase,Increase,Historical,Low
+Rapid Decline,Rapid Increase,Historical,Low
+Decline,Rapid Increase,Historical,Low
+eBird Data Deficient,Rapid Increase,Historical,Low
+eBird Data Inconclusive,Rapid Increase,Historical,Low
+Stable,Rapid Increase,Historical,Low
+Increase,Rapid Increase,Historical,Low
+Rapid Increase,Rapid Increase,Historical,Low
