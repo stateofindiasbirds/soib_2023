@@ -6,11 +6,9 @@ source('00_scripts/00_functions.R')
 
 load("01_analyses_full/dataforanalyses.RData")
 load("01_analyses_full/specieslists.RData")
-load("00_data/neighbours.RData")
 
 fullmap = read.csv("00_data/SoIB_mapping_2022.csv")
-soiblist = c(specieslist$COMMON.NAME,"Horsfield's Bushlark","Nicobar Jungle Flycatcher","Nicobar Megapode",
-             "Asian Pal Swift","Blyth's Swift")
+soiblist = specieslist$COMMON.NAME
 
 doublespecies0 = fullmap %>%
   filter(Migratory.Status.Within.India %in% c("Resident",
