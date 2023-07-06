@@ -1234,7 +1234,9 @@ rm_prob_mistakes <- function(data) {
     anti_join(mistake5) %>% 
     anti_join(mistake6) %>% 
     # removing Orange Ground-Thrush
-    filter(COMMON.NAME != "Orange Ground-Thrush")
+    filter(COMMON.NAME != "Orange Ground-Thrush") %>% 
+    # removing TEMP.REGION column
+    mutate(TEMP.REGION = NULL)
   
   return(filtered)
   

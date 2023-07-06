@@ -43,7 +43,7 @@
 "Common Merganser","Mergus merganser","","","",11,0.272727272727273,0.142857142857143,0.181818181818182,10.5454545454545,1.57164040216552
 "Red-breasted Merganser","Mergus serrator","","","",NA,NA,NA,NA,NA,NA
 "White-headed Duck","Oxyura leucocephala","","","",NA,NA,NA,NA,NA,NA
-"Nicobar Scrubfowl","Megapodius nicobariensis","","","",NA,NA,NA,NA,NA,NA
+"Nicobar Megapode","Megapodius nicobariensis","","","",NA,NA,NA,NA,NA,NA
 "Hill Partridge","Arborophila torqueola","","","",NA,NA,NA,NA,NA,NA
 "Chestnut-breasted Partridge","Arborophila mandellii","","","",NA,NA,NA,NA,NA,NA
 "Rufous-throated Partridge","Arborophila rufogularis","","","",NA,NA,NA,NA,NA,NA
@@ -190,7 +190,7 @@
 "Dark-rumped Swift","Apus acuticauda","","","",1,NA,1,NA,17,NA
 "Little Swift","Apus affinis","","","",1185,0.0607594936708861,0.317088607594937,0.508860759493671,8.33333333333333,0.292669560985805
 "House Swift","Apus nipalensis","","","",NA,NA,NA,NA,NA,NA
-"Asian Palm-Swift","Cypsiurus balasiensis","","","",NA,NA,NA,NA,NA,NA
+"Asian Palm Swift","Cypsiurus balasiensis","","","",724,0.0428176795580111,0.34478591160221,0.526243093922652,8.95580110497237,0.407103159111339
 "Crested Treeswift","Hemiprocne coronata","","","",119,0.0504201680672269,0.204831932773109,0.394957983193277,10.9075630252101,1.03874540297356
 "Water Rail","Rallus aquaticus","","","",23,0.0869565217391304,0.273291925465839,0.391304347826087,12.5217391304348,2.50078100191165
 "Brown-cheeked Rail","Rallus indicus","","","",NA,NA,NA,NA,NA,NA
@@ -729,7 +729,7 @@
 "Desert Lark","Ammomanes deserti","","","",2,NA,0.5,0.5,8.5,6.86
 "Black-crowned Sparrow-Lark","Eremopterix nigriceps","","","",7,NA,0.232142857142857,0.285714285714286,8.42857142857143,3.65075334691348
 "Ashy-crowned Sparrow-Lark","Eremopterix griseus","X","X","X",1181,0.0558848433530906,0.336896697713802,0.468247248094835,8.12023708721422,0.298971381282846
-"Horsefield's Bushlark","Mirafra javanica","","","X",NA,NA,NA,NA,NA,NA
+"Horsfield's Bushlark","Mirafra javanica","","","X",33,0.0606060606060606,0.204545454545455,0.333333333333333,9.33333333333333,1.72855752322887
 "Bengal Bushlark","Mirafra assamica","","X","X",203,0.0344827586206897,0.303571428571429,0.394088669950739,8.42857142857143,0.657442409920885
 "Jerdon's Bushlark","Mirafra affinis","","X","X",180,0.0722222222222222,0.420833333333333,0.605555555555556,12.2277777777778,0.832851386231063
 "Indian Bushlark","Mirafra erythroptera","X","X","X",662,0.0498489425981873,0.299093655589124,0.416918429003021,8.74018126888217,0.384766961700022
@@ -1120,7 +1120,7 @@
 "Large Blue Flycatcher","Cyornis magnirostris","","","",NA,NA,NA,NA,NA,NA
 "Hill Blue Flycatcher","Cyornis whitei","","","",NA,NA,NA,NA,NA,NA
 "Tickell's Blue Flycatcher","Cyornis tickelliae","","","",398,0.0301507537688442,0.313442211055276,0.474874371859296,10.1331658291457,0.550575234281535
-"Nicobar Jungle-Flycatcher","Cyornis nicobaricus","","","",NA,NA,NA,NA,NA,NA
+"Nicobar Jungle Flycatcher","Cyornis nicobaricus","","","",NA,NA,NA,NA,NA,NA
 "Large Niltava","Niltava grandis","","","",1,NA,1,NA,14,NA
 "Small Niltava","Niltava macgrigoriae","","","",7,0.142857142857143,0.257142857142857,0.285714285714286,10.1428571428571,2.24
 "Rufous-bellied Niltava","Niltava sundara","","","",6,NA,0.375,0.5,13.5,4.71351814819179

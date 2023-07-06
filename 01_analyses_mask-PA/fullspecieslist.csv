@@ -43,7 +43,7 @@
 "Common Merganser","Mergus merganser","","X","X",57,0.280701754385965,0.322368421052632,0.491228070175439,6.14035087719298,0.874116851944046
 "Red-breasted Merganser","Mergus serrator","","","",NA,NA,NA,NA,NA,NA
 "White-headed Duck","Oxyura leucocephala","","","",NA,NA,NA,NA,NA,NA
-"Nicobar Scrubfowl","Megapodius nicobariensis","","","X",NA,NA,NA,NA,NA,NA
+"Nicobar Megapode","Megapodius nicobariensis","","","X",3,0.333333333333333,0.333333333333333,NA,2.33333333333333,1.30666666666667
 "Hill Partridge","Arborophila torqueola","","","X",42,NA,0.380952380952381,0.619047619047619,5.26190476190476,0.949498227206789
 "Chestnut-breasted Partridge","Arborophila mandellii","","","X",5,0.2,0.333333333333333,0.6,6,1.75307729435983
 "Rufous-throated Partridge","Arborophila rufogularis","","","",15,0.0666666666666667,0.219047619047619,0.2,6.13333333333333,1.5988084452005
@@ -186,11 +186,11 @@
 "Alpine Swift","Apus melba","","X","X",146,0.116438356164384,0.274828767123288,0.363013698630137,7.78082191780822,0.7874396176277
 "Common Swift","Apus apus","","","",35,0.0285714285714286,0.204081632653061,0.514285714285714,5.91428571428571,0.896102935263709
 "Pacific Swift","Apus pacificus","","","",NA,NA,NA,NA,NA,NA
-"Blyth's Swift","Apus leuconyx","","","",24,0.0833333333333333,0.118055555555556,0.125,8.58333333333333,1.72553527366911
+"Blyth's Swift","Apus leuconyx","","","X",24,0.0833333333333333,0.118055555555556,0.125,8.58333333333333,1.72553527366911
 "Dark-rumped Swift","Apus acuticauda","","","X",1,NA,1,NA,1,NA
 "Little Swift","Apus affinis","X","X","X",433,0.147806004618938,0.334295612009238,0.570438799076212,5.63741339491917,0.401417634169912
 "House Swift","Apus nipalensis","","","",NA,NA,NA,NA,NA,NA
-"Asian Palm-Swift","Cypsiurus balasiensis","","","",NA,NA,NA,NA,NA,NA
+"Asian Palm Swift","Cypsiurus balasiensis","X","X","X",315,0.120634920634921,0.422222222222222,0.593650793650794,5.54920634920635,0.478129600051315
 "Crested Treeswift","Hemiprocne coronata","X","X","X",221,0.18552036199095,0.369343891402715,0.565610859728507,7.05882352941176,0.639645699472134
 "Water Rail","Rallus aquaticus","","","",5,0.2,0.433333333333333,0.4,4.8,2.51002470107368
 "Brown-cheeked Rail","Rallus indicus","","","",2,NA,0.5,0.5,10,1.96
@@ -729,7 +729,7 @@
 "Desert Lark","Ammomanes deserti","","","",3,0.666666666666667,0.571428571428571,0.666666666666667,8.33333333333333,3.97407151979484
 "Black-crowned Sparrow-Lark","Eremopterix nigriceps","","","",5,0.2,0.5,0.4,5.4,4.1392675680608
 "Ashy-crowned Sparrow-Lark","Eremopterix griseus","X","X","X",295,0.108474576271186,0.281779661016949,0.433898305084746,5.41016949152542,0.508922517570372
-"Horsefield's Bushlark","Mirafra javanica","","","X",NA,NA,NA,NA,NA,NA
+"Horsfield's Bushlark","Mirafra javanica","","","X",7,0.285714285714286,0.19047619047619,0.142857142857143,4.14285714285714,2.15678773488105
 "Bengal Bushlark","Mirafra assamica","","","X",53,0.150943396226415,0.294811320754717,0.471698113207547,5,0.93561308415984
 "Jerdon's Bushlark","Mirafra affinis","","X","X",86,0.0930232558139535,0.324127906976744,0.5,6.24418604651163,1.07863285767828
 "Indian Bushlark","Mirafra erythroptera","","X","X",145,0.110344827586207,0.260344827586207,0.43448275862069,5.63448275862069,0.722041583718949
@@ -1120,7 +1120,7 @@
 "Large Blue Flycatcher","Cyornis magnirostris","","","X",2,NA,0.5,0.5,5,0
 "Hill Blue Flycatcher","Cyornis whitei","","","",2,NA,0.5,0.5,8,5.88
 "Tickell's Blue Flycatcher","Cyornis tickelliae","X","X","X",307,0.120521172638436,0.422231270358306,0.618892508143323,5.9185667752443,0.512500059357789
-"Nicobar Jungle-Flycatcher","Cyornis nicobaricus","","","X",NA,NA,NA,NA,NA,NA
+"Nicobar Jungle Flycatcher","Cyornis nicobaricus","","","X",3,NA,0.380952380952381,0.666666666666667,2.33333333333333,1.30666666666667
 "Large Niltava","Niltava grandis","","","",32,0.15625,0.38671875,0.5,5.78125,1.10879364026565
 "Small Niltava","Niltava macgrigoriae","","X","X",77,0.12987012987013,0.345779220779221,0.454545454545455,5.25974025974026,0.731359331915096
 "Rufous-bellied Niltava","Niltava sundara","","X","X",81,0.135802469135802,0.300925925925926,0.419753086419753,5.32098765432099,0.707213978251917

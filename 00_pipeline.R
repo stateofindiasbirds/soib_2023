@@ -6,7 +6,11 @@ library(tictoc)
 source("00_scripts/00_functions.R")
 
 
-# create and save metadata for processing analyses for various masks
+# PART 0 (paths) ----------------------------------------------------------
+
+# create and save metadata for processing analyses for various masks.
+# (run only when there are changes to paths. else loaded directly in each Step.)
+
 analyses_metadata <- data.frame(MASK = c("none", 
                                          "woodland", "cropland", "ONEland", 
                                          "PA",
@@ -236,7 +240,7 @@ tictoc::toc() #
 # Requires:
 # - tidyverse, tictoc, lme4, VGAM, parallel, foreach, doParallel
 # - data files:
-#   - "dataforanalyses.RData" for whole country and individual mask versions
+#   - "dataforsim/dataX.csv" for whole country and individual mask versions
 #   - "specieslists.RData" for whole country and individual mask versions
 # Outputs:
 # - "trends/trendsX.csv" for whole country and individual mask versions
