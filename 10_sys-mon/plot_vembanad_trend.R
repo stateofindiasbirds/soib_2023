@@ -129,7 +129,7 @@ for (i in 1:length(selectspecies))
   
   ggpx3 = ggdraw(ggpx)
   
-  name = paste("10_sys-mon/outputs/vembanad AWC/",sps,".jpg",sep="")
+  name = paste("10_sys-mon/output/vembanad_AWC/",sps,".jpg",sep="")
   jpeg(name, units="in", width=11, height=7, res=1000, bg="transparent")
   grid::grid.draw(ggpx3)
   dev.off()
@@ -293,7 +293,7 @@ ggpx = ggp +
 
 ggpx3 = ggdraw(ggpx)
 
-name = paste("10_sys-mon/outputs/vembanad AWC/composites/",sps,".jpg",sep="")
+name = paste("10_sys-mon/output/vembanad_AWC/",sps,".jpg",sep="")
 jpeg(name, units="in", width=11, height=7, res=1000, bg="transparent")
 grid::grid.draw(ggpx3)
 dev.off()
@@ -402,7 +402,7 @@ ggpx = ggp +
 
 ggpx3 = ggdraw(ggpx)
 
-name = paste("10_sys-mon/outputs/vembanad AWC/total/",sps,".jpg",sep="")
+name = paste("10_sys-mon/output/vembanad_AWC/",sps,".jpg",sep="")
 jpeg(name, units="in", width=11, height=7, res=1000, bg="transparent")
 grid::grid.draw(ggpx3)
 dev.off()

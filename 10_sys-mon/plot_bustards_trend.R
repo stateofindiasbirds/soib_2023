@@ -11,18 +11,19 @@ library(stringr)
 
 ## independent (encounter rate - detections per km)
 
-indtrends = read.csv("10_sys-mon/data/hornbills_papumrf.csv")
-sps = "Hornbills in Papum RF"
+indtrends = read.csv("10_sys-mon/data/bustards.csv")
+sps = "Bustards and Floricans"
 
 temp = indtrends
 
-t1 = temp[temp$timegroups == 2022,]
+temp = temp %>% group_by(COMMON.NAME) %>% mutate(ly = last(timegroups), fy = first(timegroups))
+t1 = temp[temp$timegroups == temp$ly,]
 t1 = t1 %>% arrange(desc(mean))
 order = t1$COMMON.NAME
 
 
 temp$COMMON.NAME = factor(temp$COMMON.NAME, 
-                      levels = order)
+                          levels = order)
 
 #loadfonts(device = "win")
 
@@ -39,10 +40,19 @@ cols1 = cols[c(1:ns)]
 bks1 = sort(unique(temp$COMMON.NAME))
 lbs1 = sort(unique(temp$COMMON.NAME))
 
-tg = c("2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022")
+tg.num = sort(unique(temp$timegroups))
+for (i in 1:(length(tg.num)-1))
+{
+  if ((tg.num[i+1] - tg.num[i]) <= 1)
+    tg.num[i] = tg.num[i+1]
+}
+tg.num = unique(tg.num)
+tg.num = c(1968,tg.num)
+tg = as.character(tg.num)
 
 #loadfonts(device = "win")
 
+temp$cil = temp$cir = temp$mean
 range = max(temp$cir)-min(temp$cil)
 
 liml = min(temp$cil)-0.1*range
@@ -52,14 +62,13 @@ lm = liml
 limu = max(temp$cir)+0.1*range
 um = limu
 
-ybreaks = round(seq(liml,limu,length.out=5),1)
+ybreaks = round(seq(liml,limu,length.out=5),-1)
 ybreaksl = round(ybreaks,1)
 
 
 ######################### get the x-axis right
 
-
-x_tick_preBas = seq(2015, 2022) + 0.5
+x_tick_preBas = tg.num + 0.5
 
 temp$COMMON.NAMEy = as.character(temp$COMMON.NAME)
 temp$COMMON.NAMEz = as.character(temp$COMMON.NAME)
@@ -86,34 +95,32 @@ for (k in 1:length(temp$COMMON.NAME))
   }
 }
 
-temp$COMMON.NAMEx[temp$timegroups != "2016"] = ""
+temp$COMMON.NAMEx[temp$timegroups != temp$fy] = ""
 
 tlow = temp %>%
   select(COMMON.NAME,timegroups) %>%
   arrange(COMMON.NAME,timegroups) %>%
   group_by(COMMON.NAME) %>% slice(1) %>% ungroup()
 
+t1 = min(tlow$timegroups)
 tlow = max(tlow$timegroups)
 
 
-
-pd = position_dodge(0.3)
-
 ggp = ggplot(temp, aes(x = timegroups, y = mean, col = COMMON.NAME, label = COMMON.NAMEx)) +
-  geom_line(linewidth = 2, position = pd) +
-  geom_errorbar(aes(ymin = cil, ymax = cir), linewidth = 1, width = 0.2, position = pd) +
+  geom_line(linewidth = 2) +
+  geom_errorbar(aes(ymin = cil, ymax = cir), linewidth = 1, width = 0.2) +
   #geom_point(size = 3) +
-  geom_text_repel(nudge_x = -0.65, direction = "y", hjust = "center", size = 4, 
+  geom_text_repel(nudge_x = -2, direction = "y", hjust = "center", size = 4, 
                   min.segment.length = Inf, fontface = c("bold")) +
   #geom_point(size = 3) +
   ggtitle(sps) +
   geom_bracket(
     inherit.aes = FALSE, 
-    xmin = c(seq(2015, 2021)) + 0.5, 
-    xmax = c(seq(2016, 2022)) + 0.5,
+    xmin = tg.num[-length(tg.num)] + 0.5, 
+    xmax = tg.num[-1] + 0.5,
     y.position = lm-0.01*range,
-    bracket.shorten = 0.15,
-    tip.length = 0.03,
+    bracket.shorten = 0,
+    tip.length = 0,
     vjust = 2,
     label = tg[-1],
     label.size = 4) +
@@ -124,16 +131,16 @@ ggp = ggplot(temp, aes(x = timegroups, y = mean, col = COMMON.NAME, label = COMM
                     labels = lbs1,
                     values = cols1) +
   scale_x_continuous(
-    breaks = c(seq(2016, 2022), x_tick_preBas),
-    labels = c(paste0(seq(2016, 2022)), rep(c(""), length(x_tick_preBas))),
-    limits = c(2015.09, 2022.7)) +
-  geom_segment(x = tlow, y = ybreaks[1], xend = 2022, yend = ybreaks[1], linetype = "dotted", linewidth = 0.7, col = tcol) +
-  geom_segment(x = tlow, y = ybreaks[2], xend = 2022, yend = ybreaks[2], linetype = "dotted", linewidth = 0.7, col = tcol) +
-  geom_segment(x = tlow, y = ybreaks[3], xend = 2022, yend = ybreaks[3], linetype = "dotted", linewidth = 0.7, col = tcol) +
-  geom_segment(x = tlow, y = ybreaks[4], xend = 2022, yend = ybreaks[4], linetype = "dotted", linewidth = 0.7, col = tcol) +
-  geom_segment(x = tlow, y = ybreaks[5], xend = 2022, yend = ybreaks[5], linetype = "dotted", linewidth = 0.7, col = tcol) +
+    breaks = c(tg.num, x_tick_preBas),
+    labels = c(paste0(tg), rep(c(""), length(x_tick_preBas))),
+    limits = c(1967, 2025)) +
+  geom_segment(x = t1, y = ybreaks[1], xend = 2022, yend = ybreaks[1], linetype = "dotted", linewidth = 0.7, col = tcol) +
+  geom_segment(x = t1, y = ybreaks[2], xend = 2022, yend = ybreaks[2], linetype = "dotted", linewidth = 0.7, col = tcol) +
+  geom_segment(x = t1, y = ybreaks[3], xend = 2022, yend = ybreaks[3], linetype = "dotted", linewidth = 0.7, col = tcol) +
+  geom_segment(x = t1, y = ybreaks[4], xend = 2022, yend = ybreaks[4], linetype = "dotted", linewidth = 0.7, col = tcol) +
+  geom_segment(x = t1, y = ybreaks[5], xend = 2022, yend = ybreaks[5], linetype = "dotted", linewidth = 0.7, col = tcol) +
   xlab("Time-steps") +
-  ylab("Encounter rate (per km)")
+  ylab("Population estimate")
 
 ggpx = ggp +
   theme(axis.title.x = element_blank(), 
@@ -148,15 +155,15 @@ ggpx = ggp +
                      labels = c(ybreaksl[1],ybreaksl[2],ybreaksl[3],
                                 ybreaksl[4],ybreaksl[5]),
                      position = "left")+
-  annotate("text", x = 2022.7, y = ybreaks[1], label = ybreaksl[1], 
+  annotate("text", x = 2024, y = ybreaks[1], label = ybreaksl[1], 
            colour = "#56697B", family="Gill Sans MT", size = 6)+
-  annotate("text", x = 2022.7, y = ybreaks[2], label = ybreaksl[2], 
+  annotate("text", x = 2024, y = ybreaks[2], label = ybreaksl[2], 
            colour = "#56697B", family="Gill Sans MT", size = 6)+
-  annotate("text", x = 2022.7, y = ybreaks[3], label = ybreaksl[3], 
+  annotate("text", x = 2024, y = ybreaks[3], label = ybreaksl[3], 
            colour = "#56697B", family="Gill Sans MT", size = 6)+
-  annotate("text", x = 2022.7, y = ybreaks[4], label = ybreaksl[4], 
+  annotate("text", x = 2024, y = ybreaks[4], label = ybreaksl[4], 
            colour = "#56697B", family="Gill Sans MT", size = 6)+
-  annotate("text", x = 2022.7, y = ybreaks[5], label = ybreaksl[5], 
+  annotate("text", x = 2024, y = ybreaks[5], label = ybreaksl[5], 
            colour = "#56697B", family="Gill Sans MT", size = 6)+
   coord_cartesian(ylim = c(lm-0.1*range,um+0.1*range), clip="off")+
   theme(panel.grid.major = element_blank(),
@@ -173,7 +180,7 @@ ggpx = ggp +
 
 ggpx3 = ggdraw(ggpx)
 
-name = paste("10_sys-mon/output/hornbills_papum/",sps,"_","independent.jpg",sep="")
+name = paste("10_sys-mon/output/bustards/",sps,"_","independent.jpg",sep="")
 jpeg(name, units="in", width=11, height=7, res=1000, bg="transparent")
 grid::grid.draw(ggpx3)
 dev.off()
