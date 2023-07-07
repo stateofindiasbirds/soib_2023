@@ -6,6 +6,52 @@ library(tictoc)
 source("00_scripts/00_functions.R")
 
 
+# PART 0 (paths) ----------------------------------------------------------
+
+# create and save metadata for processing analyses for various masks.
+# (run only when there are changes to paths. else loaded directly in each Step.)
+
+analyses_metadata <- data.frame(MASK = c("none", 
+                                         "woodland", "cropland", "ONEland", 
+                                         "PA",
+                                         "Kerala")) %>% 
+  mutate(FOLDER = case_when(MASK == "none" ~ "01_analyses_full/", 
+                            MASK %in% c("woodland", "cropland", "ONEland", "PA") ~ glue("01_analyses_mask-{MASK}/"),
+                            TRUE ~ glue("01_analyses_states/{MASK}/"))) %>% 
+  mutate(FULLSPECLIST.PATH = glue("{FOLDER}fullspecieslist.csv"),
+         LOCS.PATH = glue("{FOLDER}sub_samp_locs.csv"),
+         SPECLISTDATA.PATH = glue("{FOLDER}specieslists.RData"),
+         DATA.PATH = glue("{FOLDER}dataforanalyses.RData"),
+         RAND.GROUP.IDS.PATH = glue("{FOLDER}randomgroupids.RData"),
+         
+         SIMDATA.PATHONLY = glue("{FOLDER}dataforsim/"),
+         TRENDS.PATHONLY = glue("{FOLDER}trends/"),
+         OCCU.PRES.PATHONLY = glue("{FOLDER}occupancy-presence/"),
+         OCCU.MOD.PATHONLY = glue("{FOLDER}occupancy-model/"),
+         RESULTS = glue("{FOLDER}results/"),
+         
+         CURSENS.PATH = glue("{RESULTS}current_sensitivity.csv"),
+         TRENDS.OUTPATH = glue("{RESULTS}trends.csv"),
+         OCCU.OUTPATH = glue("{RESULTS}occupancy/"),
+         SOIBMAIN.WOCATS.PATH = glue("{RESULTS}SoIB_main_wocats.csv"),
+         SOIBMAIN.PATH = glue("{RESULTS}SoIB_main.csv"),
+         SUMMARY.PATH = glue("{RESULTS}summary_status.csv"),
+         PRIORITY.PATH = glue("{RESULTS}priority_status.csv"),
+         SPECSUM.PATH = glue("{RESULTS}species_status.csv"))
+
+# ensuring folders are created if they don't already exist
+walk2(analyses_metadata$FOLDER, analyses_metadata$RESULTS, ~ {
+  
+  if (!dir.exists(.x)) {dir.create(.x, recursive = TRUE)}
+  
+  if (!dir.exists(.y)) {dir.create(.y, recursive = TRUE)}
+  
+})
+
+# for later reference
+save(analyses_metadata, file = "00_data/analyses_metadata.RData")
+
+
 # PART 1 ------------------------------------------------------------------
 
 # Run each step in order. May start from in between but progress sequentially down.
@@ -61,54 +107,7 @@ source("00_scripts/create_habitat_masks_dataframe.R")
 addmapvars()
 
 
-# STEP 4: create and save metadata for processing analyses for various masks
-# Run:
-# - every time analysis skeleton/various masks are updated
-# Requires:
-# - tidyverse, glue
-# Outputs:
-# - "analyses_metadata.RData"
-analyses_metadata <- data.frame(MASK = c("none", 
-                                         "woodland", "cropland", "ONEland", 
-                                         "PA",
-                                         "Kerala")) %>% 
-  mutate(FOLDER = case_when(MASK == "none" ~ "01_analyses_full/", 
-                            MASK %in% c("woodland", "cropland", "ONEland", "PA") ~ glue("01_analyses_mask-{MASK}/"),
-                            TRUE ~ glue("01_analyses_states/{MASK}/"))) %>% 
-  mutate(FULLSPECLIST.PATH = glue("{FOLDER}fullspecieslist.csv"),
-         LOCS.PATH = glue("{FOLDER}sub_samp_locs.csv"),
-         SPECLISTDATA.PATH = glue("{FOLDER}specieslists.RData"),
-         DATA.PATH = glue("{FOLDER}dataforanalyses.RData"),
-         RAND.GROUP.IDS.PATH = glue("{FOLDER}randomgroupids.RData"),
-         
-         SIMDATA.PATHONLY = glue("{FOLDER}dataforsim/"),
-         TRENDS.PATHONLY = glue("{FOLDER}trends/"),
-         RESULTS = glue("{FOLDER}results/"),
-         
-         CURSENS.PATH = glue("{RESULTS}current_sensitivity.csv"),
-         TRENDS.OUTPATH = glue("{RESULTS}trends.csv"),
-         SOIBMAIN.WOCATS.PATH = glue("{RESULTS}SoIB_main_wocats.csv"),
-         SOIBMAIN.PATH = glue("{RESULTS}SoIB_main.csv"),
-         SUMMARY.PATH = glue("{RESULTS}summary_status.csv"),
-         PRIORITY.PATH = glue("{RESULTS}priority_status.csv"),
-         SPECSUM.PATH = glue("{RESULTS}species_status.csv"))
-
-# ensuring folders are created if they don't already exist
-walk2(analyses_metadata$FOLDER, analyses_metadata$RESULTS, ~ {
-  
-  if (!dir.exists(.x)) {dir.create(.x, recursive = TRUE)}
-  
-  if (!dir.exists(.y)) {dir.create(.y, recursive = TRUE)}
-  
-})
-
-# for later reference
-save(analyses_metadata, 
-     file = "00_data/analyses_metadata.RData")
-
-
-
-# STEP 5: Process and filter data for analyses
+# STEP 4: Process and filter data for analyses
 # Run:
 # - every time "data.RData" is updated
 # Requires:
@@ -118,7 +117,6 @@ save(analyses_metadata,
 #   - "indiaspecieslist.csv" (common and scientific names of all species)
 #   - "SoIB_mapping_2022.csv"
 # Outputs:
-# - "analyses_metadata.RData"
 # - "dataforanalyses_extra.RData"
 # - "fullspecieslist.csv" for whole country and individual mask versions
 # - "sub_samp_locs.csv" for whole country and individual mask versions
@@ -245,7 +243,7 @@ tictoc::toc() #
 # Requires:
 # - tidyverse, tictoc, lme4, VGAM, parallel, foreach, doParallel
 # - data files:
-#   - "dataforanalyses.RData" for whole country and individual mask versions
+#   - "dataforsim/dataX.csv" for whole country and individual mask versions
 #   - "specieslists.RData" for whole country and individual mask versions
 # Outputs:
 # - "trends/trendsX.csv" for whole country and individual mask versions
