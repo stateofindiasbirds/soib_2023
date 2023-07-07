@@ -867,7 +867,11 @@ write.csv(main, file = mainwocats_path, row.names = F)
 # classification: assign SoIB Status categories (w/ sensitivity analysis) ----
 
 load("00_data/vagrantdata.RData")
-spec_vagrants <- d %>% distinct(COMMON.NAME) %>% as.character()
+# any vagrant reported recently
+spec_vagrants <- d %>% 
+  filter(year > 2017) %>% 
+  distinct(COMMON.NAME) %>%
+  as.vector() %>% list_c()
 
 # classifying into SoIB Status for long-term and current trends and range
 
@@ -1080,6 +1084,11 @@ main = main %>%
     SOIBv2.Long.Term.Status %in% cats_uncertain & 
       SOIBv2.Current.Status %in% cats_uncertain &
       IUCN.Category %in% c("Near Threatened", "Vulnerable") & 
+      SOIBv2.Priority.Status == "Low" ~ "Moderate",
+    
+    SOIBv2.Long.Term.Status == "eBird Data Deficient" & 
+      SOIBv2.Current.Status == "eBird Data Deficient" &
+      Endemic.Region != "None" & 
       SOIBv2.Priority.Status == "Low" ~ "Moderate",
     
     TRUE ~ SOIBv2.Priority.Status
