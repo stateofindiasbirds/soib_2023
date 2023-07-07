@@ -10,7 +10,7 @@ threegenperiod <- 2 * (TrendYears - 1) + 100
 
 # Read latest BLI 3gen values
 threegen <- read.csv("00_data/3genbli.csv") # No in repository. Contact paintedstork@gmail.com
-soib <- read.csv("01_analyses_full/SoIB_main.csv")   # Available in rep. after SoIB2 runs
+soib <- read.csv("01_analyses_full/results/SoIB_main.csv")   # Available in rep. after SoIB2 runs
 
 # Remove unwanted fields from freq
 soib <- soib %>% select ("India.Checklist.Common.Name",
@@ -55,13 +55,15 @@ soib <- soib %>% select ("India.Checklist.Common.Name",
 
 # Make a list of species for which soib data is available and declining
 species <- soib %>% 
-              filter ( Current.Analysis == "X", #Current trends available
-                       currentsloperci < 0, # Declining rci, which is used as a bound in redlisting
-                       mean5km > 8, # Atleast 1/3rd of a grid covered on an average
-                       1.96 * abs(currentslopemean) > abs(currentsloperci-currentslopelci), 
-                       (SOIBv2.Current.Status == "Stable") | (SOIBv2.Current.Status == "Decline") | (SOIBv2.Current.Status == "Rapid Decline")) %>%            
-                       select('India.Checklist.Common.Name', 'BLI.Scientific.Name') %>%
-                       as.data.frame()
+  filter(
+    Current.Analysis == "X", #Current trends available
+    currentsloperci < 0, # Declining rci, which is used as a bound in redlisting
+    mean5km > 8, # Atleast 1/3rd of a grid covered on an average
+    1.96 * abs(currentslopemean) > abs(currentsloperci-currentslopelci), 
+    (SOIBv2.Current.Status %in% c("Stable", "Decline", "Rapid Decline"))
+  ) %>%            
+  select('India.Checklist.Common.Name', 'BLI.Scientific.Name') %>%
+  as.data.frame()
 
 
 # Filter species whose 3GEN data is shorter than the period of reliable data
@@ -150,4 +152,4 @@ colnames(redlist) <- c ("Species",
                      "Projected Decline"
                      )
 
-write.csv(redlist, "01_analyses_full/redlist.csv", row.names = FALSE)
+write.csv(redlist, "01_analyses_full/results/redlist.csv", row.names = FALSE)

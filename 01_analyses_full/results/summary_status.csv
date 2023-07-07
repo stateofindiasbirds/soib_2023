@@ -1,8 +1,8 @@
-"Category","Long.Term","Current"
-"Rapid Decline",92,53
-"Decline",114,72
-"eBird Data Deficient",325,178
-"eBird Data Inconclusive",175,367
-"Stable",124,177
-"Increase",20,10
-"Rapid Increase",14,7
+"Category","Long.Term","Current","Range"
+"Rapid Decline",99,64,NA
+"Decline",110,78,NA
+"eBird Data Deficient",334,216,NA
+"eBird Data Inconclusive",174,284,NA
+"Stable",108,189,NA
+"Increase",19,17,NA
+"Rapid Increase",15,11,NA

@@ -108,14 +108,14 @@ save(data0, file = "00_data/dataforanalyses_extra.RData")
 
 tictoc::tic("dataspeciesfilter for full country")
 dataspeciesfilter(cur_mask = "none")
-tictoc::toc() # 423 sec
+tictoc::toc() # 495 sec
 
 
 # 2. processing: woodland mask ----------------------------------------------
 
 tictoc::tic("dataspeciesfilter for woodland mask")
 dataspeciesfilter(cur_mask = "woodland")
-tictoc::toc() # 211 sec
+tictoc::toc() # 240 sec
 
 
 # 3. processing: cropland mask ----------------------------------------------
@@ -143,4 +143,3 @@ tictoc::toc() # 80 sec
 
 tictoc::tic("dataspeciesfilter for Kerala state")
 dataspeciesfilter(cur_mask = "Kerala")
-tictoc::toc() # 140 sec

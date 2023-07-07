@@ -304,47 +304,33 @@ load("00_data/analyses_metadata.RData")
 # not functionising because parallelisation doesn't work inside functions
 cur_mask <- "none"
 tictoc::tic(glue("Resolved trends for full country"))
-source("00_scripts/resolve_trends.R")
-tictoc::toc() 
+source("00_scripts/resolve_trends_and_occupancy.R")
+tictoc::toc() # 5h 11m
 
 cur_mask <- "woodland"
-tictoc::tic(glue("Resolved trends for {cur_mask}"))
-source("00_scripts/resolve_trends.R")
+tictoc::tic(glue("Resolved trends & occupancy for {cur_mask}"))
+source("00_scripts/resolve_trends_and_occupancy.R")
 tictoc::toc() 
 
 cur_mask <- "cropland"
-tictoc::tic(glue("Resolved trends for {cur_mask}"))
-source("00_scripts/resolve_trends.R")
+tictoc::tic(glue("Resolved trends & occupancy for {cur_mask}"))
+source("00_scripts/resolve_trends_and_occupancy.R")
 tictoc::toc() 
 
 cur_mask <- "ONEland"
-tictoc::tic(glue("Resolved trends for {cur_mask}"))
-source("00_scripts/resolve_trends.R")
+tictoc::tic(glue("Resolved trends & occupancy for {cur_mask}"))
+source("00_scripts/resolve_trends_and_occupancy.R")
 tictoc::toc() 
 
 cur_mask <- "PA"
-tictoc::tic(glue("Resolved trends for {cur_mask}"))
-source("00_scripts/resolve_trends.R")
+tictoc::tic(glue("Resolved trends & occupancy for {cur_mask}"))
+source("00_scripts/resolve_trends_and_occupancy.R")
 tictoc::toc() 
 
 cur_mask <- "Kerala"
-tictoc::tic(glue("Resolved trends for {cur_mask}"))
-source("00_scripts/resolve_trends.R")
+tictoc::tic(glue("Resolved trends & occupancy for {cur_mask}"))
+source("00_scripts/resolve_trends_and_occupancy.R")
 tictoc::toc() 
-
-
-
-  ###################                       PART 3                     ###################################
-## provide "dataforanalyses.RData", "neighbours.RData", "indiaspecieslist.csv" and 
-## "Migratory Status - Migratory Status.csv"
-
-## ALL SUBSEQUENT ANALYSES REQUIRE DATA THAT HAS BEEN THROUGH THE PREVIOUS STEPS
-## if "dataforanalyses.RData" can be loaded and "indiaspecieslist.csv" is available, part 1 not required
-
-
-## provides occupancy estimates for one or many species
-## select one or more Indian bird species
-## requires tidyverse, reshape2, data.table, unmarked
 
 
 

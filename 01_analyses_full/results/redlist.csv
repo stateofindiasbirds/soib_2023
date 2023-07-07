@@ -1,0 +1,140 @@
+"Species","Range Coverage","Mean Grid Coverage","Long-term Decline","Current Annual Decline","Current Status","Conservation Priority","3GEN","3GEN Decline","Redlist Category Proposed","Current Redlist","IUCN Different","Redlist using Exp projections","Redlist projections different","Projected Decline"
+"Indian Vulture",23.53,"48.02% (44.95, 51.1)","-195.49% (-194.66, -196.22)","-9.71% (-8.72, -10.71)","Rapid Decline","High",36,"96%","Critically Endangered","Critically Endangered","No",NA,NA,NA
+"Sandwich Tern",27.69,"57.42% (49.95, 64.89)",NA,"-10.66% (-8.57, -12.76)","Rapid Decline","High",29,"93%","Critically Endangered","Least Concern","Yes",NA,NA,NA
+"Eurasian Oystercatcher",28.52,"50.81% (43.53, 58.1)",NA,"-8.92% (-7.11, -10.72)","Rapid Decline","High",39,"94%","Critically Endangered","Near Threatened","Yes",NA,NA,NA
+"Baillon's Crake",26.44,"64.79% (61.58, 67.99)",NA,"-8.48% (-6.9, -10.05)","Rapid Decline","Moderate",10,"51%","Endangered","Least Concern","Yes","Vulnerable","Yes",36
+"Gull-billed Tern",36.76,"53.08% (50.53, 55.63)","-180.66% (-176.74, -184.05)","-7.64% (-6.49, -8.78)","Rapid Decline","High",27,"84%","Critically Endangered","Least Concern","Yes",NA,NA,NA
+"Dalmatian Pelican",33.86,"41.98% (38.62, 45.33)",NA,"-7.84% (-6.47, -9.2)","Rapid Decline","Moderate",36,"91%","Critically Endangered","Near Threatened","Yes",NA,NA,NA
+"Common Kestrel",32.35,"44.99% (43.87, 46.11)","-171.5% (-167.23, -175.1)","-7.3% (-6.46, -8.13)","Rapid Decline","High",16,"66%","Endangered","Least Concern","Yes",NA,NA,NA
+"Slender-billed Gull",37.5,"51.2% (46.35, 56.05)","-171.12% (-163.2, -178.06)","-7.99% (-6.39, -9.59)","Rapid Decline","High",28,"84%","Critically Endangered","Least Concern","Yes",NA,NA,NA
+"Northern Shoveler",34.83,"44.3% (42.95, 45.66)","-164.55% (-159.06, -169.78)","-7.03% (-6.04, -8.02)","Rapid Decline","High",14,"58%","Endangered","Least Concern","Yes","Endangered","No",61
+"Northern Pintail",33.6,"44.75% (43.46, 46.04)","-174.98% (-170.34, -179.05)","-7.09% (-5.95, -8.23)","Rapid Decline","High",17,"65%","Endangered","Least Concern","Yes",NA,NA,NA
+"Eurasian Spoonbill",34.74,"43.71% (42.24, 45.18)","-157.66% (-151.31, -163.67)","-6.84% (-5.92, -7.77)","Rapid Decline","High",29,"83%","Critically Endangered","Least Concern","Yes",NA,NA,NA
+"Forest Wagtail",35.3,"68.14% (65.52, 70.75)","-173.74% (-167.74, -178.75)","-7.18% (-5.87, -8.49)","Rapid Decline","High",10,"45%","Vulnerable","Least Concern","Yes","Vulnerable","No",42
+"Greater Flamingo",31.85,"43.42% (41.13, 45.71)","-171.19% (-166.48, -175.2)","-7.15% (-5.86, -8.45)","Rapid Decline","High",44,"93%","Critically Endangered","Least Concern","Yes",NA,NA,NA
+"Common Merganser",26.8,"47.56% (42.97, 52.15)","-174.39% (-165.64, -181.13)","-7.78% (-5.67, -9.9)","Rapid Decline","High",16,"61%","Endangered","Least Concern","Yes",NA,NA,NA
+"Spotted Redshank",27.92,"46.99% (44.98, 48.99)","-160.97% (-151.99, -168.86)","-6.98% (-5.62, -8.35)","Rapid Decline","High",15,"58%","Endangered","Least Concern","Yes",NA,NA,NA
+"Spot-winged Starling",27.91,"58.3% (52.77, 63.83)",NA,"-7.98% (-5.58, -10.39)","Rapid Decline","High",10,"44%","Vulnerable","Least Concern","Yes","Vulnerable","No",50
+"Red-headed Vulture",25.63,"52.86% (49.49, 56.22)","-190.64% (-188.59, -192.45)","-7.14% (-5.56, -8.72)","Rapid Decline","High",35,"86%","Critically Endangered","Critically Endangered","No",NA,NA,NA
+"Ruddy Turnstone",36.58,"45.95% (41.12, 50.77)",NA,"-7.33% (-5.51, -9.15)","Rapid Decline","Moderate",18,"64%","Endangered","Least Concern","Yes",NA,NA,NA
+"Terek Sandpiper",37.95,"50.14% (45.71, 54.58)","-180.71% (-174.88, -185.08)","-7.12% (-5.4, -8.84)","Rapid Decline","High",12,"49%","Vulnerable","Least Concern","Yes","Endangered","Yes",54
+"Tawny Pipit",28.49,"49.31% (47.5, 51.12)","-167.05% (-160.66, -172.76)","-6.38% (-5.22, -7.54)","Rapid Decline","High",10,"42%","Vulnerable","Least Concern","Yes","Vulnerable","No",35
+"Rufous-necked Laughingthrush",29.46,"40.31% (36.14, 44.48)",NA,"-6.79% (-5.19, -8.38)","Rapid Decline","Moderate",10,"41%","Vulnerable","Least Concern","Yes","Vulnerable","No",41
+"Isabelline Shrike",28.75,"44.23% (41.99, 46.47)","-150.37% (-138.52, -160.73)","-6.47% (-5.13, -7.81)","Rapid Decline","High",10,"41%","Vulnerable","Least Concern","Yes","Vulnerable","No",42
+"Griffon Vulture",26.05,"51.76% (48.54, 54.99)","-182.91% (-178.42, -186.31)","-7.02% (-5.1, -8.94)","Decline","High",45,"91%","Critically Endangered","Least Concern","Yes",NA,NA,NA
+"Rosy Starling",35.6,"45.16% (43.88, 46.44)","-42.22% (-20.19, -65.55)","-6.09% (-5.07, -7.11)","Rapid Decline","Moderate",10,"41%","Vulnerable","Least Concern","Yes","Least Concern","Yes",15
+"Black-tailed Godwit",32.5,"45.47% (43.68, 47.26)","-170.75% (-165.13, -175.67)","-6.29% (-5.05, -7.53)","Rapid Decline","High",24,"71%","Endangered","Near Threatened","Yes",NA,NA,NA
+"Eurasian Curlew",32.85,"47.68% (45.06, 50.31)","-180.61% (-176.63, -183.81)","-6.21% (-4.9, -7.51)","Rapid Decline","High",28,"76%","Endangered","Near Threatened","Yes",NA,NA,NA
+"Jerdon's Babbler",39.71,"49.65% (39.04, 60.26)","-157.35% (-102.4, -181.72)","-7.64% (-4.89, -10.4)","Rapid Decline","High",10,"39%","Vulnerable","Vulnerable","No","Near-threatened","Yes",23
+"Variable Wheatear",27.79,"37.72% (35.21, 40.24)","-172.92% (-167.13, -178.07)","-6.14% (-4.68, -7.6)","Decline","High",10,"38%","Vulnerable","Least Concern","Yes","Vulnerable","No",32
+"Kentish Plover",32.48,"47.89% (46.22, 49.57)","-171.14% (-166.19, -175.25)","-5.69% (-4.65, -6.72)","Rapid Decline","High",12,"44%","Vulnerable","Least Concern","Yes","Vulnerable","No",44
+"Bearded Vulture",33.33,"35.84% (32.97, 38.72)","-175.7% (-169.43, -180.5)","-6.34% (-4.65, -8.02)","Rapid Decline","High",43,"87%","Critically Endangered","Near Threatened","Yes",NA,NA,NA
+"Marsh Sandpiper",32.52,"48.32% (46.73, 49.92)","-162.44% (-155.52, -167.94)","-5.7% (-4.63, -6.76)","Rapid Decline","High",13,"46%","Vulnerable","Least Concern","Yes","Vulnerable","No",39
+"Pied Avocet",29.1,"42.95% (40.39, 45.52)","-181.39% (-177.18, -184.59)","-6.18% (-4.6, -7.76)","Decline","High",19,"59%","Endangered","Least Concern","Yes",NA,NA,NA
+"Garganey",35.66,"49.3% (47.84, 50.76)","-157.48% (-151.17, -163.7)","-5.72% (-4.6, -6.84)","Rapid Decline","High",10,"38%","Vulnerable","Least Concern","Yes","Near-threatened","Yes",28
+"Great Grey Shrike",25.64,"40.49% (38.49, 42.49)","-185.72% (-183.11, -187.67)","-5.94% (-4.54, -7.33)","Decline","High",10,"37%","Vulnerable","Least Concern","Yes","Vulnerable","No",40
+"Whiskered Tern",38.14,"50.88% (49.19, 52.58)","-156.72% (-150.38, -162.39)","-5.47% (-4.52, -6.43)","Rapid Decline","High",17,"54%","Endangered","Least Concern","Yes",NA,NA,NA
+"Osprey",30.95,"52.16% (50.51, 53.82)","-161.76% (-155, -167.94)","-5.49% (-4.34, -6.64)","Rapid Decline","High",29,"72%","Endangered","Least Concern","Yes",NA,NA,NA
+"Rufous-vented Tit",34.42,"48.43% (42.04, 54.82)",NA,"-6.77% (-4.32, -9.23)","Rapid Decline","High",10,"36%","Vulnerable","Least Concern","Yes","Least Concern","Yes",17
+"Blue Rock Thrush",26.75,"50.03% (48.43, 51.63)","-174.12% (-170.14, -177.78)","-5.43% (-4.3, -6.56)","Rapid Decline","High",10,"36%","Vulnerable","Least Concern","Yes","Vulnerable","No",35
+"Great White Pelican",30.8,"40.96% (38.16, 43.75)","-141.87% (-125.26, -153.87)","-5.95% (-4.27, -7.64)","Decline","High",39,"82%","Critically Endangered","Least Concern","Yes",NA,NA,NA
+"Sirkeer Malkoha",24.47,"53.7% (51.71, 55.68)","-176.76% (-172.08, -180.88)","-5.68% (-4.25, -7.11)","Rapid Decline","High",14,"46%","Vulnerable","Least Concern","Yes","Near-threatened","Yes",27
+"Black-headed Gull",34.24,"48.18% (45.88, 50.49)","-169.86% (-163.56, -175.27)","-5.82% (-4.23, -7.41)","Decline","High",28,"70%","Endangered","Least Concern","Yes",NA,NA,NA
+"White Wagtail",35.3,"37.85% (36.89, 38.81)","-151.43% (-145.03, -157.08)","-5.15% (-4.22, -6.08)","Rapid Decline","High",10,"35%","Vulnerable","Least Concern","Yes","Vulnerable","No",37
+"Brown-headed Gull",33.76,"50% (48.03, 51.97)","-176.35% (-172.76, -179.56)","-5.37% (-4.21, -6.53)","Decline","High",27,"69%","Endangered","Least Concern","Yes",NA,NA,NA
+"Tawny Eagle",25.74,"56.42% (52.76, 60.08)","-172.76% (-165.99, -177.99)","-5.9% (-4.2, -7.6)","Rapid Decline","High",41,"83%","Critically Endangered","Vulnerable","Yes",NA,NA,NA
+"White-rumped Vulture",16.31,"51.1% (48.59, 53.62)","-197.51% (-197.15, -197.82)","-5.64% (-4.13, -7.15)","Decline","High",34,"76%","Endangered","Critically Endangered","Yes",NA,NA,NA
+"Common Teal",32.33,"44.56% (43.16, 45.95)","-168.95% (-161.05, -175.43)","-5.78% (-4.09, -7.46)","Rapid Decline","High",13,"42%","Vulnerable","Least Concern","Yes","Vulnerable","No",43
+"Sulphur-bellied Warbler",28.3,"47.34% (45.46, 49.22)","-154.72% (-146.17, -162.23)","-5.37% (-4.05, -6.69)","Rapid Decline","High",10,"34%","Vulnerable","Least Concern","Yes","Vulnerable","No",34
+"Spot-billed Pelican",43.22,"59.86% (57.04, 62.68)","-97.67% (-80.15, -114.05)","-5.19% (-4.02, -6.35)","Rapid Decline","Moderate",32,"73%","Endangered","Near Threatened","Yes",NA,NA,NA
+"Dunlin",27.9,"49.72% (45.96, 53.48)","-186.41% (-182.48, -189.38)","-6% (-4.02, -7.99)","Rapid Decline","High",20,"56%","Endangered","Least Concern","Yes",NA,NA,NA
+"Bank Myna",32.75,"35.57% (34.29, 36.84)","-136.19% (-127.58, -144.01)","-5.02% (-4.01, -6.03)","Rapid Decline","High",10,"34%","Vulnerable","Least Concern","Yes","Vulnerable","No",37
+"Sarus Crane",28.64,"34.41% (32.22, 36.59)","-174.5% (-168.82, -178.93)","-5.29% (-3.98, -6.6)","Rapid Decline","High",54,"89%","Critically Endangered","Vulnerable","Yes",NA,NA,NA
+"Laggar Falcon",22.93,"46.2% (41.61, 50.78)",NA,"-6.02% (-3.96, -8.09)","Rapid Decline","Moderate",15,"45%","Vulnerable","Near Threatened","Yes",NA,NA,NA
+"Egyptian Vulture",30.59,"41.97% (40.18, 43.76)","-180.2% (-177.35, -182.74)","-5.09% (-3.93, -6.25)","Decline","High",40,"80%","Endangered","Endangered","No",NA,NA,NA
+"Short-toed Snake Eagle",29.57,"48.89% (47.52, 50.27)","-163.24% (-156.84, -168.22)","-5.01% (-3.92, -6.09)","Rapid Decline","High",27,"66%","Endangered","Least Concern","Yes",NA,NA,NA
+"Pintail Snipe",30.47,"68.56% (65.68, 71.44)","-155.02% (-139.64, -167.38)","-6.18% (-3.89, -8.47)","Rapid Decline","High",11,"35%","Vulnerable","Least Concern","Yes","Vulnerable","No",37
+"Ruff",31.55,"44.12% (42.26, 45.98)","-152.88% (-144.43, -160.45)","-5.1% (-3.86, -6.35)","Rapid Decline","High",19,"53%","Endangered","Least Concern","Yes",NA,NA,NA
+"Chestnut-bellied Rock Thrush",38.1,"45.18% (41.9, 48.46)","-132.38% (-113.32, -146.09)","-5.36% (-3.85, -6.87)","Rapid Decline","Moderate",10,"32%","Vulnerable","Least Concern","Yes","Vulnerable","No",34
+"Great Thick-knee",26.71,"47.25% (44.88, 49.63)","-165.94% (-158.1, -172.13)","-5.34% (-3.82, -6.87)","Rapid Decline","High",26,"64%","Endangered","Near Threatened","Yes",NA,NA,NA
+"Black-capped Kingfisher",24.57,"62.01% (57.27, 66.75)","-188.82% (-185.79, -191.13)","-5.79% (-3.8, -7.78)","Rapid Decline","High",12,"37%","Vulnerable","Vulnerable","No","Vulnerable","No",31
+"Thick-billed Flowerpecker",33.56,"51.22% (49.61, 52.84)","-152.12% (-143.71, -158.77)","-4.93% (-3.76, -6.1)","Rapid Decline","High",10,"32%","Vulnerable","Least Concern","Yes","Near-threatened","Yes",25
+"Oriental Skylark",28.76,"50.51% (48.91, 52.12)","-168.53% (-163.09, -172.61)","-4.82% (-3.75, -5.89)","Rapid Decline","High",10,"32%","Vulnerable","Least Concern","Yes","Vulnerable","No",35
+"Ruddy Shelduck",32.55,"39.68% (38.48, 40.88)","-152.53% (-145.16, -158.9)","-4.72% (-3.69, -5.75)","Rapid Decline","High",19,"51%","Endangered","Least Concern","Yes",NA,NA,NA
+"Little Ringed Plover",35.88,"43.06% (41.96, 44.17)","-156.54% (-150.57, -161.44)","-4.62% (-3.63, -5.6)","Rapid Decline","High",11,"33%","Vulnerable","Least Concern","Yes","Vulnerable","No",33
+"Wallcreeper",32.26,"49.7% (46.29, 53.11)","-162.97% (-151.89, -171.12)","-5.26% (-3.58, -6.95)","Decline","High",10,"31%","Vulnerable","Least Concern","Yes","Least Concern","Yes",14
+"Rufous-tailed Lark",31.65,"41.06% (39.74, 42.39)","-166.7% (-161.77, -170.71)","-4.47% (-3.43, -5.5)","Rapid Decline","High",10,"29%","Near-threatened","Least Concern","Yes","Near-threatened","No",28
+"Western Yellow Wagtail",36.66,"45.24% (44.09, 46.4)","-135.01% (-124.79, -143.89)","-4.63% (-3.43, -5.84)","Rapid Decline","Moderate",10,"29%","Near-threatened","Least Concern","Yes","Near-threatened","No",27
+"Grey-crested Tit",34.19,"48.82% (42.82, 54.83)",NA,"-5.96% (-3.39, -8.53)","Decline","High",10,"29%","Near-threatened","Least Concern","Yes","Vulnerable","Yes",33
+"Common Greenshank",33.59,"46.26% (44.95, 47.57)","-162.56% (-157.24, -167.84)","-4.46% (-3.33, -5.58)","Rapid Decline","High",19,"47%","Vulnerable","Least Concern","Yes",NA,NA,NA
+"Western Reef Egret",39.98,"55.33% (52.65, 58.01)","-167.56% (-161.07, -172.95)","-4.73% (-3.32, -6.14)","Decline","High",15,"40%","Vulnerable","Least Concern","Yes",NA,NA,NA
+"Eurasian Crag Martin",24.69,"46.29% (42.48, 50.09)","-179.44% (-174.27, -183.98)","-5.51% (-3.31, -7.71)","Decline","High",10,"29%","Near-threatened","Least Concern","Yes","Near-threatened","No",26
+"Montagu's Harrier",28.35,"52.86% (50.65, 55.07)","-163.17% (-155.4, -170.03)","-4.64% (-3.27, -6.02)","Decline","High",17,"43%","Vulnerable","Least Concern","Yes",NA,NA,NA
+"Lesser Sand Plover",40.88,"47.88% (45.04, 50.71)","-174.5% (-169.76, -178.51)","-4.61% (-3.19, -6.02)","Decline","High",13,"34%","Vulnerable","Least Concern","Yes","Vulnerable","No",38
+"Pied Kingfisher",38.31,"40.45% (39.43, 41.48)","-151.13% (-145.13, -156.49)","-4.21% (-3.18, -5.25)","Decline","Moderate",11,"30%","Near-threatened","Least Concern","Yes","Vulnerable","Yes",36
+"Common Tern",34.67,"52.7% (48.18, 57.22)","-183.64% (-179.86, -186.59)","-5.04% (-3.17, -6.91)","Rapid Decline","High",30,"62%","Endangered","Least Concern","Yes",NA,NA,NA
+"Red-necked Falcon",25.1,"56.59% (54.45, 58.73)","-156.7% (-143.19, -167.24)","-4.74% (-3.16, -6.32)","Decline","Moderate",12,"32%","Vulnerable","Near Threatened","Yes","Least Concern","Yes",15
+"Speckled Wood Pigeon",27.55,"46.98% (41.77, 52.19)",NA,"-5.68% (-3.13, -8.24)","Decline","Moderate",11,"30%","Near-threatened","Least Concern","Yes","Vulnerable","Yes",40
+"Grey Wagtail",37.99,"43.83% (42.78, 44.88)","-146.8% (-139.16, -152.85)","-4.13% (-3.09, -5.16)","Rapid Decline","High",10,"27%","Near-threatened","Least Concern","Yes","Vulnerable","Yes",31
+"Little Stint",33.2,"46.1% (44.6, 47.6)","-166.56% (-161.35, -170.67)","-4.29% (-3.09, -5.48)","Rapid Decline","High",13,"33%","Vulnerable","Least Concern","Yes","Least Concern","Yes",15
+"Blue-capped Rock Thrush",39.2,"63.28% (60.88, 65.69)","-155.54% (-145.97, -164.26)","-4.65% (-3.08, -6.22)","Rapid Decline","High",10,"27%","Near-threatened","Least Concern","Yes","Least Concern","Yes",20
+"Western Marsh Harrier",34.94,"47.94% (46.5, 49.39)","-160.91% (-154.56, -166.64)","-4.3% (-3.06, -5.53)","Decline","Moderate",20,"46%","Vulnerable","Least Concern","Yes",NA,NA,NA
+"White-bellied Blue Flycatcher",46.71,"79.67% (76.63, 82.7)","-179.53% (-174.34, -183.85)","-4.76% (-3.06, -6.45)","Decline","High",10,"27%","Near-threatened","Least Concern","Yes","Vulnerable","Yes",34
+"Lesser Flamingo",33.9,"48.45% (44.02, 52.89)",NA,"-4.88% (-3.05, -6.71)","Decline","High",39,"70%","Endangered","Near Threatened","Yes",NA,NA,NA
+"Lesser Racket-tailed Drongo",32.65,"45.41% (42.03, 48.78)","-103% (-73.51, -127.28)","-4.99% (-3.02, -6.97)","Decline","Moderate",10,"26%","Near-threatened","Least Concern","Yes","Vulnerable","Yes",34
+"Tree Pipit",28.52,"48.94% (47.47, 50.4)","-155.44% (-145.26, -164.53)","-4.76% (-3.01, -6.51)","Decline","Moderate",10,"26%","Near-threatened","Least Concern","Yes","Least Concern","Yes",8
+"Caspian Tern",36.77,"50.38% (47.24, 53.52)","-171.7% (-164.61, -177.14)","-4.66% (-2.99, -6.32)","Decline","High",27,"56%","Endangered","Least Concern","Yes",NA,NA,NA
+"Stripe-throated Yuhina",38.8,"45% (39.55, 50.45)",NA,"-5.1% (-2.99, -7.21)","Decline","Moderate",10,"26%","Near-threatened","Least Concern","Yes","Near-threatened","No",23
+"Common Redshank",34.42,"42.43% (40.88, 43.98)","-165.11% (-158.57, -170.69)","-4.35% (-2.94, -5.75)","Decline","High",17,"40%","Vulnerable","Least Concern","Yes",NA,NA,NA
+"Indian Courser",23.64,"47.1% (44.7, 49.51)","-176.55% (-172.28, -180.19)","-4.3% (-2.93, -5.67)","Decline","Moderate",11,"28%","Near-threatened","Least Concern","Yes","Least Concern","Yes",14
+"Indian Roller",41.57,"36.83% (35.9, 37.77)","-139.98% (-132.93, -146.47)","-3.87% (-2.89, -4.86)","Decline","Moderate",12,"30%","Near-threatened","Least Concern","Yes","Vulnerable","Yes",32
+"Rufous-gorgeted Flycatcher",34.93,"46.3% (43.05, 49.55)","-152.46% (-140.29, -162.58)","-4.71% (-2.85, -6.58)","Decline","High",10,"25%","Near-threatened","Least Concern","Yes","Near-threatened","No",25
+"Striated Bulbul",34.7,"38.11% (32.47, 43.74)",NA,"-5.2% (-2.85, -7.55)","Decline","High",10,"25%","Near-threatened","Least Concern","Yes","Least Concern","Yes",10
+"Amur Falcon",22.77,"60.28% (56.52, 64.04)",NA,"-5.21% (-2.84, -7.58)","Decline","Moderate",11,"27%","Near-threatened","Least Concern","Yes",NA,NA,-57
+"Tufted Duck",27.9,"45.69% (43.81, 47.57)","-178.16% (-172.49, -182.54)","-4.67% (-2.82, -6.52)","Decline","High",18,"40%","Vulnerable","Least Concern","Yes",NA,NA,NA
+"Pallid Harrier",27.09,"55.95% (53.81, 58.1)","-177.67% (-172.78, -181.89)","-4.28% (-2.78, -5.79)","Decline","High",17,"38%","Vulnerable","Near Threatened","Yes",NA,NA,NA
+"Curlew Sandpiper",32.89,"52.46% (48.68, 56.24)","-181.38% (-176.9, -185.11)","-4.44% (-2.76, -6.12)","Decline","High",15,"34%","Vulnerable","Near Threatened","Yes",NA,NA,NA
+"Hen Harrier",24.7,"57.19% (53.01, 61.37)",NA,"-5.34% (-2.72, -7.95)","Decline","Moderate",19,"41%","Vulnerable","Least Concern","Yes",NA,NA,NA
+"Indian Bushlark",29.95,"39.45% (38.04, 40.87)","-150.74% (-141.17, -159.63)","-4.24% (-2.7, -5.78)","Decline","Moderate",10,"24%","Near-threatened","Least Concern","Yes","Near-threatened","No",26
+"Desert Wheatear",29.67,"40.55% (38.27, 42.83)","-165.14% (-158.4, -170.52)","-4.31% (-2.7, -5.93)","Decline","High",10,"24%","Near-threatened","Least Concern","Yes","Least Concern","Yes",15
+"Common Sandpiper",40.25,"40.54% (39.57, 41.51)","-146.14% (-139.3, -151.74)","-3.66% (-2.69, -4.64)","Decline","Moderate",13,"30%","Near-threatened","Least Concern","Yes","Vulnerable","Yes",35
+"Common Rosefinch",32.44,"52.33% (50.65, 54.01)","-123.79% (-110.08, -135.73)","-3.83% (-2.61, -5.06)","Decline","Moderate",10,"23%","Near-threatened","Least Concern","Yes","Near-threatened","No",23
+"Cotton Pygmy Goose",33.94,"47.24% (45.8, 48.67)","-157.07% (-150.99, -162.44)","-3.71% (-2.59, -4.83)","Decline","High",15,"33%","Vulnerable","Least Concern","Yes",NA,NA,NA
+"Isabelline Wheatear",26.46,"45.25% (42.15, 48.35)","-168.78% (-157.58, -177.14)","-4.96% (-2.58, -7.34)","Decline","High",10,"23%","Near-threatened","Least Concern","Yes","Least Concern","Yes",8
+"Barn Swallow",42.15,"40.95% (40.03, 41.88)","-125.7% (-117.01, -134.1)","-3.62% (-2.55, -4.68)","Decline","Moderate",10,"23%","Near-threatened","Least Concern","Yes","Least Concern","Yes",20
+"Eurasian Coot",37.91,"41.68% (40.59, 42.77)","-104.94% (-91.84, -115.46)","-3.54% (-2.51, -4.57)","Decline","Low",15,"32%","Vulnerable","Least Concern","Yes",NA,NA,NA
+"Common Pochard",29.46,"42.99% (41.49, 44.48)","-168.44% (-160.93, -174.83)","-4.32% (-2.5, -6.14)","Decline","High",16,"33%","Vulnerable","Vulnerable","No",NA,NA,NA
+"White-eyed Buzzard",29.89,"46.42% (45.07, 47.77)","-135.39% (-125.57, -144.24)","-3.7% (-2.48, -4.92)","Decline","Moderate",15,"31%","Vulnerable","Least Concern","Yes",NA,NA,NA
+"Eurasian Wigeon",30.39,"47.32% (45.75, 48.89)","-159.94% (-148, -168.71)","-4.5% (-2.47, -6.54)","Decline","Moderate",12,"26%","Near-threatened","Least Concern","Yes","Near-threatened","No",27
+"Pallas's Gull",32.71,"45.81% (43.33, 48.29)","-154.6% (-143.68, -162.66)","-4.09% (-2.45, -5.73)","Decline","Moderate",35,"58%","Endangered","Least Concern","Yes",NA,NA,NA
+"Black-winged Kite",38.6,"38.99% (38.06, 39.93)","-142.54% (-134.75, -148.94)","-3.46% (-2.39, -4.53)","Decline","Moderate",14,"29%","Near-threatened","Least Concern","Yes","Near-threatened","No",26
+"Sanderling",36.05,"49.16% (44.04, 54.27)",NA,"-4.75% (-2.38, -7.12)","Decline","Moderate",19,"37%","Vulnerable","Least Concern","Yes",NA,NA,NA
+"Great Crested Grebe",27.22,"45.23% (42.82, 47.63)","-172.21% (-167.42, -176.33)","-3.89% (-2.38, -5.4)","Decline","High",18,"35%","Vulnerable","Least Concern","Yes",NA,NA,NA
+"European Roller",24.76,"46.87% (44.65, 49.08)",NA,"-4.6% (-2.35, -6.86)","Decline","Moderate",11,"23%","Near-threatened","Least Concern","Yes",NA,NA,0
+"Olive-backed Pipit",29.6,"48.22% (46.48, 49.96)","-166.16% (-159.52, -171.55)","-3.77% (-2.32, -5.22)","Decline","High",10,"21%","Near-threatened","Least Concern","Yes","Least Concern","Yes",20
+"Little Forktail",35.3,"45.98% (42.55, 49.41)","-129.9% (-110.32, -143.72)","-4.16% (-2.24, -6.07)","Decline","Moderate",10,"20%","Least Concern","Least Concern","No","Least Concern","No",14
+"Demoiselle Crane",28.9,"40.02% (37.13, 42.9)","-152.24% (-141.14, -160.83)","-3.9% (-2.14, -5.66)","Decline","High",34,"52%","Endangered","Least Concern","Yes",NA,NA,NA
+"White-capped Redstart",42.02,"38.41% (36.2, 40.61)","-131.59% (-119.71, -142.03)","-3.39% (-2.11, -4.67)","Decline","Moderate",10,"19%","Least Concern","Least Concern","No","Least Concern","No",5
+"Citrine Wagtail",31.91,"41.83% (40.57, 43.1)","-124.37% (-111.71, -134.79)","-3.31% (-2.1, -4.53)","Decline","Moderate",10,"19%","Least Concern","Least Concern","No","Least Concern","No",13
+"Woolly-necked Stork",35.22,"44.71% (43.4, 46.03)","-138.84% (-129.36, -146.75)","-3.22% (-2.09, -4.34)","Decline","Moderate",32,"49%","Vulnerable","Near Threatened","Yes",NA,NA,NA
+"Brown Fish Owl",31.43,"60.94% (58.68, 63.2)","-144.67% (-131.64, -154.75)","-3.51% (-2.05, -4.97)","Decline","Moderate",22,"37%","Vulnerable","Least Concern","Yes",NA,NA,NA
+"Little Tern",31.33,"51.35% (48.7, 53.99)","-176.79% (-171.58, -180.7)","-3.82% (-2.02, -5.61)","Decline","High",29,"45%","Vulnerable","Least Concern","Yes",NA,NA,NA
+"House Sparrow",44.52,"35.35% (34.54, 36.16)","-117.96% (-108.1, -126.58)","-2.97% (-1.96, -3.99)","Decline","Moderate",14,"24%","Near-threatened","Least Concern","Yes","Near-threatened","No",23
+"Plumbeous Water Redstart",41.67,"38.89% (36.56, 41.21)","-139.81% (-129.69, -148.33)","-3.3% (-1.94, -4.66)","Decline","High",10,"18%","Least Concern","Least Concern","No","Least Concern","No",20
+"Painted Stork",38.91,"42.3% (41.09, 43.51)","-97.79% (-80.44, -111.35)","-3.18% (-1.76, -4.59)","Decline","Low",30,"41%","Vulnerable","Near Threatened","Yes",NA,NA,NA
+"Wood Sandpiper",38,"43.93% (42.8, 45.06)","-126.26% (-116.57, -134.61)","-2.92% (-1.73, -4.11)","Decline","Moderate",10,"16%","Least Concern","Least Concern","No","Least Concern","No",10
+"Orange-bellied Leafbird",33.33,"39.1% (35.71, 42.49)","-119.81% (-97.34, -136.53)","-3.79% (-1.68, -5.9)","Decline","Moderate",10,"16%","Least Concern","Least Concern","No","Least Concern","No",16
+"Yellow-crowned Woodpecker",28.28,"47.02% (45.45, 48.59)","-172.79% (-168.22, -176.71)","-3.04% (-1.67, -4.4)","Decline","High",10,"16%","Least Concern","Least Concern","No","Least Concern","No",16
+"Common Crane",33.13,"40.21% (37.48, 42.93)","-163.61% (-155.72, -170.63)","-3.48% (-1.64, -5.31)","Decline","High",46,"53%","Endangered","Least Concern","Yes",NA,NA,NA
+"Bluethroat",28.99,"45.78% (44.31, 47.24)","-131.63% (-115.06, -144.53)","-3.54% (-1.63, -5.45)","Decline","High",10,"15%","Least Concern","Least Concern","No","Least Concern","No",12
+"Indian Skimmer",29.97,"50.7% (45.31, 56.08)",NA,"-4.16% (-1.61, -6.72)","Decline","High",17,"24%","Near-threatened","Endangered","Yes",NA,NA,NA
+"Pheasant-tailed Jacana",34.85,"46.87% (45.49, 48.26)","-135.02% (-126.07, -143.78)","-2.88% (-1.6, -4.15)","Decline","Moderate",11,"16%","Least Concern","Least Concern","No","Least Concern","No",4
+"Crested Kingfisher",36.3,"49.05% (45.7, 52.4)","-117.29% (-95.84, -133.2)","-3.1% (-1.56, -4.64)","Decline","Moderate",12,"17%","Least Concern","Least Concern","No","Least Concern","No",7
+"Slaty-backed Forktail",31.72,"43.77% (38.73, 48.81)",NA,"-3.89% (-1.53, -6.25)","Decline","Moderate",10,"14%","Least Concern","Least Concern","No",NA,NA,-7
+"Lesser Adjutant",34.89,"45.23% (42.52, 47.93)","-134.09% (-118.67, -145.96)","-3.23% (-1.51, -4.95)","Decline","Moderate",41,"46%","Vulnerable","Vulnerable","No",NA,NA,NA
+"Paddyfield Pipit",39.29,"41.28% (40.28, 42.27)","-111.41% (-97.84, -123.38)","-2.74% (-1.47, -4)","Decline","Low",10,"14%","Least Concern","Least Concern","No","Least Concern","No",17
+"Bar-headed Goose",30.82,"46.05% (44.29, 47.8)","-133.04% (-121.81, -142.41)","-2.84% (-1.45, -4.23)","Decline","High",30,"36%","Vulnerable","Least Concern","Yes",NA,NA,NA
+"Brown Dipper",35.77,"38.91% (36.1, 41.72)","-147.48% (-135.74, -157.7)","-3.34% (-1.44, -5.23)","Decline","High",10,"14%","Least Concern","Least Concern","No","Least Concern","No",6
+"Mountain Bulbul",34.88,"41.15% (36.67, 45.62)","-121.78% (-87.86, -144.98)","-4.16% (-1.38, -6.94)","Decline","Moderate",10,"13%","Least Concern","Least Concern","No","Near-threatened","Yes",22
+"Grey Plover",35.59,"49.63% (45.19, 54.08)","-179.28% (-173.39, -183.62)","-3.37% (-1.38, -5.35)","Decline","High",23,"27%","Near-threatened","Least Concern","Yes",NA,NA,NA
+"Gadwall",31.62,"41.43% (40.03, 42.83)","-126.58% (-112.91, -138.05)","-2.86% (-1.29, -4.44)","Decline","Moderate",11,"13%","Least Concern","Least Concern","No","Least Concern","No",17
