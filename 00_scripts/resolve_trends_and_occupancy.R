@@ -740,10 +740,10 @@ tojoin <- map(2023:2029, ~ trends %>%
 main <- main %>% 
   left_join(tojoin) %>% 
   # removing misIDd species "selection" for long-term and current analyses
-  mutate(Long.Term.Analysis = case_when(COMMON.NAME %in% spec_misid ~ NA_real_,
-                                        TRUE ~ Long.Term.Analysis),
-         Current.Analysis = case_when(COMMON.NAME %in% spec_misid ~ NA_real_,
-                                      TRUE ~ Current.Analysis))  
+  mutate(Long.Term.Analysis = ifelse(eBird.English.Name.2022 %in% spec_misid, 
+                                     NA_real_, Long.Term.Analysis),
+         Current.Analysis = ifelse(eBird.English.Name.2022 %in% spec_misid, 
+                                   NA_real_, Current.Analysis))  
 
 
 # calculations: occupancy -------------------------------------------------
