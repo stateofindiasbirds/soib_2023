@@ -27,6 +27,7 @@ library(VGAM)
 library(sf)
 
 source('00_scripts/00_functions.R')
+load("00_data/spec_misid.RData") # to remove from LTT and CAT "selection" later
 
 recentcutoff = 2015
 
@@ -753,7 +754,13 @@ tojoin <- map(2023:2029, ~ trends %>%
                                     glue("proj{.x}.rci")))) %>% 
   reduce(full_join, by = "eBird.English.Name.2022")
 
-main <- main %>% left_join(tojoin)
+main <- main %>% 
+  left_join(tojoin) %>% 
+  # removing misIDd species "selection" for long-term and current analyses
+  mutate(Long.Term.Analysis = case_when(COMMON.NAME %in% spec_misid ~ NA_real_,
+                                        TRUE ~ Long.Term.Analysis),
+         Current.Analysis = case_when(COMMON.NAME %in% spec_misid ~ NA_real_,
+                                      TRUE ~ Current.Analysis))  
 
 
 # calculations: occupancy -------------------------------------------------
@@ -923,6 +930,7 @@ main = read.csv(mainwocats_path) %>%
       ),
     
     SOIBv2.Range.Status = case_when(
+      is.na(rangemean) ~ NA_character_,
       rangemean == 0 ~ "Historical",
       rangerci < 0.0625 ~ "Very Restricted",
       # larger threshold for species that are not island endemics

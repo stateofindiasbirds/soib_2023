@@ -20,9 +20,12 @@
 dataforanalyses.RData 
 randomgroupids.RData
 
-# 200 large CSVs
+# large CSVs
 dataforsim/
 trends/
+occupancy-model/
+occupancy-presence/
+*/results/occupancy/
 
 # image outputs
 *.gif

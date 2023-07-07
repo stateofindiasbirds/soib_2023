@@ -19,6 +19,8 @@ fullmap = read.csv("00_data/SoIB_mapping_2022.csv")
 spec_misid <- c("Besra","Horsfield's Bushlark","Common Flameback",
                 "Eastern Orphean Warbler","Richard's Pipit",
                 "Asian Palm Swift")
+# saving to read in resolve step
+save(spec_misid, file = "00_data/spec_misid.RData")
 
 
 # species info for different slices ###
@@ -143,3 +145,4 @@ tictoc::toc() # 80 sec
 
 tictoc::tic("dataspeciesfilter for Kerala state")
 dataspeciesfilter(cur_mask = "Kerala")
+tictoc::toc() # 150 sec

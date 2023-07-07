@@ -35,9 +35,9 @@ analyses_metadata <- data.frame(MASK = c("none",
          OCCU.OUTPATH = glue("{RESULTS}occupancy/"),
          SOIBMAIN.WOCATS.PATH = glue("{RESULTS}SoIB_main_wocats.csv"),
          SOIBMAIN.PATH = glue("{RESULTS}SoIB_main.csv"),
-         SUMMARY.PATH = glue("{RESULTS}summary_status.csv"),
-         PRIORITY.PATH = glue("{RESULTS}priority_status.csv"),
-         SPECSUM.PATH = glue("{RESULTS}species_status.csv"))
+         SUMMARY.PATH = glue("{RESULTS}status_summary.csv"),
+         PRIORITY.PATH = glue("{RESULTS}status_priority.csv"),
+         SPECSUM.PATH = glue("{RESULTS}status_species.csv"))
 
 # ensuring folders are created if they don't already exist
 walk2(analyses_metadata$FOLDER, analyses_metadata$RESULTS, ~ {
@@ -70,8 +70,10 @@ save(analyses_metadata, file = "00_data/analyses_metadata.RData")
 # - "eBird_location_data.csv"
 # - "rawdata.RData"
 
+tictoc::tic("Reading and cleaning raw data")
 readcleanrawdata(rawpath = "00_data/ebd_IN_relMay-2023.txt", 
                  sensitivepath = "00_data/ebd_sensitive_relMay-2023_IN.txt")
+tictoc::toc() # 55 min
 
 
 # STEP 2: Create sf map of SoIB2 habitat masks
@@ -83,7 +85,9 @@ readcleanrawdata(rawpath = "00_data/ebd_IN_relMay-2023.txt",
 # Outputs:
 # - "habmasks_sf.RData"
 
+tictoc::tic("Creating sf map of SoIB2 habitat masks")
 source("00_scripts/create_habitat_masks_dataframe.R")
+tictoc::toc()
 
 
 # STEP 3: Add map and grid variables to dataset (dataframe)
@@ -104,7 +108,9 @@ source("00_scripts/create_habitat_masks_dataframe.R")
 # Outputs:
 # - "data.RData"
 
+tictoc::tic("Adding map and grid variables to dataset")
 addmapvars()
+tictoc::toc() # 11 min
 
 
 # STEP 4: Process and filter data for analyses
@@ -125,12 +131,13 @@ addmapvars()
 #   - full species list (with all attribute columns)
 #   - selected species list
 #   - data
-# - specieslists.RData for whole country and individual mask versions
+# - "specieslists.RData" for whole country and individual mask versions
 
 load("00_data/analyses_metadata.RData")
 
+tictoc::tic("Processing and filtering data for analyses")
 source("00_scripts/filter_data_for_species.R")
-
+tictoc::toc() # 27 min
 
 # PART 2 ------------------------------------------------------------------
 
