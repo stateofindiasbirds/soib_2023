@@ -250,12 +250,12 @@ main <- main %>%
 spec_lt = main %>% 
   filter(Long.Term.Analysis == "X") %>% 
   dplyr::select(eBird.English.Name.2022) %>% 
-  as.character()
+  as.vector() %>% list_c()
 
 spec_ct = main %>% 
   filter(Current.Analysis == "X") %>% 
   dplyr::select(eBird.English.Name.2022) %>% 
-  as.character()
+  as.vector() %>% list_c()
 
 
 # calculations: prep --------------------------------------------------------
