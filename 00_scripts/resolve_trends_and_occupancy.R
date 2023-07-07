@@ -833,22 +833,20 @@ for (i in main$eBird.English.Name.2022)
   
   for (j in 1:l)
   {
-    flag = 0
-    
-    if (cur_occu_summary$status[j] %in% c("MP") & is.na(est[i,"occ"]))
+    if (cur_occu_summary$status[j] %in% c("MP") & (is.na(est[i,"occ"]) | (cur_occu_summary$occ[j]>est[i,"occ"])))
     {
       est[i,"occ"] = cur_occu_summary$occ[j]
       est[i,"occ.ci"] = cur_occu_summary$occ.ci[j]
       flag = 1
     }
     
-    if (cur_occu_summary$status[j] %in% c("R","MS"))
+    if (cur_occu_summary$status[j] %in% c("R","MS") & (is.na(est[i,"occ"]) | (cur_occu_summary$occ[j] > est[i,"occ"])))
     {
       est[i,"occ"] = cur_occu_summary$occ[j]
       est[i,"occ.ci"] = cur_occu_summary$occ.ci[j]
     }
     
-    if (cur_occu_summary$status[j] %in% c("M","MW") & (is.na(est[i,"occ"]) | flag == 1))
+    if (cur_occu_summary$status[j] %in% c("M","MW") & (is.na(est[i,"occ"]) | (cur_occu_summary$occ[j] > est[i,"occ"])))
     {
       est[i,"occ"] = cur_occu_summary$occ[j]
       est[i,"occ.ci"] = cur_occu_summary$occ.ci[j]

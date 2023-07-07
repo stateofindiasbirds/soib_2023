@@ -113,7 +113,7 @@ Increase,Decline,Moderate,Moderate
 Rapid Increase,Decline,Moderate,Moderate
 Rapid Decline,eBird Data Deficient,Moderate,NA
 Decline,eBird Data Deficient,Moderate,NA
-eBird Data Deficient,eBird Data Deficient,Moderate,Moderate
+eBird Data Deficient,eBird Data Deficient,Moderate,Low
 eBird Data Inconclusive,eBird Data Deficient,Moderate,NA
 Stable,eBird Data Deficient,Moderate,NA
 Increase,eBird Data Deficient,Moderate,NA
@@ -162,7 +162,7 @@ Increase,Decline,Very Large,Low
 Rapid Increase,Decline,Very Large,Low
 Rapid Decline,eBird Data Deficient,Very Large,NA
 Decline,eBird Data Deficient,Very Large,NA
-eBird Data Deficient,eBird Data Deficient,Very Large,Moderate
+eBird Data Deficient,eBird Data Deficient,Very Large,Low
 eBird Data Inconclusive,eBird Data Deficient,Very Large,NA
 Stable,eBird Data Deficient,Very Large,NA
 Increase,eBird Data Deficient,Very Large,NA
@@ -211,7 +211,7 @@ Increase,Decline,Large,Low
 Rapid Increase,Decline,Large,Low
 Rapid Decline,eBird Data Deficient,Large,NA
 Decline,eBird Data Deficient,Large,NA
-eBird Data Deficient,eBird Data Deficient,Large,Moderate
+eBird Data Deficient,eBird Data Deficient,Large,Low
 eBird Data Inconclusive,eBird Data Deficient,Large,NA
 Stable,eBird Data Deficient,Large,NA
 Increase,eBird Data Deficient,Large,NA
