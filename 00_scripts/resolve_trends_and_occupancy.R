@@ -275,6 +275,18 @@ main <- main %>%
                                     "", Current.Analysis))
 
 
+# rewriting selected species for LTT and CAT
+spec_lt = main %>% 
+  filter(Long.Term.Analysis == "X") %>% 
+  dplyr::select(eBird.English.Name.2022) %>% 
+  as.character()
+
+spec_ct = main %>% 
+  filter(Current.Analysis == "X") %>% 
+  dplyr::select(eBird.English.Name.2022) %>% 
+  as.character()
+
+
 # calculations: prep --------------------------------------------------------
 
 # This section performs calculations on the trends data frame to derive new columns, 
