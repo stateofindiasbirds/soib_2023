@@ -27,6 +27,7 @@ library(VGAM)
 library(sf)
 
 source('00_scripts/00_functions.R')
+load("00_data/spec_misid.RData") # to remove from LTT and CAT "selection" later
 
 recentcutoff = 2015
 
@@ -222,35 +223,6 @@ if (cur_mask %in% c("none", "woodland", "cropland", "ONEland")) {
 
 # 2. proportion of 25kmx25km cells sampled
 
-specsd1 = main %>%
-  # <annotation_pending_AV> rationale for 0.075 (even if arbitrary, what does it mean?)
-  filter(!is.na(proprange25km2000) & 
-           (proprange25km2000/proprange25km2022) < 0.075 &
-           Long.Term.Analysis == "X") %>% 
-  dplyr::select(eBird.English.Name.2022) %>% 
-  as.vector() %>% list_c()
-
-specsd2 = main %>%
-  # <annotation_pending_AV> rationale for 0.04 (even if arbitrary, what does it mean?)
-  filter(!is.na(proprange25km2000) & 
-           main$proprange25km2000 < 0.04 &
-           Long.Term.Analysis == "X") %>% 
-  dplyr::select(eBird.English.Name.2022) %>% 
-  as.vector() %>% list_c()
-
-specsd = union(specsd1, specsd2)
-
-
-trends = trends %>%
-  mutate(freq = case_when(timegroups < 2015 & COMMON.NAME %in% specsd ~ NA,
-                          TRUE ~ freq),
-         se = case_when(timegroups < 2015 & COMMON.NAME %in% specsd ~ NA,
-                        TRUE ~ se))
-main <- main %>% 
-  mutate(Long.Term.Analysis = if_else(eBird.English.Name.2022 %in% specsd,
-                                      "", Long.Term.Analysis))
-
-
 # <annotation_pending_AV> this isn't used anywhere, can be removed?
 specsd3 = main %>%
   # <annotation_pending_AV> rationale for 0.6 (even if arbitrary, what does it mean?)
@@ -272,6 +244,18 @@ main <- main %>%
                                       "", Long.Term.Analysis),
          Current.Analysis = if_else(eBird.English.Name.2022 %in% specsd3,
                                     "", Current.Analysis))
+
+
+# rewriting selected species for LTT and CAT
+spec_lt = main %>% 
+  filter(Long.Term.Analysis == "X") %>% 
+  dplyr::select(eBird.English.Name.2022) %>% 
+  as.vector() %>% list_c()
+
+spec_ct = main %>% 
+  filter(Current.Analysis == "X") %>% 
+  dplyr::select(eBird.English.Name.2022) %>% 
+  as.vector() %>% list_c()
 
 
 # calculations: prep --------------------------------------------------------
@@ -753,7 +737,13 @@ tojoin <- map(2023:2029, ~ trends %>%
                                     glue("proj{.x}.rci")))) %>% 
   reduce(full_join, by = "eBird.English.Name.2022")
 
-main <- main %>% left_join(tojoin)
+main <- main %>% 
+  left_join(tojoin) %>% 
+  # removing misIDd species "selection" for long-term and current analyses
+  mutate(Long.Term.Analysis = ifelse(eBird.English.Name.2022 %in% spec_misid, 
+                                     NA_real_, Long.Term.Analysis),
+         Current.Analysis = ifelse(eBird.English.Name.2022 %in% spec_misid, 
+                                   NA_real_, Current.Analysis))  
 
 
 # calculations: occupancy -------------------------------------------------
@@ -876,6 +866,9 @@ write.csv(main, file = mainwocats_path, row.names = F)
 
 # classification: assign SoIB Status categories (w/ sensitivity analysis) ----
 
+load("00_data/vagrantdata.RData")
+spec_vagrants <- d %>% distinct(COMMON.NAME) %>% as.character()
+
 # classifying into SoIB Status for long-term and current trends and range
 
 # taking upper limit of CI for declines, and lower limit for increases
@@ -921,7 +914,10 @@ main = read.csv(mainwocats_path) %>%
       ),
     
     SOIBv2.Range.Status = case_when(
-      rangemean == 0 ~ "Historical",
+      is.na(rangemean) ~ NA_character_,
+      rangemean == 0 & !(eBird.English.Name.2022 %in% spec_vagrants) ~ "Historical",
+      # above is to prevent species that are not historical but classified vagrants
+      # from being classified as Historical (instead Very Restricted)
       rangerci < 0.0625 ~ "Very Restricted",
       # larger threshold for species that are not island endemics
       (!Endemic.Region %in% c("Andaman and Nicobar Islands", "Andaman Islands", "Nicobar Islands") &
