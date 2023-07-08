@@ -317,7 +317,16 @@ modtrends = na.omit(trends) %>% # NAs are all spp. not included in long-term
   # for calculating change in abundance index (as % change)
   mutate(mean_std = 100*mean/mean_year1) # back-transformed so value is % of year1 value
 
-set.seed(10) # for simulations
+
+# sensitivity check to ensure edge species are later converted to the conservative status
+modtrends1 <- ltt_sens_sim(my_seed = 1)
+modtrends2 <- ltt_sens_sim(my_seed = 2)
+modtrends3 <- ltt_sens_sim(my_seed = 3)
+modtrends4 <- ltt_sens_sim(my_seed = 4)
+modtrends5 <- ltt_sens_sim(my_seed = 5)
+
+# "main" simulated CIs
+set.seed(10) 
 modtrends = modtrends %>% 
   # calculating CIs
   group_by(COMMON.NAME, timegroups) %>% 
@@ -328,7 +337,6 @@ modtrends = modtrends %>%
   reframe(lci_std = 100*as.numeric(quantile(tp0, 0.025)),
           rci_std = 100*as.numeric(quantile(tp0, 0.975))) %>% 
   right_join(modtrends, by = c("COMMON.NAME", "timegroups"))
-
 
 # saving the values for 2022 in "main" as well:
 # temp object then left_join instead of right_join because species order in main
@@ -958,7 +966,60 @@ main = read.csv(mainwocats_path) %>%
   )
 
 
-# sensitivity check ###
+
+# sensitivity check for long-term trends ###
+
+modtrends1 = ltt_sens_class(modtrends1)
+modtrends2 = ltt_sens_class(modtrends2)
+modtrends3 = ltt_sens_class(modtrends3)
+modtrends4 = ltt_sens_class(modtrends4)
+modtrends5 = ltt_sens_class(modtrends5)
+
+sens_ltt <- main %>% 
+  dplyr::select(eBird.English.Name.2022, SOIBv2.Long.Term.Status) %>% 
+  # the modtrendsN files only have species for which we have run LTT
+  filter(!is.na(SOIBv2.Long.Term.Status),
+         SOIBv2.Long.Term.Status != "eBird Data Deficient") %>% 
+  rename(COMMON.NAME = eBird.English.Name.2022) %>% 
+  bind_rows(modtrends1, modtrends2, modtrends3, modtrends4, modtrends5) %>% 
+  group_by(COMMON.NAME) %>% 
+  # how many different status categories have been assigned?
+  reframe(NO.STATUS = n_distinct(SOIBv2.Long.Term.Status)) %>% 
+  group_by(COMMON.NAME) %>% 
+  # if a species is changing Status in the sensitivity check, take the most conserative
+  reframe(CONSERVATIVE.STATUS = case_when(
+    
+    NO.STATUS > 2 ~ "eBird Data Inconclusive",
+    any(SOIBv2.Long.Term.Status) == "eBird Data Inconclusive" ~ "eBird Data Inconclusive",
+    
+    NO.STATUS == 2 & 
+      # if all Status assignments are either of the two increases
+      !(any(SOIBv2.Long.Term.Status) %in% 
+          c("Rapid Decline", "Decline", "Stable", "eBird Data Inconclusive")) ~ "Increase",
+    NO.STATUS == 2 & 
+      # if all Status assignments are either of the two decreases
+      !(any(SOIBv2.Long.Term.Status) %in% 
+          c("Rapid Increase", "Increase", "Stable", "eBird Data Inconclusive")) ~ "Decline",
+    
+    NO.STATUS == 2 ~ "eBird Data Inconclusive",
+    TRUE ~ SOIBv2.Long.Term.Status
+    
+  )) %>% 
+  mutate(ROBUST = if_else(NO.STATUS == 1, 1, 0)) %>% 
+  dplyr::across(-NO.STATUS)
+  
+
+main <- main %>% 
+  left_join(sens_ltt, by = c("eBird.English.Name.2022" = "COMMON.NAME")) %>% 
+  # if Status assignment is not robust, take the most conservative one
+  mutate(SOIBv2.Long.Term.Status = if_else(ROBUST == 0, 
+                                           CONSERVATIVE.STATUS, 
+                                           SOIBv2.Long.Term.Status)) %>% 
+  dplyr::select(-CONSERVATIVE.STATUS, -ROBUST)
+
+
+
+# sensitivity check for current trends ###
 
 # changes classifications based on sensitivity analyses
 

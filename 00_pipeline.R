@@ -294,6 +294,25 @@ tictoc::toc() #
 
 
 
+# STEP 2: Run occu ###
+# Run:
+# - after above step (P3, S1)
+# Requires:
+# - tidyverse, tictoc, VGAM, writexl
+# - data files:
+#   - fullspecieslist.csv
+#   - trends/trendsX.csv for whole country and individual mask versions
+# Outputs: several
+load("00_data/analyses_metadata.RData")
+
+cur_mask <- "none"
+tictoc::tic("Run occupancy")
+source("00_scripts/run_species_occupancy-presence.R")
+tictoc::toc() # 
+
+
+
+
 # STEP 2: Resolve trends for all selected species and generate necessary outputs
 # Run:
 # - after above step (P3, S1)

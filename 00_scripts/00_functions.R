@@ -1241,3 +1241,63 @@ occupancyrun = function(data, i, speciesforocc, nb8g1)
   return(tocomb)
   
 }
+
+### sensitivity check for long-term trend ------------------------------------------
+
+# simulations
+
+ltt_sens_sim <- function(my_seed, data = modtrends) {
+  
+  set.seed(my_seed) # for simulations
+  
+  data_sim = data %>% 
+    # calculating CIs
+    group_by(COMMON.NAME, timegroups) %>% 
+    # 1000 simulations of transformed ratio of present:original values
+    # quantiles*100 from these gives us our CI limits for mean_std
+    reframe(tp0 = simerrordiv(mean_trans, m1, se_trans, s1)$rat) %>% 
+    group_by(COMMON.NAME, timegroups) %>% 
+    reframe(lci_std = 100*as.numeric(quantile(tp0, 0.025)),
+            rci_std = 100*as.numeric(quantile(tp0, 0.975))) %>% 
+    right_join(modtrends, by = c("COMMON.NAME", "timegroups")) %>%
+    filter(timegroups == 2022) %>%
+    dplyr::select(COMMON.NAME, lci_std, mean_std, rci_std) %>%
+    rename(longtermlci = lci_std,
+           longtermmean = mean_std,
+           longtermrci = rci_std)
+  
+  return(data_sim)
+  
+}
+
+# classification step
+
+ltt_sens_class <- function(data) {
+  
+  data = data %>%
+    mutate(
+      
+      SOIBv2.Long.Term.Status = case_when(
+        is.na(longtermmean) ~ "eBird Data Deficient",
+        (longtermrci-longtermmean)/longtermmean > 0.5 ~ "eBird Data Inconclusive", # arbitrary
+        # else
+        # for declines
+        longtermrci <= 50 ~ "Rapid Decline", # -100% to -50%
+        longtermrci > 50 & longtermrci <= 75 ~ "Decline", # -50% to -25%
+        # for increases
+        longtermlci >= 150 ~ "Rapid Increase", # +50% to inf
+        longtermlci < 150 & longtermlci >= 125 ~ "Increase", # +25% to +50%
+        # stable vs inconclusive:
+        # if CI is completely below or above the baseline, can't be stable
+        longtermlci > 100 | longtermrci < 100 ~ "eBird Data Inconclusive",
+        # if one limit is in the Stable zone but other limit passes to Rapid X, can't be stable
+        longtermlci <= 50 | longtermrci >= 150 ~ "eBird Data Inconclusive",
+        TRUE ~ "Stable"
+      )
+      
+    ) %>% 
+    dplyr::select(COMMON.NAME, SOIBv2.Long.Term.Status)
+  
+  return(data)
+  
+}
