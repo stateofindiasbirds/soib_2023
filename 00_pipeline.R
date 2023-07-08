@@ -1,4 +1,3 @@
-# necessary packages, functions/scripts, data
 library(tidyverse)
 library(glue)
 library(tictoc)
@@ -30,14 +29,13 @@ analyses_metadata <- data.frame(MASK = c("none",
          OCCU.MOD.PATHONLY = glue("{FOLDER}occupancy-model/"),
          RESULTS = glue("{FOLDER}results/"),
          
-         CURSENS.PATH = glue("{RESULTS}current_sensitivity.csv"),
-         TRENDS.OUTPATH = glue("{RESULTS}trends.csv"),
          OCCU.OUTPATH = glue("{RESULTS}occupancy/"),
+
+         TRENDS.OUTPATH = glue("{RESULTS}trends.csv"),
+         CURSENS.PATH = glue("{RESULTS}current_sensitivity.csv"),
          SOIBMAIN.WOCATS.PATH = glue("{RESULTS}SoIB_main_wocats.csv"),
          SOIBMAIN.PATH = glue("{RESULTS}SoIB_main.csv"),
-         SUMMARY.PATH = glue("{RESULTS}status_summary.csv"),
-         PRIORITY.PATH = glue("{RESULTS}status_priority.csv"),
-         SPECSUM.PATH = glue("{RESULTS}status_species.csv"))
+         SUMMARY.PATH = glue("{RESULTS}SoIB_summaries.xlsx"))
 
 # ensuring folders are created if they don't already exist
 walk2(analyses_metadata$FOLDER, analyses_metadata$RESULTS, ~ {
@@ -300,7 +298,7 @@ tictoc::toc() #
 # Run:
 # - after above step (P3, S1)
 # Requires:
-# - tidyverse, tictoc, VGAM
+# - tidyverse, tictoc, VGAM, writexl
 # - data files:
 #   - fullspecieslist.csv
 #   - trends/trendsX.csv for whole country and individual mask versions
