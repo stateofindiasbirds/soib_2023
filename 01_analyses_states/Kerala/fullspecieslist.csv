@@ -211,7 +211,7 @@
 "Little Crake","Zapornia parva","","","",NA,NA,NA,NA,NA,NA
 "Baillon's Crake","Zapornia pusilla","","","",26,0.0384615384615385,0.317307692307692,0.346153846153846,20.1538461538462,2.63566005116848
 "Black-tailed Crake","Zapornia bicolor","","","X",NA,NA,NA,NA,NA,NA
-"Masked Finfoot","Heliopais personatus","","","X",NA,NA,NA,NA,NA,NA
+"Masked Finfoot","Heliopais personatus","","","",NA,NA,NA,NA,NA,NA
 "Demoiselle Crane","Anthropoides virgo","","","X",NA,NA,NA,NA,NA,NA
 "Siberian Crane","Leucogeranus leucogeranus","","","X",NA,NA,NA,NA,NA,NA
 "Sarus Crane","Antigone antigone","","","",NA,NA,NA,NA,NA,NA
@@ -259,7 +259,7 @@
 "Curlew Sandpiper","Calidris ferruginea","","","",28,0.178571428571429,0.441964285714286,0.678571428571429,17.4285714285714,3.14206820304598
 "Temminck's Stint","Calidris temminckii","","","",39,0.128205128205128,0.503205128205128,0.641025641025641,18.5128205128205,2.53737904644604
 "Long-toed Stint","Calidris subminuta","","","",8,NA,0.40625,0.5,24,1.48162073419617
-"Spoon-billed Sandpiper","Calidris pygmaea","","","X",NA,NA,NA,NA,NA,NA
+"Spoon-billed Sandpiper","Calidris pygmaea","","","",NA,NA,NA,NA,NA,NA
 "Red-necked Stint","Calidris ruficollis","","","",NA,NA,NA,NA,NA,NA
 "Sanderling","Calidris alba","","","",27,0.111111111111111,0.481481481481481,0.481481481481481,15.5925925925926,3.27880492541824
 "Dunlin","Calidris alpina","","","",15,0.2,0.341666666666667,0.6,13.5333333333333,4.4319478536844
@@ -284,7 +284,7 @@
 "Gray-tailed Tattler","Tringa brevipes","","","",NA,NA,NA,NA,NA,NA
 "Spotted Redshank","Tringa erythropus","","","",14,0.142857142857143,0.276785714285714,0.285714285714286,17.5714285714286,4.3474625667429
 "Common Greenshank","Tringa nebularia","","X","X",58,0.224137931034483,0.665948275862069,0.706896551724138,18.2758620689655,2.21903381281947
-"Nordmann's Greenshank","Tringa guttifer","","","X",NA,NA,NA,NA,NA,NA
+"Nordmann's Greenshank","Tringa guttifer","","","",NA,NA,NA,NA,NA,NA
 "Marsh Sandpiper","Tringa stagnatilis","","","",46,0.108695652173913,0.570652173913043,0.565217391304348,18.7173913043478,2.40448822436044
 "Wood Sandpiper","Tringa glareola","","X","X",73,0.178082191780822,0.671232876712329,0.671232876712329,19.3561643835616,1.79549462217583
 "Common Redshank","Tringa totanus","","","",40,0.15,0.63125,0.65,17.6,2.54664658335483

@@ -211,7 +211,7 @@
 "Little Crake","Zapornia parva","","","",1,NA,NA,NA,6,NA
 "Baillon's Crake","Zapornia pusilla","","X","X",270,0.0407407407407407,0.264351851851852,0.262962962962963,16.1962962962963,0.800285501959255
 "Black-tailed Crake","Zapornia bicolor","","","X",31,0.032258064516129,0.326612903225806,0.548387096774194,12.8387096774194,2.10254723534678
-"Masked Finfoot","Heliopais personatus","","","X",NA,NA,NA,NA,NA,NA
+"Masked Finfoot","Heliopais personatus","","","",NA,NA,NA,NA,NA,NA
 "Demoiselle Crane","Anthropoides virgo","X","X","X",250,0.108,0.289,0.452,10.004,0.720802932853105
 "Siberian Crane","Leucogeranus leucogeranus","","","X",1,1,NA,NA,18,NA
 "Sarus Crane","Antigone antigone","X","X","X",487,0.100616016427105,0.286447638603696,0.388090349075975,8.60164271047228,0.545430612104968
@@ -259,7 +259,7 @@
 "Curlew Sandpiper","Calidris ferruginea","X","X","X",217,0.179723502304147,0.328917050691244,0.382488479262673,13.1152073732719,0.944487002638961
 "Temminck's Stint","Calidris temminckii","X","X","X",1145,0.0777292576419214,0.317903930131004,0.448908296943231,11.7703056768559,0.384702568545636
 "Long-toed Stint","Calidris subminuta","","","",30,0.133333333333333,0.270833333333333,0.366666666666667,16.2666666666667,2.74292699327223
-"Spoon-billed Sandpiper","Calidris pygmaea","","","X",NA,NA,NA,NA,NA,NA
+"Spoon-billed Sandpiper","Calidris pygmaea","","","",NA,NA,NA,NA,NA,NA
 "Red-necked Stint","Calidris ruficollis","","","",NA,NA,NA,NA,NA,NA
 "Sanderling","Calidris alba","","X","X",121,0.140495867768595,0.360537190082645,0.487603305785124,12.2892561983471,1.27878572549173
 "Dunlin","Calidris alpina","X","X","X",198,0.146464646464646,0.279040404040404,0.383838383838384,12.4292929292929,0.939832618648251
@@ -284,7 +284,7 @@
 "Gray-tailed Tattler","Tringa brevipes","","","",NA,NA,NA,NA,NA,NA
 "Spotted Redshank","Tringa erythropus","X","X","X",671,0.0715350223546945,0.27924739195231,0.366616989567809,11.7466467958271,0.500889944738457
 "Common Greenshank","Tringa nebularia","X","X","X",1569,0.109623964308477,0.335882727852135,0.478011472275335,11.5653282345443,0.32677871052355
-"Nordmann's Greenshank","Tringa guttifer","","","X",NA,NA,NA,NA,NA,NA
+"Nordmann's Greenshank","Tringa guttifer","","","",NA,NA,NA,NA,NA,NA
 "Marsh Sandpiper","Tringa stagnatilis","X","X","X",1110,0.1,0.325225225225225,0.422522522522523,12.0810810810811,0.398306593763348
 "Wood Sandpiper","Tringa glareola","X","X","X",2078,0.0813282001924928,0.379992781520693,0.537054860442733,10.9821944177093,0.283023601108931
 "Common Redshank","Tringa totanus","X","X","X",1079,0.1241890639481,0.344184430027804,0.451343836886006,10.6079703429101,0.388005817875669
