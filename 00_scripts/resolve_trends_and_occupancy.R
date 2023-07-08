@@ -16,20 +16,26 @@ occu_outpath <- cur_metadata$OCCU.OUTPATH
 
 mainwocats_path <- cur_metadata$SOIBMAIN.WOCATS.PATH
 main_path <- cur_metadata$SOIBMAIN.PATH
-summary_path <- cur_metadata$SUMMARY.PATH
-priority_path <- cur_metadata$PRIORITY.PATH
-specsum_path <- cur_metadata$SPECSUM.PATH
+summaries_path <- cur_metadata$SUMMARY.PATH
 
 ###
 
 library(tidyverse)
 library(VGAM)
 library(sf)
+library(writexl)
 
 source('00_scripts/00_functions.R')
-load("00_data/spec_misid.RData") # to remove from LTT and CAT "selection" later
 
 recentcutoff = 2015
+
+load("00_data/spec_misid.RData") # to remove from LTT and CAT "selection" later
+# for occupancy
+load("00_data/maps_sf.RData")
+load(speclist_path)
+# for classification
+priorityrules = read.csv("00_data/priorityclassificationrules.csv") 
+load("00_data/vagrantdata.RData")
 
 ###
 
@@ -258,6 +264,10 @@ spec_ct = main %>%
   as.vector() %>% list_c()
 
 
+# checkpoint-object "main"
+main1_postfilt <- main
+
+
 # calculations: prep --------------------------------------------------------
 
 # This section performs calculations on the trends data frame to derive new columns, 
@@ -343,6 +353,10 @@ modtrends = modtrends %>%
                              TRUE ~ rci_std)) %>%
   ungroup() %>%
   dplyr::select(timegroupsf, timegroups, COMMON.NAME, lci_std, mean_std, rci_std)
+
+
+# checkpoint-object "main"
+main2_postLTT <- main
 
 
 # calculations: trends (current) ------------------------------------------
@@ -463,6 +477,9 @@ sl_data_main <- temp_sims %>%
 main <- main %>%
   left_join(sl_data_main, by = c("eBird.English.Name.2022" = "COMMON.NAME"))
 
+
+# checkpoint-object "main"
+main3_postCATmain <- main
 
 # calculations: trends (current): SENS ------------------------------------
 
@@ -741,16 +758,17 @@ main <- main %>%
   left_join(tojoin) %>% 
   # removing misIDd species "selection" for long-term and current analyses
   mutate(Long.Term.Analysis = ifelse(eBird.English.Name.2022 %in% spec_misid, 
-                                     NA_real_, Long.Term.Analysis),
+                                     "", Long.Term.Analysis),
          Current.Analysis = ifelse(eBird.English.Name.2022 %in% spec_misid, 
-                                   NA_real_, Current.Analysis))  
+                                   "", Current.Analysis))  
 
+
+# checkpoint-object "main"
+main4_postCATcomb <- main
 
 # calculations: occupancy -------------------------------------------------
 
-load("00_data/maps_sf.RData")
-load(speclist_path)
-
+tic("Calculating occupancy")
 
 # occupancy-model files
 occu_model <- list.files(path = occu_mod_pathonly, full.names = T) %>% 
@@ -861,12 +879,17 @@ tojoin$rangerci[tojoin$rangemean == 0] = 0
 # joining to main object
 main <- main %>% left_join(tojoin)
 
+# checkpoint-object "main"
+main5_postoccu <- main
+
 write.csv(main, file = mainwocats_path, row.names = F)
+
+
+toc()
 
 
 # classification: assign SoIB Status categories (w/ sensitivity analysis) ----
 
-load("00_data/vagrantdata.RData")
 # any vagrant reported recently
 spec_vagrants <- d %>% 
   filter(year > 2017) %>% 
@@ -920,8 +943,8 @@ main = read.csv(mainwocats_path) %>%
     SOIBv2.Range.Status = case_when(
       is.na(rangemean) ~ NA_character_,
       rangemean == 0 & !(eBird.English.Name.2022 %in% spec_vagrants) ~ "Historical",
-      # above is to prevent species that are not historical but classified vagrants
-      # from being classified as Historical (instead Very Restricted)
+      # above is to prevent species that are not historical but classified as vagrants
+      # from being classified as Historical (instead, Very Restricted)
       rangerci < 0.0625 ~ "Very Restricted",
       # larger threshold for species that are not island endemics
       (!Endemic.Region %in% c("Andaman and Nicobar Islands", "Andaman Islands", "Nicobar Islands") &
@@ -1057,9 +1080,6 @@ cats_uncertain = c("eBird Data Deficient", "eBird Data Inconclusive")
 cats_restricted = c("Historical", "Very Restricted", "Restricted")
 
 
-priorityrules = read.csv("00_data/priorityclassificationrules.csv")
-
-
 main = main %>% 
   left_join(priorityrules) %>%
   mutate(SOIBv2.Priority.Status = as.character(SOIBv2.Priority.Status)) %>%
@@ -1124,30 +1144,40 @@ write.csv(main, file = main_path, row.names = F)
 
 # summaries -------------------------------------------------------------------
 
-summary_status = data.frame(Category = cats_trend) %>% 
+status_trends = data.frame(Category = cats_trend) %>% 
+  magrittr::set_colnames("Trend Status") %>% 
   left_join(main %>% 
               count(SOIBv2.Long.Term.Status) %>% 
-              magrittr::set_colnames(c("Category", "Long.Term"))) %>% 
+              magrittr::set_colnames(c("Trend Status", "Long-term species"))) %>% 
   left_join(main %>% 
               count(SOIBv2.Current.Status) %>% 
-              magrittr::set_colnames(c("Category", "Current"))) %>% 
+              magrittr::set_colnames(c("Trend Status", "Current species")))
+
+status_range <- data.frame(Category = cats_range) %>% 
+  magrittr::set_colnames("Range Status") %>% 
   left_join(main %>% 
               count(SOIBv2.Range.Status) %>% 
-              magrittr::set_colnames(c("Category", "Range")))
+              magrittr::set_colnames(c("Range Status", "No. of species")))
 
-priority_summary = main %>% 
+status_priority <- main %>% 
   filter(!is.na(SOIBv2.Priority.Status)) %>% # count() counts NA also
+  mutate(SOIBv2.Priority.Status = factor(SOIBv2.Priority.Status, 
+                                         levels = c("High", "Moderate", "Low"))) %>% 
   count(SOIBv2.Priority.Status) %>% 
-  magrittr::set_colnames(c("Category","N.species"))
+  magrittr::set_colnames(c("Priority Status", "No. of species"))
 
-species_summary <- main %>%
-  summarise(across(c(Selected.SOIB, Long.Term.Analysis, Current.Analysis),
+species_qual <- main %>%
+  mutate(Range.Analysis = if_else(is.na(SOIBv2.Range.Status), "", "X")) %>% 
+  summarise(across(c(Selected.SOIB, Long.Term.Analysis, Current.Analysis, Range.Analysis),
                    # adds up cases where condition is true
                    ~ sum(. == "X"))) %>% 
-  magrittr::set_colnames(c("Selected for SoIB","Long-term Analysis","Current Analysis")) %>% 
-  pivot_longer(everything(), names_to = "Category", values_to = "N.species")
+  magrittr::set_colnames(c("SoIB 2023 Assessment", "Long-term Analysis",
+                           "Current Analysis", "Range Analysis")) %>% 
+  pivot_longer(everything(), names_to = "Selected for:", values_to = "No. of species")
 
 
-write.csv(summary_status, file = summary_path, row.names = F)
-write.csv(priority_summary, file = priority_path, row.names = F)
-write.csv(species_summary, file = specsum_path, row.names = F)
+write_xlsx(path = summaries_path,
+           list("Trends Status" = status_trends,
+                "Range Status" = status_range,
+                "Priority Status" = status_priority,
+                "Species qualification" = species_qual))
