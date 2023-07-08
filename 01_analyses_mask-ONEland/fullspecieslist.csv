@@ -884,7 +884,7 @@
 "Brownish-flanked Bush Warbler","Horornis fortipes","","","",73,0.123287671232877,0.373287671232877,0.602739726027397,8.61643835616438,1.04260999008164
 "Hume's Bush Warbler","Horornis brunnescens","","","",6,NA,0.30952380952381,0.666666666666667,9,3.88719607600817
 "Aberrant Bush Warbler","Horornis flavolivaceus","","","",17,NA,0.235294117647059,0.294117647058824,9.41176470588235,2.07929353187459
-"White-browed Tit-Warbler","Leptopoecile sophiae","","","",35,0.114285714285714,0.296428571428571,0.514285714285714,7.74285714285714,1.60773190624337
+"White-browed Tit-Warbler","Leptopoecile sophiae","","","X",35,0.114285714285714,0.296428571428571,0.514285714285714,7.74285714285714,1.60773190624337
 "Crested Tit-Warbler","Leptopoecile elegans","","","",NA,NA,NA,NA,NA,NA
 "White-cheeked Tit","Aegithalos leucogenys","","","",NA,NA,NA,NA,NA,NA
 "Black-throated Tit","Aegithalos concinnus","","","",78,0.192307692307692,0.475961538461538,0.653846153846154,8,0.944944097457276
@@ -905,7 +905,7 @@
 "White-browed Fulvetta","Fulvetta vinipectus","","","",23,0.173913043478261,0.304347826086957,0.347826086956522,8.8695652173913,1.8038951953824
 "Streak-throated Fulvetta","Fulvetta manipurensis","","","",NA,NA,NA,NA,NA,NA
 "Black-breasted Parrotbill","Paradoxornis flavirostris","","","",NA,NA,NA,NA,NA,NA
-"Spot-breasted Parrotbill","Paradoxornis guttaticollis","","","",1,NA,1,1,2,NA
+"Spot-breasted Parrotbill","Paradoxornis guttaticollis","","","X",1,NA,1,1,2,NA
 "Great Parrotbill","Conostoma aemodium","","","",2,NA,0.75,1,5.5,6.86
 "Brown Parrotbill","Cholornis unicolor","","","",5,NA,0.44,0.4,7.6,1.70868838586794
 "Gray-headed Parrotbill","Psittiparus gularis","","","",NA,NA,NA,NA,NA,NA
@@ -1066,7 +1066,7 @@
 "Collared Myna","Acridotheres albocinctus","","","",NA,NA,NA,NA,NA,NA
 "Great Myna","Acridotheres grandis","","","",1,NA,1,NA,14,NA
 "Spot-winged Starling","Saroglossa spilopterus","","","",3,0.666666666666667,0.333333333333333,NA,11,1.13160652761167
-"Grandala","Grandala coelicolor","","","",22,0.136363636363636,0.221590909090909,0.181818181818182,9,1.87323088256465
+"Grandala","Grandala coelicolor","X","X","X",22,0.136363636363636,0.221590909090909,0.181818181818182,9,1.87323088256465
 "Long-tailed Thrush","Zoothera dixoni","","","",5,0.2,0.266666666666667,0.2,11,3.27970730401358
 "Alpine Thrush","Zoothera mollissima","","","",33,0.121212121212121,0.242424242424242,0.393939393939394,9.39393939393939,1.54937375897341
 "Himalayan Thrush","Zoothera salimalii","","","",2,NA,0.75,1,5.5,2.94
@@ -1135,7 +1135,7 @@
 "Himalayan Shortwing","Brachypteryx cruralis","","","",6,0.166666666666667,0.333333333333333,0.5,8.16666666666667,2.92544545515911
 "Indian Blue Robin","Larvivora brunnea","","","",66,0.121212121212121,0.257575757575758,0.5,12.1212121212121,1.61621039475728
 "Siberian Blue Robin","Larvivora cyane","","","",NA,NA,NA,NA,NA,NA
-"White-bellied Redstart","Luscinia phaenicuroides","","","",21,0.0476190476190476,0.148809523809524,0.19047619047619,7.23809523809524,1.72098163202801
+"White-bellied Redstart","Luscinia phaenicuroides","","","X",21,0.0476190476190476,0.148809523809524,0.19047619047619,7.23809523809524,1.72098163202801
 "Bluethroat","Luscinia svecica","","","",197,0.0964467005076142,0.236040609137056,0.406091370558376,10.7055837563452,0.854265224730483
 "Malabar Whistling-Thrush","Myophonus horsfieldii","","","",40,0.1,0.328125,0.475,13.95,1.91030723800904
 "Blue Whistling-Thrush","Myophonus caeruleus","","","",202,0.163366336633663,0.430074257425743,0.643564356435644,6.43564356435644,0.574281834417196
@@ -1247,7 +1247,7 @@
 "Green Avadavat","Amandava formosa","","X","X",6,NA,0.354166666666667,0.666666666666667,11.6666666666667,5.51283270600918
 "Red Avadavat","Amandava amandava","","X","X",150,0.0333333333333333,0.3325,0.513333333333333,12.2933333333333,1.03124211608312
 "Alpine Accentor","Prunella collaris","","X","X",101,0.148514851485149,0.252475247524752,0.376237623762376,7.84158415841584,0.854892806391858
-"Altai Accentor","Prunella himalayana","","","",24,0.291666666666667,0.223958333333333,0.25,9.66666666666667,1.4719713030179
+"Altai Accentor","Prunella himalayana","","","X",24,0.291666666666667,0.223958333333333,0.25,9.66666666666667,1.4719713030179
 "Robin Accentor","Prunella rubeculoides","","X","X",96,0.15625,0.36328125,0.614583333333333,6.54166666666667,0.76678822453566
 "Rufous-breasted Accentor","Prunella strophiata","","","",101,0.138613861386139,0.258663366336634,0.465346534653465,7.79207920792079,0.901910792343322
 "Brown Accentor","Prunella fulvescens","","","",84,0.130952380952381,0.28125,0.523809523809524,6.58333333333333,0.875915050314892
@@ -1261,7 +1261,7 @@
 "Yellow-throated Sparrow","Gymnoris xanthocollis","","","",369,0.0677506775067751,0.329607046070461,0.563685636856369,9.92682926829268,0.623080122409329
 "Rock Sparrow","Petronia petronia","","","",NA,NA,NA,NA,NA,NA
 "Pale Rockfinch","Carpospiza brachydactyla","","","",NA,NA,NA,NA,NA,NA
-"Black-winged Snowfinch","Montifringilla adamsi","","","",67,0.194029850746269,0.386194029850746,0.626865671641791,6.49253731343284,0.984089767124117
+"Black-winged Snowfinch","Montifringilla adamsi","","","X",67,0.194029850746269,0.386194029850746,0.626865671641791,6.49253731343284,0.984089767124117
 "White-rumped Snowfinch","Montifringilla taczanowskii","","","",7,NA,0.309523809523809,0.428571428571429,6.42857142857143,1.90592059995513
 "Rufous-necked Snowfinch","Montifringilla ruficollis","","","",5,NA,0.4,1,7.2,1.9002905041072
 "Blanford's Snowfinch","Montifringilla blanfordi","","","",33,0.0303030303030303,0.21969696969697,0.393939393939394,6.57575757575758,1.37811218874772
@@ -1323,11 +1323,11 @@
 "Spectacled Finch","Callacanthis burtoni","","","",30,0.2,0.191666666666667,0.3,9.4,1.63202614358145
 "Dark-breasted Rosefinch","Procarduelis nipalensis","","","",35,0.0857142857142857,0.346428571428571,0.457142857142857,8.74285714285714,1.50613240570987
 "Plain Mountain Finch","Leucosticte nemoricola","X","X","X",166,0.13855421686747,0.323042168674699,0.518072289156627,7.04819277108434,0.626179281775276
-"Black-headed Mountain Finch","Leucosticte brandti","","","",89,0.157303370786517,0.316011235955056,0.550561797752809,5.74157303370786,0.834294780594706
+"Black-headed Mountain Finch","Leucosticte brandti","","","X",89,0.157303370786517,0.316011235955056,0.550561797752809,5.74157303370786,0.834294780594706
 "Desert Finch","Rhodospiza obsoleta","","","",NA,NA,NA,NA,NA,NA
 "Yellow-breasted Greenfinch","Chloris spinoides","","","",104,0.163461538461538,0.334134615384615,0.5,7.89423076923077,0.832780735473077
 "Black-headed Greenfinch","Chloris ambigua","","","",1,NA,1,1,2,NA
-"Twite","Linaria flavirostris","","","",62,0.17741935483871,0.344758064516129,0.483870967741935,6.51612903225806,1.04519484704994
+"Twite","Linaria flavirostris","","","X",62,0.17741935483871,0.344758064516129,0.483870967741935,6.51612903225806,1.04519484704994
 "Eurasian Linnet","Linaria cannabina","","","",1,1,NA,NA,23,NA
 "Red Crossbill","Loxia curvirostra","","","",11,0.181818181818182,0.25,0.0909090909090909,9.27272727272727,1.75488739013822
 "European Goldfinch","Carduelis carduelis","","","",110,0.154545454545455,0.305681818181818,0.490909090909091,7.43636363636364,0.778803767266251
@@ -1337,7 +1337,7 @@
 "Crested Bunting","Emberiza lathami","","","",154,0.0714285714285714,0.274350649350649,0.487012987012987,9.8961038961039,0.920269618241707
 "Black-headed Bunting","Emberiza melanocephala","","","X",86,0.0465116279069767,0.218023255813953,0.325581395348837,13,1.22725688134326
 "Red-headed Bunting","Emberiza bruniceps","","","X",59,0.0508474576271186,0.211864406779661,0.322033898305085,13.7457627118644,1.64046502281809
-"Chestnut-eared Bunting","Emberiza fucata","","","",20,0.1,0.2,0.25,10.35,2.06682319158247
+"Chestnut-eared Bunting","Emberiza fucata","","X","X",20,0.1,0.2,0.25,10.35,2.06682319158247
 "Rock Bunting","Emberiza cia","","","",187,0.197860962566845,0.394385026737968,0.620320855614973,6.58823529411765,0.596847608767379
 "Godlewski's Bunting","Emberiza godlewskii","","","",2,NA,0.75,1,5.5,6.86
 "White-capped Bunting","Emberiza stewarti","","","",68,0.235294117647059,0.264705882352941,0.352941176470588,9.23529411764706,1.28563686129923
@@ -1345,10 +1345,10 @@
 "Pine Bunting","Emberiza leucocephalos","","","",14,0.214285714285714,0.196428571428571,0.571428571428571,11.3571428571429,2.55476026272525
 "Gray-necked Bunting","Emberiza buchanani","","X","X",131,0.083969465648855,0.262404580152672,0.374045801526718,12.2748091603053,1.05606991865454
 "Ortolan Bunting","Emberiza hortulana","","","",NA,NA,NA,NA,NA,NA
-"Striolated Bunting","Emberiza striolata","","","",52,0.288461538461538,0.204326923076923,0.211538461538462,13.0576923076923,1.72106625239496
+"Striolated Bunting","Emberiza striolata","","","X",52,0.288461538461538,0.204326923076923,0.211538461538462,13.0576923076923,1.72106625239496
 "Reed Bunting","Emberiza schoeniclus","","","",2,0.5,NA,NA,18.5,8.82
 "Yellow-breasted Bunting","Emberiza aureola","","","X",NA,NA,NA,NA,NA,NA
-"Little Bunting","Emberiza pusilla","","","",12,0.416666666666667,0.183333333333333,0.166666666666667,6.91666666666667,2.5241114047994
+"Little Bunting","Emberiza pusilla","","","X",12,0.416666666666667,0.183333333333333,0.166666666666667,6.91666666666667,2.5241114047994
 "Rustic Bunting","Emberiza rustica","","","",NA,NA,NA,NA,NA,NA
 "Black-faced Bunting","Emberiza spodocephala","","","",NA,NA,NA,NA,NA,NA
 "Chestnut Bunting","Emberiza rutila","","","",NA,NA,NA,NA,NA,NA
