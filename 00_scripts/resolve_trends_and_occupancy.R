@@ -1237,8 +1237,36 @@ species_qual <- main %>%
   pivot_longer(everything(), names_to = "Selected for:", values_to = "No. of species")
 
 
+# cross-tab of SoIB and IUCN assessments
+summary_SoIB_IUCN <- main %>% 
+  filter(Selected.SOIB == "X") %>% 
+  mutate(SOIBv2.Priority.Status = factor(SOIBv2.Priority.Status, 
+                                         levels = c("High", "Moderate", "Low")),
+         IUCN.Category = factor(IUCN.Category, levels = c(
+           "Critically Endangered", "Endangered", "Vulnerable", "Near Threatened", 
+           "Least Concern", "Not Recognised"
+           ))) %>% 
+  group_by(SOIBv2.Priority.Status, IUCN.Category) %>% 
+  tally() %>% 
+  pivot_wider(names_from = SOIBv2.Priority.Status, values_from = n) %>% 
+  replace(is.na(.), 0) %>% 
+  magrittr::set_colnames(c(" ", "High", "Moderate", "Low")) 
+
+temp <- summary_SoIB_IUCN %>% 
+  reframe(across(c("High", "Moderate", "Low"), sum)) %>% 
+  mutate(new = "Sum") %>% 
+  relocate(new, High, Low, Moderate) %>% 
+  magrittr::set_colnames(c(" ", "High", "Moderate", "Low"))
+
+summary_SoIB_IUCN <- summary_SoIB_IUCN %>% 
+  bind_rows(temp) %>% 
+  mutate(Sum = High + Low + Moderate)
+
+
+
 write_xlsx(path = summaries_path,
            list("Trends Status" = status_trends,
                 "Range Status" = status_range,
                 "Priority Status" = status_priority,
-                "Species qualification" = species_qual))
+                "Species qualification" = species_qual,
+                "SoIB-IUCN cross-tab" = summary_SoIB_IUCN))
