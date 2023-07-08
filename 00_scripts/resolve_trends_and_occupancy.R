@@ -984,37 +984,36 @@ sens_ltt <- main %>%
   bind_rows(modtrends1, modtrends2, modtrends3, modtrends4, modtrends5) %>% 
   group_by(COMMON.NAME) %>% 
   # how many different status categories have been assigned?
-  reframe(NO.STATUS = n_distinct(SOIBv2.Long.Term.Status)) %>% 
-  group_by(COMMON.NAME) %>% 
-  # if a species is changing Status in the sensitivity check, take the most conserative
-  reframe(CONSERVATIVE.STATUS = case_when(
-    
-    NO.STATUS > 2 ~ "eBird Data Inconclusive",
-    any(SOIBv2.Long.Term.Status) == "eBird Data Inconclusive" ~ "eBird Data Inconclusive",
-    
-    NO.STATUS == 2 & 
-      # if all Status assignments are either of the two increases
-      !(any(SOIBv2.Long.Term.Status) %in% 
-          c("Rapid Decline", "Decline", "Stable", "eBird Data Inconclusive")) ~ "Increase",
-    NO.STATUS == 2 & 
-      # if all Status assignments are either of the two decreases
-      !(any(SOIBv2.Long.Term.Status) %in% 
-          c("Rapid Increase", "Increase", "Stable", "eBird Data Inconclusive")) ~ "Decline",
-    
-    NO.STATUS == 2 ~ "eBird Data Inconclusive",
-    TRUE ~ SOIBv2.Long.Term.Status
-    
+  reframe(NO.STATUS = n_distinct(SOIBv2.Long.Term.Status),
+          
+          CONSERVATIVE.STATUS = case_when(
+            
+            NO.STATUS > 2 ~ "eBird Data Inconclusive",
+            
+            "eBird Data Inconclusive" %in% SOIBv2.Long.Term.Status ~ "eBird Data Inconclusive",
+
+            NO.STATUS == 2 & 
+              # if all Status assignments are either of the two increases
+              ("Rapid Increase" %in% SOIBv2.Long.Term.Status &
+                 "Increase" %in% SOIBv2.Long.Term.Status) ~ "Increase",
+            NO.STATUS == 2 & 
+              # if all Status assignments are either of the two decreases
+              ("Rapid Decline" %in% SOIBv2.Long.Term.Status &
+                 "Decline" %in% SOIBv2.Long.Term.Status) ~ "Decline",
+            
+            NO.STATUS == 2 ~ "eBird Data Inconclusive",
+            TRUE ~ min(SOIBv2.Long.Term.Status)
+            
   )) %>% 
   mutate(ROBUST = if_else(NO.STATUS == 1, 1, 0)) %>% 
-  dplyr::across(-NO.STATUS)
+  dplyr::select(-NO.STATUS)
   
 
 main <- main %>% 
   left_join(sens_ltt, by = c("eBird.English.Name.2022" = "COMMON.NAME")) %>% 
   # if Status assignment is not robust, take the most conservative one
-  mutate(SOIBv2.Long.Term.Status = if_else(ROBUST == 0, 
-                                           CONSERVATIVE.STATUS, 
-                                           SOIBv2.Long.Term.Status)) %>% 
+  mutate(SOIBv2.Long.Term.Status = case_when(ROBUST == 0 ~ CONSERVATIVE.STATUS, 
+                                             TRUE ~ SOIBv2.Long.Term.Status)) %>% 
   dplyr::select(-CONSERVATIVE.STATUS, -ROBUST)
 
 
@@ -1113,6 +1112,8 @@ ind7 = ind7 %>% setdiff(ind.rem)
 spec_ind.rem <- sens_cat$eBird.English.Name.2022[ind.rem]
 spec_ind6 <- sens_cat$eBird.English.Name.2022[ind6]
 spec_ind7 <- sens_cat$eBird.English.Name.2022[ind7]
+
+
 
 
 main <- main %>%
