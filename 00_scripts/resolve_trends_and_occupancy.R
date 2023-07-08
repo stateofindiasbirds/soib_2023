@@ -786,8 +786,7 @@ occu_model <- list.files(path = occu_mod_pathonly, full.names = T) %>%
 
 # occupancy-presence files
 occu_presence <- list.files(path = occu_pres_pathonly, full.names = T) %>% 
-  map_df(read.csv) %>% 
-  rename(presence = actual) # remove this later (will be named "presence" already) ###
+  map_df(read.csv)
 
 # taking modelled occupancy values for species in cell where "absent"
 occ.full1 = occu_model %>% 
