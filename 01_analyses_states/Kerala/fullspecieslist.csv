@@ -149,7 +149,7 @@
 "Pied Cuckoo","Clamator jacobinus","","","",72,0.0694444444444444,0.460069444444444,0.541666666666667,20.5,1.55749769214367
 "Asian Koel","Eudynamys scolopaceus","X","X","X",93,0.365591397849462,0.911290322580645,0.956989247311828,17.9569892473118,1.71043071898762
 "Asian Emerald Cuckoo","Chrysococcyx maculatus","","","X",NA,NA,NA,NA,NA,NA
-"Violet Cuckoo","Chrysococcyx xanthorhynchus","","","X",NA,NA,NA,NA,NA,NA
+"Violet Cuckoo","Chrysococcyx xanthorhynchus","","","",NA,NA,NA,NA,NA,NA
 "Horsfield's Bronze-Cuckoo","Chrysococcyx basalis","","","",NA,NA,NA,NA,NA,NA
 "Banded Bay Cuckoo","Cacomantis sonneratii","","","",72,0.194444444444444,0.503472222222222,0.722222222222222,19.6944444444444,1.70696299734866
 "Plaintive Cuckoo","Cacomantis merulinus","","","",NA,NA,NA,NA,NA,NA
@@ -708,7 +708,7 @@
 "Common Raven","Corvus corax","","","",NA,NA,NA,NA,NA,NA
 "Yellow-bellied Fairy-Fantail","Chelidorhynx hypoxanthus","","","",NA,NA,NA,NA,NA,NA
 "Gray-headed Canary-Flycatcher","Culicicapa ceylonensis","","","",45,0.222222222222222,0.463888888888889,0.6,18.0888888888889,2.35383243245771
-"Fire-capped Tit","Cephalopyrus flammiceps","","","X",NA,NA,NA,NA,NA,NA
+"Fire-capped Tit","Cephalopyrus flammiceps","","","",NA,NA,NA,NA,NA,NA
 "Yellow-browed Tit","Sylviparus modestus","","","",NA,NA,NA,NA,NA,NA
 "Sultan Tit","Melanochlora sultanea","","","",NA,NA,NA,NA,NA,NA
 "Coal Tit","Periparus ater","","","",NA,NA,NA,NA,NA,NA
