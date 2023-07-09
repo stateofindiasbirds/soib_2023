@@ -196,9 +196,7 @@ if (cur_mask %in% c("none", "woodland", "cropland", "ONEland")) {
     # <annotation_pending_AV> rationale for 0.8 (even if arbitrary, what does it mean?)
     filter(!is.na(mean5km) & mean5km < 8 &
              (Long.Term.Analysis == "X" | Current.Analysis == "X") &
-             !Endemic.Region %in% c("Andaman and Nicobar Islands",
-                                    "Andaman Islands",
-                                    "Nicobar Islands")) %>% 
+             Restricted.Islands != 1) %>% 
     dplyr::select(eBird.English.Name.2022) %>% 
     as.vector() %>% list_c()
   
@@ -206,9 +204,7 @@ if (cur_mask %in% c("none", "woodland", "cropland", "ONEland")) {
     # <annotation_pending_AV> rationale for 0.25 (even if arbitrary, what does it mean?)
     filter(!is.na(ci5km) & (main$ci5km/main$mean5km) > 0.25 &
              (Long.Term.Analysis == "X" | Current.Analysis == "X") &
-             !Endemic.Region %in% c("Andaman and Nicobar Islands",
-                                    "Andaman Islands",
-                                    "Nicobar Islands")) %>% 
+             Restricted.Islands != 1) %>% 
     dplyr::select(eBird.English.Name.2022) %>% 
     as.vector() %>% list_c()
   
@@ -954,8 +950,7 @@ main = read.csv(mainwocats_path) %>%
       # from being classified as Historical (instead, Very Restricted)
       rangerci < 0.0625 ~ "Very Restricted",
       # larger threshold for species that are not island endemics
-      (!Endemic.Region %in% c("Andaman and Nicobar Islands", "Andaman Islands", "Nicobar Islands") &
-         rangerci < 0.75) ~ "Very Restricted",
+      (Restricted.Islands != 1 & rangerci < 0.75) ~ "Very Restricted",
       rangerci < 4.25 ~ "Restricted",
       rangelci > 100 ~ "Very Large",
       rangelci > 25 ~ "Large",
@@ -1183,7 +1178,8 @@ main = main %>%
            SOIB.Concern.Status, SOIB.Long.Term.Status, SOIB.Current.Status, SOIB.Range.Status, 
            Breeding.Activity.Period, Non.Breeding.Activity.Period,
            Diet.Guild, India.Endemic, Subcontinent.Endemic, Himalayas.Endemic, Endemic.Region, 
-           Habitat.Specialization, Migratory.Status.Within.India, Essential, Discard,
+           Habitat.Specialization, Migratory.Status.Within.India, Essential, Discard, 
+           Restricted.Islands,
            India.Checklist.Common.Name, India.Checklist.Scientific.Name, 
            BLI.Common.Name, BLI.Scientific.Name, IUCN.Category, WPA.Schedule,
            CITES.Appendix, CMS.Appendix, Onepercent.Estimates, 
