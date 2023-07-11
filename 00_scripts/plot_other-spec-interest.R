@@ -15,12 +15,19 @@ plot_fn <- function(main_data) {
                              Trend == "cat" ~ "Current Annual")) %>% 
     mutate(Trend = factor(Trend, levels = c("Long-term", "Current Annual"))) %>% 
     pivot_wider(names_from = Measure, values_from = Value) %>% 
+    mutate(xmin = as.numeric(India.Checklist.Common.Name) - 0.05,
+           xmax = as.numeric(India.Checklist.Common.Name) + 0.05) %>% 
     ggplot() +
-    geom_linerange(aes(x = India.Checklist.Common.Name, y = mean,
-                       ymin = lci, ymax = rci, linetype = Trend), 
-                   linewidth = 2, position = position_dodge(0.5)) +
-    scale_linetype_manual(values = c("dotdash", "solid")) +
-    theme_void()
+    geom_rect_pattern(aes(xmin = xmin, xmax = xmax, 
+                          ymin = lci, ymax = rci, 
+                          pattern_density = Trend, pattern_spacing = Trend), 
+                      colour = NA, fill = NA, position = position_dodge(0.5),
+                      pattern = "stripe", pattern_angle = 0,
+                      pattern_colour = NA, pattern_fill = "black") +
+    scale_pattern_density_manual(values = c(0.5, 1)) +
+    scale_pattern_spacing_manual(values = c(0.01, 1)) +
+    theme_void() +
+    theme(legend.position = "none")
   
   return(main_plot)
   
@@ -70,6 +77,9 @@ plot_right <- plot_fn(main_data_right)
 
 
 ggsave(plot_left, filename = glue("{out_path}01_left.svg"),
-       dpi = 300, height = 10, width = 40, units = "in", bg = "transparent")
+       dpi = 300, height = 5, width = 20, units = "in", bg = "transparent")
 ggsave(plot_right, filename = glue("{out_path}02_right.svg"),
-       dpi = 300, height = 10, width = 40, units = "in", bg = "transparent")
+       dpi = 300, height = 5, width = 20, units = "in", bg = "transparent")
+
+
+
