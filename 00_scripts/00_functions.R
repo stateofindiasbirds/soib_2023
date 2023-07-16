@@ -423,15 +423,7 @@ removevagrants = function(data)
 # select species for State of India's Birds, and species for historical and recent trends
 # includes all diurnal endemics (endemicity) and essential species (SelectSpecies)
 
-dataspeciesfilter = function(
-    
-  # thresholds for species to be considered in each analysis
-  locationlimit = 15, # individual locations
-  gridlimit = 4, # grid cells
-  listlimit = 50, # checklists
-  cur_mask = "none"
-  
-) {
+dataspeciesfilter = function(cur_mask = "none") {
   
   # ensuring only valid cur_mask names are provided
   if (!(cur_mask %in% unique(analyses_metadata$MASK))) {
@@ -439,9 +431,30 @@ dataspeciesfilter = function(
   }
   
   
-  # preparing data for mask ###
-  
+
+  # preparing data for mask -------------------------------------------------
+
   cur_metadata <- analyses_metadata %>% filter(MASK == cur_mask)
+  
+  # thresholds for species to be considered in each analysis
+  # - individual locations
+  # - grid cells
+  # - checklists
+  # lowered slightly for states for inclusion; their Statuses will handle rest
+  if (cur_metadata$MASK.TYPE == "state") {
+    
+    locationlimit = 10
+    gridlimit = 4 
+    listlimit = 30
+    
+  } else {
+    
+    locationlimit = 15 
+    gridlimit = 4 
+    listlimit = 50
+    
+  }
+  
   
   if (cur_mask == "none"){
     data0 = data_base
