@@ -496,6 +496,9 @@ dataspeciesfilter = function(cur_mask = "none") {
             year = round(median(year))) %>%
     arrange(year)
   
+  # list of species recorded from state
+  cur_mask_spec <- data %>% distinct(COMMON.NAME) %>% pull(COMMON.NAME)
+  
   
   # historical data (data from before 2000 onwards), used for long-term trends
   # gives list of species for which we have enough data and this analysis can be done
@@ -532,6 +535,8 @@ dataspeciesfilter = function(cur_mask = "none") {
     mutate(rt = 1) %>% 
     dplyr::select(COMMON.NAME, rt)
   
+  # return
+  
   
   # for other species that don't qualify simple rules above (restricted range)
   dataresth1 = data0 %>%
@@ -547,28 +552,6 @@ dataspeciesfilter = function(cur_mask = "none") {
     filter(years == 14) %>%
     dplyr::select(COMMON.NAME)
   
-  speciesresth = data.frame(species = intersect(unique(dataresth1$COMMON.NAME),
-                                                spec_resident),
-                            validh = NA_real_)
-  
-  # if the grids in which species has been reported a few times have sufficient lists
-  # from enough years, still consider for analysis
-  for (i in 1:length(speciesresth$species))
-  {
-    tempresth1 = data0 %>%
-      filter(COMMON.NAME == speciesresth$species[i]) %>%
-      distinct(gridg1) %>%
-      left_join(data0) %>%
-      group_by(timegroups) %>% 
-      reframe(n = n_distinct(group.id)) %>%
-      group_by(timegroups) %>%
-      filter(n > listlimit)
-    
-    if (length(tempresth1$timegroups) == 14)
-      speciesresth$validh[speciesresth$species == speciesresth$species[i]] = 1
-    
-  }
-  
   datarestr1 = data0 %>%
     filter(ALL.SPECIES.REPORTED == 1, 
            CATEGORY %in% c("species", "issf"), 
@@ -583,24 +566,59 @@ dataspeciesfilter = function(cur_mask = "none") {
     filter(years == 8) %>%
     dplyr::select(COMMON.NAME)
   
-  speciesrestr = data.frame(species = intersect(unique(datarestr1$COMMON.NAME),
-                                                spec_resident),
-                            validr = NA_real_)
   
-  for (i in 1:length(unique(datarestr1$COMMON.NAME)))
-  {
-    temprestr1 = data0 %>%
-      filter(COMMON.NAME == speciesrestr$species[i]) %>%
-      distinct(gridg1) %>%
-      left_join(data0) %>%
-      filter(year > 2014) %>%
-      group_by(timegroups) %>% 
-      reframe(n = n_distinct(group.id)) %>%
-      group_by(timegroups) %>%
-      filter(n > listlimit)
+  # return
+  
+  speciesresth = dataresth1 %>% 
+    rename(species = COMMON.NAME) %>% 
+    inner_join(data.frame(species = spec_resident)) %>% 
+    mutate(validh = NA_real_)
+  
+  if (nrow(speciesresth) > 0) {
+  
+    # if the grids in which species has been reported a few times have sufficient lists
+    # from enough years, still consider for analysis
+    for (i in 1:length(speciesresth$species))
+    {
+      tempresth1 = data0 %>%
+        filter(COMMON.NAME == speciesresth$species[i]) %>%
+        distinct(gridg1) %>%
+        left_join(data0) %>%
+        group_by(timegroups) %>% 
+        reframe(n = n_distinct(group.id)) %>%
+        group_by(timegroups) %>%
+        filter(n > listlimit)
+      
+      if (length(tempresth1$timegroups) == 14)
+        speciesresth$validh[speciesresth$species == speciesresth$species[i]] = 1
+      
+    }
     
-    if (length(temprestr1$timegroups) == 8)
-      speciesrestr$validr[speciesrestr$species == speciesrestr$species[i]] = 1
+  }
+  
+  speciesrestr = datarestr1 %>% 
+    rename(species = COMMON.NAME) %>% 
+    inner_join(data.frame(species = spec_resident)) %>% 
+    mutate(validr = NA_real_)
+  
+  if (nrow(speciesrestr) > 0) {
+    
+    for (i in 1:length(speciesrestr$species))
+    {
+      temprestr1 = data0 %>%
+        filter(COMMON.NAME == speciesrestr$species[i]) %>%
+        distinct(gridg1) %>%
+        left_join(data0) %>%
+        filter(year > 2014) %>%
+        group_by(timegroups) %>% 
+        reframe(n = n_distinct(group.id)) %>%
+        group_by(timegroups) %>%
+        filter(n > listlimit)
+      
+      if (length(temprestr1$timegroups) == 8)
+        speciesrestr$validr[speciesrestr$species == speciesrestr$species[i]] = 1
+      
+    }
     
   }
   
@@ -623,6 +641,8 @@ dataspeciesfilter = function(cur_mask = "none") {
                 Non.Breeding.Activity.Period != "Nocturnal" | 
                 COMMON.NAME == "Jerdon's Courser") & 
              (is.na(Discard))) %>%
+    # filter out species not recorded from current mask
+    filter(COMMON.NAME %in% cur_mask_spec) %>% 
     dplyr::select(COMMON.NAME, ht, rt)
   
   # <annotation_pending_AV> why filtering dataf also? (instead of specieslist above)
