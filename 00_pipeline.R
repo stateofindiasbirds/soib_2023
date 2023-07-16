@@ -86,10 +86,10 @@ save(analyses_metadata, file = "00_data/analyses_metadata.RData")
 # - "eBird_location_data.csv"
 # - "rawdata.RData"
 
-tictoc::tic("Reading and cleaning raw data")
+tic("Reading and cleaning raw data")
 readcleanrawdata(rawpath = "00_data/ebd_IN_relMay-2023.txt", 
                  sensitivepath = "00_data/ebd_sensitive_relMay-2023_IN.txt")
-tictoc::toc() # 55 min
+toc() # 55 min
 
 
 # STEP 2: Create sf map of SoIB2 habitat masks
@@ -101,9 +101,9 @@ tictoc::toc() # 55 min
 # Outputs:
 # - "habmasks_sf.RData"
 
-tictoc::tic("Creating sf map of SoIB2 habitat masks")
+tic("Creating sf map of SoIB2 habitat masks")
 source("00_scripts/create_habitat_masks_dataframe.R")
-tictoc::toc()
+toc()
 
 
 # STEP 3: Add map and grid variables to dataset (dataframe)
@@ -124,9 +124,9 @@ tictoc::toc()
 # Outputs:
 # - "data.RData"
 
-tictoc::tic("Adding map and grid variables to dataset")
+tic("Adding map and grid variables to dataset")
 addmapvars()
-tictoc::toc() # 11 min
+toc() # 11 min
 
 
 # STEP 4: Process and filter data for analyses
@@ -151,9 +151,9 @@ tictoc::toc() # 11 min
 
 load("00_data/analyses_metadata.RData")
 
-tictoc::tic("Processing and filtering data for analyses")
+tic("Processing and filtering data for analyses")
 source("00_scripts/filter_data_for_species.R")
-tictoc::toc() # 27 min
+toc() # 51 min
 
 # PART 2 ------------------------------------------------------------------
 
@@ -175,34 +175,49 @@ load("00_data/analyses_metadata.RData")
 
 # not functionising because parallelisation doesn't work inside functions
 cur_mask <- "none"
-tictoc::tic("generated random group IDs for full country")
+tic("generated random group IDs for full country")
 source("00_scripts/create_random_groupids.R")
-tictoc::toc() # 86 min
+toc() # 86 min
 
 cur_mask <- "woodland"
-tictoc::tic("generated random group IDs for woodland")
+tic("generated random group IDs for woodland")
 source("00_scripts/create_random_groupids.R")
-tictoc::toc() # 2331 sec (38 min)
+toc() # 2331 sec (38 min)
 
 cur_mask <- "cropland"
-tictoc::tic("generated random group IDs for cropland")
+tic("generated random group IDs for cropland")
 source("00_scripts/create_random_groupids.R")
-tictoc::toc() # 833 sec (14 min)
+toc() # 833 sec (14 min)
 
 cur_mask <- "ONEland"
-tictoc::tic("generated random group IDs for ONEland")
+tic("generated random group IDs for ONEland")
 source("00_scripts/create_random_groupids.R")
-tictoc::toc() # 463 sec (8 min)
+toc() # 463 sec (8 min)
 
 cur_mask <- "PA"
-tictoc::tic("generated random group IDs for PA")
+tic("generated random group IDs for PA")
 source("00_scripts/create_random_groupids.R")
-tictoc::toc() # 409 sec (7 min)
+toc() # 409 sec (7 min)
 
-cur_mask <- "Kerala"
-tictoc::tic("generated random group IDs for Kerala")
-source("00_scripts/create_random_groupids.R")
-tictoc::toc() # 
+tic.clearlog()
+tic("generated random group IDs for all states")
+
+analyses_metadata %>% 
+  filter(MASK.TYPE == "state") %>% 
+  distinct(MASK) %>% 
+  pull(MASK) %>% 
+  # walking over each state
+  walk(~ {
+    
+    tic(glue("generated random group IDs for {.x} state"))
+    cur_mask <- .x
+    source("00_scripts/create_random_groupids.R")
+    toc(log = TRUE, quiet = TRUE) 
+    
+  })
+
+toc(log = TRUE, quiet = TRUE) 
+tic.log()
 
 
 
@@ -211,7 +226,7 @@ tictoc::toc() #
 # - after above step (P2, S1)
 # Requires:
 # - tidyverse, tictoc
-# - data files (ALL in 00_data/):
+# - data files:
 #   - "dataforanalyses.RData" for whole country and individual mask versions
 #   - "randomgroupids.RData" for whole country and individual mask versions
 # Outputs:
@@ -220,41 +235,52 @@ tictoc::toc() #
 load("00_data/analyses_metadata.RData")
 
 
-# FULL COUNTRY
-
 cur_mask <- "none"
 my_assignment <- 1:100 # CHANGE FOR YOUR SUBSET
-tictoc::tic(glue("Generated subsampled data for full country (# {min(my_assignment)}:{max(my_assignment)})"))
+tic(glue("Generated subsampled data for full country (# {min(my_assignment)}:{max(my_assignment)})"))
 source("00_scripts/create_random_datafiles.R")
-tictoc::toc() # 462 min (~ 8 h)
+toc() # 462 min (~ 8 h)
 
-
-# INDIVIDUAL MASKS
 
 cur_mask <- "woodland"
-tictoc::tic("Generated subsampled data for woodland")
+tic(glue("Generated subsampled data for {cur_mask}"))
 source("00_scripts/create_random_datafiles.R")
-tictoc::toc() 
+toc() 
 
 cur_mask <- "cropland"
-tictoc::tic("Generated subsampled data for cropland")
+tic(glue("Generated subsampled data for {cur_mask}"))
 source("00_scripts/create_random_datafiles.R")
-tictoc::toc() 
+toc() 
 
 cur_mask <- "ONEland"
-tictoc::tic("Generated subsampled data for ONEland")
+tic(glue("Generated subsampled data for {cur_mask}"))
 source("00_scripts/create_random_datafiles.R")
-tictoc::toc() 
+toc() 
 
 cur_mask <- "PA"
-tictoc::tic("Generated subsampled data for PA")
+tic(glue("Generated subsampled data for {cur_mask}"))
 source("00_scripts/create_random_datafiles.R")
-tictoc::toc() 
+toc() 
 
-cur_mask <- "Kerala"
-tictoc::tic("Generated subsampled data for Kerala")
-source("00_scripts/create_random_datafiles.R")
-tictoc::toc() # 
+tic.clearlog()
+tic("Generated subsampled data for all states")
+
+analyses_metadata %>% 
+  filter(MASK.TYPE == "state") %>% 
+  distinct(MASK) %>% 
+  pull(MASK) %>% 
+  # walking over each state
+  walk(~ {
+    
+    tic(glue("Generated subsampled data for {.x} state"))
+    cur_mask <- .x
+    source("00_scripts/create_random_datafiles.R")
+    toc(log = TRUE, quiet = TRUE) 
+    
+  })
+
+toc(log = TRUE, quiet = TRUE) 
+tic.log()
 
 
 
@@ -276,39 +302,49 @@ load("00_data/analyses_metadata.RData")
 # not functionising because parallelisation doesn't work inside functions
 cur_mask <- "none"
 my_assignment <- 1:100 # CHANGE FOR YOUR SUBSET
-tictoc::tic(glue("Species trends for full country (sims {min(my_assignment)}--{max(my_assignment)})"))
+tic(glue("Species trends for full country (sims {min(my_assignment)}--{max(my_assignment)})"))
 source("00_scripts/run_species_trends.R")
-tictoc::toc() # 102 hours
+toc() # 102 hours
 
 cur_mask <- "woodland"
-my_assignment <- 101:200 # CHANGE FOR YOUR SUBSET
-tictoc::tic(glue("Species trends for woodland (sims {min(my_assignment)}--{max(my_assignment)})"))
+tic(glue("Species trends for {cur_mask}"))
 source("00_scripts/run_species_trends.R")
-tictoc::toc() 
+toc() 
 
 cur_mask <- "cropland"
-my_assignment <- 101:200 # CHANGE FOR YOUR SUBSET
-tictoc::tic(glue("Species trends for cropland (sims {min(my_assignment)}--{max(my_assignment)})"))
+tic(glue("Species trends for {cur_mask}"))
 source("00_scripts/run_species_trends.R")
-tictoc::toc() 
+toc() 
 
 cur_mask <- "ONEland"
-my_assignment <- 101:200 # CHANGE FOR YOUR SUBSET
-tictoc::tic(glue("Species trends for ONEland (sims {min(my_assignment)}--{max(my_assignment)})"))
+tic(glue("Species trends for {cur_mask}"))
 source("00_scripts/run_species_trends.R")
-tictoc::toc() 
+toc() 
 
 cur_mask <- "PA"
-my_assignment <- 49:200 # CHANGE FOR YOUR SUBSET
-tictoc::tic(glue("Species trends for PA (sims {min(my_assignment)}--{max(my_assignment)})"))
+tic(glue("Species trends for {cur_mask}"))
 source("00_scripts/run_species_trends.R")
-tictoc::toc() # 195 sec for 1 sim (~ 11 hours for 200 sim)
+toc() # 195 sec for 1 sim (~ 11 hours for 200 sim)
 
-cur_mask <- "Kerala"
-my_assignment <- 1:200 # CHANGE FOR YOUR SUBSET
-tictoc::tic(glue("Species trends for Kerala (sims {min(my_assignment)}--{max(my_assignment)})"))
-source("00_scripts/run_species_trends.R")
-tictoc::toc() # 
+tic.clearlog()
+tic("Ran species trends for all states")
+
+analyses_metadata %>% 
+  filter(MASK.TYPE == "state") %>% 
+  distinct(MASK) %>% 
+  pull(MASK) %>% 
+  # walking over each state
+  walk(~ {
+    
+    tic(glue("Ran species trends for {.x} state"))
+    cur_mask <- .x
+    source("00_scripts/run_species_trends.R")
+    toc(log = TRUE, quiet = TRUE) 
+    
+  })
+
+toc(log = TRUE, quiet = TRUE) 
+tic.log()
 
 
 
@@ -324,9 +360,9 @@ tictoc::toc() #
 load("00_data/analyses_metadata.RData")
 
 cur_mask <- "none"
-tictoc::tic("Run occupancy")
+tic("Run occupancy")
 source("00_scripts/run_species_occupancy-presence.R")
-tictoc::toc() # 
+toc() # 
 
 
 
@@ -345,34 +381,34 @@ load("00_data/analyses_metadata.RData")
 
 # not functionising because parallelisation doesn't work inside functions
 cur_mask <- "none"
-tictoc::tic(glue("Resolved trends for full country"))
+tic(glue("Resolved trends for full country"))
 source("00_scripts/resolve_trends_and_occupancy.R")
-tictoc::toc() # 5h 11m
+toc() # 5h 11m
 
 cur_mask <- "woodland"
-tictoc::tic(glue("Resolved trends & occupancy for {cur_mask}"))
+tic(glue("Resolved trends & occupancy for {cur_mask}"))
 source("00_scripts/resolve_trends_and_occupancy.R")
-tictoc::toc() 
+toc() 
 
 cur_mask <- "cropland"
-tictoc::tic(glue("Resolved trends & occupancy for {cur_mask}"))
+tic(glue("Resolved trends & occupancy for {cur_mask}"))
 source("00_scripts/resolve_trends_and_occupancy.R")
-tictoc::toc() 
+toc() 
 
 cur_mask <- "ONEland"
-tictoc::tic(glue("Resolved trends & occupancy for {cur_mask}"))
+tic(glue("Resolved trends & occupancy for {cur_mask}"))
 source("00_scripts/resolve_trends_and_occupancy.R")
-tictoc::toc() 
+toc() 
 
 cur_mask <- "PA"
-tictoc::tic(glue("Resolved trends & occupancy for {cur_mask}"))
+tic(glue("Resolved trends & occupancy for {cur_mask}"))
 source("00_scripts/resolve_trends_and_occupancy.R")
-tictoc::toc() 
+toc() 
 
 cur_mask <- "Kerala"
-tictoc::tic(glue("Resolved trends & occupancy for {cur_mask}"))
+tic(glue("Resolved trends & occupancy for {cur_mask}"))
 source("00_scripts/resolve_trends_and_occupancy.R")
-tictoc::toc() 
+toc() 
 
 
 

@@ -15,6 +15,7 @@ if (to_run == TRUE) {
   
   # for the full country analysis, runs are split among multiple systems, and use
   # separate subsampled datasets. We need to ensure this information exists.
+  # else, all 1000 runs are on one system.
   if (cur_mask == "none") {
     
     if (!exists("my_assignment")) {
@@ -25,20 +26,7 @@ if (to_run == TRUE) {
     
   } else {
     
-    if (!exists("my_assignment")) {
-      return("'my_assignment' is empty! Please specify IDs of data files assigned to you.")
-    }
-    
-    # woodland mask needs more sims
-    if (cur_mask == "woodland") {
-      no_sim <- 300
-    } else {
-      no_sim <- 200
-    }
-    
-    cur_assignment <- 1:no_sim
-    
-    rm(no_sim)
+    cur_assignment <- 1:1000
     
   }
   

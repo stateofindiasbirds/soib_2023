@@ -8,17 +8,22 @@ to_run <- (1 %in% specieslist$ht) | (1 %in% specieslist$rt) |
   (1 %in% restrictedspecieslist$ht) | (1 %in% restrictedspecieslist$rt)
 
 if (to_run == TRUE) {
-  
+
   
   # for the full country analysis, runs are split among multiple systems, and use
   # separate subsampled datasets. We need to ensure this information exists.
-  if (!exists("my_assignment")) {
+  # else, all 1000 runs are on one system.
+  if (cur_mask == "none") {
     
-    return("'my_assignment' is empty! Please specify IDs of data files assigned to you.")
+    if (!exists("my_assignment")) {
+      return("'my_assignment' is empty! Please specify IDs of data files assigned to you.")
+    }
+    
+    cur_assignment <- my_assignment
     
   } else {
     
-    cur_assignment <- my_assignment
+    cur_assignment <- 1:1000
     
   }
   
