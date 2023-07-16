@@ -15,15 +15,15 @@ plot_fn <- function(main_data) {
                              Trend == "cat" ~ "Current Annual")) %>% 
     mutate(Trend = factor(Trend, levels = c("Long-term", "Current Annual"))) %>% 
     pivot_wider(names_from = Measure, values_from = Value) %>% 
-    mutate(xmin = as.numeric(India.Checklist.Common.Name) - 0.05,
-           xmax = as.numeric(India.Checklist.Common.Name) + 0.05) %>% 
+    mutate(xmin = as.numeric(India.Checklist.Common.Name) - 0.1,
+           xmax = as.numeric(India.Checklist.Common.Name) + 0.1) %>% 
     ggplot() +
     geom_rect_pattern(aes(xmin = xmin, xmax = xmax, 
                           ymin = lci, ymax = rci, 
                           pattern_density = Trend, pattern_spacing = Trend), 
                       colour = NA, fill = NA, position = position_dodge(0.5),
                       pattern = "stripe", pattern_angle = 0,
-                      pattern_colour = NA, pattern_fill = "black") +
+                      pattern_colour = NA, pattern_fill = "white") +
     scale_pattern_density_manual(values = c(0.5, 1)) +
     scale_pattern_spacing_manual(values = c(0.01, 1)) +
     theme_void() +
@@ -76,10 +76,8 @@ plot_left <- plot_fn(main_data_left)
 plot_right <- plot_fn(main_data_right)
 
 
-ggsave(plot_left, filename = glue("{out_path}01_left.svg"),
-       dpi = 300, height = 5, width = 20, units = "in", bg = "transparent")
-ggsave(plot_right, filename = glue("{out_path}02_right.svg"),
-       dpi = 300, height = 5, width = 20, units = "in", bg = "transparent")
-
-
+ggsave(plot_left, filename = glue("{out_path}01_left.png"),
+       dpi = 300, height = 55, width = 230, units = "mm", bg = "transparent")
+ggsave(plot_right, filename = glue("{out_path}02_right.png"),
+       dpi = 300, height = 55, width = 230, units = "mm", bg = "transparent")
 
