@@ -368,10 +368,10 @@ load("00_data/analyses_metadata.RData")
 # full country
 cur_mask <- "none"
 source("00_scripts/run_species_occupancy-setup.R")
-tic("Run presence-based occupancy")
+tic("Ran presence-based occupancy")
 source("00_scripts/run_species_occupancy-presence.R")
 toc()  
-tic("Run modelled occupancy")
+tic("Ran modelled occupancy")
 source("00_scripts/run_species_occupancy-model.R")
 toc()  
 
