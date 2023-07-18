@@ -9,58 +9,64 @@ library(extrafont)
 library(stringr)
 
 
-main = read.csv("01_analyses_full/SoIB_main.csv")
-trends = read.csv("01_analyses_full/trends.csv")
+main = read.csv("01_analyses_full/results/SoIB_main.csv")
+trends = read.csv("01_analyses_full/results/trends.csv")
 qualifying.species = main$eBird.English.Name.2022[!main$SOIBv2.Long.Term.Status %in% 
                                                     c("eBird Data Inconclusive","eBird Data Deficient") & 
                                                     main$Long.Term.Analysis == "X"]
 trends = trends %>% filter(COMMON.NAME %in% qualifying.species) %>%
   filter(timegroups <= 2022)
 
-cols = c("#869B27", "#31954E", "#E49B36", "#CC6666", "#78CAE0", "#9999CC", "#493F3D",
-         "#B69AC9", "#A13E2B", "#EA5599", "#000000", "#66CC99")
+cols = c("#718868", "#436b74", "#827f87", "#a26352")
+
+cols = c("#869B27", "#E49B36", "#436b74", "#CC6666", "#B69AC9", "#78CAE0","#31954E","#493F3D",
+         "#EA5599", "#9999CC", "#A13E2B", "#66CC99")
 
 
-species = c("Little Ringed Plover","Little Tern","Great Thick-knee","Small Pratincole")
+
+
 species = c("Black-rumped Flameback","White-naped Woodpecker","White-bellied Woodpecker",
             "Yellow-crowned Woodpecker","Brown-capped Pygmy Woodpecker")
 #cols = c("#869B27", "#31954E", "#78CAE0", "#CC6666", "#E49B36", "#9999CC", "#493F3D",
 #         "#B69AC9", "#A13E2B", "#EA5599", "#000000", "#66CC99")
 species = c("Northern Pintail","Northern Shoveler","Indian Spot-billed Duck",
             "Cotton Pygmy-Goose")
-species = c("White-rumped Vulture","Indian Vulture","Red-headed Vulture",
-            "Egyptian Vulture","Eurasian Griffon")
-#cols = c("#869B27", "#78CAE0", "#CC6666", "#E49B36", "#31954E", "#9999CC", "#493F3D",
-#         "#B69AC9", "#A13E2B", "#EA5599", "#000000", "#66CC99")
-species = c("Brahminy Kite","Black Kite","Shikra","Eurasian Marsh-Harrier",
-            "Short-toed Snake-Eagle","Pallid Harrier")
 species = c("Spot-billed Pelican","Black-headed Ibis","Glossy Ibis","Painted Stork",
             "Eurasian Spoonbill","Great Cormorant")
 #cols = c("#869B27", "#31954E", "#CC6666", "#78CAE0", "#9999CC", "#493F3D",
 #         "#B69AC9", "#A13E2B", "#EA5599", "#000000", "#66CC99")
-species = c("Ashy Prinia","Rock Pigeon","Indian Peafowl","House Sparrow")
-species = c("Indian Gray Hornbill","Malabar Gray Hornbill","Oriental Pied-Hornbill")
-species = c("Black-rumped Flameback","White-naped Woodpecker","White-bellied Woodpecker",
+species = c("Large-billed Crow","Olive-backed Pipit","Greater Coucal")
+species = c("White-rumped Vulture","Indian Vulture","Red-headed Vulture",
+            "Egyptian Vulture","Eurasian Griffon")
+#cols = c("#869B27", "#78CAE0", "#CC6666", "#E49B36", "#31954E", "#9999CC", "#493F3D",
+#         "#B69AC9", "#A13E2B", "#EA5599", "#000000", "#66CC99")
+species = c("Isabelline Wheatear","Great Gray Shrike","Rufous-tailed Lark",
+            "Yellow-billed Babbler","Eurasian Kestrel","Jerdon's Bushlark")
+species = c("Little Ringed Plover","Little Tern","Great Thick-knee","Small Pratincole")
+species = c("Lesser Sand-Plover","Terek Sandpiper","Whimbrel","Curlew Sandpiper",
+            "Eurasian Curlew")
+species = c("Indian Gray Hornbill","Oriental Pied-Hornbill")
+species = c("Black-rumped Flameback","Lesser Yellownape","White-bellied Woodpecker",
             "Yellow-crowned Woodpecker","Brown-capped Pygmy Woodpecker",
-            "Gray-headed Woodpecker")
+            "Himalayan Woodpecker")
 species = c("Northern Shoveler","Garganey","Cotton Pygmy-Goose",
             "Common Merganser","Ruddy Shelduck",
             "Tufted Duck")
 #cols = c("#869B27", "#31954E", "#78CAE0", "#CC6666", "#E49B36", "#9999CC", "#493F3D",
 #         "#B69AC9", "#A13E2B", "#EA5599", "#000000", "#66CC99")
-species = c("Ashy-crowned Sparrow-Lark","Great Gray Shrike","Rufous-tailed Lark",
-            "Yellow-billed Babbler","Eurasian Kestrel","Jerdon's Bushlark")
-species = c("Spot-billed Pelican","Black-headed Ibis","Glossy Ibis","Painted Stork",
-            "Eurasian Spoonbill","Great Cormorant")
-#cols = c("#869B27", "#31954E", "#CC6666", "#78CAE0", "#9999CC", "#E49B36",
-#         "#B69AC9", "#A13E2B", "#493F3D", "#000000", "#66CC99")
-species = c("Large-billed Crow","Olive-backed Pipit","Greater Coucal")
-species = c("Lesser Sand-Plover","Terek Sandpiper","Whimbrel","Curlew Sandpiper",
-            "Eurasian Curlew")
 species = c("Ashy Prinia","Indian Peafowl","Indian Courser","Red-necked Falcon")
+species = c("Ashy Prinia","Rock Pigeon","Indian Peafowl","Asian Koel")
+species = c("Spot-billed Pelican","Black-headed Ibis","Purple Heron","Painted Stork",
+            "Eurasian Spoonbill","Glossy Ibis")
+cols = c("#31954E", "#869B27", "#9999CC", "#CC6666", "#78CAE0", "#E49B36",
+         "#B69AC9", "#A13E2B", "#493F3D", "#000000", "#66CC99")
+species = c("Oriental Honey-buzzard","Black Kite","Eurasian Marsh-Harrier",
+            "Short-toed Snake-Eagle","Pallid Harrier","Greater Spotted Eagle")
+cols = c("#869B27", "#E49B36", "#436b74", "#CC6666", "#B69AC9", "#78CAE0","#31954E","#493F3D",
+         "#EA5599", "#9999CC", "#A13E2B", "#66CC99")
 
 
-sps = "Common birds in India"
+sps = "Raptors"
 
 temp = trends %>% 
   filter(COMMON.NAME %in% species)
@@ -78,7 +84,7 @@ temp$COMMON.NAME = factor(temp$COMMON.NAME,
 
 
 #cols = c("#41726c","#2d809b","#e0d27b","#8cc48c","#55bfaf")
-tcol = "black"
+tcol = "#56697B"
 pcol = "#A13E2B"
 
 ns = length(unique(temp$COMMON.NAME))
@@ -241,31 +247,36 @@ tlow = temp %>%
 tlow = max(tlow$timegroups)
 
 ggp = ggplot(temp, aes(x = timegroups, y = mean_std, col = COMMON.NAME, label = COMMON.NAMEx)) +
-  geom_line(linewidth = 2) +
+  geom_line(linewidth = 1.5, lineend = "round") +
   geom_text_repel(nudge_x = -2, direction = "y", hjust = "center", size = 4, 
-                  min.segment.length = Inf, fontface = "bold") +
+                  family = "Gandhi Sans", min.segment.length = Inf) +
   #geom_point(size = 3) +
-  ggtitle(sps) +
+  #ggtitle(sps) +
   geom_bracket(
     inherit.aes = FALSE, 
     xmin = c(2000, 2006, 2010, 2012, seq(2013, 2021)) + 0.5, 
     xmax = c(2006, 2010, 2012, seq(2013, 2022)) + 0.5,
     y.position = lm-0.01*range,
     bracket.shorten = 0.15,
-    tip.length = 0.03,
+    tip.length = 0,
     vjust = 2.5,
     label = tg[-1],
-    label.size = 3) +
+    label.size = 3.8,
+    col = tcol,
+    family = "Gandhi Sans") +
   geom_bracket(
     inherit.aes = FALSE, 
     xmin = c(2015) - 0.5, 
     xmax = c(2022) + 0.5,
-    y.position = lm-0.05*range,
+    y.position = lm-0.07*range,
     bracket.shorten = 0.15,
-    tip.length = 0.02,
-    vjust = 2.1,
+    tip.length = -0.017,
+    vjust = 2.8,
     label = "Current Trend",
-    label.size = 3) +
+    label.size = 5,
+    col = tcol,
+    fontface = 3,
+    family = "Gandhi Sans") +
   scale_colour_manual(breaks = bks1, 
                       labels = lbs1,
                       values = cols1) +
@@ -286,33 +297,27 @@ ggp = ggplot(temp, aes(x = timegroups, y = mean_std, col = COMMON.NAME, label = 
   geom_segment(x = tlow, y = ybreaks[5], xend = 2022, yend = ybreaks[5], linetype = "dotted", linewidth = 0.7, col = tcol) +
   geom_segment(x = tlow, y = 100, xend = 2022, yend = 100, linetype = "solid", linewidth = 0.9, col = tcol) +
   xlab("Time-steps") +
-  ylab("Change in eBird Abundance Index")
+  ylab("Change in Abundance Index")
 
 ggpx = ggp +
-  theme(axis.title.x = element_blank(), 
-        axis.title.y = element_text(size = 22, colour = "#56697B",
-                                    margin = margin(0, -0.6, 0, 0.4, 'cm')), 
-        axis.text.y = element_blank(),
-        axis.ticks.y = element_blank()) +
-  theme(plot.title = element_text(face = 'bold', size = 20, hjust = 0.5, vjust = -2, colour = pcol))+
-  theme(text=element_text(family="Gill Sans MT")) +
+  theme(text=element_text(family="Gandhi Sans")) +
   scale_y_continuous(expand=c(0,0),
                      breaks = c(ybreaks[1],ybreaks[2],ybreaks[3],ybreaks[4],ybreaks[5]),
                      labels = c(ybreaksl[1],ybreaksl[2],ybreaksl[3],
                                 ybreaksl[4],ybreaksl[5]),
                      position = "left")+
   annotate("text", x = 2023.5, y = ybreaks[1], label = ybreaksl[1], 
-           colour = "#56697B", family="Gill Sans MT", size = 6)+
+           colour = tcol, family="Gandhi Sans", size = 6)+
   annotate("text", x = 2023.5, y = ybreaks[2], label = ybreaksl[2], 
-           colour = "#56697B", family="Gill Sans MT", size = 6)+
+           colour = tcol, family="Gandhi Sans", size = 6)+
   annotate("text", x = 2023.5, y = ybreaks[3], label = ybreaksl[3], 
-           colour = "#56697B", family="Gill Sans MT", size = 6)+
+           colour = tcol, family="Gandhi Sans", size = 6)+
   annotate("text", x = 2023.5, y = ybreaks[4], label = ybreaksl[4], 
-           colour = "#56697B", family="Gill Sans MT", size = 6)+
+           colour = tcol, family="Gandhi Sans", size = 6)+
   annotate("text", x = 2023.5, y = ybreaks[5], label = ybreaksl[5], 
-           colour = "#56697B", family="Gill Sans MT", size = 6)+
+           colour = tcol, family="Gandhi Sans", size = 6)+
   annotate("text", x = 2023.5, y = 100, label = "Pre-2000\nbaseline", 
-           colour = "black", family="Gill Sans MT", size = 5)+
+           colour = tcol, family="Gandhi Sans", fontface = 3, size = 5)+
   coord_cartesian(ylim = c(lm-0.1*range,um+0.1*range), clip="off")+
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
@@ -324,15 +329,16 @@ ggpx = ggp +
         axis.ticks.x = element_blank(),
         plot.background = element_rect(fill = "transparent",colour = NA),
         panel.background = element_rect(fill = "transparent",colour = NA))+
+  theme(axis.title.x = element_blank(), 
+        axis.title.y = element_text(size = 22, colour = tcol,
+                                    margin = margin(0, -0.6, 0, 0.4, 'cm')), 
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank())+
   guides(colour = "none")
 
 
 
 
-ggpx3 = ggdraw(ggpx)
+name1 = paste("02_graphs/long-term trends - multiple species/",sps,"_","multiple_species_eBird_trend_SoIBv2.png",sep="")
 
-name1 = paste("01_analyses_full/graphs/long-term trends - multiple species/",sps,"_","multiple_species_eBird_trend_SoIBv2.jpg",sep="")
-
-jpeg(name1, units="in", width=11, height=7, res=1000, bg="transparent")
-grid::grid.draw(ggpx3)
-dev.off()
+ggsave(name1,ggpx,units="in", width=11, height=7.5, dpi=1000, bg="transparent")
