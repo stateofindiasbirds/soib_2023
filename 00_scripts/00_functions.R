@@ -423,15 +423,7 @@ removevagrants = function(data)
 # select species for State of India's Birds, and species for historical and recent trends
 # includes all diurnal endemics (endemicity) and essential species (SelectSpecies)
 
-dataspeciesfilter = function(
-    
-  # thresholds for species to be considered in each analysis
-  locationlimit = 15, # individual locations
-  gridlimit = 4, # grid cells
-  listlimit = 50, # checklists
-  cur_mask = "none"
-  
-) {
+dataspeciesfilter = function(cur_mask = "none") {
   
   # ensuring only valid cur_mask names are provided
   if (!(cur_mask %in% unique(analyses_metadata$MASK))) {
@@ -439,9 +431,30 @@ dataspeciesfilter = function(
   }
   
   
-  # preparing data for mask ###
-  
+
+  # preparing data for mask -------------------------------------------------
+
   cur_metadata <- analyses_metadata %>% filter(MASK == cur_mask)
+  
+  # thresholds for species to be considered in each analysis
+  # - individual locations
+  # - grid cells
+  # - checklists
+  # lowered slightly for states for inclusion; their Statuses will handle rest
+  if (cur_metadata$MASK.TYPE == "state") {
+    
+    locationlimit = 10
+    gridlimit = 4 
+    listlimit = 30
+    
+  } else {
+    
+    locationlimit = 15 
+    gridlimit = 4 
+    listlimit = 50
+    
+  }
+  
   
   if (cur_mask == "none"){
     data0 = data_base
@@ -483,6 +496,9 @@ dataspeciesfilter = function(
             year = round(median(year))) %>%
     arrange(year)
   
+  # list of species recorded from state
+  cur_mask_spec <- data %>% distinct(COMMON.NAME) %>% pull(COMMON.NAME)
+  
   
   # historical data (data from before 2000 onwards), used for long-term trends
   # gives list of species for which we have enough data and this analysis can be done
@@ -519,6 +535,8 @@ dataspeciesfilter = function(
     mutate(rt = 1) %>% 
     dplyr::select(COMMON.NAME, rt)
   
+  # return
+  
   
   # for other species that don't qualify simple rules above (restricted range)
   dataresth1 = data0 %>%
@@ -534,28 +552,6 @@ dataspeciesfilter = function(
     filter(years == 14) %>%
     dplyr::select(COMMON.NAME)
   
-  speciesresth = data.frame(species = intersect(unique(dataresth1$COMMON.NAME),
-                                                spec_resident),
-                            validh = NA_real_)
-  
-  # if the grids in which species has been reported a few times have sufficient lists
-  # from enough years, still consider for analysis
-  for (i in 1:length(speciesresth$species))
-  {
-    tempresth1 = data0 %>%
-      filter(COMMON.NAME == speciesresth$species[i]) %>%
-      distinct(gridg1) %>%
-      left_join(data0) %>%
-      group_by(timegroups) %>% 
-      reframe(n = n_distinct(group.id)) %>%
-      group_by(timegroups) %>%
-      filter(n > listlimit)
-    
-    if (length(tempresth1$timegroups) == 14)
-      speciesresth$validh[speciesresth$species == speciesresth$species[i]] = 1
-    
-  }
-  
   datarestr1 = data0 %>%
     filter(ALL.SPECIES.REPORTED == 1, 
            CATEGORY %in% c("species", "issf"), 
@@ -570,24 +566,59 @@ dataspeciesfilter = function(
     filter(years == 8) %>%
     dplyr::select(COMMON.NAME)
   
-  speciesrestr = data.frame(species = intersect(unique(datarestr1$COMMON.NAME),
-                                                spec_resident),
-                            validr = NA_real_)
   
-  for (i in 1:length(unique(datarestr1$COMMON.NAME)))
-  {
-    temprestr1 = data0 %>%
-      filter(COMMON.NAME == speciesrestr$species[i]) %>%
-      distinct(gridg1) %>%
-      left_join(data0) %>%
-      filter(year > 2014) %>%
-      group_by(timegroups) %>% 
-      reframe(n = n_distinct(group.id)) %>%
-      group_by(timegroups) %>%
-      filter(n > listlimit)
+  # return
+  
+  speciesresth = dataresth1 %>% 
+    rename(species = COMMON.NAME) %>% 
+    inner_join(data.frame(species = spec_resident)) %>% 
+    mutate(validh = NA_real_)
+  
+  if (nrow(speciesresth) > 0) {
+  
+    # if the grids in which species has been reported a few times have sufficient lists
+    # from enough years, still consider for analysis
+    for (i in 1:length(speciesresth$species))
+    {
+      tempresth1 = data0 %>%
+        filter(COMMON.NAME == speciesresth$species[i]) %>%
+        distinct(gridg1) %>%
+        left_join(data0) %>%
+        group_by(timegroups) %>% 
+        reframe(n = n_distinct(group.id)) %>%
+        group_by(timegroups) %>%
+        filter(n > listlimit)
+      
+      if (length(tempresth1$timegroups) == 14)
+        speciesresth$validh[speciesresth$species == speciesresth$species[i]] = 1
+      
+    }
     
-    if (length(temprestr1$timegroups) == 8)
-      speciesrestr$validr[speciesrestr$species == speciesrestr$species[i]] = 1
+  }
+  
+  speciesrestr = datarestr1 %>% 
+    rename(species = COMMON.NAME) %>% 
+    inner_join(data.frame(species = spec_resident)) %>% 
+    mutate(validr = NA_real_)
+  
+  if (nrow(speciesrestr) > 0) {
+    
+    for (i in 1:length(speciesrestr$species))
+    {
+      temprestr1 = data0 %>%
+        filter(COMMON.NAME == speciesrestr$species[i]) %>%
+        distinct(gridg1) %>%
+        left_join(data0) %>%
+        filter(year > 2014) %>%
+        group_by(timegroups) %>% 
+        reframe(n = n_distinct(group.id)) %>%
+        group_by(timegroups) %>%
+        filter(n > listlimit)
+      
+      if (length(temprestr1$timegroups) == 8)
+        speciesrestr$validr[speciesrestr$species == speciesrestr$species[i]] = 1
+      
+    }
     
   }
   
@@ -610,6 +641,8 @@ dataspeciesfilter = function(
                 Non.Breeding.Activity.Period != "Nocturnal" | 
                 COMMON.NAME == "Jerdon's Courser") & 
              (is.na(Discard))) %>%
+    # filter out species not recorded from current mask
+    filter(COMMON.NAME %in% cur_mask_spec) %>% 
     dplyr::select(COMMON.NAME, ht, rt)
   
   # <annotation_pending_AV> why filtering dataf also? (instead of specieslist above)
@@ -1325,7 +1358,7 @@ scale_trends_to_bands <- function(data) {
     mutate(
       
       # long-term
-      longtermmin = case_when(
+      ltt_min = case_when(
         SOIBv2.Long.Term.Status == "Rapid Decline" ~ 0,
         SOIBv2.Long.Term.Status == "Decline" ~ 50,
         SOIBv2.Long.Term.Status == "Rapid Increase" ~ 150,
@@ -1337,7 +1370,7 @@ scale_trends_to_bands <- function(data) {
         TRUE ~ NA
       ),
       
-      longtermmax = case_when(
+      ltt_max = case_when(
         SOIBv2.Long.Term.Status == "Rapid Decline" ~ 50,
         SOIBv2.Long.Term.Status == "Decline" ~ 75,
         # taking 200 here (instead of inf) to mirror the delta 50 on the negative side
@@ -1351,18 +1384,18 @@ scale_trends_to_bands <- function(data) {
       ),
       
       # here, we need to use mean, lci or rci according to which band it is in
-      longterm = case_when(
+      ltt_prop = case_when(
         SOIBv2.Long.Term.Status == "Stable" ~ 
-          scale_band(longtermmean, longtermmin, longtermmax),
+          scale_band(longtermmean, ltt_min, ltt_max),
         SOIBv2.Long.Term.Status %in% c("Decline", "Rapid Decline") ~ 
-          scale_band(longtermrci, longtermmin, longtermmax),
+          scale_band(longtermrci, ltt_min, ltt_max),
         SOIBv2.Long.Term.Status %in% c("Increase", "Rapid Increase") ~ 
-          scale_band(longtermlci, longtermmin, longtermmax),
+          scale_band(longtermlci, ltt_min, ltt_max),
         TRUE ~ NA
       ),
       
       # new band is sometimes 2 units long, so need to scale to that
-      longtermnewrange = case_when(
+      ltt_newrange = case_when(
         SOIBv2.Long.Term.Status == "Stable" ~ 1,
         SOIBv2.Long.Term.Status %in% c("Decline", "Rapid Decline") ~ 2,
         SOIBv2.Long.Term.Status %in% c("Increase", "Rapid Increase") ~ 2,
@@ -1370,7 +1403,7 @@ scale_trends_to_bands <- function(data) {
       ),
 
       # constant to be added to bring the scaled bands (all 0--1 now) to different levels
-      longterm0 = case_when(
+      ltt_k = case_when(
         SOIBv2.Long.Term.Status == "Stable" & longtermmean >= 100 ~ 0,
         SOIBv2.Long.Term.Status == "Stable" & longtermmean < 100 ~ -1,
         SOIBv2.Long.Term.Status == "Decline" ~ -3,
@@ -1381,7 +1414,7 @@ scale_trends_to_bands <- function(data) {
       ),
 
       # current
-      currentslopemin = case_when(
+      cat_min = case_when(
         # taking Stable range to make upper and lower limits as well
         SOIBv2.Current.Status == "Rapid Decline" ~ -4.7, 
         SOIBv2.Current.Status == "Decline" ~ -2.7,
@@ -1395,7 +1428,7 @@ scale_trends_to_bands <- function(data) {
       ),
       
       
-      currentslopemax = case_when(
+      cat_max = case_when(
         SOIBv2.Current.Status == "Rapid Decline" ~ -2.7,
         SOIBv2.Current.Status == "Decline" ~ -1.1,
         SOIBv2.Current.Status == "Rapid Increase" ~ 3.6,
@@ -1408,18 +1441,18 @@ scale_trends_to_bands <- function(data) {
       ),
       
       # here, we need to use mean, lci or rci according to which band it is in
-      currentslope = case_when(
+      cat_prop = case_when(
         SOIBv2.Current.Status == "Stable" ~ 
-          scale_band(currentslopemean, currentslopemin, currentslopemax),
+          scale_band(currentslopemean, cat_min, cat_max),
         SOIBv2.Current.Status %in% c("Decline", "Rapid Decline") ~ 
-          scale_band(currentsloperci, currentslopemin, currentslopemax),
+          scale_band(currentsloperci, cat_min, cat_max),
         SOIBv2.Current.Status %in% c("Increase", "Rapid Increase") ~ 
-          scale_band(currentslopelci, currentslopemin, currentslopemax),
+          scale_band(currentslopelci, cat_min, cat_max),
         TRUE ~ NA
       ),
       
       # new band is sometimes 2 units long, so need to scale to that
-      currentslopenewrange = case_when(
+      cat_newrange = case_when(
         SOIBv2.Current.Status == "Stable" ~ 1,
         SOIBv2.Current.Status %in% c("Decline", "Rapid Decline") ~ 2,
         SOIBv2.Current.Status %in% c("Increase", "Rapid Increase") ~ 2,
@@ -1427,7 +1460,7 @@ scale_trends_to_bands <- function(data) {
       ),
       
       # constant to be added to bring the scaled bands (all 0--1 now) to different levels
-      currentslope0 = case_when(
+      cat_k = case_when(
         SOIBv2.Current.Status == "Stable" & currentslopemean >= 0 ~ 0,
         SOIBv2.Current.Status == "Stable" & currentslopemean < 0 ~ -1,
         SOIBv2.Current.Status == "Decline" ~ -3,
@@ -1439,8 +1472,8 @@ scale_trends_to_bands <- function(data) {
       
     ) %>% 
     # shifting to the various new equal bands
-    mutate(longterm = longterm*longtermnewrange + longterm0,
-           currentslope = currentslope*currentslopenewrange + currentslope0) %>% 
+    mutate(longterm = ltt_prop*ltt_newrange + ltt_k,
+           currentslope = cat_prop*cat_newrange + cat_k) %>% 
     mutate(across(c(longterm, currentslope), ~ case_when(. >= 5 ~ 5, 
                                                          . <= -5 ~ -5,
                                                          TRUE ~ .)))

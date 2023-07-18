@@ -39,6 +39,12 @@ load("00_data/vagrantdata.RData")
 
 ###
 
+# don't run if no species selected
+to_run <- (1 %in% specieslist$ht) | (1 %in% specieslist$rt) |
+  (1 %in% restrictedspecieslist$ht) | (1 %in% restrictedspecieslist$rt)
+
+if (to_run == TRUE) {
+  
 # data processing and prep ------------------------------------------------
 
 base = read.csv(base_path) %>% dplyr::select(-SCIENTIFIC.NAME)
@@ -770,6 +776,34 @@ main <- main %>%
 # checkpoint-object "main"
 main4_postCATcomb <- main
 
+
+} else {
+  
+  # list of columns that need to be created since we have skipped steps
+  na_columns <- c("longtermlci", "longtermmean", "longtermrci",     
+                  "currentslopelci", "currentslopemean", "currentsloperci", 
+                  "proj2023.lci", "proj2023.mean", "proj2023.rci",    
+                  "proj2024.lci", "proj2024.mean", "proj2024.rci",    
+                  "proj2025.lci", "proj2025.mean", "proj2025.rci",    
+                  "proj2026.lci", "proj2026.mean", "proj2026.rci",    
+                  "proj2027.lci", "proj2027.mean", "proj2027.rci",    
+                  "proj2028.lci", "proj2028.mean", "proj2028.rci",    
+                  "proj2029.lci", "proj2029.mean", "proj2029.rci",    
+                  "rangelci", "rangemean", "rangerci")
+  
+  base = read.csv(base_path) %>% dplyr::select(-SCIENTIFIC.NAME)
+  
+  main = read.csv("00_data/SoIB_mapping_2022.csv") %>% 
+    left_join(base, by = c("eBird.English.Name.2022" = "COMMON.NAME"))
+  
+  # creating NA columns to match structure of "normal" main data
+  main[, na_columns] <- NA_real_
+  
+  
+  print(glue("Skipping resolving species trends for {cur_mask}"))
+  
+}
+
 # calculations: occupancy -------------------------------------------------
 
 tic("Calculating occupancy")
@@ -960,7 +994,8 @@ main = read.csv(mainwocats_path) %>%
   )
 
 
-
+if (to_run == TRUE) {
+  
 # sensitivity check for long-term trends ###
 
 modtrends1 = ltt_sens_class(modtrends1)
@@ -1123,6 +1158,11 @@ main <- main %>%
   mutate(across(c(SOIBv2.Long.Term.Status, SOIBv2.Current.Status, SOIB.Range.Status),
                 ~ if_else(Selected.SOIB != "X", NA_character_, .)))
 
+} else {
+
+  print(glue("Skipping sensitivity-check-based adjustments to Status for {cur_mask}"))
+  
+}
 
 # classification: assign SoIB Priority status (based on trends and occupancy) -----
 

@@ -17,6 +17,7 @@ spec_list_right <- c(
   "Small Minivet", "Grey Wagtail", "Blue Rock Thrush", "Spot-winged Starling"
 )
 
+###
 
 plot_fn <- function(main_data) {
   
@@ -35,7 +36,7 @@ plot_fn <- function(main_data) {
     theme_void() +
     theme(legend.position = "none",
           # guide lines
-          panel.grid.major.y = element_line(colour = "grey75"))
+          panel.grid.major.y = element_line(colour = "grey50"))
   
   return(main_plot)
   

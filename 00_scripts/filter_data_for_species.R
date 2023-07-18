@@ -33,17 +33,13 @@ spec_resident = fullmap %>%
                                               "Resident & Localized Summer Migrant",
                                               "Resident & Within-India Migrant",
                                               "Resident (Extirpated)")) %>%
-  dplyr::select(eBird.English.Name.2022) %>% 
-  as.vector() %>% 
-  list_c()
+  pull(eBird.English.Name.2022)
 
 # species filtered for certain habitat masks
 spec_woodland = fullmap %>%
   filter(Habitat.Specialization %in% c("Forest",
                                        "Forest & Plantation")) %>%
-  dplyr::select(eBird.English.Name.2022) %>% 
-  as.vector() %>% 
-  list_c()
+  pull(eBird.English.Name.2022)
 
 # we are considering cropland and ONE habitats together to classify "openland species"
 spec_openland = fullmap %>%
@@ -51,9 +47,7 @@ spec_openland = fullmap %>%
                                        "Grassland",
                                        "Grassland & Scrub",
                                        "Open Habitat")) %>%
-  dplyr::select(eBird.English.Name.2022) %>% 
-  as.vector() %>% 
-  list_c()
+  pull(eBird.English.Name.2022)
 
 
 # 0. main data filtering -----------------------------------------------------
@@ -108,41 +102,56 @@ save(data0, file = "00_data/dataforanalyses_extra.RData")
 
 # 1. processing: full country -----------------------------------------------
 
-tictoc::tic("dataspeciesfilter for full country")
+tic("dataspeciesfilter for full country")
 dataspeciesfilter(cur_mask = "none")
-tictoc::toc() # 495 sec
+toc() # 495 sec
 
 
 # 2. processing: woodland mask ----------------------------------------------
 
-tictoc::tic("dataspeciesfilter for woodland mask")
+tic("dataspeciesfilter for woodland mask")
 dataspeciesfilter(cur_mask = "woodland")
-tictoc::toc() # 240 sec
+toc() # 240 sec
 
 
 # 3. processing: cropland mask ----------------------------------------------
 
-tictoc::tic("dataspeciesfilter for cropland mask")
+tic("dataspeciesfilter for cropland mask")
 dataspeciesfilter(cur_mask = "cropland")
-tictoc::toc() # 60 sec
+toc() # 60 sec
 
 
 # 4. processing: ONEland mask -----------------------------------------------
 
-tictoc::tic("dataspeciesfilter for ONEland mask")
+tic("dataspeciesfilter for ONEland mask")
 dataspeciesfilter(cur_mask = "ONEland")
-tictoc::toc() # 60 sec
+toc() # 60 sec
 
 
 # 5. processing: PA mask ----------------------------------------------------
 
-tictoc::tic("dataspeciesfilter for PA mask")
+tic("dataspeciesfilter for PA mask")
 dataspeciesfilter(cur_mask = "PA")
-tictoc::toc() # 80 sec
+toc() # 80 sec
 
 
-# 6. processing: Kerala state ---------------------------------------------
+# 6. processing: states ---------------------------------------------
 
-tictoc::tic("dataspeciesfilter for Kerala state")
-dataspeciesfilter(cur_mask = "Kerala")
-tictoc::toc() # 150 sec
+tic.clearlog()
+tic("dataspeciesfilter for all states")
+
+analyses_metadata %>% 
+  filter(MASK.TYPE == "state") %>% 
+  distinct(MASK) %>% 
+  pull(MASK) %>% 
+  # walking dataspeciesfilter() over each state
+  walk(~ {
+    
+    tic(glue("dataspeciesfilter for {.x} state"))
+    dataspeciesfilter(cur_mask = .x)
+    toc(log = TRUE, quiet = TRUE) 
+    
+  })
+
+toc(log = TRUE, quiet = TRUE) 
+tic.log()
