@@ -29,7 +29,7 @@
 "Green-winged Teal","Anas crecca","X","X","X",217,0.175115207373272,0.309907834101383,0.405529953917051,5.60829493087558,0.587806573958993
 "Andaman Teal","Anas albogularis","","","X",2,0.5,0.5,NA,6,9.8
 "Marbled Teal","Marmaronetta angustirostris","","","X",4,0.5,NA,NA,3.75,2.69870956817019
-"Pink-headed Duck","Rhodonessa caryophyllacea","","","X",NA,NA,NA,NA,NA,NA
+"Pink-headed Duck","Rhodonessa caryophyllacea","","","",NA,NA,NA,NA,NA,NA
 "White-winged Duck","Asarcornis scutulata","X","X","X",5,0.4,0.4,0.2,5.4,1.46672969561539
 "Red-crested Pochard","Netta rufina","","X","X",130,0.153846153846154,0.263461538461538,0.353846153846154,5.63846153846154,0.764892919135836
 "Common Pochard","Aythya ferina","X","X","X",151,0.132450331125828,0.287251655629139,0.410596026490066,5.27814569536424,0.681994489981203
@@ -84,8 +84,8 @@
 "Jungle Bush-Quail","Perdicula asiatica","X","X","X",155,0.0838709677419355,0.254032258064516,0.393548387096774,6.83870967741935,0.812405843274149
 "Rock Bush-Quail","Perdicula argoondah","","","X",64,0.109375,0.197265625,0.34375,5.640625,1.15689225780993
 "Painted Bush-Quail","Perdicula erythrorhyncha","","X","X",22,0.0909090909090909,0.244318181818182,0.136363636363636,10.0454545454545,2.14427163075164
-"Manipur Bush-Quail","Perdicula manipurensis","","","X",NA,NA,NA,NA,NA,NA
-"Himalayan Quail","Ophrysia superciliosa","","","X",NA,NA,NA,NA,NA,NA
+"Manipur Bush-Quail","Perdicula manipurensis","","","",NA,NA,NA,NA,NA,NA
+"Himalayan Quail","Ophrysia superciliosa","","","",NA,NA,NA,NA,NA,NA
 "Greater Flamingo","Phoenicopterus roseus","X","X","X",92,0.16304347826087,0.366847826086957,0.5,4.32608695652174,0.684877808321279
 "Lesser Flamingo","Phoeniconaias minor","","","",41,0.121951219512195,0.283536585365854,0.51219512195122,4.46341463414634,0.815910377553737
 "Little Grebe","Tachybaptus ruficollis","X","X","X",379,0.116094986807388,0.326846965699208,0.546174142480211,5.30870712401055,0.442161148164845
@@ -213,7 +213,7 @@
 "Black-tailed Crake","Zapornia bicolor","","","X",12,0.0833333333333333,0.261904761904762,0.333333333333333,6,1.68881525623644
 "Masked Finfoot","Heliopais personatus","","","",NA,NA,NA,NA,NA,NA
 "Demoiselle Crane","Anthropoides virgo","","","X",43,0.13953488372093,0.229651162790698,0.348837209302326,5.3953488372093,1.08778623336105
-"Siberian Crane","Leucogeranus leucogeranus","","","X",1,1,NA,NA,7,NA
+"Siberian Crane","Leucogeranus leucogeranus","","","",1,1,NA,NA,7,NA
 "Sarus Crane","Antigone antigone","","X","X",74,0.175675675675676,0.27027027027027,0.297297297297297,5.48648648648649,1.0001072218051
 "Common Crane","Grus grus","X","X","X",60,0.15,0.352083333333333,0.466666666666667,4.95,0.874586546385573
 "Black-necked Crane","Grus nigricollis","","","X",21,0.238095238095238,0.44047619047619,0.714285714285714,5.76190476190476,0.945849412491815
@@ -451,7 +451,7 @@
 "Montagu's Harrier","Circus pygargus","","X","X",92,0.141304347826087,0.254076086956522,0.315217391304348,5.60869565217391,0.845498941503973
 "Crested Goshawk","Accipiter trivirgatus","X","X","X",119,0.100840336134454,0.310924369747899,0.478991596638655,7.05882352941176,0.892036671608417
 "Shikra","Accipiter badius","X","X","X",547,0.122486288848263,0.413162705667276,0.572212065813528,5.06215722120658,0.343961721244911
-"Nicobar Sparrowhawk","Accipiter butleri","","","X",NA,NA,NA,NA,NA,NA
+"Nicobar Sparrowhawk","Accipiter butleri","","","",NA,NA,NA,NA,NA,NA
 "Chinese Sparrowhawk","Accipiter soloensis","","","",3,NA,0.333333333333333,NA,2.33333333333333,1.30666666666667
 "Japanese Sparrowhawk","Accipiter gularis","","","",1,NA,1,NA,1,NA
 "Besra","Accipiter virgatus","","","",93,0.150537634408602,0.161290322580645,0.247311827956989,8.45161290322581,1.04819125153159
@@ -518,7 +518,7 @@
 "Oriental Pied-Hornbill","Anthracoceros albirostris","X","X","X",85,0.164705882352941,0.398529411764706,0.458823529411765,4.97647058823529,0.830506444898112
 "Rufous-necked Hornbill","Aceros nipalensis","X","X","X",17,0.176470588235294,0.286764705882353,0.411764705882353,5.70588235294118,1.4532319308984
 "Wreathed Hornbill","Rhyticeros undulatus","","","X",28,0.214285714285714,0.321428571428571,0.357142857142857,5.28571428571429,1.08510453498815
-"Narcondam Hornbill","Rhyticeros narcondami","","","X",NA,NA,NA,NA,NA,NA
+"Narcondam Hornbill","Rhyticeros narcondami","","","",NA,NA,NA,NA,NA,NA
 "Blyth's Kingfisher","Alcedo hercules","","","X",6,0.166666666666667,0.333333333333333,0.333333333333333,5.83333333333333,2.6498285059813
 "Common Kingfisher","Alcedo atthis","X","X","X",510,0.149019607843137,0.395588235294118,0.572549019607843,5.20980392156863,0.361457138986063
 "Blue-eared Kingfisher","Alcedo meninting","","","",48,0.0625,0.247395833333333,0.333333333333333,6.875,1.46898605693213
@@ -780,7 +780,7 @@
 "Lanceolated Warbler","Locustella lanceolata","","","",NA,NA,NA,NA,NA,NA
 "Brown Bush Warbler","Locustella luteoventris","","","",NA,NA,NA,NA,NA,NA
 "Common Grasshopper-Warbler","Locustella naevia","","","",NA,NA,NA,NA,NA,NA
-"Long-billed Bush Warbler","Locustella major","","","X",NA,NA,NA,NA,NA,NA
+"Long-billed Bush Warbler","Locustella major","","","",NA,NA,NA,NA,NA,NA
 "Chinese Bush Warbler","Locustella tacsanowskia","","","",1,NA,NA,NA,8,NA
 "Baikal Bush Warbler","Locustella davidi","","","",NA,NA,NA,NA,NA,NA
 "West Himalayan Bush Warbler","Locustella kashmirensis","","","X",5,NA,0.333333333333333,0.2,5.2,2.7994399439888
@@ -935,7 +935,7 @@
 "Bar-winged Wren-Babbler","Spelaeornis troglodytoides","","","X",3,NA,0.619047619047619,1,4.66666666666667,0.653333333333333
 "Naga Wren-Babbler","Spelaeornis chocolatinus","","","X",1,NA,1,NA,1,NA
 "Chin Hills Wren-Babbler","Spelaeornis oatesi","","","X",2,NA,0.6,0.5,2,0
-"Tawny-breasted Wren-Babbler","Spelaeornis longicaudatus","","","X",NA,NA,NA,NA,NA,NA
+"Tawny-breasted Wren-Babbler","Spelaeornis longicaudatus","","","",NA,NA,NA,NA,NA,NA
 "Black-crowned Scimitar-Babbler","Pomatorhinus ferruginosus","","X","X",10,0.2,0.3125,0.3,6.7,1.80230025862014
 "Brown-crowned Scimitar-Babbler","Pomatorhinus phayrei","","","",3,NA,0.444444444444444,0.333333333333333,5,5.88
 "Red-billed Scimitar-Babbler","Pomatorhinus ochraceiceps","","X","X",6,NA,0.375,0.5,5.66666666666667,2.24427370087618
