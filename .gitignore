@@ -15,6 +15,7 @@
 00_data/dataforanalyses_extra.RData
 00_data/maps_pa_sf.RData
 00_data/randomgroupids.RData
+00_data/vagrantdata.RData
 
 # for any mask
 dataforanalyses.RData 

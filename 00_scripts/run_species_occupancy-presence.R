@@ -19,42 +19,10 @@ speciesforocc %>%
       summarise(OCCU.PRES.PATH = glue("{OCCU.PRES.PATHONLY}{.x}_{.y}.csv")) %>%
       pull(OCCU.PRES.PATH)
     
-    if (.y == "R") {
-      datac <- data
-    } 
-    
-    if (.y == "M") {
-      datac <- data %>%
-        filter(COMMON.NAME == .x) %>%
-        distinct(month) %>% 
-        left_join(data)
-    } 
-    
-    if (.y == "MP") {
-      datac <- data %>%
-        filter(month %in% c(9:11, 3:5)) %>%
-        filter(COMMON.NAME == .x) %>%
-        distinct(month) %>% 
-        left_join(data)
-    } 
-    
-    if (.y == "MS") {
-      datac <- data %>%
-        filter(month %in% c(5:8)) %>%
-        filter(COMMON.NAME == .x) %>%
-        distinct(month) %>% 
-        left_join(data)
-    } 
-    
-    if (.y == "MW") {
-      datac <- data %>%
-        filter(month %in% c(11:12, 1:2)) %>%
-        filter(COMMON.NAME == .x) %>%
-        distinct(month) %>% 
-        left_join(data)
-    }
-    
-    f2 <- datac %>%
+    data_grids_present <- data %>% 
+      # filter (or not) the data based on migratory status
+      filt_data_for_mig(.x, .y) %>%
+      # get presence-cells of the species
       filter(COMMON.NAME == .x) %>% 
       distinct(gridg1) %>% 
       mutate(presence = 1,
@@ -63,8 +31,8 @@ speciesforocc %>%
     
     toc()
     
-    if (length(f2$COMMON.NAME) > 0) {
-      write.csv(f2, file = write_path, row.names = FALSE)
+    if (length(data_grids_present$COMMON.NAME) > 0) {
+      write.csv(data_grids_present, file = write_path, row.names = FALSE)
     }
     
     gc()

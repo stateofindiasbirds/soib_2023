@@ -952,6 +952,42 @@ expandbyspecies = function(data, species)
 
 
 
+### filter data based on migratory status ######################################
+
+filt_data_for_mig <- function(data, species_var, status_var) {
+  
+  if (status_var == "R") {
+    
+    data_correct <- data
+    
+  } else {
+    
+    correct_months <- if (status_var == "MP") {
+      c(9:11, 3:5)
+    } else if (status_var == "MS") {
+      c(5:8)
+    } else if (status_var == "MW") {
+      c(11:12, 1:2)
+    }
+    
+    data_correct <- data %>%
+      filter(COMMON.NAME == species_var) %>%
+      {
+        if (status_var != "M") {
+          filter(., month %in% correct_months)
+        } else {
+          .
+        }
+      } %>% 
+      distinct(month) %>% 
+      left_join(data)
+    
+  }
+  
+  return(data_correct)
+  
+}
+
 ### run models ########################################
 
 # trends
