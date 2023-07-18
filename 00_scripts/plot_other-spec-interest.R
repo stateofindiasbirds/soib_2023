@@ -9,12 +9,12 @@ if (!dir.exists(out_path)) {dir.create(out_path, recursive = TRUE)}
 
 # "other species of interest" (India Checklist)
 spec_list_left <- c(
-  "Black-capped Kingfisher", "Sarus Crane", "Alexandrine Parakeet", "Forest Wagtail",
-  "Pied Kingfisher", "Kentish Plover", "Common Crane", "Sirkeer Malkoha"
+  "Black-capped Kingfisher", "Pied Kingfisher", "Sarus Crane", "Kentish Plover", 
+  "Alexandrine Parakeet", "Common Crane", "Forest Wagtail", "Sirkeer Malkoha"
 ) 
 spec_list_right <- c(
-  "Baillon's Crake", "White-rumped Shama", "Spot-breasted Fantail", "Rosy Starling", 
-  "Small Minivet", "Grey Wagtail", "Blue Rock Thrush", "Spot-winged Starling"
+  "Baillon's Crake", "Small Minivet", "White-rumped Shama", "Grey Wagtail", 
+  "Spot-breasted Fantail", "Blue Rock Thrush", "Rosy Starling", "Spot-winged Starling"
 )
 
 ###
@@ -29,14 +29,14 @@ plot_fn <- function(main_data) {
     mutate(Trend = factor(Trend, levels = c("Long-term", "Current Annual"))) %>% 
     ggplot(aes(x = India.Checklist.Common.Name, y = Value)) +
     geom_point(aes(fill = Trend), 
-               colour = "white", size = 4, shape = 23,
+               colour = "black", size = 4, shape = 23,
                position = position_dodge(0.5)) +
-    scale_fill_manual(values = c("transparent", "white")) +
-    scale_y_continuous(limits = c(-5, 5), breaks = c(-3, -1, 1, 3)) +
+    scale_fill_manual(values = c("transparent", "black")) +
+    scale_y_continuous(limits = c(-5, 5), breaks = c(-5, 5)) +
     theme_void() +
     theme(legend.position = "none",
           # guide lines
-          panel.grid.major.y = element_line(colour = "grey50"))
+          panel.grid.major.y = element_line(colour = "black"))
   
   return(main_plot)
   
@@ -75,8 +75,8 @@ plot_left <- plot_fn(main_data_left)
 plot_right <- plot_fn(main_data_right)
 
 
-ggsave(plot_left, filename = glue("{out_path}01_left.png"),
-       dpi = 300, height = 90, width = 230, units = "mm", bg = "transparent")
-ggsave(plot_right, filename = glue("{out_path}02_right.png"),
-       dpi = 300, height = 90, width = 230, units = "mm", bg = "transparent")
+ggsave(plot_left, filename = glue("{out_path}01_left.svg"),
+       dpi = 300, height = 65, width = 225, units = "mm", bg = "transparent")
+ggsave(plot_right, filename = glue("{out_path}02_right.svg"),
+       dpi = 300, height = 65, width = 225, units = "mm", bg = "transparent")
 
