@@ -1139,7 +1139,7 @@ singlespeciesrun = function(data, species, specieslist, restrictedspecieslist)
 
 
 # occupancy
-occupancyrun = function(data, i, speciesforocc, nb8g1)
+occupancyrun = function(data, i, speciesforocc, queen_neighbours)
 {
   require(tidyverse)
   require(reshape2)
@@ -1150,48 +1150,23 @@ occupancyrun = function(data, i, speciesforocc, nb8g1)
   species = speciesforocc$eBird.English.Name.2022[i]
   status = speciesforocc$status[i]
   
-  if (status == "R") {
-    datac = data
-  }
-  if (status == "M") {
-    datac = data %>%
-      filter(COMMON.NAME == species) %>%
-      distinct(month) %>% 
-      left_join(data)
-  }
-  if (status == "MP") {
-    datac = data %>%
-      filter(month %in% c(9:11, 3:5)) %>%
-      filter(COMMON.NAME == species) %>%
-      distinct(month) %>% 
-      left_join(data)
-  }
-  if (status == "MS") {
-    datac = data %>%
-      filter(month %in% c(5:8)) %>%
-      filter(COMMON.NAME == species) %>%
-      distinct(month) %>% 
-      left_join(data)
-  }
-  if (status == "MW") {
-    datac = data %>%
-      filter(month %in% c(11:12, 1:2)) %>%
-      filter(COMMON.NAME == species) %>%
-      distinct(month) %>% 
-      left_join(data)
-  }
+  data_filt_mig <- data %>% 
+    # filter (or not) the data based on migratory status
+    filt_data_for_mig(species, status)
   
   
-  datay = datac %>%
+  # in each iteration (based on the species) we want a different value of medianlla
+  # to predict
+  medianlla = data_grids_present %>%
     group_by(gridg1, group.id) %>% 
     slice(1) %>% 
     group_by(gridg1) %>%
     reframe(medianlla = median(no.sp)) %>%
-    reframe(medianlla = round(mean(medianlla))) ### should this not be grouped?
-  medianlla = datay$medianlla
+    reframe(medianlla = round(mean(medianlla))) %>% 
+    pull(medianlla)
   
   
-  selexp = expandbyspecies(datac, species) %>% 
+  selexp = expandbyspecies(data_grids_present, species) %>% 
     # converting months to seasons
     mutate(month = as.numeric(month)) %>% 
     mutate(month = case_when(month %in% c(12, 1, 2) ~ "Win",
@@ -1200,15 +1175,16 @@ occupancyrun = function(data, i, speciesforocc, nb8g1)
                              month %in% c(9, 10, 11) ~ "Aut")) %>% 
     mutate(month = as.factor(month))
   
-  selexp = selexp[sample(1:nrow(selexp)),] ###
+  # reordering the checklists within each grid to minimise bias
+  selexp = selexp[sample(x = 1:nrow(selexp)),] 
   
   
-  nb8g = nb8g1
+  nb8g = queen_neighbours
   lpg = selexp %>%
     group_by(gridg1) %>% 
-    summarize(lpg = n())
+    reframe(lpg = n())
   listcutoff = quantile(lpg$lpg, 0.95, na.rm = TRUE)
-  inc = datac %>%
+  inc = data_grids_present %>%
     mutate(gridg = gridg1)
   selexp = selexp %>%
     arrange(gridg1) %>%
@@ -1218,18 +1194,22 @@ occupancyrun = function(data, i, speciesforocc, nb8g1)
     ungroup()
   
   
+  # presences and absences
   nbt = selexp %>%
     group_by(gridg) %>% 
+    # does the grid have the species?
     summarize(fl = sum(OBSERVATION.COUNT)) %>%
     mutate(fl = replace(fl, fl > 1, 1))
   nbt$nb8 = 0
   
+  # only presences
   nbti = inc %>%
     filter(COMMON.NAME == species) %>%
     group_by(gridg) %>% 
     summarize(fl = sum(OBSERVATION.COUNT)) %>%
     mutate(fl = replace(fl, fl > 1, 1))
   
+  # need data.table because very large objects
   setDT(selexp)
   
   det = dcast(selexp, gridg ~ group.id, value.var = "OBSERVATION.COUNT")
@@ -1249,8 +1229,10 @@ occupancyrun = function(data, i, speciesforocc, nb8g1)
   
   for (j in 1:length(nbt$gridg))
   {
+    # numeric vector of neighbours of each cell being iterated over
     temp = as.numeric(nb8g[[nbt$gridg[j]]])
-    sm = sum(nbti[nbti$gridg %in% temp,]$fl)/length(temp)
+    # summing list of neighbour cells that have the species
+    sm = sum(nbti[nbti$gridg %in% temp,]$fl)/length(temp) # is a proportion
     nbt$nb8[j] = sm
   }
   
@@ -1258,14 +1240,15 @@ occupancyrun = function(data, i, speciesforocc, nb8g1)
   tp = nbt
   tp1 = nbt %>% select(-fl)
   # tp = left_join(nbti,tp1)
-  nbt = nbt[, -2]
+  nbt = nbt[, -2] ### check
   
+  # absences
   nbtx = tp[tp$fl != 1, ]
   
   detn = data.frame(gridg = det[, 1])
-  detn = left_join(detn, nbt)
+  detn = left_join(detn, nbt) # left join proportion of neighbours having the species
   
-  umf = unmarkedFrameOccu(y = det[, -1], 
+  umf = unmarkedFrameOccu(y = det[, -1], # response (only 1s and 0s)
                           siteCovs = data.frame(nb8g = detn$nb8),
                           obsCovs = list(cov1 = cov.nosp[, -1],
                                          cov2 = cov.month[, -1]))
@@ -1282,6 +1265,8 @@ occupancyrun = function(data, i, speciesforocc, nb8g1)
     newdat2 = data.frame(nb8g = nbtx$nb8)
   }
   
+  # if not resident, we don't use seasonality as a covariate because data 
+  # already filtered to those months
   if (status != "R") {
     occ_det = tryCatch({occu(~ log(cov1) ~ nb8g, 
                              data = umf, 
@@ -1293,10 +1278,13 @@ occupancyrun = function(data, i, speciesforocc, nb8g1)
     newdat2 = data.frame(nb8g = nbtx$nb8)
   }
   
+  # will be character when errored ("skip")
   if (!is.character(occ_det)) {
+    # detection probability
     f1 = predict(occ_det, newdata = newdat1, type = "det")
     f1 = mean(f1$Predicted) 
     
+    # occupancy
     f2 = predict(occ_det, newdata = newdat2, type = "state") %>% 
       mutate(nb = newdat2$nb8g,
              gridg = nbtx$gridg) %>% 
