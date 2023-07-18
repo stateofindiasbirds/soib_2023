@@ -27,7 +27,7 @@ medianlla = data_filt_mig %>%
   reframe(medianlla = round(mean(medianlla))) %>% 
   pull(medianlla)
 
-
+# expanding data for absences also
 data_exp = expandbyspecies(data_filt_mig, species) %>% 
   # converting months to seasons
   mutate(month = as.numeric(month)) %>% 
@@ -39,7 +39,6 @@ data_exp = expandbyspecies(data_filt_mig, species) %>%
 
 # reordering the checklists within each grid to minimise bias
 data_exp = data_exp[sample(x = 1:nrow(data_exp)),] 
-
 
 # number of checklists per grid cell
 lists_per_grid = data_exp %>%
@@ -64,43 +63,28 @@ occdata_full = data_exp %>%
          # initialising this column which will later have info on 
          # proportion of neighbouring cells that have the species
          prop_nb = 0,
-         gridg1 = as.character(gridg1)) 
-
-# only presences
-occdata_pres = data_filt_mig %>%
-  filter(COMMON.NAME == species) %>%
-  group_by(gridg1) %>% 
-  summarize(presence = sum(OBSERVATION.COUNT)) %>%
-  mutate(presence = replace(presence, presence > 1, 1),
          gridg1 = as.character(gridg1))
 
-
-for (j in 1:length(occdata_full$gridg1))
-{
+occdata_cell_nb <- occdata_full %>% 
   # numeric vector of neighbours of each cell being iterated over
-  temp = as.numeric(queen_neighbours[[occdata_full$gridg1[j]]])
-  
-  # summing list of neighbour cells that have the species
-  sm = sum(occdata_pres[occdata_pres$gridg1 %in% temp,]$presence)/length(temp) # is a proportion
-  occdata_full$prop_nb[j] = sm
-}
-
-# occdata_full <- occdata_full %>% ###
-#   mutate(prop_nb = map_dbl(gridg1, ~ {
-#     temp <- as.numeric(queen_neighbours[[.x]])
-#     sm <- sum(occdata_pres[occdata_pres$gridg1 %in% temp, ]$presence) / length(temp)
-#     sm
-#   }))
-
+  mutate(nb_list = map(gridg1, ~ as.numeric(queen_neighbours[[as.numeric(.)]]))) %>% 
+  # this gives fewer neighbours than above, because not all neighbours are in data
+  # (and even fewer with complete lists, etc.)
+  mutate(occdata_nb = map(nb_list, ~ occdata_full %>% 
+                            filter(gridg1 %in% .x) %>% 
+                            pull(presence))) %>% 
+  # numerator: total number of neighbour cells that have the species
+  # denominator should be all neighbour cells
+  mutate(prop_nb = map2_dbl(occdata_nb, nb_list, ~ sum(.x)/length(.y))) %>%
+  dplyr::select(-nb_list, -occdata_nb)
 
 # absences
-occdata_abs = occdata_full %>% filter(presence != 1)
+occdata_abs = occdata_cell_nb %>% filter(presence != 1)
 
-occdata_full = occdata_full %>% dplyr::select(-presence)
-
-
+occdata_cell_nb = occdata_cell_nb %>% dplyr::select(-presence)
 
 
+# creating matrices for occupancy
 # need data.table because very large objects
 setDT(data_exp)
 
@@ -120,11 +104,6 @@ det = det[, 1:listcutoff]
 cov.month = cov.month[, 1:listcutoff]
 cov.nosp = cov.nosp[, 1:listcutoff]
 
-
-# why not just take occdata_full? ###
-occdata_cell_nb = data.frame(gridg1 = det[, 1]) %>% 
-  # left join proportion of neighbours having the species
-  left_join(occdata_full) 
 
 # input to occupancy modelling
 occdata_UFO = unmarkedFrameOccu(
