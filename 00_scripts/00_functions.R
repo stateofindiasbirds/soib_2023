@@ -1301,3 +1301,148 @@ ltt_sens_class <- function(data) {
   return(data)
   
 }
+
+### scale Trend Status bands ------------------------------------------
+
+# scale values in any band to [0, 1]
+
+scale_band <- function(scale_var, min_var, max_var) {
+  
+  scaled_var <- (scale_var - min_var)/(max_var - min_var)
+  
+  return(scaled_var)
+  
+}
+
+
+# we scale the bands to {-5, -3, -1, 0, 1, 3, 5}
+# thresholds for classification of LTT are {0, 50, 75, 100, 125, 150, inf}
+# thresholds for classification of CAT are {-4.7, -2.7, -1.1, 0.0, 0.9, 1.6, 3.6}
+
+scale_trends_to_bands <- function(data) {
+  
+  scaled_data <- data %>% 
+    mutate(
+      
+      # long-term
+      longtermmin = case_when(
+        SOIBv2.Long.Term.Status == "Rapid Decline" ~ 0,
+        SOIBv2.Long.Term.Status == "Decline" ~ 50,
+        SOIBv2.Long.Term.Status == "Rapid Increase" ~ 150,
+        SOIBv2.Long.Term.Status == "Increase" ~ 125,
+        # top Stable
+        SOIBv2.Long.Term.Status == "Stable" & longtermmean >= 100 ~ 100,
+        # bottom Stable
+        SOIBv2.Long.Term.Status == "Stable" & longtermmean < 100 ~ 75,
+        TRUE ~ NA
+      ),
+      
+      longtermmax = case_when(
+        SOIBv2.Long.Term.Status == "Rapid Decline" ~ 50,
+        SOIBv2.Long.Term.Status == "Decline" ~ 75,
+        # taking 200 here (instead of inf) to mirror the delta 50 on the negative side
+        SOIBv2.Long.Term.Status == "Rapid Increase" ~ 200,
+        SOIBv2.Long.Term.Status == "Increase" ~ 150,
+        # top Stable
+        SOIBv2.Long.Term.Status == "Stable" & longtermmean >= 100 ~ 125,
+        # bottom Stable
+        SOIBv2.Long.Term.Status == "Stable" & longtermmean < 100 ~ 100,
+        TRUE ~ NA
+      ),
+      
+      # here, we need to use mean, lci or rci according to which band it is in
+      longterm = case_when(
+        SOIBv2.Long.Term.Status == "Stable" ~ 
+          scale_band(longtermmean, longtermmin, longtermmax),
+        SOIBv2.Long.Term.Status %in% c("Decline", "Rapid Decline") ~ 
+          scale_band(longtermrci, longtermmin, longtermmax),
+        SOIBv2.Long.Term.Status %in% c("Increase", "Rapid Increase") ~ 
+          scale_band(longtermlci, longtermmin, longtermmax),
+        TRUE ~ NA
+      ),
+      
+      # new band is sometimes 2 units long, so need to scale to that
+      longtermnewrange = case_when(
+        SOIBv2.Long.Term.Status == "Stable" ~ 1,
+        SOIBv2.Long.Term.Status %in% c("Decline", "Rapid Decline") ~ 2,
+        SOIBv2.Long.Term.Status %in% c("Increase", "Rapid Increase") ~ 2,
+        TRUE ~ NA
+      ),
+
+      # constant to be added to bring the scaled bands (all 0--1 now) to different levels
+      longterm0 = case_when(
+        SOIBv2.Long.Term.Status == "Stable" & longtermmean >= 100 ~ 0,
+        SOIBv2.Long.Term.Status == "Stable" & longtermmean < 100 ~ -1,
+        SOIBv2.Long.Term.Status == "Decline" ~ -3,
+        SOIBv2.Long.Term.Status == "Rapid Decline" ~ -5,
+        SOIBv2.Long.Term.Status == "Increase" ~ 1,
+        SOIBv2.Long.Term.Status == "Rapid Increase" ~ 3,
+        TRUE ~ NA
+      ),
+
+      # current
+      currentslopemin = case_when(
+        # taking Stable range to make upper and lower limits as well
+        SOIBv2.Current.Status == "Rapid Decline" ~ -4.7, 
+        SOIBv2.Current.Status == "Decline" ~ -2.7,
+        SOIBv2.Current.Status == "Rapid Increase" ~ 1.6,
+        SOIBv2.Current.Status == "Increase" ~ 0.9,
+        # top Stable
+        SOIBv2.Current.Status == "Stable" & currentslopemean >= 0 ~ 0,
+        # bottom Stable
+        SOIBv2.Current.Status == "Stable" & currentslopemean < 0 ~ -1.1,
+        TRUE ~ NA
+      ),
+      
+      
+      currentslopemax = case_when(
+        SOIBv2.Current.Status == "Rapid Decline" ~ -2.7,
+        SOIBv2.Current.Status == "Decline" ~ -1.1,
+        SOIBv2.Current.Status == "Rapid Increase" ~ 3.6,
+        SOIBv2.Current.Status == "Increase" ~ 1.6,
+        # top Stable
+        SOIBv2.Current.Status == "Stable" & currentslopemean >= 0 ~ 0.9,
+        # bottom Stable
+        SOIBv2.Current.Status == "Stable" & currentslopemean < 0 ~ 0,
+        TRUE ~ NA
+      ),
+      
+      # here, we need to use mean, lci or rci according to which band it is in
+      currentslope = case_when(
+        SOIBv2.Current.Status == "Stable" ~ 
+          scale_band(currentslopemean, currentslopemin, currentslopemax),
+        SOIBv2.Current.Status %in% c("Decline", "Rapid Decline") ~ 
+          scale_band(currentsloperci, currentslopemin, currentslopemax),
+        SOIBv2.Current.Status %in% c("Increase", "Rapid Increase") ~ 
+          scale_band(currentslopelci, currentslopemin, currentslopemax),
+        TRUE ~ NA
+      ),
+      
+      # new band is sometimes 2 units long, so need to scale to that
+      currentslopenewrange = case_when(
+        SOIBv2.Current.Status == "Stable" ~ 1,
+        SOIBv2.Current.Status %in% c("Decline", "Rapid Decline") ~ 2,
+        SOIBv2.Current.Status %in% c("Increase", "Rapid Increase") ~ 2,
+        TRUE ~ NA
+      ),
+      
+      # constant to be added to bring the scaled bands (all 0--1 now) to different levels
+      currentslope0 = case_when(
+        SOIBv2.Current.Status == "Stable" & currentslopemean >= 0 ~ 0,
+        SOIBv2.Current.Status == "Stable" & currentslopemean < 0 ~ -1,
+        SOIBv2.Current.Status == "Decline" ~ -3,
+        SOIBv2.Current.Status == "Rapid Decline" ~ -5,
+        SOIBv2.Current.Status == "Increase" ~ 1,
+        SOIBv2.Current.Status == "Rapid Increase" ~ 3,
+        TRUE ~ NA
+      )
+      
+    ) %>% 
+    # shifting to the various new equal bands
+    mutate(longterm = longterm*longtermnewrange + longterm0,
+           currentslope = currentslope*currentslopenewrange + currentslope0) %>% 
+    mutate(across(c(longterm, currentslope), ~ case_when(. >= 5 ~ 5, 
+                                                         . <= -5 ~ -5,
+                                                         TRUE ~ .)))
+
+}
