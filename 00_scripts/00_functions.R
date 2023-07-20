@@ -1150,27 +1150,25 @@ occupancyrun = function(data, i, speciesforocc, queen_neighbours)
 
   species = speciesforocc$eBird.English.Name.2022[i]
   status = speciesforocc$status[i]
+  data = datax # to remove
   
   tic(glue("Modelled occupancy of {species}"))
+  
+  # filter data only within the known spatial and temporal range of the species
+  data = data %>%
+    filter(COMMON.NAME == species) %>%
+    distinct(gridg3, month) %>% 
+    left_join(data)
   
   data_filt_mig <- data %>% 
     # filter (or not) the data based on migratory status
     filt_data_for_mig(species, status)
   
-  # in each iteration (based on the species) we want a different value of medianlla
-  # to predict
-  medianlla = data_filt_mig %>%
-    group_by(gridg1, group.id) %>% 
-    slice(1) %>% 
-    group_by(gridg1) %>%
-    reframe(medianlla = median(no.sp)) %>%
-    reframe(medianlla = round(mean(medianlla))) %>% 
-    pull(medianlla)
-  
   # expanding data for absences also
   data_exp = expandbyspecies(data_filt_mig, species) %>% 
+    filter(!is.na(gridg1)) %>%
     # converting months to seasons
-    mutate(month = as.numeric(month)) %>% 
+    mutate(month = as.numeric(month)) %>%
     mutate(month = case_when(month %in% c(12, 1, 2) ~ "Win",
                              month %in% c(3, 4, 5) ~ "Sum",
                              month %in% c(6, 7, 8) ~ "Mon",
@@ -1220,7 +1218,6 @@ occupancyrun = function(data, i, speciesforocc, queen_neighbours)
   
   # absences
   occdata_abs = occdata_cell_nb %>% filter(presence != 1)
-  
   occdata_cell_nb = occdata_cell_nb %>% dplyr::select(-presence)
   
   
@@ -1244,6 +1241,14 @@ occupancyrun = function(data, i, speciesforocc, queen_neighbours)
   cov.month = cov.month[, 1:listcutoff]
   cov.nosp = cov.nosp[, 1:listcutoff]
   
+
+  # calculate the number of checklists per grid going into the analysis
+  samples.grid = det %>% 
+    mutate(samples = rowSums(!is.na(dplyr::select(., -gridg1)))) %>%
+    dplyr::select(gridg1,samples)
+  n.samplespergrid = ncol(det) - 1
+  
+
   
   # input to occupancy modelling
   occdata_UFO = unmarkedFrameOccu(
@@ -1252,6 +1257,19 @@ occupancyrun = function(data, i, speciesforocc, queen_neighbours)
     obsCovs = list(cov1 = cov.nosp[, -1],
                    cov2 = cov.month[, -1])
   )
+  
+  # create newdata
+  cov.nosp.long = cov.nosp %>%
+    pivot_longer(!gridg1, names_to = "sample", values_to = "cov1") %>%
+    filter(!is.na(cov1))
+  cov.month.long = cov.month %>%
+    pivot_longer(!gridg1, names_to = "sample", values_to = "cov2") %>%
+    filter(!is.na(cov2))
+  newdata.det = cov.month.long %>%
+    left_join(cov.nosp.long) %>% dplyr::select(-sample)
+  
+  newdata.occ = occdata_cell_nb
+  
   
   # if not resident, we don't use seasonality as a covariate because data 
   # already filtered to those months
@@ -1263,10 +1281,6 @@ occupancyrun = function(data, i, speciesforocc, queen_neighbours)
                              engine = "C")},
                        error = function(cond){"skip"})
     
-    newdat1 = data.frame(cov1 = medianlla,
-                         cov2 = factor(c("Sum", "Mon", "Aut", "Win")))
-    newdat2 = data.frame(prop_nb = occdata_abs$prop_nb)
-    
   } else {
     
     occ_det = tryCatch({occu(~ log(cov1) ~ prop_nb, 
@@ -1275,31 +1289,39 @@ occupancyrun = function(data, i, speciesforocc, queen_neighbours)
                              engine = "C")},
                        error = function(cond){"skip"})
     
-    newdat1 = data.frame(cov1 = medianlla)
-    newdat2 = data.frame(prop_nb = occdata_abs$prop_nb)
-    
   }
   
   # output of above will be character when errored ("skip")
   if (!is.character(occ_det)) {
     
     # detection probability
-    occpred_detection = unmarked::predict(occ_det, newdata = newdat1, type = "det")
-    occpred_detection = mean(occpred_detection$Predicted) 
+    occpred_detection = unmarked::predict(occ_det, 
+                                          newdata = newdata.det, type = "det")
+    occpred_detection = occpred_detection %>% dplyr::select(-lower, -upper) %>%
+      bind_cols(newdata.det) %>%
+      filter(!is.na(Predicted)) %>% mutate(pred.inv = 1-Predicted) %>%
+      group_by(gridg1) %>% mutate(mean.prod = prod(pred.inv)) %>%
+      mutate(se.ratio.inv = SE/pred.inv) %>% ungroup() %>%
+      group_by(gridg1) %>% reframe(det = 1-max(mean.prod),
+                                   inv.det = max(mean.prod),
+                                   det.se = max(mean.prod)*sum(se.ratio.inv))
     
+
     # occupancy
-    occpred_occupancy = unmarked::predict(occ_det, newdata = newdat2, type = "state")
-    occpred_occupancy$prop_nb = newdat2$prop_nb
-    occpred_occupancy$gridg1 = occdata_abs$gridg1
-    
-    occpred_occupancy <- occpred_occupancy %>% 
-      filter(!is.na(Predicted)) %>% 
-      mutate(detprob = occpred_detection,
-             status = status,
-             COMMON.NAME = species)
-    names(occpred_occupancy)[1:2] = c("occupancy","se")
-    occpred_occupancy = occpred_occupancy %>% dplyr::select(-lower, -upper)
-    
+    occpred_occupancy = unmarked::predict(occ_det, 
+                                          newdata = newdata.occ, type = "state")
+    occpred_occupancy = occpred_occupancy %>% dplyr::select(-lower, -upper) %>%
+      bind_cols(newdata.occ) %>%
+      rename(occ = Predicted, occ.se = SE) %>%
+      dplyr::select(gridg1, prop_nb, occ, occ.se) %>%
+      left_join(occpred_detection) %>%
+      left_join(samples.grid) %>%
+      left_join(occdata_abs) %>% 
+      mutate(presence = case_when(is.na(presence)~1,TRUE~presence)) %>%
+      mutate(COMMON.NAME = species, status = status,
+             occupancy = occ*inv.det,
+             se = occ*inv.det*((det.se/inv.det) + (occ.se/occ)))
+      
   }
 
   toc()

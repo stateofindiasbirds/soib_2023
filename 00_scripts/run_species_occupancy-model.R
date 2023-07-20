@@ -21,9 +21,11 @@ data = data %>%
 
 # calculation -------------------------------------------------------------
 
-chunks = split(vec, cut(seq_along(vec), 80, labels = FALSE))
+n.chunks = 80
 
-for (k in 1:80)
+chunks = split(vec, cut(seq_along(vec), n.chunks, labels = FALSE))
+
+for (k in 1:n.chunks)
 {
   
   # file names for individual files

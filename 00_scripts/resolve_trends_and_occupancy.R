@@ -820,8 +820,7 @@ occu_presence <- list.files(path = occu_pres_pathonly, full.names = T) %>%
 
 # taking modelled occupancy values for species in cell where "absent"
 occ.full1 = occu_model %>% 
-  left_join(occu_presence) %>% 
-  filter(is.na(presence)) 
+  filter(presence == 0) 
 
 # "presences"
 occ.full2 = occu_presence %>% 
@@ -846,8 +845,7 @@ occu_full = rbind(occ.full1, occ.full2) %>%
 occu_full$occupancy[occu_full$presence == 1] = 1
 occu_full$se[occu_full$presence == 1] = 0
 occu_full = occu_full %>% filter(!is.na(occupancy), !is.na(se), !is.na(gridg1))
-occu_full$occupancy[occu_full$nb == 0 & occu_full$occupancy != 1] = 0
-occu_full$se[occu_full$nb == 0 & occu_full$occupancy != 1] = 0
+
 
 
 occu_summary = occu_full %>%
@@ -882,7 +880,6 @@ for (i in main$eBird.English.Name.2022)
     {
       est[i,"occ"] = cur_occu_summary$occ[j]
       est[i,"occ.ci"] = cur_occu_summary$occ.ci[j]
-      flag = 1
     }
     
     if (cur_occu_summary$status[j] %in% c("R","MS") & (is.na(est[i,"occ"]) | (as.numeric(cur_occu_summary$occ[j]) > est[i,"occ"])))
@@ -941,8 +938,8 @@ main = read.csv(mainwocats_path) %>%
   mutate(
     
     SOIBv2.Long.Term.Status = case_when(
-      is.na(longtermmean) ~ "eBird Data Deficient",
-      (longtermrci-longtermmean)/longtermmean > 0.5 ~ "eBird Data Inconclusive", # arbitrary
+      is.na(longtermmean) ~ "Insufficient Data",
+      (longtermrci-longtermmean)/longtermmean > 0.5 ~ "Trend Inconclusive", # arbitrary
       # else
       # for declines
       longtermrci <= 50 ~ "Rapid Decline", # -100% to -50%
@@ -952,19 +949,19 @@ main = read.csv(mainwocats_path) %>%
       longtermlci < 150 & longtermlci >= 125 ~ "Increase", # +25% to +50%
       # stable vs inconclusive:
       # if CI is completely below or above the baseline, can't be stable
-      longtermlci > 100 | longtermrci < 100 ~ "eBird Data Inconclusive",
+      longtermlci > 100 | longtermrci < 100 ~ "Trend Inconclusive",
       # if one limit is in the Stable zone but other limit passes to Rapid X, can't be stable
-      longtermlci <= 50 | longtermrci >= 150 ~ "eBird Data Inconclusive",
+      longtermlci <= 50 | longtermrci >= 150 ~ "Trend Inconclusive",
       TRUE ~ "Stable"
       # OR:
       # (longtermlci > 50 & longtermlci <= 100) &
       #   (longtermrci >= 100 & longtermrci < 150) ~ "Stable",
-      # TRUE ~ "eBird Data Inconclusive"
+      # TRUE ~ "Trend Inconclusive"
     ),
     
     SOIBv2.Current.Status = case_when(
-      is.na(currentslopemean) ~ "eBird Data Deficient",
-      (currentsloperci-currentslopelci) > 6 ~ "eBird Data Inconclusive", # arbitrary
+      is.na(currentslopemean) ~ "Insufficient Data",
+      (currentsloperci-currentslopelci) > 6 ~ "Trend Inconclusive", # arbitrary
       # <annotation_pending_AV> decline and increase values?
       # decreases
       currentsloperci <= -2.7 ~ "Rapid Decline",
@@ -973,7 +970,7 @@ main = read.csv(mainwocats_path) %>%
       currentslopelci >= 1.6 ~ "Rapid Increase",
       currentslopelci < 1.6 & currentslopelci >= 0.9 ~ "Increase",
       # if slope with SE is fully positive or negative, can't be stable
-      currentsloperci < 0 | currentslopelci > 0 ~ "eBird Data Inconclusive",
+      currentsloperci < 0 | currentslopelci > 0 ~ "Trend Inconclusive",
       TRUE ~ "Stable"
       ),
     
@@ -1008,7 +1005,7 @@ sens_ltt <- main %>%
   dplyr::select(eBird.English.Name.2022, SOIBv2.Long.Term.Status) %>% 
   # the modtrendsN files only have species for which we have run LTT
   filter(!is.na(SOIBv2.Long.Term.Status),
-         SOIBv2.Long.Term.Status != "eBird Data Deficient") %>% 
+         SOIBv2.Long.Term.Status != "Insufficient Data") %>% 
   rename(COMMON.NAME = eBird.English.Name.2022) %>% 
   bind_rows(modtrends1, modtrends2, modtrends3, modtrends4, modtrends5) %>% 
   group_by(COMMON.NAME) %>% 
@@ -1017,9 +1014,9 @@ sens_ltt <- main %>%
           
           CONSERVATIVE.STATUS = case_when(
             
-            NO.STATUS > 2 ~ "eBird Data Inconclusive",
+            NO.STATUS > 2 ~ "Trend Inconclusive",
             
-            "eBird Data Inconclusive" %in% SOIBv2.Long.Term.Status ~ "eBird Data Inconclusive",
+            "Trend Inconclusive" %in% SOIBv2.Long.Term.Status ~ "Trend Inconclusive",
 
             NO.STATUS == 2 & 
               # if all Status assignments are either of the two increases
@@ -1030,7 +1027,7 @@ sens_ltt <- main %>%
               ("Rapid Decline" %in% SOIBv2.Long.Term.Status &
                  "Decline" %in% SOIBv2.Long.Term.Status) ~ "Decline",
             
-            NO.STATUS == 2 ~ "eBird Data Inconclusive",
+            NO.STATUS == 2 ~ "Trend Inconclusive",
             TRUE ~ min(SOIBv2.Long.Term.Status)
             
   )) %>% 
@@ -1063,14 +1060,14 @@ sens_cat <- map(1:8, ~ {
            currentsloperci = .[[4 + (.x - 1) * 3]]) %>%
     mutate(SOIBv2.Current.Status.Sens = case_when(
       
-      is.na(currentslopemean) ~ "eBird Data Deficient",
-      (currentsloperci - currentslopelci) > 6 ~ "eBird Data Inconclusive",
+      is.na(currentslopemean) ~ "Insufficient Data",
+      (currentsloperci - currentslopelci) > 6 ~ "Trend Inconclusive",
       currentsloperci <= -2.7 ~ "Rapid Decline",
       currentsloperci <= -1.1 ~ "Decline",
       currentslopelci >= 1.6 ~ "Rapid Increase",
       currentslopelci >= 0.9 ~ "Increase",
-      currentsloperci < 0 ~ "eBird Data Inconclusive",
-      currentslopelci > 0 ~ "eBird Data Inconclusive",
+      currentsloperci < 0 ~ "Trend Inconclusive",
+      currentslopelci > 0 ~ "Trend Inconclusive",
       TRUE ~ "Stable"
       
     )) %>%
@@ -1083,7 +1080,7 @@ sens_cat <- map(1:8, ~ {
 sens_cat <- main %>% 
   dplyr::select(eBird.English.Name.2022, SOIBv2.Current.Status) %>% 
   left_join(sens_cat) %>%
-  filter(!SOIBv2.Current.Status %in% c("eBird Data Deficient", "eBird Data Inconclusive"))
+  filter(!SOIBv2.Current.Status %in% c("Insufficient Data", "Trend Inconclusive"))
 
 
 # creating empty vectors that will be filled with indices of species that fall
@@ -1106,7 +1103,7 @@ for (i in 1:length(sens_cat$eBird.English.Name.2022)) {
       (ind1 = c(ind1, i))
     
     # species with any one category but also Inconclusive
-    if (length(unique(categs)) == 2 & "eBird Data Inconclusive" %in% categs) 
+    if (length(unique(categs)) == 2 & "Trend Inconclusive" %in% categs) 
       (ind2 = c(ind2, i))
 
     # species classed as some decline, but elsewhere classed as some non-decline
@@ -1120,7 +1117,7 @@ for (i in 1:length(sens_cat$eBird.English.Name.2022)) {
       (ind4 = c(ind4, i))
     
     # species classed Inconclusive in >= 4 out of 9 columns
-    if (length(categs[categs == "eBird Data Inconclusive"]) >= 4)
+    if (length(categs[categs == "Trend Inconclusive"]) >= 4)
       (ind5 = c(ind5, i))
     
     # species with Rapid Decline in main trend and only Decline in drop-trends
@@ -1149,7 +1146,7 @@ main <- main %>%
   # changing classification where needed
   mutate(SOIBv2.Current.Status = case_when(
     
-    eBird.English.Name.2022 %in% spec_ind.rem ~ "eBird Data Inconclusive",
+    eBird.English.Name.2022 %in% spec_ind.rem ~ "Trend Inconclusive",
     eBird.English.Name.2022 %in% spec_ind6 ~ "Decline",
     eBird.English.Name.2022 %in% spec_ind7 ~ "Increase",
     TRUE ~ SOIBv2.Current.Status
@@ -1166,13 +1163,13 @@ main <- main %>%
 
 # classification: assign SoIB Priority status (based on trends and occupancy) -----
 
-cats_trend = c("Rapid Decline", "Decline", "eBird Data Deficient", 
-               "eBird Data Inconclusive", "Stable", "Increase", "Rapid Increase")
+cats_trend = c("Rapid Decline", "Decline", "Insufficient Data", 
+               "Trend Inconclusive", "Stable", "Increase", "Rapid Increase")
 cats_range = c("Historical", "Very Restricted", "Restricted", 
                "Moderate", "Large", "Very Large")
 
 cats_decline = c("Decline", "Rapid Decline")
-cats_uncertain = c("eBird Data Deficient", "eBird Data Inconclusive")
+cats_uncertain = c("Insufficient Data", "Trend Inconclusive")
 cats_restricted = c("Historical", "Very Restricted", "Restricted")
 
 
@@ -1202,8 +1199,8 @@ main = main %>%
       IUCN.Category %in% c("Near Threatened", "Vulnerable") & 
       SOIBv2.Priority.Status == "Low" ~ "Moderate",
     
-    SOIBv2.Long.Term.Status == "eBird Data Deficient" & 
-      SOIBv2.Current.Status == "eBird Data Deficient" &
+    SOIBv2.Long.Term.Status == "Insufficient Data" & 
+      SOIBv2.Current.Status == "Insufficient Data" &
       Endemic.Region != "None" & 
       SOIBv2.Priority.Status == "Low" ~ "Moderate",
     
