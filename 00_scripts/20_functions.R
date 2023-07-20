@@ -120,24 +120,3 @@ create_HTML_strings <- function(data) {
   return(data_new$HTML_string)
   
 }
-
-
-# combine HTML strings based on mask  -----------------------------------------------
-
-c_HTML_strings <- function(data, mask_type) {
-  
-  data_new <- data %>% 
-    mutate(deleted = case_when(
-      
-      MASK.TYPE == mask_type ~ HTML_str_all %>% 
-        str_split(pattern = ",") %>% 
-        unlist() %>% 
-        setdiff(HTML_str) %>% 
-        str_flatten(collapse = ","),
-      TRUE ~ HTML_str_all
-      
-    )) 
-  
-  return(data_new$deleted)
-  
-}

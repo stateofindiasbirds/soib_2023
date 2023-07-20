@@ -2,6 +2,7 @@ require(tidyverse)
 require(glue)
 
 load("00_data/analyses_metadata.RData")
+source("00_scripts/20_functions.R")
 
 
 # import ----------------------------------------------------------------------------
@@ -45,39 +46,73 @@ web_db2 <- web_db %>%
          endemicity = Endemic.Region,
          custom_url = eBird.Code) %>% 
   mutate(across(c("long-term_trend", "current_annual_change"), ~ round(., 2))) %>% 
-  rowwise() %>% # else str_c_CI() takes entire column and returns NA
   mutate(`long-term_trend_ci` = str_c_CI(longtermlci, longtermrci),
          current_annual_change_ci = str_c_CI(currentslopelci, currentsloperci),
-         distribution_range_size_ci_units_of_10000_sqkm = str_c_CI(rangelci, rangerci)) %>% 
+         distribution_range_size_ci_units_of_10000_sqkm = str_c_CI(rangelci, rangerci)) 
+
+
+# creation of fields within species (diff. masks) -----------------------------------
+
+web_db3 <- web_db2 %>% 
+  # setup for some long strings
+  mutate(URL_base = "https://wordpress-1024190-3615983.cloudwaysapps.com/",
+         # prefix for uploads
+         URL_pre_uploads = glue("{URL_base}wp-content/uploads/"),
+         # converting species name to enter in URLs
+         # how will this work for species with hyphen in name? ###
+         URL_species = str_replace(India.Checklist.Common.Name, " ", "-"), 
+         # need to discuss and change this ###
+         URL_suf_rangemap = "_terrain.jpg",
+         URL_suf_trend = "_trend.jpg") %>% 
   # some long strings
   mutate(featured_image = glue("{URL_pre_uploads}{URL_species}{URL_suf_rangemap}"),
          downloadlink = glue("{URL_pre_uploads}{URL_species}_Infosheets.jpg"),
          map_filename = glue("{URL_pre_uploads}{URL_species}{URL_suf_rangemap}"),
          map_filename_originals = glue("{URL_pre_uploads}originals/{URL_species}{URL_suf_rangemap}"),
          graph_filename = glue("{URL_pre_uploads}{URL_species}{URL_suf_trend}"),
-         graph_filename_originals = glue("{URL_pre_uploads}originals/{URL_species}{URL_suf_trend}"))
+         graph_filename_originals = glue("{URL_pre_uploads}originals/{URL_species}{URL_suf_trend}")) %>% 
+  join_mask_codes() %>% 
+  mutate(HTML_str = create_HTML_strings(.))
+
+# get list of all masks for each species; omitting from list the particular mask in current focus
+web_db3 <- web_db3 %>% 
+  group_by(India.Checklist.Common.Name, MASK.TYPE) %>% 
+  # string of all masks of current mask type
+  summarise(HTML_str_all = str_flatten(HTML_str, collapse = ",")) %>% 
+  pivot_wider(names_from = MASK.TYPE, values_from = HTML_str_all, names_glue = "{.value}_{MASK.TYPE}") %>% 
+  ungroup() %>% 
+  left_join(web_db3) %>% 
+  # not ideal way but difficult to get it done otherwise
+  mutate(habitat_trends = case_when(MASK.TYPE == "habitat" ~ HTML_str_all_habitat %>% 
+                                      str_remove(pattern = HTML_str) %>% 
+                                      str_remove(pattern = ","),
+                                    TRUE ~ HTML_str_all_habitat),
+         state_trends = case_when(MASK.TYPE == "state" ~ HTML_str_all_state %>% 
+                                      str_remove(pattern = HTML_str) %>% 
+                                      str_remove(pattern = ","),
+                                    TRUE ~ HTML_str_all_state),
+         national_trends = case_when(MASK.TYPE == "country" ~ "",
+                                    TRUE ~ HTML_str_all_country))
+
+
+
 
 # https://wordpress-1024190-3615983.cloudwaysapps.com/wp-content/uploads/Green-Sandpiper_terrain.jpg
-# https://wordpress-1024190-3615983.cloudwaysapps.com/birds/ka/grnsan/
-# https://wordpress-1024190-3615983.cloudwaysapps.com/wp-content/uploads/karnataka.png
+
+# <a href="https://wordpress-1024190-3615983.cloudwaysapps.com/birds/rj/grnsan/"><span class="soib_trends_img"><img src="https://wordpress-1024190-3615983.cloudwaysapps.com/wp-content/uploads/karnataka.png"></span><span class="soib_trends_lbl">Rajasthan</span></a>,
+# <a href="https://wordpress-1024190-3615983.cloudwaysapps.com/birds/ap/grnsan/"><span class="soib_trends_img"><img src="https://wordpress-1024190-3615983.cloudwaysapps.com/wp-content/uploads/karnataka.png"></span><span class="soib_trends_lbl">Andhra Pradesh</span></a>
+
+
+
+
+# <a href="https://wordpress-1024190-3615983.cloudwaysapps.com/birds/tn/grnsan/"><span class="soib_trends_img"><img src="https://wordpress-1024190-3615983.cloudwaysapps.com/wp-content/uploads/karnataka.png"></span><span class="soib_trends_lbl">Tamil Nadu</span></a>,
+# <a href="https://wordpress-1024190-3615983.cloudwaysapps.com/birds/rj/grnsan/"><span class="soib_trends_img"><img src="https://wordpress-1024190-3615983.cloudwaysapps.com/wp-content/uploads/karnataka.png"></span><span class="soib_trends_lbl">Rajasthan</span></a>,
+# <a href="https://wordpress-1024190-3615983.cloudwaysapps.com/birds/ap/grnsan/"><span class="soib_trends_img"><img src="https://wordpress-1024190-3615983.cloudwaysapps.com/wp-content/uploads/karnataka.png"></span><span class="soib_trends_lbl">Andhra Pradesh</span></a>
 
 # <a href="https://wordpress-1024190-3615983.cloudwaysapps.com/birds/ka/grnsan/"><span class="soib_trends_img"><img src="https://wordpress-1024190-3615983.cloudwaysapps.com/wp-content/uploads/karnataka.png"></span><span class="soib_trends_lbl">Karnataka</span></a>,
 # <a href="https://wordpress-1024190-3615983.cloudwaysapps.com/birds/tn/grnsan/"><span class="soib_trends_img"><img src="https://wordpress-1024190-3615983.cloudwaysapps.com/wp-content/uploads/karnataka.png"></span><span class="soib_trends_lbl">Tamil Nadu</span></a>,
 # <a href="https://wordpress-1024190-3615983.cloudwaysapps.com/birds/rj/grnsan/"><span class="soib_trends_img"><img src="https://wordpress-1024190-3615983.cloudwaysapps.com/wp-content/uploads/karnataka.png"></span><span class="soib_trends_lbl">Rajasthan</span></a>,
 # <a href="https://wordpress-1024190-3615983.cloudwaysapps.com/birds/ap/grnsan/"><span class="soib_trends_img"><img src="https://wordpress-1024190-3615983.cloudwaysapps.com/wp-content/uploads/karnataka.png"></span><span class="soib_trends_lbl">Andhra Pradesh</span></a>
-
-# <a href="https://wordpress-1024190-3615983.cloudwaysapps.com/birds/tn/grnsan/"><span class="soib_trends_img"><img src="https://wordpress-1024190-3615983.cloudwaysapps.com/wp-content/uploads/karnataka.png"></span><span class="soib_trends_lbl">Tamil Nadu</span></a>,
-# <a href="https://wordpress-1024190-3615983.cloudwaysapps.com/birds/rj/grnsan/"><span class="soib_trends_img"><img src="https://wordpress-1024190-3615983.cloudwaysapps.com/wp-content/uploads/karnataka.png"></span><span class="soib_trends_lbl">Rajasthan</span></a>,
-# <a href="https://wordpress-1024190-3615983.cloudwaysapps.com/birds/ap/grnsan/"><span class="soib_trends_img"><img src="https://wordpress-1024190-3615983.cloudwaysapps.com/wp-content/uploads/karnataka.png"></span><span class="soib_trends_lbl">Andhra Pradesh</span></a>
-
-# <a href="https://wordpress-1024190-3615983.cloudwaysapps.com/birds/ka/grnsan/"><span class="soib_trends_img"><img src="https://wordpress-1024190-3615983.cloudwaysapps.com/wp-content/uploads/karnataka.png"></span><span class="soib_trends_lbl">Karnataka</span></a>,
-# <a href="https://wordpress-1024190-3615983.cloudwaysapps.com/birds/tn/grnsan/"><span class="soib_trends_img"><img src="https://wordpress-1024190-3615983.cloudwaysapps.com/wp-content/uploads/karnataka.png"></span><span class="soib_trends_lbl">Tamil Nadu</span></a>,
-# <a href="https://wordpress-1024190-3615983.cloudwaysapps.com/birds/rj/grnsan/"><span class="soib_trends_img"><img src="https://wordpress-1024190-3615983.cloudwaysapps.com/wp-content/uploads/karnataka.png"></span><span class="soib_trends_lbl">Rajasthan</span></a>,
-# <a href="https://wordpress-1024190-3615983.cloudwaysapps.com/birds/ap/grnsan/"><span class="soib_trends_img"><img src="https://wordpress-1024190-3615983.cloudwaysapps.com/wp-content/uploads/karnataka.png"></span><span class="soib_trends_lbl">Andhra Pradesh</span></a>
-
-# creation of fields within species (diff. masks) -----------------------------------
-
-# featured image
 
 
 # convert to website format ---------------------------------------------------------
