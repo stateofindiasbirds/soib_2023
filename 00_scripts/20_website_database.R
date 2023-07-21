@@ -82,13 +82,18 @@ web_db <- web_db %>%
 # get list of all masks for each species; omitting from list the particular mask in current focus
 web_db <- web_db %>% 
   group_by(India.Checklist.Common.Name, MASK.TYPE) %>% 
-  # HTML string and mask codes of all masks of current mask type
+  # HTML string, mask codes and mask labels (for states) of all masks of current mask type
   summarise(trends = str_flatten(HTML_str, collapse = ","),
-            trends_addn = str_flatten(MASK.CODE, collapse = ",")) %>% 
+            trends_addn = str_flatten(MASK.CODE, collapse = ","),
+            mask_labs = str_flatten(MASK.LABEL, collapse = ",")) %>% 
   pivot_wider(names_from = MASK.TYPE, 
-              values_from = c(trends, trends_addn), 
+              values_from = c(trends, trends_addn, mask_labs), 
               names_glue = "{MASK.TYPE}_{.value}") %>% 
   ungroup() %>% 
+  # we only want state names
+  dplyr::select(-c(habitat_mask_labs, national_mask_labs)) %>% 
+  # column of key states for each species
+  rename(key_states = state_mask_labs) %>% 
   left_join(web_db)
 
 # national trend values as separate columns
@@ -128,7 +133,7 @@ web_db <- web_db %>%
                 distribution_range_size_in, distribution_range_size_ci_units_of_10000_sqkm_in,
                 migratory_status_in, habitat_specialization_in, endemicity_in,
                 national_trends_addn, habitat_trends_addn, state_trends_addn,
-                full_url_2, post_category) %>% 
+                full_url_2, post_category, key_states) %>% 
   # converting all NAs to blanks
   mutate(across(everything(), ~ ifelse(is.na(.), "", .)))
 
