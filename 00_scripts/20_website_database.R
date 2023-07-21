@@ -18,6 +18,8 @@ web_db <- map2(analyses_metadata$SOIBMAIN.PATH, analyses_metadata$MASK,
                    starts_with("proj20"))) %>% 
   # joining MASK.TYPE
   left_join(analyses_metadata %>% distinct(MASK, MASK.TYPE)) %>% 
+  # changing "country" mask type to "national"
+  mutate(MASK.TYPE = if_else(MASK.TYPE == "country", "national", MASK.TYPE)) %>% 
   relocate(India.Checklist.Common.Name, MASK) %>% 
   arrange(India.Checklist.Common.Name, MASK) %>% 
   mutate(ID = "", post_content = "", post_excerpt = "", post_date = "", post_name = "",
@@ -78,26 +80,18 @@ web_db <- web_db %>%
 # get list of all masks for each species; omitting from list the particular mask in current focus
 web_db <- web_db %>% 
   group_by(India.Checklist.Common.Name, MASK.TYPE) %>% 
-  # string of all masks of current mask type
-  summarise(HTML_str_all = str_flatten(HTML_str, collapse = ",")) %>% 
-  pivot_wider(names_from = MASK.TYPE, values_from = HTML_str_all, names_glue = "{.value}_{MASK.TYPE}") %>% 
+  # HTML string and mask codes of all masks of current mask type
+  summarise(trends = str_flatten(HTML_str, collapse = ","),
+            trends_addn = str_flatten(MASK.CODE, collapse = ",")) %>% 
+  pivot_wider(names_from = MASK.TYPE, 
+              values_from = c(trends, trends_addn), 
+              names_glue = "{MASK.TYPE}_{.value}") %>% 
   ungroup() %>% 
-  left_join(web_db) %>% 
-  # not ideal way but difficult to get it done otherwise
-  mutate(habitat_trends = case_when(MASK.TYPE == "habitat" ~ HTML_str_all_habitat %>% 
-                                      str_remove(pattern = HTML_str) %>% 
-                                      str_remove(pattern = ","),
-                                    TRUE ~ HTML_str_all_habitat),
-         state_trends = case_when(MASK.TYPE == "state" ~ HTML_str_all_state %>% 
-                                      str_remove(pattern = HTML_str) %>% 
-                                      str_remove(pattern = ","),
-                                    TRUE ~ HTML_str_all_state),
-         national_trends = case_when(MASK.TYPE == "country" ~ "",
-                                    TRUE ~ HTML_str_all_country))
+  left_join(web_db)
 
 # national trend values as separate columns
 web_db <- web_db %>% 
-  filter(MASK.TYPE == "country") %>% 
+  filter(MASK.TYPE == "national") %>% 
   group_by(India.Checklist.Common.Name) %>% 
   reframe(`long-term_trend_in` = `long-term_trend`,
           `long-term_trend_ci_in` = `long-term_trend_ci`,
@@ -109,7 +103,7 @@ web_db <- web_db %>%
           habitat_specialization_in = habitat_specialization,
           endemicity_in = endemicity) %>% 
   left_join(web_db, relationship = "many-to-many") %>% 
-  mutate(across(ends_with("_in"), ~ ifelse(MASK.TYPE == "country", "", .)))
+  mutate(across(ends_with("_in"), ~ ifelse(MASK.TYPE == "national", "", .)))
 
 
 
@@ -131,7 +125,7 @@ web_db <- web_db %>%
                 `long-term_trend_in`, `long-term_trend_ci_in`, current_annual_change_in, current_annual_change_ci_in, 
                 distribution_range_size_in, distribution_range_size_ci_units_of_10000_sqkm_in,
                 migratory_status_in, habitat_specialization_in, endemicity_in,
-                # national_trends_addn, habitat_trends_addn, state_trends_addn, 
+                national_trends_addn, habitat_trends_addn, state_trends_addn,
                 full_url_2, post_category)
 
 write_csv(web_db, file = "20_website/website_database.csv")
