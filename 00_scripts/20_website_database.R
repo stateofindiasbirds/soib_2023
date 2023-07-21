@@ -31,7 +31,7 @@ web_db <- map2(analyses_metadata$SOIBMAIN.PATH, analyses_metadata$MASK,
 
 # creation of fields ----------------------------------------------------------------
 
-web_db2 <- web_db %>% 
+web_db <- web_db %>% 
   rename(`long-term_trend` = longtermmean,
          current_annual_change = currentslopemean,
          distribution_range_size = rangemean,
@@ -48,40 +48,42 @@ web_db2 <- web_db %>%
   mutate(across(c("long-term_trend", "current_annual_change"), ~ round(., 2))) %>% 
   mutate(`long-term_trend_ci` = str_c_CI(longtermlci, longtermrci),
          current_annual_change_ci = str_c_CI(currentslopelci, currentsloperci),
-         distribution_range_size_ci_units_of_10000_sqkm = str_c_CI(rangelci, rangerci)) 
+         distribution_range_size_ci_units_of_10000_sqkm = str_c_CI(rangelci, rangerci)) %>% 
+  join_mask_codes()
 
 
 # creation of fields within species (diff. masks) -----------------------------------
 
-web_db3 <- web_db2 %>% 
+web_db <- web_db %>% 
   # setup for some long strings
   mutate(URL_base = "https://wordpress-1024190-3615983.cloudwaysapps.com/",
          # prefix for uploads
          URL_pre_uploads = glue("{URL_base}wp-content/uploads/"),
          # converting species name to enter in URLs
          # how will this work for species with hyphen in name? ###
-         URL_species = str_replace(India.Checklist.Common.Name, " ", "-"), 
-         # need to discuss and change this ###
-         URL_suf_rangemap = "_terrain.jpg",
+         URL_species = str_replace_all(India.Checklist.Common.Name, 
+                                       c(" " = "-", "'" = "_")), 
+         URL_suf_rangemap = "_rangemap.jpg",
          URL_suf_trend = "_trend.jpg") %>% 
   # some long strings
-  mutate(featured_image = glue("{URL_pre_uploads}{URL_species}{URL_suf_rangemap}"),
-         downloadlink = glue("{URL_pre_uploads}{URL_species}_Infosheets.jpg"),
-         map_filename = glue("{URL_pre_uploads}{URL_species}{URL_suf_rangemap}"),
-         map_filename_originals = glue("{URL_pre_uploads}originals/{URL_species}{URL_suf_rangemap}"),
-         graph_filename = glue("{URL_pre_uploads}{URL_species}{URL_suf_trend}"),
-         graph_filename_originals = glue("{URL_pre_uploads}originals/{URL_species}{URL_suf_trend}")) %>% 
-  join_mask_codes() %>% 
-  mutate(HTML_str = create_HTML_strings(.))
+  mutate(featured_image = glue("{URL_pre_uploads}{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
+         downloadlink = glue("{URL_pre_uploads}{URL_species}_{MASK.CODE}_Infosheets.jpg"),
+         map_filename = glue("{URL_pre_uploads}{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
+         map_filename_originals = glue("{URL_pre_uploads}originals/{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
+         graph_filename = glue("{URL_pre_uploads}{URL_species}_{MASK.CODE}{URL_suf_trend}"),
+         graph_filename_originals = glue("{URL_pre_uploads}originals/{URL_species}_{MASK.CODE}{URL_suf_trend}")) %>% 
+  mutate(HTML_str = create_HTML_strings(.),
+         full_url_2 = glue("{MASK.CODE}/{custom_url}"),
+         post_category = MASK.LABEL)
 
 # get list of all masks for each species; omitting from list the particular mask in current focus
-web_db3 <- web_db3 %>% 
+web_db <- web_db %>% 
   group_by(India.Checklist.Common.Name, MASK.TYPE) %>% 
   # string of all masks of current mask type
   summarise(HTML_str_all = str_flatten(HTML_str, collapse = ",")) %>% 
   pivot_wider(names_from = MASK.TYPE, values_from = HTML_str_all, names_glue = "{.value}_{MASK.TYPE}") %>% 
   ungroup() %>% 
-  left_join(web_db3) %>% 
+  left_join(web_db) %>% 
   # not ideal way but difficult to get it done otherwise
   mutate(habitat_trends = case_when(MASK.TYPE == "habitat" ~ HTML_str_all_habitat %>% 
                                       str_remove(pattern = HTML_str) %>% 
@@ -94,30 +96,41 @@ web_db3 <- web_db3 %>%
          national_trends = case_when(MASK.TYPE == "country" ~ "",
                                     TRUE ~ HTML_str_all_country))
 
+# national trend values as separate columns
+web_db <- web_db %>% 
+  filter(MASK.TYPE == "country") %>% 
+  group_by(India.Checklist.Common.Name) %>% 
+  reframe(`long-term_trend_in` = `long-term_trend`,
+          `long-term_trend_ci_in` = `long-term_trend_ci`,
+          current_annual_change_in = current_annual_change,
+          current_annual_change_ci_in = current_annual_change_ci,
+          distribution_range_size_in = distribution_range_size,
+          distribution_range_size_ci_units_of_10000_sqkm_in = distribution_range_size_ci,
+          migratory_status_in = migratory_status,
+          habitat_specialization_in = habitat_specialization,
+          endemicity_in = endemicity) %>% 
+  left_join(web_db, relationship = "many-to-many") %>% 
+  mutate(across(ends_with("_in"), ~ ifelse(MASK.TYPE == "national", "", .)))
 
-
-
-# https://wordpress-1024190-3615983.cloudwaysapps.com/wp-content/uploads/Green-Sandpiper_terrain.jpg
-
-# <a href="https://wordpress-1024190-3615983.cloudwaysapps.com/birds/rj/grnsan/"><span class="soib_trends_img"><img src="https://wordpress-1024190-3615983.cloudwaysapps.com/wp-content/uploads/karnataka.png"></span><span class="soib_trends_lbl">Rajasthan</span></a>,
-# <a href="https://wordpress-1024190-3615983.cloudwaysapps.com/birds/ap/grnsan/"><span class="soib_trends_img"><img src="https://wordpress-1024190-3615983.cloudwaysapps.com/wp-content/uploads/karnataka.png"></span><span class="soib_trends_lbl">Andhra Pradesh</span></a>
-
-
-
-
-# <a href="https://wordpress-1024190-3615983.cloudwaysapps.com/birds/tn/grnsan/"><span class="soib_trends_img"><img src="https://wordpress-1024190-3615983.cloudwaysapps.com/wp-content/uploads/karnataka.png"></span><span class="soib_trends_lbl">Tamil Nadu</span></a>,
-# <a href="https://wordpress-1024190-3615983.cloudwaysapps.com/birds/rj/grnsan/"><span class="soib_trends_img"><img src="https://wordpress-1024190-3615983.cloudwaysapps.com/wp-content/uploads/karnataka.png"></span><span class="soib_trends_lbl">Rajasthan</span></a>,
-# <a href="https://wordpress-1024190-3615983.cloudwaysapps.com/birds/ap/grnsan/"><span class="soib_trends_img"><img src="https://wordpress-1024190-3615983.cloudwaysapps.com/wp-content/uploads/karnataka.png"></span><span class="soib_trends_lbl">Andhra Pradesh</span></a>
-
-# <a href="https://wordpress-1024190-3615983.cloudwaysapps.com/birds/ka/grnsan/"><span class="soib_trends_img"><img src="https://wordpress-1024190-3615983.cloudwaysapps.com/wp-content/uploads/karnataka.png"></span><span class="soib_trends_lbl">Karnataka</span></a>,
-# <a href="https://wordpress-1024190-3615983.cloudwaysapps.com/birds/tn/grnsan/"><span class="soib_trends_img"><img src="https://wordpress-1024190-3615983.cloudwaysapps.com/wp-content/uploads/karnataka.png"></span><span class="soib_trends_lbl">Tamil Nadu</span></a>,
-# <a href="https://wordpress-1024190-3615983.cloudwaysapps.com/birds/rj/grnsan/"><span class="soib_trends_img"><img src="https://wordpress-1024190-3615983.cloudwaysapps.com/wp-content/uploads/karnataka.png"></span><span class="soib_trends_lbl">Rajasthan</span></a>,
-# <a href="https://wordpress-1024190-3615983.cloudwaysapps.com/birds/ap/grnsan/"><span class="soib_trends_img"><img src="https://wordpress-1024190-3615983.cloudwaysapps.com/wp-content/uploads/karnataka.png"></span><span class="soib_trends_lbl">Andhra Pradesh</span></a>
 
 
 # convert to website format ---------------------------------------------------------
 
-x <- web_db 
-# rename: common, sci names
-# relocate
-# pivot_wider
+web_db <- web_db %>% 
+  rename(post_title = India.Checklist.Common.Name, 
+         scientific_name = India.Checklist.Scientific.Name) %>% 
+  dplyr::select(post_title, ID, post_content, post_excerpt, post_date, post_name, post_author,
+                post_status, featured_image, wp_page_template, post_format, comment_status,
+                ping_status, pinged, post_parent, menu_order, scientific_name, 
+                `long-term_trend`, `long-term_trend_ci`, current_annual_change, current_annual_change_ci,
+                distribution_range_size, distribution_range_size_ci,
+                downloadlink, map_filename, map_filename_originals, graph_filename, graph_filename_originals,
+                current_status, distribution_status, iucn_status, long_term_status,
+                migratory_status, status_of_conservation_concern, wlpa_schedule,
+                primary_assessment, habitat_specialization, endemicity, custom_url, 
+                state_trends, national_trends, habitat_trends, 
+                `long-term_trend_in`, `long-term_trend_ci_in`, current_annual_change_in, 
+                current_annual_change_ci_in, distribution_range_size_in, distribution_range_size_ci_in,
+                migratory_status_in, habitat_specialization_in, endemicity_in,
+                # national_trends_addn, habitat_trends_addn, state_trends_addn, 
+                full_url_2, post_category)
