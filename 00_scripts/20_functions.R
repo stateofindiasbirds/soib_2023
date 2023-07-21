@@ -24,15 +24,19 @@ read_fn <- function(file_path) {
 
 # function to combine lower and upper CIs into a string, if exist -------------------
 
-str_c_CI <- function(lower, upper) {
+str_c_CI <- function(data, lower, upper, new_name) {
   
-  lower <- round(lower, 2)
-  upper <- round(upper, 2)
-  
-  str_CI <- ifelse(!anyNA(c(lower, upper)), glue("({lower},{upper})"), NA)
-  
-  return(str_CI)
-  
+  data %>% 
+    mutate(lower_round = round({{lower}}, 2),
+           upper_round = round({{upper}}, 2)) %>%
+    mutate({{ new_name }} := case_when(
+      
+      !is.na({{ lower }}) & !is.na({{ upper }}) ~ glue("({lower_round},{upper_round})"),
+      TRUE ~ NA
+      
+    )) %>% 
+    dplyr::select(-lower_round, -upper_round)
+
 }
 
 

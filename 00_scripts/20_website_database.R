@@ -46,9 +46,9 @@ web_db <- web_db %>%
          endemicity = Endemic.Region,
          custom_url = eBird.Code) %>% 
   mutate(across(c("long-term_trend", "current_annual_change"), ~ round(., 2))) %>% 
-  mutate(`long-term_trend_ci` = str_c_CI(longtermlci, longtermrci),
-         current_annual_change_ci = str_c_CI(currentslopelci, currentsloperci),
-         distribution_range_size_ci_units_of_10000_sqkm = str_c_CI(rangelci, rangerci)) %>% 
+  str_c_CI(., longtermlci, longtermrci, new_name = "long-term_trend_ci") %>% 
+  str_c_CI(., currentslopelci, currentsloperci, new_name = "current_annual_change_ci") %>% 
+  str_c_CI(., rangelci, rangerci, new_name = "distribution_range_size_ci_units_of_10000_sqkm") %>% 
   join_mask_codes()
 
 
