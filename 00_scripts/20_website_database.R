@@ -60,14 +60,13 @@ web_db <- web_db %>%
          # prefix for uploads
          URL_pre_uploads = glue("{URL_base}wp-content/uploads/"),
          # converting species name to enter in URLs
-         # how will this work for species with hyphen in name? ###
          URL_species = str_replace_all(India.Checklist.Common.Name, 
                                        c(" " = "-", "'" = "_")), 
-         URL_suf_rangemap = "_rangemap.jpg",
-         URL_suf_trend = "_trend.jpg") %>% 
+         URL_suf_rangemap = "_rangemap.jpg", ### JPG or PNG?
+         URL_suf_trend = "_trend.jpg") %>% ### JPG or PNG?
   # some long strings
   mutate(featured_image = glue("{URL_pre_uploads}{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
-         downloadlink = glue("{URL_pre_uploads}{URL_species}_{MASK.CODE}_Infosheets.jpg"),
+         downloadlink = glue("{URL_pre_uploads}{URL_species}_{MASK.CODE}_Infosheets.jpg"), ### JPG or PNG?
          map_filename = glue("{URL_pre_uploads}{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
          map_filename_originals = glue("{URL_pre_uploads}originals/{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
          graph_filename = glue("{URL_pre_uploads}{URL_species}_{MASK.CODE}{URL_suf_trend}"),
@@ -123,14 +122,16 @@ web_db <- web_db %>%
                 post_status, featured_image, wp_page_template, post_format, comment_status,
                 ping_status, pinged, post_parent, menu_order, scientific_name, 
                 `long-term_trend`, `long-term_trend_ci`, current_annual_change, current_annual_change_ci,
-                distribution_range_size, distribution_range_size_ci,
+                distribution_range_size, distribution_range_size_ci_units_of_10000_sqkm,
                 downloadlink, map_filename, map_filename_originals, graph_filename, graph_filename_originals,
                 current_status, distribution_status, iucn_status, long_term_status,
                 migratory_status, status_of_conservation_concern, wlpa_schedule,
                 primary_assessment, habitat_specialization, endemicity, custom_url, 
                 state_trends, national_trends, habitat_trends, 
-                `long-term_trend_in`, `long-term_trend_ci_in`, current_annual_change_in, 
-                current_annual_change_ci_in, distribution_range_size_in, distribution_range_size_ci_in,
+                `long-term_trend_in`, `long-term_trend_ci_in`, current_annual_change_in, current_annual_change_ci_in, 
+                distribution_range_size_in, distribution_range_size_ci_units_of_10000_sqkm_in,
                 migratory_status_in, habitat_specialization_in, endemicity_in,
                 # national_trends_addn, habitat_trends_addn, state_trends_addn, 
                 full_url_2, post_category)
+
+write_csv(web_db, file = "20_website/website_database.csv")
