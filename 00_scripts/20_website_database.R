@@ -11,6 +11,8 @@ source("00_scripts/20_functions.R")
 web_db <- map2(analyses_metadata$SOIBMAIN.PATH, analyses_metadata$MASK, 
               ~ read_fn(.x) %>% bind_cols(tibble(MASK = .y))) %>% 
   list_rbind() %>% 
+  # filtering for SoIB species
+  filter(Selected.SOIB == "X") %>% 
   dplyr::select(-c("eBird.English.Name.2022", "eBird.Scientific.Name.2022", "Order", "Family",
                    starts_with("SOIB."), contains("Breeding.Activity"), "Diet.Guild",
                    starts_with("BLI."), ends_with(".Appendix"), "Onepercent.Estimates", 
