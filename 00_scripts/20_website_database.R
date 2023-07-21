@@ -128,6 +128,8 @@ web_db <- web_db %>%
                 distribution_range_size_in, distribution_range_size_ci_units_of_10000_sqkm_in,
                 migratory_status_in, habitat_specialization_in, endemicity_in,
                 national_trends_addn, habitat_trends_addn, state_trends_addn,
-                full_url_2, post_category)
+                full_url_2, post_category) %>% 
+  # converting all NAs to blanks
+  mutate(across(everything(), ~ ifelse(is.na(.), "", .)))
 
 write_csv(web_db, file = "20_website/website_database.csv")
