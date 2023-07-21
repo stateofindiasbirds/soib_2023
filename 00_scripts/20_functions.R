@@ -38,64 +38,41 @@ str_c_CI <- function(lower, upper) {
 
 # abbreviated codes for each mask ---------------------------------------------------
 
-join_mask_codes <- function(data, mask_col) {
+join_mask_codes <- function(data) {
   
-  mask_code <- data %>% 
-    mutate(MASK.CODE = case_when(
-      
-      MASK == "none" ~ "in",
-      MASK == "woodland" ~ "wo",
-      MASK == "cropland" ~ "cr",
-      MASK == "ONEland" ~ "on",
-      MASK == "PA" ~ "pa",
-      MASK == "Andaman and Nicobar Islands" ~ "an",
-      MASK == "Andhra Pradesh" ~ "ap",
-      MASK == "Arunachal Pradesh" ~ "ar",
-      MASK == "Assam" ~ "as",
-      MASK == "Bihar" ~ "br",
-      MASK == "Chandigarh" ~ "ch",
-      MASK == "Chhattisgarh" ~ "ct",
-      MASK == "Dadra and Nagar Haveli" ~ "dn",
-      MASK == "Daman and Diu" ~ "dd",
-      MASK == "Delhi" ~ "dl",
-      MASK == "Goa" ~ "ga",
-      MASK == "Gujarat" ~ "gj",
-      MASK == "Haryana" ~ "hr",
-      MASK == "Himachal Pradesh" ~ "hp",
-      MASK == "Jammu and Kashmir" ~ "jk",
-      MASK == "Jharkhand" ~ "jh",
-      MASK == "Karnataka" ~ "ka",
-      MASK == "Kerala" ~ "kl",
-      MASK == "Ladakh" ~ "la",
-      MASK == "Lakshadweep" ~ "ld",
-      MASK == "Madhya Pradesh" ~ "mp",
-      MASK == "Maharashtra" ~ "mh",
-      MASK == "Manipur" ~ "mn",
-      MASK == "Meghalaya" ~ "ml",
-      MASK == "Mizoram" ~ "mz",
-      MASK == "Nagaland" ~ "nl",
-      MASK == "Odisha" ~ "or",
-      MASK == "Puducherry" ~ "py",
-      MASK == "Punjab" ~ "pb",
-      MASK == "Rajasthan" ~ "rj",
-      MASK == "Sikkim" ~ "sk",
-      MASK == "Tamil Nadu" ~ "tn",
-      MASK == "Telangana" ~ "ts",
-      MASK == "Tripura" ~ "tr",
-      MASK == "Uttar Pradesh" ~ "up",
-      MASK == "Uttarakhand" ~ "ul",
-      MASK == "West Bengal" ~ "wb"
-      
-    ),
-    MASK.LABEL = case_when(
+  require(readxl)
+  
+  states <- read_xlsx("00_data/Website Codes.xlsx", sheet = 1) %>% 
+    rename(MASK = STATE)
+  habs <- read_xlsx("00_data/Website Codes.xlsx", sheet = 2) %>% 
+    mutate(MASK = case_when(HABITAT == "Woodland" ~ "woodland",
+                            HABITAT == "Cropland" ~ "cropland",
+                            HABITAT == "Open Natural Ecosystem" ~ "ONEland"),
+           HABITAT = NULL)
+  pa <- read_xlsx("00_data/Website Codes.xlsx", sheet = 3) %>% 
+    mutate(MASK = "PA", ADMIN = NULL)
+  
+  
+  codes <- data.frame(MASK = "none",
+                      CODE = "in") %>% 
+    bind_rows(habs, pa, states) %>% 
+    rename(MASK.CODE = CODE) %>% 
+    # codes need to be lowercase
+    mutate(MASK.CODE = str_to_lower(MASK.CODE))
+  
+  
+  # return dataframe with codes joined
+  data %>% 
+    left_join(codes) %>% 
+    # labels
+    mutate(MASK.LABEL = case_when(
       MASK == "none" ~ "India",
       MASK == "cropland" ~ "Cropland",
       MASK == "woodland" ~ "Woodland",
       MASK == "ONEland" ~ "ONEs",
       MASK == "PA" ~ "PAs",
       TRUE ~ MASK
-    ),
-    )
+    ))
   
 }
 
