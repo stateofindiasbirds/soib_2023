@@ -105,12 +105,12 @@ web_db <- web_db %>%
           current_annual_change_in = current_annual_change,
           current_annual_change_ci_in = current_annual_change_ci,
           distribution_range_size_in = distribution_range_size,
-          distribution_range_size_ci_units_of_10000_sqkm_in = distribution_range_size_ci,
+          distribution_range_size_ci_units_of_10000_sqkm_in = distribution_range_size_ci_units_of_10000_sqkm,
           migratory_status_in = migratory_status,
           habitat_specialization_in = habitat_specialization,
           endemicity_in = endemicity) %>% 
   left_join(web_db, relationship = "many-to-many") %>% 
-  mutate(across(ends_with("_in"), ~ ifelse(MASK.TYPE == "national", "", .)))
+  mutate(across(ends_with("_in"), ~ ifelse(MASK.TYPE == "country", "", .)))
 
 
 
