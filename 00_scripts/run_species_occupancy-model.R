@@ -53,7 +53,7 @@ for (k in 1:n.chunks)
     occupancyrun(data = data, 
                  i = i,
                  speciesforocc = speciesforocc,
-                 nb8g1 = nb8g1)
+                 queen_neighbours = g1_nb_q)
   end = Sys.time()
   print(end-start)
   

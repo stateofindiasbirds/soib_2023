@@ -810,9 +810,7 @@ tic("Calculating occupancy")
 
 # occupancy-model files
 occu_model <- list.files(path = occu_mod_pathonly, full.names = T) %>% 
-  map_df(read.csv) %>%
-  dplyr::select(-area) %>% # remove this later ###
-  rename(gridg1 = gridg)
+  map_df(read.csv)
 
 # occupancy-presence files
 occu_presence <- list.files(path = occu_pres_pathonly, full.names = T) %>% 
@@ -835,12 +833,6 @@ occu_full = rbind(occ.full1, occ.full2) %>%
               st_drop_geometry() %>% 
               transmute(gridg1 = GRID.G1, area = AREA.G1))
 
-#   # when present but model values also exist, assume full occupancy
-#   mutate(occupancy = if_else(presence == 1, 1, occupancy),
-#          se = if_else(presence == 1, 0, se)) %>% 
-#   filter(!is.na(occupancy), !is.na(se), !is.na(gridg1)) %>% 
-#   mutate(occupancy = if_else(nb == 0 & occupancy != 1, 0, occupancy),
-#          se = if_else(nb == 0 & occupancy != 1, 0, se))
 
 occu_full$occupancy[occu_full$presence == 1] = 1
 occu_full$se[occu_full$presence == 1] = 0

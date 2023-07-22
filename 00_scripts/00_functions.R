@@ -1150,8 +1150,7 @@ occupancyrun = function(data, i, speciesforocc, queen_neighbours)
 
   species = speciesforocc$eBird.English.Name.2022[i]
   status = speciesforocc$status[i]
-  data = datax # to remove
-  
+
   tic(glue("Modelled occupancy of {species}"))
   
   # filter data only within the known spatial and temporal range of the species
@@ -1327,7 +1326,8 @@ occupancyrun = function(data, i, speciesforocc, queen_neighbours)
   toc()
   
   # to combine
-  return(occpred_occupancy)
+  tocomb = occpred_occupancy
+  return(tocomb)
   
 }
 
