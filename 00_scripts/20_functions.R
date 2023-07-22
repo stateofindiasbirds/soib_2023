@@ -1,0 +1,103 @@
+require(tidyverse)
+require(glue)
+
+
+
+# function to read in all CSVs if exist ---------------------------------------------
+
+read_fn <- function(file_path) {
+  
+  if (file.exists(file_path)) {
+    
+    read_csv(file_path) 
+    
+  } else {
+    
+    print(glue("Skipped reading {file_path}"))
+    
+    NULL
+    
+  }
+  
+}
+
+
+# function to combine lower and upper CIs into a string, if exist -------------------
+
+str_c_CI <- function(data, lower, upper, new_name) {
+  
+  data %>% 
+    mutate(lower_round = round({{lower}}, 2),
+           upper_round = round({{upper}}, 2)) %>%
+    mutate({{ new_name }} := case_when(
+      
+      !is.na({{ lower }}) & !is.na({{ upper }}) ~ glue("({lower_round},{upper_round})"),
+      TRUE ~ NA
+      
+    )) %>% 
+    dplyr::select(-lower_round, -upper_round)
+
+}
+
+
+# abbreviated codes for each mask ---------------------------------------------------
+
+join_mask_codes <- function(data) {
+  
+  require(readxl)
+  
+  states <- read_xlsx("00_data/Website Codes.xlsx", sheet = 1) %>% 
+    rename(MASK = STATE)
+  habs <- read_xlsx("00_data/Website Codes.xlsx", sheet = 2) %>% 
+    mutate(MASK = case_when(HABITAT == "Woodland" ~ "woodland",
+                            HABITAT == "Cropland" ~ "cropland",
+                            HABITAT == "Open Natural Ecosystem" ~ "ONEland"),
+           HABITAT = NULL)
+  pa <- read_xlsx("00_data/Website Codes.xlsx", sheet = 3) %>% 
+    mutate(MASK = "PA", ADMIN = NULL)
+  
+  
+  codes <- data.frame(MASK = "none",
+                      CODE = "in") %>% 
+    bind_rows(habs, pa, states) %>% 
+    rename(MASK.CODE = CODE) %>% 
+    # codes need to be lowercase
+    mutate(MASK.CODE = str_to_lower(MASK.CODE))
+  
+  
+  # return dataframe with codes joined
+  data %>% 
+    left_join(codes) %>% 
+    # labels
+    mutate(MASK.LABEL = case_when(
+      MASK == "none" ~ "India",
+      MASK == "cropland" ~ "Cropland",
+      MASK == "woodland" ~ "Woodland",
+      MASK == "ONEland" ~ "ONEs",
+      MASK == "PA" ~ "PAs",
+      TRUE ~ MASK
+    ))
+  
+}
+
+
+# function to create specific HTML string -------------------------------------------
+
+create_HTML_strings <- function(data) {
+  
+  data_new <- data %>% 
+    mutate(link1 = glue('"{URL_base}birds/{MASK.CODE}/{custom_url}/"'),
+           link2 = glue('"{URL_pre_uploads}{MASK}.png"'),
+           
+           a_href_a = glue("<a href={link1}>"),
+           span1_a = glue('<span class="soib_trends_img">'),
+           span1_img = glue("<img src={link2}>"),
+           span1_b = glue("</span>"),
+           span2 = glue('<span class="soib_trends_lbl">{MASK.LABEL}</span>'),
+           a_href_b = "</a>",
+           
+           HTML_string = glue("{a_href_a}{span1_a}{span1_img}{span1_b}{span2}{a_href_b}"))
+  
+  return(data_new$HTML_string)
+  
+}
