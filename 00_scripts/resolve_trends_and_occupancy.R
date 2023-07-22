@@ -841,6 +841,7 @@ occu_full = occu_full %>% filter(!is.na(occupancy), !is.na(se), !is.na(gridg1))
 
 
 occu_summary = occu_full %>%
+  filter(presence != 0 | prop_nb != 0) %>%
   group_by(COMMON.NAME, status) %>% 
   reframe(occ = sum(occupancy*area),
           occ.ci = round((erroradd(se*area))*1.96))
