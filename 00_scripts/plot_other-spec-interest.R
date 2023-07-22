@@ -2,82 +2,81 @@ library(tidyverse)
 library(glue)
 library(ggpattern)
 
-plot_fn <- function(main_data) {
-  
-  main_plot <- main_data %>% 
-    pivot_longer(cols = c(everything(), -India.Checklist.Common.Name),
-                 names_to = "Trend", values_to = "Value") %>%
-    mutate(Trend = str_replace(Trend, "_std", "_ltt")) %>% 
-    mutate(Trend = str_replace(Trend, "_ltt_recent", "_cat")) %>% 
-    separate(col = "Trend", into = c("Measure", "Trend"), 
-             sep = "_", remove = FALSE) %>%
-    mutate(Trend = case_when(Trend == "ltt" ~ "Long-term",
-                             Trend == "cat" ~ "Current Annual")) %>% 
-    mutate(Trend = factor(Trend, levels = c("Long-term", "Current Annual"))) %>% 
-    pivot_wider(names_from = Measure, values_from = Value) %>% 
-    mutate(xmin = as.numeric(India.Checklist.Common.Name) - 0.1,
-           xmax = as.numeric(India.Checklist.Common.Name) + 0.1) %>% 
-    ggplot() +
-    geom_rect_pattern(aes(xmin = xmin, xmax = xmax, 
-                          ymin = lci, ymax = rci, 
-                          pattern_density = Trend, pattern_spacing = Trend), 
-                      colour = NA, fill = NA, position = position_dodge(0.5),
-                      pattern = "stripe", pattern_angle = 0,
-                      pattern_colour = NA, pattern_fill = "white") +
-    scale_pattern_density_manual(values = c(0.5, 1)) +
-    scale_pattern_spacing_manual(values = c(0.01, 1)) +
-    theme_void() +
-    theme(legend.position = "none")
-  
-  return(main_plot)
-  
-}
+source("00_scripts/00_functions.R")
 
 out_path <- "02_graphs/other_species_of_interest/"
 if (!dir.exists(out_path)) {dir.create(out_path, recursive = TRUE)}
 
 # "other species of interest" (India Checklist)
 spec_list_left <- c(
-  "Black-capped Kingfisher", "Sarus Crane", "Alexandrine Parakeet", "Forest Wagtail",
-  "Pied Kingfisher", "Kentish Plover", "Common Crane", "Sirkeer Malkoha"
+  "Black-capped Kingfisher", "Pied Kingfisher", "Sarus Crane", "Kentish Plover", 
+  "Alexandrine Parakeet", "Common Crane", "Forest Wagtail", "Sirkeer Malkoha"
 ) 
 spec_list_right <- c(
-  "Baillon's Crake", "White-rumped Shama", "Spot-breasted Fantail", "Rosy Starling", 
-  "Small Minivet", "Grey Wagtail", "Blue Rock Thrush", "Spot-winged Starling"
+  "Baillon's Crake", "Small Minivet", "White-rumped Shama", "Grey Wagtail", 
+  "Spot-breasted Fantail", "Blue Rock Thrush", "Rosy Starling", "Spot-winged Starling"
 )
+
+###
+
+plot_fn <- function(main_data) {
+  
+  main_plot <- main_data %>% 
+    pivot_longer(cols = c(everything(), -India.Checklist.Common.Name),
+                 names_to = "Trend", values_to = "Value") %>%
+    mutate(Trend = case_when(Trend == "longterm" ~ "Long-term",
+                             Trend == "currentslope" ~ "Current Annual")) %>% 
+    mutate(Trend = factor(Trend, levels = c("Long-term", "Current Annual"))) %>% 
+    ggplot(aes(x = India.Checklist.Common.Name, y = Value)) +
+    geom_point(aes(fill = Trend), 
+               colour = "black", size = 4, shape = 23,
+               position = position_dodge(0.5)) +
+    scale_fill_manual(values = c("transparent", "black")) +
+    scale_y_continuous(limits = c(-5, 5), breaks = c(-5, 5)) +
+    theme_void() +
+    theme(legend.position = "none",
+          # guide lines
+          panel.grid.major.y = element_line(colour = "black"))
+  
+  return(main_plot)
+  
+}
 
 
 ###
 
-trends_data = read.csv("01_analyses_full/results/trends.csv") %>% 
-  # taking latest (2022-23) values
-  filter(timegroups == 2022) %>% 
-  rename(eBird.English.Name.2022 = COMMON.NAME) %>% 
-  # selecting standardised values
-  dplyr::select(c(eBird.English.Name.2022, lci_std, mean_std, rci_std, contains("std_recent")))
+main_data0 <- read.csv("01_analyses_full/results/SoIB_main.csv") %>% 
+  dplyr::select(India.Checklist.Common.Name, 
+                contains("longterm"), contains("currentslope"),
+                SOIBv2.Long.Term.Status, SOIBv2.Current.Status) %>% 
+  # we want to use the original scale itself, without negatives and positives
+  # (so that we can use the original thresholds)
+  mutate(across(contains("longterm"), ~ . + 100)) %>% 
+  # scaling 
+  scale_trends_to_bands() %>% 
+  dplyr::select(India.Checklist.Common.Name, 
+                longtermlci, longtermmean, longtermrci, longterm,
+                currentslopelci, currentslopemean, currentsloperci, currentslope)
 
-# main data
-main_data_left = read.csv("01_analyses_full/results/SoIB_main.csv") %>% 
+main_data_left = main_data0 %>% 
   filter(India.Checklist.Common.Name %in% spec_list_left) %>% 
   mutate(India.Checklist.Common.Name = factor(India.Checklist.Common.Name, 
                                               levels = spec_list_left)) %>% 
-  left_join(trends_data) %>% 
-  dplyr::select(India.Checklist.Common.Name, 
-                lci_std, mean_std, rci_std, contains("std_recent"))
-main_data_right = read.csv("01_analyses_full/results/SoIB_main.csv") %>% 
+  dplyr::select(India.Checklist.Common.Name, longterm, currentslope)
+
+main_data_right = main_data0 %>% 
   filter(India.Checklist.Common.Name %in% spec_list_right) %>% 
   mutate(India.Checklist.Common.Name = factor(India.Checklist.Common.Name, 
                                               levels = spec_list_right)) %>% 
-  left_join(trends_data) %>% 
-  dplyr::select(India.Checklist.Common.Name, 
-                lci_std, mean_std, rci_std, contains("std_recent"))
+  dplyr::select(India.Checklist.Common.Name, longterm, currentslope)
+
 
 plot_left <- plot_fn(main_data_left)
 plot_right <- plot_fn(main_data_right)
 
 
-ggsave(plot_left, filename = glue("{out_path}01_left.png"),
-       dpi = 300, height = 55, width = 230, units = "mm", bg = "transparent")
-ggsave(plot_right, filename = glue("{out_path}02_right.png"),
-       dpi = 300, height = 55, width = 230, units = "mm", bg = "transparent")
+ggsave(plot_left, filename = glue("{out_path}01_left.svg"),
+       dpi = 300, height = 65, width = 225, units = "mm", bg = "transparent")
+ggsave(plot_right, filename = glue("{out_path}02_right.svg"),
+       dpi = 300, height = 65, width = 225, units = "mm", bg = "transparent")
 

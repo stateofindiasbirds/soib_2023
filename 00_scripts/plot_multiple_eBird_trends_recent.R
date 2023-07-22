@@ -9,8 +9,8 @@ library(extrafont)
 library(stringr)
 
 
-main = read.csv("01_analyses_full/SoIB_main.csv")
-trends = read.csv("01_analyses_full/trends.csv")
+main = read.csv("01_analyses_full/results/SoIB_main.csv")
+trends = read.csv("01_analyses_full/results/trends.csv")
 qualifying.species = main$eBird.English.Name.2022[!main$SOIBv2.Current.Status %in% 
                                                     c("eBird Data Inconclusive","eBird Data Deficient") & 
                                                     main$Current.Analysis == "X"]
@@ -19,12 +19,15 @@ trends = trends %>% filter(COMMON.NAME %in% qualifying.species) %>%
 
 cols = c("#31954E", "#EA5599", "#CC6666", "#78CAE0", "#9999CC", "#E49B36", 
          "#B69AC9", "#493F3D", "#A13E2B", "#000000", "#66CC99")
-species = c("White-rumped Vulture","Indian Vulture","Red-headed Vulture",
-            "Egyptian Vulture")
 #species = c("Black-rumped Flameback","Yellow-crowned Woodpecker")
 #cols = c("#869B27", "#E49B36")
+species = c("White-rumped Vulture","Indian Vulture","Red-headed Vulture",
+            "Egyptian Vulture")
+#cols = c("#869B27", "#31954E", "#CC6666", "#E49B36")
 species = c("Spot-billed Pelican","Black-headed Ibis","Painted Stork",
-            "Eurasian Spoonbill","Oriental Darter","Great Cormorant")
+            "Eurasian Spoonbill","Oriental Darter","Purple Heron")
+cols = c("#869B27", "#EA5599", "#9999CC", "#78CAE0", "#CC6666", "#E49B36", 
+         "#B69AC9", "#493F3D", "#A13E2B", "#000000", "#66CC99")
 
 sps = "Large Waterbirds"
 
@@ -241,7 +244,7 @@ ggp = ggplot(temp, aes(x = timegroups, y = mean_std, col = COMMON.NAME, label = 
   geom_segment(x = tlow, y = ybreaks[5], xend = 2022, yend = ybreaks[5], linetype = "dotted", linewidth = 0.7, col = tcol) +
   geom_segment(x = tlow, y = 100, xend = 2022, yend = 100, linetype = "solid", linewidth = 0.9, col = tcol) +
   xlab("Time-steps") +
-  ylab("Change in eBird Abundance Index")
+  ylab("Change in Abundance Index")
 
 ggpx = ggp +
   theme(axis.title.x = element_blank(), 
@@ -283,9 +286,7 @@ ggpx = ggp +
 
 
 
-ggpx3 = ggdraw(ggpx)
-
-name1 = paste("01_analyses_full/graphs/current trends - multiple species/",sps,"_","multiple_species_eBird_trend_recent_SoIBv2.jpg",sep="")
+name1 = paste("02_graphs/current trends - multiple species/",sps,"_","multiple_species_eBird_trend_recent_SoIBv2.jpg",sep="")
 
 jpeg(name1, units="in", width=11, height=7, res=1000, bg="transparent")
 grid::grid.draw(ggpx3)

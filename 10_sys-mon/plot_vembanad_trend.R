@@ -137,11 +137,10 @@ for (i in 1:length(selectspecies))
 
 
 
+######## composite both ibises and Whiskered Tern
 
-######## composite
-
-temp = indtrends[!indtrends$COMMON.NAME %in% c("Whiskered Tern"),]
-sps = "AWC count at Vembanad"
+temp = indtrends[indtrends$COMMON.NAME %in% c("Black-headed Ibis","Glossy Ibis","Whiskered Tern"),]
+sps = "Select birds at Vembanad"
 
 t1 = temp[temp$timegroups == 2023,]
 t1 = t1 %>% arrange(desc(mean))

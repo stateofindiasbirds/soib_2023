@@ -8,8 +8,8 @@ library(cowplot)
 library(extrafont)
 library(stringr)
 
-main = read.csv("01_analyses_full/SoIB_main.csv")
-trends = read.csv("01_analyses_full/trends.csv")
+main = read.csv("01_analyses_full/results/SoIB_main.csv")
+trends = read.csv("01_analyses_full/results/trends.csv")
 
 qualifying.species = main$eBird.English.Name.2022[!main$SOIBv2.Long.Term.Status %in% 
                                                     c("eBird Data Inconclusive","eBird Data Deficient") & 
@@ -273,7 +273,7 @@ ggp = ggplot(temp, aes(x = timegroups, y = mean_std, col = COMMON.NAME, label = 
   geom_segment(x = tlow, y = ybreaks[5], xend = 2022, yend = ybreaks[5], linetype = "dotted", linewidth = 0.7, col = tcol) +
   geom_segment(x = tlow, y = 100, xend = 2022, yend = 100, linetype = "solid", linewidth = 0.9, col = tcol) +
   xlab("Time-steps") +
-  ylab("Change in eBird Abundance Index")
+  ylab("Change in Abundance Index")
 
 ggpx = ggp +
   theme(axis.title.x = element_blank(), 
@@ -316,7 +316,7 @@ ggpx = ggp +
 
 ggpx3 = ggdraw(ggpx)
 
-name1 = "01_analyses_full/graphs/composites/dietguilds_composite_trend_SoIBv2.jpg"
+name1 = "02_graphs/composites/dietguilds_composite_trend_SoIBv2.jpg"
 #name2 = "dietguilds_composite_trend_SoIBv2.svg"
 
 jpeg(name1, units="in", width=11, height=7, res=1000, bg="transparent")
@@ -584,7 +584,7 @@ ggp = ggplot(temp, aes(x = timegroups, y = mean_std, col = COMMON.NAME, label = 
   geom_segment(x = tlow, y = ybreaks[5], xend = 2022, yend = ybreaks[5], linetype = "dotted", linewidth = 0.7, col = tcol) +
   geom_segment(x = tlow, y = 100, xend = 2022, yend = 100, linetype = "solid", linewidth = 0.9, col = tcol) +
   xlab("Time-steps") +
-  ylab("Change in eBird Abundance Index")
+  ylab("Change in Abundance Index")
 
 ggpx = ggp +
   theme(axis.title.x = element_blank(), 
@@ -627,7 +627,7 @@ ggpx = ggp +
 
 ggpx3 = ggdraw(ggpx)
 
-name1 = "01_analyses_full/graphs/composites/habitats_composite_trend_SoIBv2.jpg"
+name1 = "02_graphs/composites/habitats_composite_trend_SoIBv2.jpg"
 #name2 = "habitats_composite_trend_SoIBv2.svg"
 
 jpeg(name1, units="in", width=11, height=7, res=1000, bg="transparent")
@@ -898,7 +898,7 @@ ggp = ggplot(temp, aes(x = timegroups, y = mean_std, col = COMMON.NAME, label = 
   geom_segment(x = tlow, y = ybreaks[5], xend = 2022, yend = ybreaks[5], linetype = "dotted", linewidth = 0.7, col = tcol) +
   geom_segment(x = tlow, y = 100, xend = 2022, yend = 100, linetype = "solid", linewidth = 0.9, col = tcol) +
   xlab("Time-steps") +
-  ylab("Change in eBird Abundance Index")
+  ylab("Change in Abundance Index")
 
 ggpx = ggp +
   theme(axis.title.x = element_blank(), 
@@ -941,7 +941,7 @@ ggpx = ggp +
 
 ggpx3 = ggdraw(ggpx)
 
-name1 = "01_analyses_full/graphs/composites/endemics_composite_trend_SoIBv2.jpg"
+name1 = "02_graphs/composites/endemics_composite_trend_SoIBv2.jpg"
 #name2 = "endemics_composite_trend_SoIBv2.svg"
 
 jpeg(name1, units="in", width=11, height=7, res=1000, bg="transparent")
@@ -966,6 +966,7 @@ sps = "Composite Migratory Behaviours"
 temp = main
 temp$Migratory.Status.Within.India[temp$Migratory.Status.Within.India == "Altitudinal Migrant"] = "Resident"
 temp$Migratory.Status.Within.India[temp$Migratory.Status.Within.India == "Resident & Altitudinal Migrant"] = "Resident"
+temp$Migratory.Status.Within.India[temp$Migratory.Status.Within.India == "Local Migrant"] = "Short-distance Migrant"
 temp$Migratory.Status.Within.India[temp$Migratory.Status.Within.India == "Resident & Local Migrant"] = "Short-distance Migrant"
 temp$Migratory.Status.Within.India[temp$Migratory.Status.Within.India == "Resident & Summer Migrant"] = "Short-distance Migrant"
 temp$Migratory.Status.Within.India[temp$Migratory.Status.Within.India == "Resident & Winter Migrant"] = "Short-distance Migrant"
@@ -973,6 +974,7 @@ temp$Migratory.Status.Within.India[temp$Migratory.Status.Within.India == "Reside
 temp$Migratory.Status.Within.India[temp$Migratory.Status.Within.India == "Summer Migrant"] = "Long-distance Migrant"
 temp$Migratory.Status.Within.India[temp$Migratory.Status.Within.India == "Summer Migrant & Localized Winter Migrant"] = "Long-distance Migrant"
 temp$Migratory.Status.Within.India[temp$Migratory.Status.Within.India == "Summer Migrant & Passage Migrant"] = "Long-distance Migrant"
+temp$Migratory.Status.Within.India[temp$Migratory.Status.Within.India == "Summer Migrant & Winter Migrant"] = "Long-distance Migrant"
 temp$Migratory.Status.Within.India[temp$Migratory.Status.Within.India == "Within-India Migrant & Winter Migrant"] = "Short-distance Migrant"
 temp$Migratory.Status.Within.India[temp$Migratory.Status.Within.India == "Winter Migrant"] = "Long-distance Migrant"
 temp$Migratory.Status.Within.India[temp$Migratory.Status.Within.India == "Winter Migrant & Localized Summer Migrant"] = "Long-distance Migrant"
@@ -1225,7 +1227,7 @@ ggp = ggplot(temp, aes(x = timegroups, y = mean_std, col = COMMON.NAME, label = 
   geom_segment(x = tlow, y = ybreaks[5], xend = 2022, yend = ybreaks[5], linetype = "dotted", linewidth = 0.7, col = tcol) +
   geom_segment(x = tlow, y = 100, xend = 2022, yend = 100, linetype = "solid", linewidth = 0.9, col = tcol) +
   xlab("Time-steps") +
-  ylab("Change in eBird Abundance Index")
+  ylab("Change in Abundance Index")
 
 ggpx = ggp +
   theme(axis.title.x = element_blank(), 
@@ -1268,7 +1270,7 @@ ggpx = ggp +
 
 ggpx3 = ggdraw(ggpx)
 
-name1 = "01_analyses_full/graphs/composites/migrants_composite_trend_SoIBv2.jpg"
+name1 = "02_graphs/composites/migrants_composite_trend_SoIBv2.jpg"
 #name2 = "migrants_composite_trend_SoIBv2.svg"
 
 jpeg(name1, units="in", width=11, height=7, res=1000, bg="transparent")
@@ -1310,8 +1312,8 @@ a.shore = c("Black-bellied Plover","European Golden-Plover","American Golden-Plo
 
 temp = main
 temp$Shorebird = NA
-temp$Shorebird[temp$eBird.English.Name.2022 %in% r.shore] = "Near Resident"
-temp$Shorebird[temp$eBird.English.Name.2022 %in% s.shore] = "Palearctic Migrant"
+temp$Shorebird[temp$eBird.English.Name.2022 %in% r.shore] = "Near Resident or Palearctic Migrant"
+temp$Shorebird[temp$eBird.English.Name.2022 %in% s.shore] = "Near Resident or Palearctic Migrant"
 temp$Shorebird[temp$eBird.English.Name.2022 %in% a.shore] = "Arctic Migrant"
 
 
@@ -1558,7 +1560,7 @@ ggp = ggplot(temp, aes(x = timegroups, y = mean_std, col = COMMON.NAME, label = 
   geom_segment(x = tlow, y = ybreaks[5], xend = 2022, yend = ybreaks[5], linetype = "dotted", linewidth = 0.7, col = tcol) +
   geom_segment(x = tlow, y = 100, xend = 2022, yend = 100, linetype = "solid", linewidth = 0.9, col = tcol) +
   xlab("Time-steps") +
-  ylab("Change in eBird Abundance Index")
+  ylab("Change in Abundance Index")
 
 ggpx = ggp +
   theme(axis.title.x = element_blank(), 
@@ -1601,7 +1603,7 @@ ggpx = ggp +
 
 ggpx3 = ggdraw(ggpx)
 
-name1 = "01_analyses_full/graphs/composites/shorebirds_composite_trend_SoIBv2.jpg"
+name1 = "02_graphs/composites/shorebirds_composite_trend_SoIBv2.jpg"
 #name2 = "shorebirds_composite_trend_SoIBv2.svg"
 
 jpeg(name1, units="in", width=11, height=7, res=1000, bg="transparent")
@@ -1873,7 +1875,7 @@ ggp = ggplot(temp, aes(x = timegroups, y = mean_std, col = COMMON.NAME, label = 
   geom_segment(x = tlow, y = ybreaks[5], xend = 2022, yend = ybreaks[5], linetype = "dotted", linewidth = 0.7, col = tcol) +
   geom_segment(x = tlow, y = 100, xend = 2022, yend = 100, linetype = "solid", linewidth = 0.9, col = tcol) +
   xlab("Time-steps") +
-  ylab("Change in eBird Abundance Index")
+  ylab("Change in Abundance Index")
 
 ggpx = ggp +
   theme(axis.title.x = element_blank(), 
@@ -1916,7 +1918,7 @@ ggpx = ggp +
 
 ggpx3 = ggdraw(ggpx)
 
-name1 = "01_analyses_full/graphs/composites/raptors_composite_trend_SoIBv2.jpg"
+name1 = "02_graphs/composites/raptors_composite_trend_SoIBv2.jpg"
 #name2 = "raptors_composite_trend_SoIBv2.svg"
 
 jpeg(name1, units="in", width=11, height=7, res=1000, bg="transparent")
@@ -2224,7 +2226,7 @@ ggp = ggplot(temp, aes(x = timegroups, y = mean_std, col = COMMON.NAME, label = 
   geom_segment(x = tlow, y = ybreaks[5], xend = 2022, yend = ybreaks[5], linetype = "dotted", linewidth = 0.7, col = tcol) +
   geom_segment(x = tlow, y = 100, xend = 2022, yend = 100, linetype = "solid", linewidth = 0.9, col = tcol) +
   xlab("Time-steps") +
-  ylab("Change in eBird Abundance Index")
+  ylab("Change in Abundance Index")
 
 ggpx = ggp +
   theme(axis.title.x = element_blank(), 
@@ -2267,7 +2269,7 @@ ggpx = ggp +
 
 ggpx3 = ggdraw(ggpx)
 
-name1 = "01_analyses_full/graphs/composites/woodland_mask_composite_trend_SoIBv2.jpg"
+name1 = "02_graphs/composites/woodland_mask_composite_trend_SoIBv2.jpg"
 #name2 = "woodland_mask_composite_trend_SoIBv2.svg"
 
 jpeg(name1, units="in", width=11, height=7, res=1000, bg="transparent")
@@ -2575,7 +2577,7 @@ ggp = ggplot(temp, aes(x = timegroups, y = mean_std, col = COMMON.NAME, label = 
   geom_segment(x = tlow, y = ybreaks[5], xend = 2022, yend = ybreaks[5], linetype = "dotted", linewidth = 0.7, col = tcol) +
   geom_segment(x = tlow, y = 100, xend = 2022, yend = 100, linetype = "solid", linewidth = 0.9, col = tcol) +
   xlab("Time-steps") +
-  ylab("Change in eBird Abundance Index")
+  ylab("Change in Abundance Index")
 
 ggpx = ggp +
   theme(axis.title.x = element_blank(), 
@@ -2618,7 +2620,7 @@ ggpx = ggp +
 
 ggpx3 = ggdraw(ggpx)
 
-name1 = "01_analyses_full/graphs/composites/pa_mask_composite_trend_SoIBv2.jpg"
+name1 = "02_graphs/composites/pa_mask_composite_trend_SoIBv2.jpg"
 #name2 = "pa_mask_composite_trend_SoIBv2.svg"
 
 jpeg(name1, units="in", width=11, height=7, res=1000, bg="transparent")
@@ -2935,7 +2937,7 @@ ggp = ggplot(temp, aes(x = timegroups, y = mean_std, col = COMMON.NAME, label = 
   geom_segment(x = tlow, y = ybreaks[5], xend = 2022, yend = ybreaks[5], linetype = "dotted", linewidth = 0.7, col = tcol) +
   geom_segment(x = tlow, y = 100, xend = 2022, yend = 100, linetype = "solid", linewidth = 0.9, col = tcol) +
   xlab("Time-steps") +
-  ylab("Change in eBird Abundance Index")
+  ylab("Change in Abundance Index")
 
 ggpx = ggp +
   theme(axis.title.x = element_blank(), 
@@ -2978,7 +2980,7 @@ ggpx = ggp +
 
 ggpx3 = ggdraw(ggpx)
 
-name1 = "01_analyses_full/graphs/composites/open_mask_composite_trend_SoIBv2.jpg"
+name1 = "02_graphs/composites/open_mask_composite_trend_SoIBv2.jpg"
 #name2 = "open_mask_composite_trend_SoIBv2.svg"
 
 jpeg(name1, units="in", width=11, height=7, res=1000, bg="transparent")
