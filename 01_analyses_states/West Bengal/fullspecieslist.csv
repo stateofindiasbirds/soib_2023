@@ -485,8 +485,8 @@
 "Oriental Scops-Owl","Otus sunia","","","",18,0.0555555555555556,0.1875,0.333333333333333,14.7777777777778,2.31561200739085
 "Eurasian Eagle-Owl","Bubo bubo","","","",NA,NA,NA,NA,NA,NA
 "Rock Eagle-Owl","Bubo bengalensis","","","",11,0.0909090909090909,0.285714285714286,0.454545454545455,9,2.61630134488991
-"Spot-bellied Eagle-Owl","Bubo nipalensis","","","",2,NA,0.5,0.5,17.5,10.78
-"Dusky Eagle-Owl","Bubo coromandus","","","",NA,NA,NA,NA,NA,NA
+"Spot-bellied Eagle-Owl","Ketupa nipalensis","","","",2,NA,0.5,0.5,17.5,10.78
+"Dusky Eagle-Owl","Ketupa coromandus","","","",NA,NA,NA,NA,NA,NA
 "Brown Fish-Owl","Ketupa zeylonensis","","","",25,0.04,0.2,0.24,13.68,2.38369094193578
 "Tawny Fish-Owl","Ketupa flavipes","","","",NA,NA,NA,NA,NA,NA
 "Buffy Fish-Owl","Ketupa ketupu","","","",3,NA,0.523809523809524,0.666666666666667,8.33333333333333,7.27521210076456
@@ -788,7 +788,7 @@
 "Russet Bush Warbler","Locustella mandelli","","","",3,0.333333333333333,0.444444444444444,0.666666666666667,18.6666666666667,4.28419316921064
 "Broad-tailed Grassbird","Schoenicola platyurus","","","",NA,NA,NA,NA,NA,NA
 "Bristled Grassbird","Schoenicola striatus","","","X",4,NA,0.53125,0.75,22.75,3.23795717492784
-"Striated Grassbird","Megalurus palustris","","","",35,0.114285714285714,0.346428571428571,0.342857142857143,11.9714285714286,2.00636915259146
+"Striated Grassbird","Cincloramphus palustris","","","",35,0.114285714285714,0.346428571428571,0.342857142857143,11.9714285714286,2.00636915259146
 "Scaly-breasted Cupwing","Pnoepyga albiventer","","","",9,0.555555555555556,0.472222222222222,0.666666666666667,14.3333333333333,4.4069742706558
 "Immaculate Cupwing","Pnoepyga immaculata","","","",NA,NA,NA,NA,NA,NA
 "Pygmy Cupwing","Pnoepyga pusilla","","","",13,0.615384615384615,0.394230769230769,0.692307692307692,15.4615384615385,3.24358313569814
@@ -1130,7 +1130,7 @@
 "Nilgiri Flycatcher","Eumyias albicaudatus","","","",NA,NA,NA,NA,NA,NA
 "Verditer Flycatcher","Eumyias thalassinus","","X","X",85,0.117647058823529,0.386764705882353,0.541176470588235,11.1764705882353,1.23447031354233
 "Rusty-bellied Shortwing","Brachypteryx hyperythra","","","X",3,0.333333333333333,0.4,0.666666666666667,18.6666666666667,4.28419316921064
-"Gould's Shortwing","Brachypteryx stellata","","","X",2,NA,NA,NA,19.5,6.86
+"Gould's Shortwing","Heteroxenicus stellatus","","","X",2,NA,NA,NA,19.5,6.86
 "Lesser Shortwing","Brachypteryx leucophris","","","",12,0.166666666666667,0.333333333333333,0.583333333333333,15.1666666666667,3.46971951825411
 "Himalayan Shortwing","Brachypteryx cruralis","","","X",6,0.5,0.428571428571429,0.666666666666667,16,4.11133068482699
 "Indian Blue Robin","Larvivora brunnea","","","X",10,0.1,0.3375,0.4,17.2,3.92870145354812
