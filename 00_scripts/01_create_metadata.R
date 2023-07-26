@@ -21,7 +21,7 @@ analyses_metadata <- data.frame(MASK = c("none",
   mutate(MASK.TYPE = case_when(
     MASK == "none" ~ "country", 
     MASK %in% c("woodland", "cropland", "ONEland") ~ "habitat",
-    MASK == "PA" ~ "PA", 
+    MASK == "PA" ~ "conservation_area", # PAs, CCAs, IBAs, etc.
     TRUE ~ "state"
   )) %>% 
   mutate(FOLDER = case_when(

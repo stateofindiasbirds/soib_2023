@@ -99,7 +99,7 @@ web_db <- web_db %>%
               names_glue = "{MASK.TYPE}_{.value}") %>% 
   ungroup() %>% 
   # we only want state names
-  dplyr::select(-c(habitat_mask_labs, national_mask_labs)) %>% 
+  dplyr::select(-c(habitat_mask_labs, national_mask_labs, conservation_area_mask_labs)) %>% 
   # column of key states for each species
   rename(key_states = state_mask_labs) %>% 
   left_join(web_db)
@@ -137,11 +137,11 @@ web_db <- web_db %>%
                 current_status, distribution_status, iucn_status, long_term_status,
                 migratory_status, status_of_conservation_concern, wlpa_schedule,
                 primary_assessment, habitat_specialization, endemicity, custom_url, 
-                state_trends, national_trends, habitat_trends, 
+                state_trends, national_trends, habitat_trends, conservation_area_trends,
                 `long-term_trend_in`, `long-term_trend_ci_in`, current_annual_change_in, current_annual_change_ci_in, 
                 distribution_range_size_in, distribution_range_size_ci_units_of_10000_sqkm_in,
                 migratory_status_in, habitat_specialization_in, endemicity_in,
-                national_trends_addn, habitat_trends_addn, state_trends_addn,
+                national_trends_addn, habitat_trends_addn, state_trends_addn, conservation_area_trends_addn,
                 full_url_2, post_category, key_states) %>% 
   # converting all NAs to blanks
   mutate(across(everything(), ~ ifelse(is.na(.), "", .)))
