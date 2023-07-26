@@ -9,6 +9,8 @@
 *.xlsx
 *.zip
 
+20_website/website_database.csv
+
 # RData files
 00_data/rawdata.RData
 00_data/data.RData

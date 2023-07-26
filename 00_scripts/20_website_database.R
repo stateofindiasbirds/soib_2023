@@ -3,16 +3,24 @@ require(glue)
 
 load("00_data/analyses_metadata.RData")
 source("00_scripts/20_functions.R")
+load("00_data/spec_mask_selections.RData")
 
 
 # import ----------------------------------------------------------------------------
+
+# list of species-mask combos selected for LTT
+sel_metadata <- spec_mask_LTT_list %>% 
+  distinct(COMMON.NAME, MASK.ORDERED) %>% 
+  left_join(analyses_metadata)
 
 # importing all data and setting up
 web_db <- map2(analyses_metadata$SOIBMAIN.PATH, analyses_metadata$MASK, 
               ~ read_fn(.x) %>% bind_cols(tibble(MASK = .y))) %>% 
   list_rbind() %>% 
-  # filtering for SoIB species
-  filter(Selected.SOIB == "X") %>% 
+  # # filtering for SoIB species
+  # filter(Selected.SOIB == "X") %>% 
+  # filtering for only species-mask combos selected for LTT
+  semi_join(sel_metadata, by = c("eBird.English.Name.2022" = "COMMON.NAME", "MASK")) %>% 
   dplyr::select(-c("eBird.English.Name.2022", "eBird.Scientific.Name.2022", "Order", "Family",
                    starts_with("SOIB."), contains("Breeding.Activity"), "Diet.Guild",
                    starts_with("BLI."), ends_with(".Appendix"), "Onepercent.Estimates", 
@@ -109,7 +117,8 @@ web_db <- web_db %>%
           migratory_status_in = migratory_status,
           habitat_specialization_in = habitat_specialization,
           endemicity_in = endemicity) %>% 
-  left_join(web_db, relationship = "many-to-many") %>% 
+  # some species have mask trends but not national, so right join not left
+  right_join(web_db, relationship = "many-to-many") %>% 
   mutate(across(ends_with("_in"), ~ ifelse(MASK.TYPE == "national", "", .)))
 
 
