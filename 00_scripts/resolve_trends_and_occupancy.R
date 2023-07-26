@@ -1226,6 +1226,16 @@ main = main %>%
            SOIBv2.Long.Term.Status, SOIBv2.Current.Status, SOIBv2.Range.Status, 
            SOIBv2.Priority.Status)
 
+main = main %>%
+  mutate(
+    Long.Term.Analysis = case_when(
+    SOIBv2.Long.Term.Status == "Insufficient Data" ~ "",
+    TRUE ~ Long.Term.Analysis),
+    Current.Analysis = case_when(
+      SOIBv2.Current.Status == "Insufficient Data" ~ "",
+      TRUE ~ Current.Analysis)
+    )
+
 write.csv(main, file = main_path, row.names = F)
 
 
@@ -1281,12 +1291,211 @@ summary_SoIB_IUCN <- main %>%
 temp <- summary_SoIB_IUCN %>% 
   reframe(across(c("High", "Moderate", "Low"), sum)) %>% 
   mutate(new = "Sum") %>% 
-  relocate(new, High, Low, Moderate) %>% 
+  relocate(new, High, Moderate, Low) %>% 
   magrittr::set_colnames(c(" ", "High", "Moderate", "Low"))
 
 summary_SoIB_IUCN <- summary_SoIB_IUCN %>% 
   bind_rows(temp) %>% 
   mutate(Sum = High + Low + Moderate)
+
+total_trend_ltt = species_qual %>% filter(`Selected for:` == "Long-term Analysis") %>%
+  pull(`No. of species`)
+total_conc_trend_ltt = total_trend_ltt - status_trends %>% filter(`Trend Status` == "Trend Inconclusive") %>%
+  pull(`Long-term species`)
+total_trend_ct = species_qual %>% filter(`Selected for:` == "Current Analysis") %>%
+  pull(`No. of species`)
+total_conc_trend_ct = total_trend_ct - status_trends %>% filter(`Trend Status` == "Trend Inconclusive") %>%
+  pull(`Current species`)
+species_qual$`No. of species with conclusive trends` = ""
+species_qual = species_qual %>%
+  mutate(`No. of species with conclusive trends` = case_when(
+    `Selected for:` == "Long-term Analysis" ~ total_conc_trend_ltt,
+    `Selected for:` == "Current Analysis" ~ total_conc_trend_ct))
+status_trends$`Perc. of species with conclusive ltt` = ""
+status_trends$`Perc. of species with conclusive ct` = ""
+status_trends = status_trends %>%
+  mutate(`Perc. of species with conclusive ltt` = case_when(
+    !`Trend Status` %in% cats_uncertain ~ round(100*(`Long-term species`/total_conc_trend_ltt),1)),
+    `Perc. of species with conclusive ct` = case_when(
+      !`Trend Status` %in% cats_uncertain ~ round(100*(`Current species`/total_conc_trend_ct),1)))
+status_trends$`Trend Status` = factor(status_trends$`Trend Status`,
+                                      levels = c("Rapid Decline","Decline","Stable","Increase",
+                                                 "Rapid Increase","Insufficient Data",
+                                                 "Trend Inconclusive"))
+status_trends = status_trends %>% arrange(`Trend Status`)
+
+total_range = sum(status_range$`No. of species`)
+status_range = status_range %>%
+  mutate(`Perc. of total` = round(100*(`No. of species`/total_range),1))
+
+summary_SoIB_IUCN.perc.IUCN = summary_SoIB_IUCN %>%
+  filter(row_number() <= n()-1) %>%
+  mutate(`High` = round(100*(`High`/`Sum`),1),
+         `Moderate` = round(100*(`Moderate`/`Sum`),1),
+         `Low` = round(100*(`Low`/`Sum`),1),
+         `Sum` = round(100*(`Sum`/`Sum`),1))
+
+summary_SoIB_IUCN_t = summary_SoIB_IUCN %>% column_to_rownames(" ")
+summary_SoIB_IUCN_t = data.frame(t(summary_SoIB_IUCN_t))
+summary_SoIB_IUCN.perc.SoIB = summary_SoIB_IUCN_t %>%
+  filter(row_number() <= n()-1) %>%
+  rename(`Critically Endangered` = Critically.Endangered,
+         `Near Threatened` = Near.Threatened,
+         `Least Concern` = Least.Concern,
+         `Not Recognised` = Not.Recognised) %>%
+  mutate(`Critically Endangered` = round(100*(`Critically Endangered`/`Sum`),1),
+         `Endangered` = round(100*(`Endangered`/`Sum`),1),
+         `Vulnerable` = round(100*(`Vulnerable`/`Sum`),1),
+         `Near Threatened` = round(100*(`Near Threatened`/`Sum`),1),
+         `Least Concern` = round(100*(`Least Concern`/`Sum`),1),
+         `Not Recognised` = round(100*(`Not Recognised`/`Sum`),1),
+         `Sum` = round(100*(`Sum`/`Sum`),1))
+
+high_priority_breakup = main %>%
+  filter(SOIBv2.Priority.Status == "High") %>%
+  mutate(`Break-up` = case_when(!SOIBv2.Long.Term.Status %in% cats_uncertain | 
+                                  !SOIBv2.Current.Status %in% cats_uncertain ~ "Trend",
+                                SOIBv2.Range.Status == "Very Restricted" ~ "Range",
+                                TRUE ~ "IUCN")) %>% dplyr::select(`Break-up`) %>%
+  mutate(`Break-up` = factor(`Break-up`, levels = c("Trend","Range","IUCN")),
+         n = n()) %>%
+  group_by(`Break-up`) %>% reframe(`No. of High species` = n(),
+                                   `Perc. of High species` = round(100*(n()/max(n)),1))
+
+SoIB1.SoIB2 = main %>%
+  filter(!is.na(SOIB.Concern.Status) & SOIB.Concern.Status != "") %>%
+  group_by(SOIB.Concern.Status) %>% mutate(n = n()) %>%
+  group_by(SOIB.Concern.Status,SOIBv2.Priority.Status) %>% 
+  reframe(`No. of species` = n(),`Perc. of species` = round(100*(n()/max(n)),1)) %>%
+  magrittr::set_colnames(c("SOIB Concern Status", "SOIBv2 Priority Status", 
+                           "No. of species", "Perc. of species")) 
+
+SoIB2.SoIB1 = main %>%
+  filter(!is.na(SOIBv2.Priority.Status) & SOIBv2.Priority.Status != "") %>%
+  group_by(SOIBv2.Priority.Status) %>% mutate(n = n()) %>%
+  group_by(SOIBv2.Priority.Status,SOIB.Concern.Status) %>% 
+  reframe(`No. of species` = n(),`Perc. of species` = round(100*(n()/max(n)),1)) %>%
+  magrittr::set_colnames(c("SOIBv2 Priority Status", "SOIB Concern Status", 
+                           "No. of species", "Perc. of species")) 
+
+new_high_priority_breakup = main %>%
+  filter(SOIB.Concern.Status != "High" | is.na(SOIB.Concern.Status),SOIBv2.Priority.Status == "High") %>%
+  mutate(`Break-up` = case_when(!SOIBv2.Long.Term.Status %in% cats_uncertain | 
+                                  !SOIBv2.Current.Status %in% cats_uncertain ~ "Trend",
+                                SOIBv2.Range.Status == "Very Restricted" ~ "Range",
+                                TRUE ~ "IUCN")) %>% dplyr::select(`Break-up`) %>%
+  mutate(`Break-up` = factor(`Break-up`, levels = c("Trend","Range","IUCN")),
+         n = n()) %>%
+  group_by(`Break-up`) %>% reframe(`No. of new High species in SoIB 2023` = n(),
+                                   `Perc. of new High species` = round(100*(n()/max(n)),1))
+
+high_priority_breakup = high_priority_breakup %>% left_join(new_high_priority_breakup)
+
+reason.uplist.high = main %>%
+  filter(SOIB.Concern.Status %in% c("Low","Moderate"),SOIBv2.Priority.Status == "High") %>%
+  mutate(`Break-up` = case_when((SOIB.Long.Term.Status %in% c("Data Deficient","Uncertain") & 
+                                   SOIB.Current.Status %in% c("Data Deficient","Uncertain")) &
+                                  (!SOIBv2.Long.Term.Status %in% cats_uncertain | 
+                                     !SOIBv2.Current.Status %in% cats_uncertain)  ~ "First-time trend",
+                                SOIB.Long.Term.Status %in% c("Moderate Decline","Stable","Moderate Increase","Strong Increase") &
+                                  SOIBv2.Long.Term.Status %in% c("Rapid Decline") ~ "More decline in ltt",
+                                SOIB.Long.Term.Status %in% c("Stable","Moderate Increase","Strong Increase") &
+                                  SOIBv2.Long.Term.Status %in% c("Rapid Decline","Decline") ~ "More decline in ltt",
+                                SOIB.Current.Status %in% c("Moderate Decline","Stable","Moderate Increase","Strong Increase") &
+                                  SOIBv2.Current.Status %in% c("Rapid Decline") ~ "More decline in ct",
+                                SOIB.Current.Status %in% c("Stable","Moderate Increase","Strong Increase") &
+                                  SOIBv2.Current.Status %in% c("Rapid Decline","Decline") ~ "More decline in ct",
+                                SOIB.Long.Term.Status %in% c("Data Deficient","Uncertain") &
+                                  !SOIBv2.Long.Term.Status %in% cats_uncertain ~ "First-time ltt",
+                                SOIB.Current.Status %in% c("Data Deficient","Uncertain") &
+                                  !SOIBv2.Current.Status %in% cats_uncertain ~ "First-time ct",
+                                (!SOIB.Long.Term.Status %in% c("Data Deficient","Uncertain") | 
+                                   !SOIB.Current.Status %in% c("Data Deficient","Uncertain")) &
+                                  (!SOIBv2.Long.Term.Status %in% cats_uncertain | 
+                                     !SOIBv2.Current.Status %in% cats_uncertain)  ~ "Other changes in trends",
+                                (!SOIB.Long.Term.Status %in% c("Data Deficient","Uncertain") | 
+                                   !SOIB.Current.Status %in% c("Data Deficient","Uncertain")) &
+                                  (SOIBv2.Long.Term.Status %in% cats_uncertain & 
+                                     SOIBv2.Current.Status %in% cats_uncertain)  ~ "Loss of trends",
+                                SOIB.Range.Status == c("Restricted") &
+                                  SOIBv2.Range.Status %in% c("Very Restricted") ~ "Reducing range",
+                                SOIB.Range.Status == c("Moderate") &
+                                  SOIBv2.Range.Status %in% "Restricted" ~ "Reducing range",
+                                SOIB.Range.Status == c("Large") &
+                                  SOIBv2.Range.Status %in% c("Moderate") ~ "Reducing range",
+                                TRUE ~ "Others")) %>%
+  mutate(n = n()) %>%
+  mutate(`Break-up` = factor(`Break-up`, levels = c("First-time trend","More decline in ltt","More decline in ct",
+                                                    "First-time ltt","First-time ct",
+                                                    "Other changes in trends","Loss of trends",
+                                                    "Reducing range","Others"))) %>%
+  group_by(`Break-up`) %>% reframe(`No. of species` = n(),`Perc. of species` = round(100*(n()/max(n)),1))
+
+temp = data.frame(temp = c("First-time trend","More decline in ltt","More decline in ct",
+                           "First-time ltt","First-time ct",
+                           "Other changes in trends","Loss of trends",
+                           "Reducing range","Others")) %>%
+  rename(`Break-up` = temp)
+reason.uplist.high = temp %>%
+  left_join(reason.uplist.high) %>%
+  replace(is.na(.), 0)
+
+
+reason.downlist.high = main %>%
+  filter(SOIB.Concern.Status %in% c("High"),SOIBv2.Priority.Status %in% c("Low","Moderate")) %>%
+  mutate(`Break-up` = case_when(SOIB.Long.Term.Status %in% c("Strong Decline") &
+                                  SOIBv2.Long.Term.Status %in% c("Moderate Decline","Stable","Moderate Increase","Strong Increase") ~ "Less decline in ltt",
+                                SOIB.Long.Term.Status %in% c("Strong Decline","Moderate Decline") &
+                                  SOIBv2.Long.Term.Status %in% c("Stable","Moderate Increase","Strong Increase") ~ "Less decline in ltt",
+                                SOIB.Long.Term.Status %in% c("Strong Decline","Moderate Decline","Stable") &
+                                  SOIBv2.Long.Term.Status %in% c("Moderate Increase","Strong Increase") ~ "Less decline in ltt",
+                                SOIB.Long.Term.Status %in% c("Strong Decline","Moderate Decline","Stable","Moderate Increase") &
+                                  SOIBv2.Long.Term.Status %in% c("Strong Increase") ~ "Less decline in ltt",
+                                SOIB.Current.Status %in% c("Strong Decline") &
+                                  SOIBv2.Current.Status %in% c("Moderate Decline","Stable","Moderate Increase","Strong Increase") ~ "Less decline in ct",
+                                SOIB.Current.Status %in% c("Strong Decline","Moderate Decline") &
+                                  SOIBv2.Current.Status %in% c("Stable","Moderate Increase","Strong Increase") ~ "Less decline in ct",
+                                SOIB.Current.Status %in% c("Strong Decline","Moderate Decline","Stable") &
+                                  SOIBv2.Current.Status %in% c("Moderate Increase","Strong Increase") ~ "Less decline in ct",
+                                SOIB.Current.Status %in% c("Strong Decline","Moderate Decline","Stable","Moderate Increase") &
+                                  SOIBv2.Current.Status %in% c("Strong Increase") ~ "Less decline in ct",
+                                SOIB.Long.Term.Status %in% c("Data Deficient","Uncertain") &
+                                  !SOIBv2.Long.Term.Status %in% cats_uncertain ~ "First-time ltt",
+                                SOIB.Current.Status %in% c("Data Deficient","Uncertain") &
+                                  !SOIBv2.Current.Status %in% cats_uncertain ~ "First-time ct",
+                                (!SOIB.Long.Term.Status %in% c("Data Deficient","Uncertain") | 
+                                   !SOIB.Current.Status %in% c("Data Deficient","Uncertain")) &
+                                  (!SOIBv2.Long.Term.Status %in% cats_uncertain | 
+                                     !SOIBv2.Current.Status %in% cats_uncertain)  ~ "Other changes in trends",
+                                (!SOIB.Long.Term.Status %in% c("Data Deficient","Uncertain") | 
+                                   !SOIB.Current.Status %in% c("Data Deficient","Uncertain")) &
+                                  (SOIBv2.Long.Term.Status %in% cats_uncertain & 
+                                     SOIBv2.Current.Status %in% cats_uncertain)  ~ "Loss of trends",
+                                SOIB.Range.Status == c("Very Restricted") &
+                                  SOIBv2.Range.Status %in% c("Restricted") ~ "Increasing range",
+                                SOIB.Range.Status == c("Restricted") &
+                                  SOIBv2.Range.Status %in% "Moderate" ~ "Increasing range",
+                                SOIB.Range.Status == c("Moderate") &
+                                  SOIBv2.Range.Status %in% c("Large") ~ "Increasing range",
+                                SOIB.Range.Status == c("Large") &
+                                  SOIBv2.Range.Status %in% c("Very Large") ~ "Increasing range",
+                                TRUE ~ "Others")) %>%
+  mutate(n = n()) %>%
+  mutate(`Break-up` = factor(`Break-up`, levels = c("Less decline in ltt","Less decline in ct",
+                                                    "First-time trend","First-time ltt","First-time ct",
+                                                    "Other changes in trends","Loss of trends",
+                                                    "Increasing range","Others"))) %>%
+  group_by(`Break-up`) %>% reframe(`No. of species` = n(),`Perc. of species` = round(100*(n()/max(n)),1))        
+
+temp = data.frame(temp = c("Less decline in ltt","Less decline in ct",
+                           "First-time trend","First-time ltt","First-time ct",
+                           "Other changes in trends","Loss of trends",
+                           "Increasing range","Others")) %>%
+  rename(`Break-up` = temp)
+reason.downlist.high = temp %>%
+  left_join(reason.downlist.high) %>%
+  replace(is.na(.), 0)
+
 
 
 
@@ -1295,4 +1504,11 @@ write_xlsx(path = summaries_path,
                 "Range Status" = status_range,
                 "Priority Status" = status_priority,
                 "Species qualification" = species_qual,
-                "SoIB-IUCN cross-tab" = summary_SoIB_IUCN))
+                "SoIB 2020 to 2023 comparison" = SoIB1.SoIB2,
+                "SoIB 2023 to 2020 comparison" = SoIB2.SoIB1,
+                "SoIB-IUCN cross-tab" = summary_SoIB_IUCN,
+                "SoIB-IUCN percentage IUCN" = summary_SoIB_IUCN.perc.IUCN,
+                "SoIB-IUCN percentage SoIB" = summary_SoIB_IUCN.perc.SoIB,
+                "High Priority break up" = high_priority_breakup,
+                "Reason for uplisting" = reason.uplist.high,
+                "Reason for downlisting" = reason.downlist.high))
