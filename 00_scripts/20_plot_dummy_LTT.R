@@ -37,6 +37,7 @@ save(spec_mask_LTT_list, file = "00_data/spec_mask_selections.RData")
 
 # plotting for each mask
 tic.clearlog()
+tic("Plotting all species trends for all masks") # 20 min for dummy plots
 analyses_metadata %>% 
   distinct(MASK.ORDERED) %>% 
   pull(MASK.ORDERED) %>% 
@@ -58,21 +59,24 @@ analyses_metadata %>%
         # renaming species for website
         mutate(SPECIES.NAME = str_replace_all(COMMON.NAME, 
                                               c(" " = "-", "'" = "_")),
-               WEB.PLOT.PATH = glue("{WEB.PLOTS.FOLDER}{SPECIES.NAME}_{MASK.CODE}_trend.png"),
+               WEB.PLOT.PATH.TREND = glue("{WEB.PLOTS.FOLDER}{SPECIES.NAME}_{MASK.CODE}_trend.png"),
+               WEB.PLOT.PATH.RANGEMAP = glue("{WEB.PLOTS.FOLDER}{SPECIES.NAME}_{MASK.CODE}_rangemap.png"),
                PLOT.SINGLE.PATH = glue("{PLOT.SINGLE.FOLDER}{SPECIES.NAME}_{MASK.CODE}_trend.png"),
                PLOT.MULTI.PATH = glue("{PLOT.MULTI.FOLDER}{SPECIES.NAME}_{MASK.CODE}_trend.png"),
                PLOT.COMPOSITE.PATH = glue("{PLOT.COMPOSITE.FOLDER}{SPECIES.NAME}_{MASK.CODE}_trend.png"))
       
       # paths
-      webpath_plot <- cur_metadata$WEB.PLOT.PATH
+      webpath_plot_trend <- cur_metadata$WEB.PLOT.PATH.TREND
+      webpath_plot_rangemap <- cur_metadata$WEB.PLOT.PATH.RANGEMAP
       # path_single_plot <- cur_metadata$PLOT.SINGLE.PATH
       # path_multispecies_plot <- cur_metadata$PLOT.MULTI.PATH
       # path_composite_plot <- cur_metadata$PLOT.COMPOSITE.PATH
 
-      cur_plot <- ggplot(cur_metadata) +
+      dummy_plot <- ggplot(cur_metadata) +
         labs(title = cur_metadata$SPECIES.NAME)
 
-      ggsave(filename = webpath_plot, cur_plot)
+      ggsave(filename = webpath_plot_trend, dummy_plot)
+      ggsave(filename = webpath_plot_rangemap, dummy_plot)
       
         
       })
@@ -80,6 +84,7 @@ analyses_metadata %>%
     toc(log = TRUE, quiet = TRUE)
     
   })
+toc(log = TRUE, quiet = TRUE)
 tic.log()
 
 
