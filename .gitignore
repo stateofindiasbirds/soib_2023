@@ -9,6 +9,8 @@
 *.xlsx
 *.zip
 
+20_website/website_database.csv
+
 # RData files
 00_data/rawdata.RData
 00_data/data.RData
@@ -27,6 +29,7 @@ trends/
 occupancy-model/
 occupancy-presence/
 */results/occupancy/
+*/results/trends/
 
 # image outputs
 *.gif

@@ -3,16 +3,24 @@ require(glue)
 
 load("00_data/analyses_metadata.RData")
 source("00_scripts/20_functions.R")
+load("00_data/spec_mask_selections.RData")
 
 
 # import ----------------------------------------------------------------------------
 
+# list of species-mask combos selected for LTT
+sel_metadata <- spec_mask_LTT_list %>% 
+  distinct(COMMON.NAME, MASK.ORDERED) %>% 
+  left_join(analyses_metadata)
+
 # importing all data and setting up
-web_db <- map2(analyses_metadata$SOIBMAIN.PATH, analyses_metadata$MASK, 
+web_db0 <- map2(analyses_metadata$SOIBMAIN.PATH, analyses_metadata$MASK, 
               ~ read_fn(.x) %>% bind_cols(tibble(MASK = .y))) %>% 
   list_rbind() %>% 
-  # filtering for SoIB species
-  filter(Selected.SOIB == "X") %>% 
+  # # filtering for SoIB species
+  # filter(Selected.SOIB == "X") %>% 
+  # filtering for only species-mask combos selected for LTT
+  semi_join(sel_metadata, by = c("eBird.English.Name.2022" = "COMMON.NAME", "MASK")) %>% 
   dplyr::select(-c("eBird.English.Name.2022", "eBird.Scientific.Name.2022", "Order", "Family",
                    starts_with("SOIB."), contains("Breeding.Activity"), "Diet.Guild",
                    starts_with("BLI."), ends_with(".Appendix"), "Onepercent.Estimates", 
@@ -35,7 +43,7 @@ web_db <- map2(analyses_metadata$SOIBMAIN.PATH, analyses_metadata$MASK,
 
 # creation of fields ----------------------------------------------------------------
 
-web_db <- web_db %>% 
+web_db <- web_db0 %>% 
   rename(`long-term_trend` = longtermmean,
          current_annual_change = currentslopemean,
          distribution_range_size = rangemean,
@@ -66,8 +74,8 @@ web_db <- web_db %>%
          # converting species name to enter in URLs
          URL_species = str_replace_all(India.Checklist.Common.Name, 
                                        c(" " = "-", "'" = "_")), 
-         URL_suf_rangemap = "_rangemap.jpg", ### JPG or PNG?
-         URL_suf_trend = "_trend.jpg") %>% ### JPG or PNG?
+         URL_suf_rangemap = "_rangemap.png",
+         URL_suf_trend = "_trend.pngg") %>% 
   # some long strings
   mutate(featured_image = glue("{URL_pre_uploads}{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
          downloadlink = glue("{URL_pre_uploads}{URL_species}_{MASK.CODE}_Infosheets.jpg"), ### JPG or PNG?
@@ -79,7 +87,7 @@ web_db <- web_db %>%
          full_url_2 = glue("{MASK.CODE}/{custom_url}"),
          post_category = MASK.LABEL)
 
-# get list of all masks for each species; omitting from list the particular mask in current focus
+# get list of all masks for each species
 web_db <- web_db %>% 
   group_by(India.Checklist.Common.Name, MASK.TYPE) %>% 
   # HTML string, mask codes and mask labels (for states) of all masks of current mask type
@@ -91,7 +99,7 @@ web_db <- web_db %>%
               names_glue = "{MASK.TYPE}_{.value}") %>% 
   ungroup() %>% 
   # we only want state names
-  dplyr::select(-c(habitat_mask_labs, national_mask_labs)) %>% 
+  dplyr::select(-c(habitat_mask_labs, national_mask_labs, conservation_area_mask_labs)) %>% 
   # column of key states for each species
   rename(key_states = state_mask_labs) %>% 
   left_join(web_db)
@@ -109,7 +117,8 @@ web_db <- web_db %>%
           migratory_status_in = migratory_status,
           habitat_specialization_in = habitat_specialization,
           endemicity_in = endemicity) %>% 
-  left_join(web_db, relationship = "many-to-many") %>% 
+  # some species have mask trends but not national, so right join not left
+  right_join(web_db, relationship = "many-to-many") %>% 
   mutate(across(ends_with("_in"), ~ ifelse(MASK.TYPE == "national", "", .)))
 
 
@@ -128,11 +137,11 @@ web_db <- web_db %>%
                 current_status, distribution_status, iucn_status, long_term_status,
                 migratory_status, status_of_conservation_concern, wlpa_schedule,
                 primary_assessment, habitat_specialization, endemicity, custom_url, 
-                state_trends, national_trends, habitat_trends, 
+                state_trends, national_trends, habitat_trends, conservation_area_trends,
                 `long-term_trend_in`, `long-term_trend_ci_in`, current_annual_change_in, current_annual_change_ci_in, 
                 distribution_range_size_in, distribution_range_size_ci_units_of_10000_sqkm_in,
                 migratory_status_in, habitat_specialization_in, endemicity_in,
-                national_trends_addn, habitat_trends_addn, state_trends_addn,
+                national_trends_addn, habitat_trends_addn, state_trends_addn, conservation_area_trends_addn,
                 full_url_2, post_category, key_states) %>% 
   # converting all NAs to blanks
   mutate(across(everything(), ~ ifelse(is.na(.), "", .)))
