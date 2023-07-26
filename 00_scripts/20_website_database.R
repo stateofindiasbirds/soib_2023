@@ -79,7 +79,7 @@ web_db <- web_db %>%
          full_url_2 = glue("{MASK.CODE}/{custom_url}"),
          post_category = MASK.LABEL)
 
-# get list of all masks for each species; omitting from list the particular mask in current focus
+# get list of all masks for each species
 web_db <- web_db %>% 
   group_by(India.Checklist.Common.Name, MASK.TYPE) %>% 
   # HTML string, mask codes and mask labels (for states) of all masks of current mask type
