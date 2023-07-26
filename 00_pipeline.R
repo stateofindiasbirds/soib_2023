@@ -348,26 +348,61 @@ tic.log()
 
 
 
-# STEP 2: Run occu ###
+# STEP 2: Run occupancy analyses (presence-based and model)
 # Run:
 # - after above step (P3, S1)
+# - both analyses run only for full country; for states, only presence-based
+# - this is not run for habmasks at all
 # Requires:
-# - tidyverse, tictoc, VGAM, writexl
+# - tidyverse, tictoc, glue, parallel, foreach, doParallel
 # - data files:
-#   - fullspecieslist.csv
-#   - trends/trendsX.csv for whole country and individual mask versions
-# Outputs: several
+#   - "dataforanalyses.RData" for whole country and individual states
+#   - "specieslists.RData" for whole country and individual states
+#   - "00_data/SoIB_mapping_2022.csv"
+#   - "00_data/grids_sf_nb.RData"
+# Outputs: 
+# - csv files in occupancy-presence/ 
+# - "occupancy-model/chunk_X.csv" for whole country and individual states
 load("00_data/analyses_metadata.RData")
 
+# full country
 cur_mask <- "none"
-tic("Run occupancy")
+source("00_scripts/run_species_occupancy-setup.R")
+tic("Ran presence-based occupancy")
 source("00_scripts/run_species_occupancy-presence.R")
-toc() # 
+toc()  
+tic("Ran modelled occupancy")
+source("00_scripts/run_species_occupancy-model.R")
+toc()  
+
+# states
+tic.clearlog()
+tic("Ran species trends for all states")
+
+analyses_metadata %>% 
+  filter(MASK.TYPE == "state") %>% 
+  distinct(MASK) %>% 
+  pull(MASK) %>% 
+  # walking over each state
+  walk(~ {
+    
+    source("00_scripts/run_species_occupancy-setup.R")
+    
+    tic(glue("Ran presence-based occupancy for {.x} state"))
+    cur_mask <- .x
+    source("00_scripts/run_species_occupancy-presence.R")
+    toc(log = TRUE, quiet = TRUE) 
+    
+    ### copy files from full country to state? or save memory and only call in resolve?
+    
+  })
+
+toc(log = TRUE, quiet = TRUE) 
+tic.log()
 
 
 
-
-# STEP 2: Resolve trends for all selected species and generate necessary outputs
+# STEP 3: Resolve trends for all selected species and generate necessary outputs
 # Run:
 # - after above step (P3, S1)
 # Requires:

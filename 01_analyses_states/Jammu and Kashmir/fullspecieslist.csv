@@ -485,8 +485,8 @@
 "Oriental Scops-Owl","Otus sunia","","","",1,NA,1,NA,19,NA
 "Eurasian Eagle-Owl","Bubo bubo","","","",NA,NA,NA,NA,NA,NA
 "Rock Eagle-Owl","Bubo bengalensis","","","",9,0.111111111111111,0.259259259259259,0.222222222222222,14,4.77872135385375
-"Spot-bellied Eagle-Owl","Bubo nipalensis","","","",NA,NA,NA,NA,NA,NA
-"Dusky Eagle-Owl","Bubo coromandus","","","",NA,NA,NA,NA,NA,NA
+"Spot-bellied Eagle-Owl","Ketupa nipalensis","","","",NA,NA,NA,NA,NA,NA
+"Dusky Eagle-Owl","Ketupa coromandus","","","",NA,NA,NA,NA,NA,NA
 "Brown Fish-Owl","Ketupa zeylonensis","","","",3,NA,0.333333333333333,0.333333333333333,17,7.92124569328167
 "Tawny Fish-Owl","Ketupa flavipes","","","",NA,NA,NA,NA,NA,NA
 "Buffy Fish-Owl","Ketupa ketupu","","","",NA,NA,NA,NA,NA,NA
@@ -788,7 +788,7 @@
 "Russet Bush Warbler","Locustella mandelli","","","",NA,NA,NA,NA,NA,NA
 "Broad-tailed Grassbird","Schoenicola platyurus","","","",NA,NA,NA,NA,NA,NA
 "Bristled Grassbird","Schoenicola striatus","","","",NA,NA,NA,NA,NA,NA
-"Striated Grassbird","Megalurus palustris","","","",3,NA,0.333333333333333,0.333333333333333,11,13.7665875703942
+"Striated Grassbird","Cincloramphus palustris","","","",3,NA,0.333333333333333,0.333333333333333,11,13.7665875703942
 "Scaly-breasted Cupwing","Pnoepyga albiventer","","","",3,NA,0.583333333333333,0.333333333333333,7.66666666666667,2.61333333333333
 "Immaculate Cupwing","Pnoepyga immaculata","","","",NA,NA,NA,NA,NA,NA
 "Pygmy Cupwing","Pnoepyga pusilla","","","",NA,NA,NA,NA,NA,NA
@@ -1130,7 +1130,7 @@
 "Nilgiri Flycatcher","Eumyias albicaudatus","","","",NA,NA,NA,NA,NA,NA
 "Verditer Flycatcher","Eumyias thalassinus","","","",45,NA,0.272222222222222,0.377777777777778,9.11111111111111,1.65307796442074
 "Rusty-bellied Shortwing","Brachypteryx hyperythra","","","",NA,NA,NA,NA,NA,NA
-"Gould's Shortwing","Brachypteryx stellata","","","",NA,NA,NA,NA,NA,NA
+"Gould's Shortwing","Heteroxenicus stellatus","","","",NA,NA,NA,NA,NA,NA
 "Lesser Shortwing","Brachypteryx leucophris","","","",NA,NA,NA,NA,NA,NA
 "Himalayan Shortwing","Brachypteryx cruralis","","","",NA,NA,NA,NA,NA,NA
 "Indian Blue Robin","Larvivora brunnea","","","X",20,0.25,0.278571428571429,0.5,10.4,3.04107654068683

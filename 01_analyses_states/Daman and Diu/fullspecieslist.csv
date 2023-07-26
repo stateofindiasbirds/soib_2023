@@ -485,8 +485,8 @@
 "Oriental Scops-Owl","Otus sunia","","","",NA,NA,NA,NA,NA,NA
 "Eurasian Eagle-Owl","Bubo bubo","","","",NA,NA,NA,NA,NA,NA
 "Rock Eagle-Owl","Bubo bengalensis","","","",NA,NA,NA,NA,NA,NA
-"Spot-bellied Eagle-Owl","Bubo nipalensis","","","",NA,NA,NA,NA,NA,NA
-"Dusky Eagle-Owl","Bubo coromandus","","","",NA,NA,NA,NA,NA,NA
+"Spot-bellied Eagle-Owl","Ketupa nipalensis","","","",NA,NA,NA,NA,NA,NA
+"Dusky Eagle-Owl","Ketupa coromandus","","","",NA,NA,NA,NA,NA,NA
 "Brown Fish-Owl","Ketupa zeylonensis","","","",NA,NA,NA,NA,NA,NA
 "Tawny Fish-Owl","Ketupa flavipes","","","",NA,NA,NA,NA,NA,NA
 "Buffy Fish-Owl","Ketupa ketupu","","","",NA,NA,NA,NA,NA,NA
@@ -788,7 +788,7 @@
 "Russet Bush Warbler","Locustella mandelli","","","",NA,NA,NA,NA,NA,NA
 "Broad-tailed Grassbird","Schoenicola platyurus","","","",NA,NA,NA,NA,NA,NA
 "Bristled Grassbird","Schoenicola striatus","","","",NA,NA,NA,NA,NA,NA
-"Striated Grassbird","Megalurus palustris","","","",NA,NA,NA,NA,NA,NA
+"Striated Grassbird","Cincloramphus palustris","","","",NA,NA,NA,NA,NA,NA
 "Scaly-breasted Cupwing","Pnoepyga albiventer","","","",NA,NA,NA,NA,NA,NA
 "Immaculate Cupwing","Pnoepyga immaculata","","","",NA,NA,NA,NA,NA,NA
 "Pygmy Cupwing","Pnoepyga pusilla","","","",NA,NA,NA,NA,NA,NA
@@ -1130,7 +1130,7 @@
 "Nilgiri Flycatcher","Eumyias albicaudatus","","","",NA,NA,NA,NA,NA,NA
 "Verditer Flycatcher","Eumyias thalassinus","","","",NA,NA,NA,NA,NA,NA
 "Rusty-bellied Shortwing","Brachypteryx hyperythra","","","",NA,NA,NA,NA,NA,NA
-"Gould's Shortwing","Brachypteryx stellata","","","",NA,NA,NA,NA,NA,NA
+"Gould's Shortwing","Heteroxenicus stellatus","","","",NA,NA,NA,NA,NA,NA
 "Lesser Shortwing","Brachypteryx leucophris","","","",NA,NA,NA,NA,NA,NA
 "Himalayan Shortwing","Brachypteryx cruralis","","","",NA,NA,NA,NA,NA,NA
 "Indian Blue Robin","Larvivora brunnea","","","",NA,NA,NA,NA,NA,NA
