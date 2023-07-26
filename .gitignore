@@ -27,6 +27,7 @@ trends/
 occupancy-model/
 occupancy-presence/
 */results/occupancy/
+*/results/trends/
 
 # image outputs
 *.gif
