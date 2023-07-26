@@ -14,7 +14,7 @@ sel_metadata <- spec_mask_LTT_list %>%
   left_join(analyses_metadata)
 
 # importing all data and setting up
-web_db <- map2(analyses_metadata$SOIBMAIN.PATH, analyses_metadata$MASK, 
+web_db0 <- map2(analyses_metadata$SOIBMAIN.PATH, analyses_metadata$MASK, 
               ~ read_fn(.x) %>% bind_cols(tibble(MASK = .y))) %>% 
   list_rbind() %>% 
   # # filtering for SoIB species
@@ -43,7 +43,7 @@ web_db <- map2(analyses_metadata$SOIBMAIN.PATH, analyses_metadata$MASK,
 
 # creation of fields ----------------------------------------------------------------
 
-web_db <- web_db %>% 
+web_db <- web_db0 %>% 
   rename(`long-term_trend` = longtermmean,
          current_annual_change = currentslopemean,
          distribution_range_size = rangemean,
@@ -74,8 +74,8 @@ web_db <- web_db %>%
          # converting species name to enter in URLs
          URL_species = str_replace_all(India.Checklist.Common.Name, 
                                        c(" " = "-", "'" = "_")), 
-         URL_suf_rangemap = "_rangemap.jpg", ### JPG or PNG?
-         URL_suf_trend = "_trend.jpg") %>% ### JPG or PNG?
+         URL_suf_rangemap = "_rangemap.png",
+         URL_suf_trend = "_trend.pngg") %>% 
   # some long strings
   mutate(featured_image = glue("{URL_pre_uploads}{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
          downloadlink = glue("{URL_pre_uploads}{URL_species}_{MASK.CODE}_Infosheets.jpg"), ### JPG or PNG?
