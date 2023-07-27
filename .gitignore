@@ -8,6 +8,7 @@
 *.txt
 *.xlsx
 *.zip
+*.rar
 
 20_website/website_database.csv
 
@@ -16,6 +17,7 @@
 00_data/data.RData
 00_data/dataforanalyses_extra.RData
 00_data/maps_pa_sf.RData
+00_data/grids_st_sf.Rdata
 00_data/randomgroupids.RData
 00_data/vagrantdata.RData
 
