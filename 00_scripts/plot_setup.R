@@ -22,10 +22,12 @@ path_data_trends <- cur_metadata$TRENDS.OUTPATH
 # create path if doesn't exist
 if (cur_trend == "LTT") {
   path_write <- cur_metadata %>% 
-    mutate(PLOT.OUTPATH = glue("{PLOT.SINGLE.FOLDER}long-term trends/"))
+    mutate(PLOT.OUTPATH = glue("{PLOT.SINGLE.FOLDER}long-term trends/")) %>% 
+    pull(PLOT.OUTPATH)
 } else if (cur_trend == "CAT") {
   path_write <- cur_metadata %>% 
-    mutate(PLOT.OUTPATH = glue("{PLOT.SINGLE.FOLDER}current trends/"))
+    mutate(PLOT.OUTPATH = glue("{PLOT.SINGLE.FOLDER}current trends/")) %>% 
+    pull(PLOT.OUTPATH)
 }
 
 if (!dir.exists(path_write)) {dir.create(path_write, recursive = TRUE)}
