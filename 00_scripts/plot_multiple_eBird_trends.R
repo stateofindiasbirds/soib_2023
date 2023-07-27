@@ -54,7 +54,6 @@ species = c("Northern Shoveler","Garganey","Cotton Pygmy-Goose",
             "Tufted Duck")
 #cols = c("#869B27", "#31954E", "#78CAE0", "#CC6666", "#E49B36", "#9999CC", "#493F3D",
 #         "#B69AC9", "#A13E2B", "#EA5599", "#000000", "#66CC99")
-species = c("Ashy Prinia","Indian Peafowl","Indian Courser","Red-necked Falcon")
 species = c("Ashy Prinia","Rock Pigeon","Indian Peafowl","Asian Koel")
 species = c("Spot-billed Pelican","Black-headed Ibis","Purple Heron","Painted Stork",
             "Eurasian Spoonbill","Glossy Ibis")
