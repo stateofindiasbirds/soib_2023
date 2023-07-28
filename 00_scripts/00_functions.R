@@ -110,18 +110,7 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_relMay-2023.txt",
     filter(REVIEWED == 0 | APPROVED == 1) %>%
     filter(!EXOTIC.CODE %in% c("X"))
   
-  # create and write a file with common names and scientific names of all Indian species
-  # useful for mapping
-  temp = data %>%
-    filter(CATEGORY == "species" | CATEGORY == "issf") %>%
-    distinct(COMMON.NAME,SCIENTIFIC.NAME)
-  write.csv(temp,"00_data/indiaspecieslist.csv", row.names=FALSE)
-  
-  # create location file for LULC
-  locdat = data %>% distinct(LOCALITY.ID,LATITUDE,LONGITUDE)
-  write.csv(locdat,"00_data/eBird_location_data.csv", row.names=FALSE)
-  
-  
+
   ## choosing important columns required for further analyses
   
   imp = c("CATEGORY","COMMON.NAME","OBSERVATION.COUNT",
@@ -161,6 +150,18 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_relMay-2023.txt",
   # remove probable mistakes
   source("00_scripts/rm_prob_mistakes.R")
   data <- rm_prob_mistakes(data)
+  
+  
+  # create and write a file with common names and scientific names of all Indian species
+  # useful for mapping
+  temp = data %>%
+    filter(CATEGORY == "species" | CATEGORY == "issf") %>%
+    distinct(COMMON.NAME,SCIENTIFIC.NAME)
+  write.csv(temp,"00_data/indiaspecieslist.csv", row.names=FALSE)
+  
+  # create location file for LULC
+  locdat = data %>% distinct(LOCALITY.ID,LATITUDE,LONGITUDE)
+  write.csv(locdat,"00_data/eBird_location_data.csv", row.names=FALSE)
 
   
   # need to combine several closely related species and slashes/spuhs
