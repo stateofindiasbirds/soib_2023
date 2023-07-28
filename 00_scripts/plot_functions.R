@@ -92,3 +92,33 @@ ggtheme_soibtrend <- function() {
           panel.background = element_rect(fill = "transparent", colour = NA))
   
 }
+
+
+# read necessary data for a given mask  ---------------------------------------------
+
+# read data and add 'Mask' column
+maskcompar_read_data <- function(mask) {
+  
+  cur_metadata <- analyses_metadata %>% filter(MASK == mask)
+  
+  data_main <- read.csv(cur_metadata$SOIBMAIN.PATH) %>%
+    mutate(Mask = case_when(
+      mask == "none"      ~ "Country as a whole",
+      mask == "woodland"  ~ "Grids with threshold woodland",
+      mask == "PA"        ~ "Protected areas",
+      mask == "cropland"  ~ "Grids with threshold cropland",
+      mask == "ONEland"   ~ "Grids with threshold ONEs"
+    ))
+  
+  data_trends <- read.csv(cur_metadata$TRENDS.OUTPATH) %>%
+    mutate(Mask = case_when(
+      mask == "none"      ~ "Country as a whole",
+      mask == "woodland"  ~ "Grids with threshold woodland",
+      mask == "PA"        ~ "Protected areas",
+      mask == "cropland"  ~ "Grids with threshold cropland",
+      mask == "ONEland"   ~ "Grids with threshold ONEs"
+    ))
+  
+  return(list(data_main = data_main, data_trends = data_trends))
+  
+}

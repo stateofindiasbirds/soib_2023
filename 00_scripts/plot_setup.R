@@ -282,7 +282,7 @@ plot_soib_trends <- function(plot_type = "single",
   
   # error checks ----------------------------------------------------------------------
   
-  if (!plot_type %in% c("single", "multi", "composite")) {
+  if (!plot_type %in% c("single", "single_mask", "multi", "composite")) {
     return("Select valid plot type!")
   }
   
@@ -304,7 +304,8 @@ plot_soib_trends <- function(plot_type = "single",
   require(ggpubr) # geom_bracket
   require(extrafont)
   require(glue)
-  
+  library(ggrepel) # text repel
+
   source('00_scripts/00_functions.R')
   source('00_scripts/plot_functions.R')
   
@@ -318,15 +319,21 @@ plot_soib_trends <- function(plot_type = "single",
   path_data_trends <- cur_metadata$TRENDS.OUTPATH
   
   
-  # path (folder) to write to
-  # create path if doesn't exist
+  # path (folder) to write to; create path if doesn't exist
+  
+  cur_metadata <- cur_metadata %>% 
+    mutate(CUR.OUT.PATH = case_when(plot_type == "single" ~ PLOT.SINGLE.FOLDER,
+                                    plot_type == "single_mask" ~ PLOT.SINGLE.MASKS.FOLDER,
+                                    plot_type == "multi" ~ PLOT.MULTI.FOLDER,
+                                    plot_type == "composite" ~ PLOT.COMPOSITE.FOLDER))
+  
   if (cur_trend == "LTT") {
     path_write <- cur_metadata %>% 
-      mutate(PLOT.OUTPATH = glue("{PLOT.SINGLE.FOLDER}long-term trends/")) %>% 
+      mutate(PLOT.OUTPATH = glue("{CUR.OUT.PATH}long-term trends/")) %>% 
       pull(PLOT.OUTPATH)
   } else if (cur_trend == "CAT") {
     path_write <- cur_metadata %>% 
-      mutate(PLOT.OUTPATH = glue("{PLOT.SINGLE.FOLDER}current trends/")) %>% 
+      mutate(PLOT.OUTPATH = glue("{CUR.OUT.PATH}current trends/")) %>% 
       pull(PLOT.OUTPATH)
   }
 
