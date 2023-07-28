@@ -56,9 +56,10 @@ analyses_metadata <- data.frame(MASK = c("none",
   mutate(MASK.ORDERED = glue("{str_pad(as.numeric(MASK), width = 2, pad = 0)}_{MASK}")) %>% 
   # paths for different plot outputs
   mutate(WEB.PLOTS.FOLDER = "20_website/graphs/",
-         PLOT.SINGLE.FOLDER = glue("02_graphs/01_single/{MASK.ORDERED}/"),
-         PLOT.MULTI.FOLDER = glue("02_graphs/02_multispecies/{MASK.ORDERED}/"),
-         PLOT.COMPOSITE.FOLDER = glue("02_graphs/03_composite/{MASK.ORDERED}/"))
+         PLOT.SINGLE.FOLDER = glue("02_graphs/01_single/"),
+         PLOT.SINGLE.MASKS.FOLDER = glue("02_graphs/02_single_masks/"),
+         PLOT.MULTI.FOLDER = glue("02_graphs/03_multispecies/"),
+         PLOT.COMPOSITE.FOLDER = glue("02_graphs/04_composite/"))
 
 
 # ensuring folders are created if they don't already exist
@@ -70,7 +71,11 @@ walk2(analyses_metadata$FOLDER, analyses_metadata$RESULTS, ~ {
   
 })
 
-walk2(analyses_metadata$WEB.PLOTS.FOLDER, analyses_metadata$PLOT.SINGLE.FOLDER, ~ {
+if (!dir.exists(analyses_metadata$WEB.PLOTS.FOLDER)) {
+  dir.create(analyses_metadata$WEB.PLOTS.FOLDER, recursive = TRUE)
+}
+
+walk2(analyses_metadata$PLOT.SINGLE.FOLDER, analyses_metadata$PLOT.SINGLE.MASKS.FOLDER, ~ {
   
   if (!dir.exists(.x)) {dir.create(.x, recursive = TRUE)}
   
