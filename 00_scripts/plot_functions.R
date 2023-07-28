@@ -44,9 +44,9 @@ geom_gridline <- function(index_y = NULL, baseline = FALSE) {
 # x-axis brackets -------------------------------------------------------------------
 
 geom_axisbracket <- function(bracket_type = "time") {
-  
+
   if (bracket_type == "time") {
-  
+
   bracket_min <- timegroups_bracket_min
   bracket_max <- timegroups_bracket_max
   bracket_ypos <- plot_ymin0 - 0.01 * plot_range_max
@@ -76,8 +76,6 @@ geom_axisbracket <- function(bracket_type = "time") {
   
 }
 
-
-  
 
 # SoIB trend plot theme -------------------------------------------------------------
 
