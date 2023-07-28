@@ -13,7 +13,7 @@ geom_gridline <- function(index_y = NULL, baseline = FALSE) {
     
     # label on y-axis
     ann_size <- 5
-    ann_lab <- "Pre-2000\nbaseline"
+    ann_lab <- plot_baseline_lab
     
   } else {
     
@@ -33,17 +33,12 @@ geom_gridline <- function(index_y = NULL, baseline = FALSE) {
                  y = line_y, yend = line_y, 
                  linetype = line_linetype, linewidth = line_linewidth),
     
-    annotate("text", x = 2023.5, # constant
+    annotate("text", x = plot_gridline_x, # constant
              colour = palette_plot_elem, family = plot_fontfamily, # constant
              y = line_y, label = ann_lab, size = ann_size)
   )
   
 }
-
-
-  
-
-
 
 
 # x-axis brackets -------------------------------------------------------------------
@@ -52,14 +47,18 @@ geom_axisbracket <- function(bracket_type = "time") {
   
   if (bracket_type == "time") {
   
-  bracket_min <- c(1999, 2006, 2010, 2012, seq(2013, 2021)) + 0.5
-  bracket_max <- c(2006, 2010, 2012, seq(2013, 2022)) + 0.5
+  bracket_min <- timegroups_bracket_min
+  bracket_max <- timegroups_bracket_max
   bracket_ypos <- plot_ymin0 - 0.01 * plot_range_max
   bracket_lab <- timegroups_lab[-1]
-  bracket_tiplength <- 0.03
-  bracket_vjust <- 2.5
+  bracket_tiplength <- 0.03 # CAT 0.04? ###
+  bracket_vjust <- 2.5 # CAT 3?
   
   } else if (bracket_type == "trend") {
+    
+    if (cur_trend == "CAT") {
+      return("Current Trend bracket should not be plotted in the CAT plot!")
+    }
     
     bracket_min <- 2015 - 0.5
     bracket_max <- 2022 + 0.5
@@ -86,8 +85,7 @@ ggtheme_soibtrend <- function() {
   
   theme_void() +
     theme(axis.title.y = element_text(size = 22, colour = palette_plot_elem,
-                                      angle = 90,
-                                      margin = margin(0, -0.6, 0, 0.4, "cm")),
+                                      angle = 90, margin = plot_ytitle_margin),
           plot.margin = unit(c(0, 0, 0, 0), "cm"),
           plot.title = element_text(face = "bold", size = 20, hjust = 0.5, vjust = -2, 
                                     colour = palette_plot_title),

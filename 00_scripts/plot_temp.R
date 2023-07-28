@@ -1,9 +1,9 @@
 cur_mask <- "none"
-cur_trend <- "LTT"
+cur_trend <- "CAT"
 
 # current species in the overall iteration
 # cur_spec <- .x
-cur_spec <- "Alpine Swift"
+cur_spec <- "Asian Green Bee-eater"
 
 ### ###
 
@@ -32,10 +32,18 @@ if (cur_trend == "LTT") {
   
 }
 
-cur_data_trends_present <- cur_data_trends %>% filter(timegroups == 2022)
-
 
 # determining limits for current plot -----------------------------------------------
+
+plot_xmin <- cur_data_trends %>%
+  dplyr::select(COMMON.NAME, timegroups) %>%
+  arrange(COMMON.NAME, timegroups) %>%
+  group_by(COMMON.NAME) %>% 
+  slice(2) %>% # because 1st is the baseline
+  ungroup() %>% 
+  pull(timegroups) %>% 
+  max() # when multi-species, we take the latest year ### ###
+
 
 # saving non-rounded values for later use in plotting
 plot_ymax0 <- cur_data_trends %>% 
@@ -51,7 +59,6 @@ plot_ymin0 <- cur_data_trends %>%
 plot_ymax <- plot_ymax0 %>% plyr::round_any(accuracy = 50, f = ceiling)
 plot_ymin <- plot_ymin0 %>% plyr::round_any(accuracy = 50, f = floor)
 
-
 # ensuring range is not too small
 if ((plot_ymax - plot_ymin) < 100 & plot_ymin < 0) {
   plot_ymin <- plot_ymin - 50
@@ -59,8 +66,6 @@ if ((plot_ymax - plot_ymin) < 100 & plot_ymin < 0) {
 if ((plot_ymax - plot_ymin) < 100 & plot_ymax > 0) {
   plot_ymax <- plot_ymax + 50
 }
-
-plot_range_max <- plot_ymax - plot_ymin
   
 
 # determining y-axis breaks for current plot ----------------------------------------
@@ -111,13 +116,16 @@ if (any(plot_ybreaks != 100)) {
 
 }
 
+plot_range_max <- plot_ymax - plot_ymin
+
 
 # fixing the Status reference grid line -------------------------------------------------
 
 # depending on the present-day trend value (and which Status), we want its nearest 
 # grid line to act as a reference for the Status threshold. 
 
-ref_line <- cur_data_trends_present %>% 
+ref_line <- cur_data_trends %>% 
+  filter(timegroups == 2022) %>% 
   mutate(ref = case_when(
     
     # stable/inconclusive
@@ -137,11 +145,11 @@ ref_line <- cur_data_trends_present %>%
   )) %>% 
   pull(ref)
 
-
 plot_ybreaks_df <- data.frame(breaks = plot_ybreaks,
                               ref_line = ref_line) %>% 
+  # we need to adjust the closest line (min distance)
   mutate(abs_diff = abs(breaks - ref_line),
-         min = min(abs_diff)) %>% # we need to adjust the closest line (min distance)
+         min = min(abs_diff)) %>% 
   # changing the appropriate line to our reference line
   mutate(breaks = if_else(abs_diff == min, ref_line, breaks)) %>% 
   # labels for each line/break
@@ -163,18 +171,6 @@ if (max(plot_ybreaks) > plot_ymax0) {
 }
 
 
-# get x-axis right ------------------------------------------------------------------
-
-plot_xmin <- cur_data_trends %>%
-  select(COMMON.NAME, timegroups) %>%
-  arrange(COMMON.NAME, timegroups) %>%
-  group_by(COMMON.NAME) %>% 
-  slice(2) %>% # because 1st is the baseline
-  ungroup() %>% 
-  pull(timegroups) %>% 
-  max() # when multi-species, we take the latest year ### ###
-
-
 # creating and writing the plot -----------------------------------------------------
 
 cur_plot <- ggplot(cur_data_trends, 
@@ -183,7 +179,10 @@ cur_plot <- ggplot(cur_data_trends,
                   linewidth = 0.7, alpha = 1) +
   geom_point(size = 3, colour = "black") +
   geom_axisbracket("time") + # timegroup brackets
-  geom_axisbracket("trend") + # "Current Trend" bracket
+  # "Current Trend" bracket
+  {if (cur_trend != "CAT") {
+    geom_axisbracket("trend")
+  }} + 
   # manual grid lines with labels because we want empty space before the first timegroup
   geom_gridline(1) +
   geom_gridline(2) +
@@ -191,7 +190,7 @@ cur_plot <- ggplot(cur_data_trends,
   geom_gridline(4) +
   geom_gridline(5) +
   geom_gridline(baseline = TRUE) +
-  scale_x_continuous(expand = c(0, 0), limits = c(1999, 2024.7)) +
+  scale_x_continuous(expand = c(0, 0), limits = plot_xlimits) +
   scale_y_continuous(expand = c(0, 0)) +
   coord_cartesian(ylim = c(plot_ymin0 - 0.1 * plot_range_max, 
                            plot_ymax0 + 0.1 * plot_range_max), 
@@ -207,5 +206,4 @@ ggsave(filename = path_write_file, plot = cur_plot,
        dpi = 500, bg = "transparent",
        width = 11, height = 7.5, units = "in")
 
-
-
+ 

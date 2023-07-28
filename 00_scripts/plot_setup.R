@@ -3,9 +3,6 @@
 library(tidyverse)
 library(ggdist) # geom_lineribbon
 library(ggpubr) # geom_bracket
-# library(ggridges)
-# library(ggrepel)
-# library(cowplot)
 library(extrafont)
 library(glue)
 
@@ -35,26 +32,40 @@ if (!dir.exists(path_write)) {dir.create(path_write, recursive = TRUE)}
 
 # plot theme settings -----------------------------------------------------
 
+palette_plot_elem <- "#56697B"
+palette_plot_title <- "#A13E2B"
 palette_trend_groups <- c("#869B27", "#E49B36", "#436b74", "#CC6666", 
                           "#B69AC9", "#78CAE0","#31954E","#493F3D",
                           "#EA5599", "#9999CC", "#A13E2B", "#66CC99")
 
-palette_plot_elem <- "#56697B"
-
-palette_plot_title <- "#A13E2B"
+plot_fontfamily <- "Gill Sans MT"
 
 
 # other plot settings
 
 if (cur_trend == "LTT") {
+  
   timegroups_lab <- c("before 2000", "2000-2006", "2007-2010", "2011-2012", 
                       "2013", "2014", "2015", "2016", "2017", "2018", "2019", 
                       "2020", "2021", "2022")
+  timegroups_bracket_min <- c(1999, 2006, 2010, 2012, seq(2013, 2021)) + 0.5
+  timegroups_bracket_max <- c(2006, 2010, 2012, seq(2013, 2022)) + 0.5
+  plot_ytitle_margin <- margin(0, -0.6, 0, 0.4, "cm")
+  plot_xlimits <- c(1999, 2024.7)
+  plot_gridline_x <- 2023.5
+  plot_baseline_lab <- "Pre-2000\nbaseline"
+  
 } else if (cur_trend == "CAT") {
+  
   timegroups_lab <- c("2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022")
+  timegroups_bracket_min <- seq(2015, 2021) + 0.5
+  timegroups_bracket_max <- seq(2016, 2022) + 0.5
+  plot_ytitle_margin <- margin(0, 0.6, 0, 0.4, "cm")
+  plot_xlimits <- c(2015.5, 2023.1)
+  plot_gridline_x <- 2022.7
+  plot_baseline_lab <- "2015\nbaseline"
+  
 }
-
-plot_fontfamily <- "Gill Sans MT"
 
 # load data ---------------------------------------------------------------
 
