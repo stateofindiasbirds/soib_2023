@@ -1,11 +1,11 @@
 # packages -------------------------------------------------------
 
 library(tidyverse)
-library(ggdist)
-library(ggridges)
-library(ggpubr)
-library(ggrepel)
-library(cowplot)
+library(ggdist) # geom_lineribbon
+library(ggpubr) # geom_bracket
+# library(ggridges)
+# library(ggrepel)
+# library(cowplot)
 library(extrafont)
 library(glue)
 
@@ -54,10 +54,12 @@ if (cur_trend == "LTT") {
   timegroups_lab <- c("2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022")
 }
 
+plot_fontfamily <- "Gill Sans MT"
 
 # load data ---------------------------------------------------------------
 
 source('00_scripts/00_functions.R')
+source('00_scripts/plot_functions.R')
 
 data_main = read.csv(path_data_main)
 data_trends = read.csv(path_data_trends)
@@ -97,6 +99,4 @@ if (cur_trend == "LTT") {
 
 
 #### loop over all species in spec_qual
-
-path_write_file <- glue("{path_write}{cur_spec}.png")
 
