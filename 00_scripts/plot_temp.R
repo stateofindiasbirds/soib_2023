@@ -1,95 +1,25 @@
 plot_soib_trends("single", "none", "LTT", "Alpine Swift")
 
+plot_type = "single"
+cur_mask = "none"
+cur_trend = "LTT"
+cur_spec = "Alpine Swift"
+
+#Error in rm(list = list(spec_qual = spec_qual, data_trends = data_trends),  : 
+# invalid first argument
+
+# n addition: Warning messages:
+#   1: `filename` must have length 1, not length 42.
+# ! Only the first, 02_graphs/02_single_masks/long-term trends/Alpine Swift.png, will be used. 
+# 2: Removed 1 rows containing missing values (`geom_point()`). 
+
+#
+
+plot_type <- "single_mask"
 
 
-compar_metadata <- analyses_metadata %>% 
-  filter(MASK.TYPE %in% c("country", "habitat", "conservation_area"))
+###########
 
-# process all MASK data
-data_processed <- map(unique(compar_metadata$MASK), 
-                      maskcompar_read_data)
-
-data_main <- map(data_processed, pluck, "data_main") %>% bind_rows()
-data_trends <- map(data_processed, pluck, "data_trends") %>% bind_rows()
-
-# Filter qualifying species
-qualifying_species <- all_main_data %>%
-  filter(!SOIBv2.Long.Term.Status %in% c("eBird Data Inconclusive", "eBird Data Deficient") &
-           Long.Term.Analysis == "X") %>%
-  pull(eBird.English.Name.2022)
-
-# Filter trends data based on qualifying species and timegroups
-trends <- all_trends_data %>%
-  filter(COMMON.NAME %in% qualifying_species, timegroups <= 2022)
-
-
-## compare for a species across masks
-
-
-cur_metadata <- analyses_metadata %>% filter(MASK == "none")
-main = read.csv(cur_metadata$SOIBMAIN.PATH)
-main$Mask = "Country as a whole"
-trends = read.csv(cur_metadata$TRENDS.OUTPATH)
-trends$Mask = "Country as a whole"
-
-cur_metadata <- analyses_metadata %>% filter(MASK == "woodland")
-main.woodland = read.csv(cur_metadata$SOIBMAIN.PATH)
-main.woodland$Mask = "Grids with threshold woodland"
-trends.woodland = read.csv(cur_metadata$TRENDS.OUTPATH)
-trends.woodland$Mask = "Grids with threshold woodland"
-
-cur_metadata <- analyses_metadata %>% filter(MASK == "PA")
-main.pa = read.csv(cur_metadata$SOIBMAIN.PATH)
-main.pa$Mask = "Protected areas"
-trends.pa = read.csv(cur_metadata$TRENDS.OUTPATH)
-trends.pa$Mask = "Protected areas"
-
-cur_metadata <- analyses_metadata %>% filter(MASK == "cropland")
-main.crop = read.csv(cur_metadata$SOIBMAIN.PATH)
-main.crop$Mask = "Grids with threshold cropland"
-trends.crop = read.csv(cur_metadata$TRENDS.OUTPATH)
-trends.crop$Mask = "Grids with threshold cropland"
-
-cur_metadata <- analyses_metadata %>% filter(MASK == "ONEland")
-main.one = read.csv(cur_metadata$SOIBMAIN.PATH)
-main.one$Mask = "Grids with threshold ONEs"
-trends.one = read.csv(cur_metadata$TRENDS.OUTPATH)
-trends.one$Mask = "Grids with threshold ONEs"
-
-
-
-qualifying.species = main$eBird.English.Name.2022[!main$SOIBv2.Long.Term.Status %in% 
-                                                    c("eBird Data Inconclusive","eBird Data Deficient") & 
-                                                    main$Long.Term.Analysis == "X"]
-qualifying.species.woodland = main.woodland$eBird.English.Name.2022[!main.woodland$SOIBv2.Long.Term.Status %in% 
-                                                                      c("eBird Data Inconclusive","eBird Data Deficient") & 
-                                                                      main.woodland$Long.Term.Analysis == "X"]
-qualifying.species.pa = main.pa$eBird.English.Name.2022[!main.pa$SOIBv2.Long.Term.Status %in% 
-                                                          c("eBird Data Inconclusive","eBird Data Deficient") & 
-                                                          main.pa$Long.Term.Analysis == "X"]
-qualifying.species.crop = main.crop$eBird.English.Name.2022[!main.crop$SOIBv2.Long.Term.Status %in% 
-                                                              c("eBird Data Inconclusive","eBird Data Deficient") & 
-                                                              main.crop$Long.Term.Analysis == "X"]
-qualifying.species.one = main.one$eBird.English.Name.2022[!main.one$SOIBv2.Long.Term.Status %in% 
-                                                            c("eBird Data Inconclusive","eBird Data Deficient") & 
-                                                            main.one$Long.Term.Analysis == "X"]
-
-
-trends = trends %>% filter(COMMON.NAME %in% qualifying.species)
-trends.woodland = trends.woodland %>% filter(COMMON.NAME %in% qualifying.species.woodland)
-trends.pa = trends.pa %>% filter(COMMON.NAME %in% qualifying.species.pa)
-trends.crop = trends.crop %>% filter(COMMON.NAME %in% qualifying.species.crop)
-trends.one = trends.one %>% filter(COMMON.NAME %in% qualifying.species.one)
-
-trends = rbind(trends,trends.woodland,trends.pa,trends.crop,trends.one)
-
-qualifying.species.x = union(qualifying.species.woodland,qualifying.species.pa)
-qualifying.species.x = union(qualifying.species.x,qualifying.species.crop)
-qualifying.species.x = union(qualifying.species.x,qualifying.species.one)
-qualifying.species = intersect(qualifying.species,qualifying.species.x)
-
-trends = trends %>% filter(COMMON.NAME %in% qualifying.species) %>%
-  filter(timegroups <= 2022)
 
 for (z in qualifying.species)
 {

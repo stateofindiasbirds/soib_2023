@@ -209,7 +209,6 @@ create_soib_trend_plot <- function(plot_type, cur_mask,
   # assigning objects to environment --------------------------------------------------
 
   obj_list <- list(path_write_file = path_write_file,
-                   cur_trend = cur_trend,
                    cur_data_trends = cur_data_trends,
                    palette_plot_elem = palette_plot_elem,
                    palette_plot_title = palette_plot_title,
@@ -267,7 +266,9 @@ create_soib_trend_plot <- function(plot_type, cur_mask,
          dpi = 500, bg = "transparent",
          width = 11, height = 7.5, units = "in")
   
-  # removing objects from global environment
+
+  # removing objects from global environment ------------------------------------------
+  
   rm(list = names(obj_list), envir = .GlobalEnv)
 
 }
@@ -297,7 +298,7 @@ plot_soib_trends <- function(plot_type = "single",
   }
   
   
-  # packages -------------------------------------------------------
+  # setup -------------------------------------------------------
   
   require(tidyverse)
   require(ggdist) # geom_lineribbon
@@ -309,74 +310,22 @@ plot_soib_trends <- function(plot_type = "single",
   source('00_scripts/00_functions.R')
   source('00_scripts/plot_functions.R')
   
-  
-  # current metadata --------------------------------------------------
-  
   load("00_data/analyses_metadata.RData")
-  cur_metadata <- analyses_metadata %>% filter(MASK == cur_mask)
   
-  path_data_main <- cur_metadata$SOIBMAIN.PATH
-  path_data_trends <- cur_metadata$TRENDS.OUTPATH
+  # assigning objects to environment --------------------------------------------------
+  
+  obj_list <- list(plot_type = plot_type, 
+                   cur_mask = cur_mask,
+                   cur_trend = cur_trend,
+                   cur_spec = cur_spec,
+                   analyses_metadata = analyses_metadata)
+  
+  list2env(obj_list, envir = .GlobalEnv)
   
   
-  # path (folder) to write to; create path if doesn't exist
-  
-  cur_metadata <- cur_metadata %>% 
-    mutate(CUR.OUT.PATH = case_when(plot_type == "single" ~ PLOT.SINGLE.FOLDER,
-                                    plot_type == "single_mask" ~ PLOT.SINGLE.MASKS.FOLDER,
-                                    plot_type == "multi" ~ PLOT.MULTI.FOLDER,
-                                    plot_type == "composite" ~ PLOT.COMPOSITE.FOLDER))
-  
-  if (cur_trend == "LTT") {
-    path_write <- cur_metadata %>% 
-      mutate(PLOT.OUTPATH = glue("{CUR.OUT.PATH}long-term trends/")) %>% 
-      pull(PLOT.OUTPATH)
-  } else if (cur_trend == "CAT") {
-    path_write <- cur_metadata %>% 
-      mutate(PLOT.OUTPATH = glue("{CUR.OUT.PATH}current trends/")) %>% 
-      pull(PLOT.OUTPATH)
-  }
+  # import metadata and data, filter for qual. species --------------------------------
 
-  if (!dir.exists(path_write)) {
-    dir.create(path_write, recursive = TRUE)
-  }
-  
-  
-  # load data ---------------------------------------------------------------
-  
-  data_main = read.csv(path_data_main)
-  data_trends = read.csv(path_data_trends)
-  
-  # filtering for qualified species only
-  # - not plotting inconclusive or data deficient; 
-  # - only species sel. for that trend; 
-  # - only till MY 2022
-  if (cur_trend == "LTT") {
-    
-    spec_qual <- data_main %>% 
-      filter(!(SOIBv2.Long.Term.Status %in% c("eBird Data Inconclusive",
-                                              "eBird Data Deficient")),
-             Long.Term.Analysis == "X") %>%  #### ### ### ###
-      pull(eBird.English.Name.2022)
-    
-    data_trends <- data_trends %>% 
-      filter(COMMON.NAME %in% spec_qual,
-             timegroups <= 2022)
-    
-  } else if (cur_trend == "CAT") {
-    
-    spec_qual <- data_main %>% 
-      filter(!(SOIBv2.Current.Status %in% c("eBird Data Indecisive",
-                                            "eBird Data Deficient")),
-             Current.Analysis == "X") %>%  #### ### ### ###
-      pull(eBird.English.Name.2022)
-    
-    data_trends <- data_trends %>% 
-      filter(COMMON.NAME %in% spec_qual,
-             timegroups >= 2015 & timegroups <= 2022)
-    
-  }
-  
+  plot_load_filter_data(plot_type, cur_trend)
 
   # generating plots ----------------------------------------
   
@@ -400,6 +349,10 @@ plot_soib_trends <- function(plot_type = "single",
     
   }
 
+  # removing objects from global environment (from import step) ------------------------
+
+  rm(list = c(names(obj_list), "spec_qual", "data_trends", "path_write"), 
+     envir = .GlobalEnv)
 
 }
 

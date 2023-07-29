@@ -97,28 +97,179 @@ ggtheme_soibtrend <- function() {
 # read necessary data for a given mask  ---------------------------------------------
 
 # read data and add 'Mask' column
-maskcompar_read_data <- function(mask) {
+plot_import_data <- function(mask) {
   
   cur_metadata <- analyses_metadata %>% filter(MASK == mask)
   
-  data_main <- read.csv(cur_metadata$SOIBMAIN.PATH) %>%
-    mutate(Mask = case_when(
-      mask == "none"      ~ "Country as a whole",
-      mask == "woodland"  ~ "Grids with threshold woodland",
-      mask == "PA"        ~ "Protected areas",
-      mask == "cropland"  ~ "Grids with threshold cropland",
-      mask == "ONEland"   ~ "Grids with threshold ONEs"
-    ))
+  # to catch if main/trends file does not exist
+  if (!(file.exists(cur_metadata$SOIBMAIN.PATH) & file.exists(cur_metadata$TRENDS.OUTPATH))) {
+    
+    print(glue("Data file(s) for {mask} missing."))
+    return(NULL)
+    
+  } else {
+    
+    # load data ---------------------------------------------------------------
+
+    data_main <- read.csv(cur_metadata$SOIBMAIN.PATH) %>%
+      mutate(MASK = mask,
+             MASK.TITLE = case_when(
+               mask == "none"      ~ "Country as a whole",
+               mask == "woodland"  ~ "Grids with threshold woodland",
+               mask == "PA"        ~ "Protected areas",
+               mask == "cropland"  ~ "Grids with threshold cropland",
+               mask == "ONEland"   ~ "Grids with threshold ONEs"
+             ))
+    
+    data_trends <- read.csv(cur_metadata$TRENDS.OUTPATH) %>%
+      mutate(MASK = mask,
+             MASK.TITLE = case_when(
+               mask == "none"      ~ "Country as a whole",
+               mask == "woodland"  ~ "Grids with threshold woodland",
+               mask == "PA"        ~ "Protected areas",
+               mask == "cropland"  ~ "Grids with threshold cropland",
+               mask == "ONEland"   ~ "Grids with threshold ONEs"
+             ))
+    
+    # filtering for qualified species ---------------------------------------------------
+    
+    # - not plotting inconclusive or data deficient; 
+    # - only species sel. for that trend; 
+    # - only till MY 2022
+    
+    if (cur_trend == "LTT") {
+      
+      spec_qual <- data_main %>% 
+        filter(!(SOIBv2.Long.Term.Status %in% c("eBird Data Inconclusive",
+                                                "eBird Data Deficient")),
+               Long.Term.Analysis == "X") %>% 
+        dplyr::select(eBird.English.Name.2022) %>% 
+        mutate(MASK = mask,
+               MASK.TITLE = case_when(
+                 mask == "none"      ~ "Country as a whole",
+                 mask == "woodland"  ~ "Grids with threshold woodland",
+                 mask == "PA"        ~ "Protected areas",
+                 mask == "cropland"  ~ "Grids with threshold cropland",
+                 mask == "ONEland"   ~ "Grids with threshold ONEs"
+               ))
+      
+      data_trends <- data_trends %>% 
+        filter(COMMON.NAME %in% spec_qual$eBird.English.Name.2022,
+               timegroups <= 2022)
+      
+    } else if (cur_trend == "CAT") {
+      
+      spec_qual <- data_main %>% 
+        filter(!(SOIBv2.Current.Status %in% c("eBird Data Indecisive",
+                                              "eBird Data Deficient")),
+               Current.Analysis == "X") %>% 
+        dplyr::select(eBird.English.Name.2022) %>% 
+        mutate(MASK = mask,
+               MASK.TITLE = case_when(
+                 mask == "none"      ~ "Country as a whole",
+                 mask == "woodland"  ~ "Grids with threshold woodland",
+                 mask == "PA"        ~ "Protected areas",
+                 mask == "cropland"  ~ "Grids with threshold cropland",
+                 mask == "ONEland"   ~ "Grids with threshold ONEs"
+               ))
+      
+      data_trends <- data_trends %>% 
+        filter(COMMON.NAME %in% spec_qual$eBird.English.Name.2022,
+               timegroups >= 2015 & timegroups <= 2022)
+      
+    }
+
+    # return ----------------------------------------------------------------------------
+
+    return(list(spec_qual = spec_qual, data_trends = data_trends))
+
+  }
   
-  data_trends <- read.csv(cur_metadata$TRENDS.OUTPATH) %>%
-    mutate(Mask = case_when(
-      mask == "none"      ~ "Country as a whole",
-      mask == "woodland"  ~ "Grids with threshold woodland",
-      mask == "PA"        ~ "Protected areas",
-      mask == "cropland"  ~ "Grids with threshold cropland",
-      mask == "ONEland"   ~ "Grids with threshold ONEs"
-    ))
+}
+
+# load appropriate data and filter for species qualified for plotting ------------------
+
+plot_load_filter_data <- function(plot_type, cur_trend) {
   
-  return(list(data_main = data_main, data_trends = data_trends))
+  # metadata and paths --------------------------------------------------
+  
+  if (plot_type == "single") {
+    
+    cur_metadata <- analyses_metadata %>% 
+      filter(MASK == "none") %>% 
+      mutate(CUR.OUT.PATH = PLOT.SINGLE.FOLDER) # path (folder) to write to
+    
+  } else if (plot_type == "single_mask") {
+    
+    # process all masks' data
+    cur_metadata <- analyses_metadata %>% 
+      mutate(CUR.OUT.PATH = PLOT.SINGLE.MASKS.FOLDER) # path (folder) to write to
+  #   
+  # } else if (plot_type == "multi") {
+  #   
+  #   cur_metadata <- analyses_metadata %>% 
+  #     mutate(CUR.OUT.PATH = PLOT.MULTI.FOLDER) # path (folder) to write to
+  #   
+  # } else if (plot_type == "composite") {
+  #   
+  #   cur_metadata <- analyses_metadata %>% 
+  #     mutate(CUR.OUT.PATH = PLOT.COMPOSITE.FOLDER) # path (folder) to write to
+    
+  }
+
+  # long-term or current trend?
+  if (cur_trend == "LTT") {
+    path_write <- cur_metadata %>% 
+      mutate(PLOT.OUTPATH = glue("{CUR.OUT.PATH}long-term trends/")) %>% 
+      pull(PLOT.OUTPATH)
+  } else if (cur_trend == "CAT") {
+    path_write <- cur_metadata %>% 
+      mutate(PLOT.OUTPATH = glue("{CUR.OUT.PATH}current trends/")) %>% 
+      pull(PLOT.OUTPATH)
+  }
+  
+  # create path(s) if doesn't exist
+  walk(path_write, ~ {
+    if (!dir.exists(.x)) {dir.create(.x, recursive = TRUE)}
+  })
+  
+  # load data ---------------------------------------------------------------
+  
+  # importing appropriate data filtered for qualified species
+  
+  data_processed <- map(cur_metadata$MASK, plot_import_data) %>% 
+    # remove NULL elements, which are masks whose data file(s) are missing
+    purrr::compact() 
+  
+  data_trends <- map(data_processed, pluck, "data_trends") %>% bind_rows()
+
+  # for mask comparison, even though we have filtered each mask's trends for its qual. spp.,
+  # we want an additional filter so that comparisons are only made for those species in masks
+  # that are also there in full-country data
+  
+  if (plot_type == "single_mask") {
+    
+    spec_qual <- map(data_processed, pluck, "spec_qual") %>% bind_rows()
+    
+    spec_qual_country <- spec_qual %>% filter(MASK == "none") %>% pull(eBird.English.Name.2022)
+    spec_qual_masks <- spec_qual %>% filter(MASK != "none") %>% pull(eBird.English.Name.2022)
+    
+    spec_qual <- intersect(spec_qual_country, spec_qual_masks)
+    
+    data_trends <- data_trends %>% filter(COMMON.NAME %in% spec_qual)
+
+  } else {
+    
+    spec_qual <- map(data_processed, pluck, "spec_qual") %>% bind_rows() %>% pull(eBird.English.Name.2022)
+    
+  }
+  
+
+  # assigning necessary objects to global environment ---------------------------------
+
+  obj_list <- list(spec_qual = spec_qual, data_trends = data_trends, path_write = path_write)
+  
+  list2env(obj_list, envir = .GlobalEnv)
+  
   
 }
