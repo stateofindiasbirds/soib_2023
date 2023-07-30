@@ -36,7 +36,6 @@ create_soib_trend_plot <- function(plot_type, cur_mask,
   
   cur_data_trends <- cur_data_trends %>% 
     mutate(MASK = factor(MASK, levels = mask_order))
-  
 
   # plot/theme settings -----------------------------------------------------
   
@@ -78,6 +77,17 @@ create_soib_trend_plot <- function(plot_type, cur_mask,
     plot_baseline_lab <- "2015\nbaseline"
     
   }
+  
+  # wrapping the labels for each trend line based on number of characters
+  # we will be plotting the label as a geom, not as a label of a geom, so only need for first x value
+  if (plot_type != "single") {
+    cur_data_trends <- cur_data_trends %>% 
+      mutate(MASK.TITLE.WRAP = case_when(
+        timegroupsf == timegroups_lab[2] ~ str_wrap(MASK.TITLE, width = 18),
+        TRUE ~ ""
+      ))
+  }
+  
 
     
   # determining limits for current plot -----------------------------------------------
