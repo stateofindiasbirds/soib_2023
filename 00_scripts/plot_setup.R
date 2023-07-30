@@ -26,16 +26,6 @@ create_soib_trend_plot <- function(plot_type, cur_mask,
       filter(COMMON.NAME %in% cur_spec)
     
   }
-  
-  # for each species, arranging different (latest) mask trend values in desc. order
-  # (mainly useful for mask comparison graphs)
-  mask_order <- cur_data_trends %>%
-    filter(timegroups == 2022) %>%
-    arrange(desc(mean_std)) %>% 
-    pull(MASK)
-  
-  cur_data_trends <- cur_data_trends %>% 
-    mutate(MASK = factor(MASK, levels = mask_order))
 
   # plot/theme settings -----------------------------------------------------
   
@@ -47,7 +37,7 @@ create_soib_trend_plot <- function(plot_type, cur_mask,
   if (plot_type == "single") {
     palette_trend_groups <- palette_trend_groups[1]
   } else if (plot_type == "single_mask") {
-    palette_masks <- palette_trend_groups[1:2]
+    palette_trend_groups <- palette_trend_groups[1:2]
   }
   
   plot_fontfamily <- "Gill Sans MT"
@@ -78,18 +68,26 @@ create_soib_trend_plot <- function(plot_type, cur_mask,
     
   }
   
+  
+  
   # wrapping the labels for each trend line based on number of characters
   # we will be plotting the label as a geom, not as a label of a geom, so only need for first x value
-  if (plot_type != "single") {
-    cur_data_trends <- cur_data_trends %>% 
+  cur_data_trends <- cur_data_trends %>% 
       mutate(MASK.TITLE.WRAP = case_when(
         timegroupsf == timegroups_lab[2] ~ str_wrap(MASK.TITLE, width = 18),
         TRUE ~ ""
       ))
-  }
-  
 
-    
+  # for each species, arranging different (latest) mask trend values in desc. order
+  # (mainly useful for mask comparison graphs)
+  mask_order <- cur_data_trends %>%
+    filter(timegroups == 2022) %>%
+    arrange(desc(mean_std)) %>% 
+    distinct(MASK, MASK.TITLE.WRAP)
+  
+  cur_data_trends <- cur_data_trends %>% 
+    mutate(MASK = factor(MASK, levels = mask_order$MASK))
+  
   # determining limits for current plot -----------------------------------------------
 
   plot_xmin <- cur_data_trends %>%
@@ -271,14 +269,41 @@ create_soib_trend_plot <- function(plot_type, cur_mask,
   
   list2env(obj_list, envir = .GlobalEnv)
 
-  # creating and writing the plot -----------------------------------------------------
+  # creating the plot base based on plot type ------------------------------------------
 
-  cur_plot <- ggplot(cur_data_trends,
-                     aes(x = timegroups, y = mean_std, ymin = lci_std, ymax = rci_std)) +
-    geom_lineribbon(fill = palette_trend_groups, colour = "black",
-                    linewidth = 0.7, alpha = 1) +
-    geom_point(size = 3, colour = "black") +
-    geom_axisbracket("time") + # timegroup brackets
+  if (plot_type != "single") {
+    
+    plot_base <- ggplot(cur_data_trends, 
+                        aes(x = timegroups, y = mean_std, 
+                            col = MASK, label = MASK.TITLE.WRAP)) +
+      geom_line(linewidth = 2) +
+      geom_text_repel(nudge_x = -2, direction = "y", hjust = "center", size = 4, 
+                      family = plot_fontfamily, min.segment.length = Inf) +
+      geom_point(size = 3) +
+      # ribbon only for mask
+      geom_lineribbon(data = cur_data_trends %>% filter(MASK != "none"),
+                      aes(ymin = lci_std, ymax = rci_std),
+                      fill = palette_trend_groups[2], colour = "black",
+                      linewidth = 0.7, alpha = 1) +
+      scale_colour_manual(values = palette_trend_groups) 
+      
+  } else if (plot_type == "single") {
+    
+    plot_base <- ggplot(cur_data_trends,
+                        aes(x = timegroups, y = mean_std, ymin = lci_std, ymax = rci_std)) +
+      geom_lineribbon(fill = palette_trend_groups, colour = "black",
+                      linewidth = 0.7, alpha = 1) +
+      geom_point(size = 3, colour = "black")
+    
+  }
+  
+  # completing and writing the plot -----------------------------------------------------
+
+  # joining plot base with other constant aesthetic features of graph
+  
+  cur_plot <- plot_base +
+    # timegroup brackets
+    geom_axisbracket("time") + 
     # "Current Trend" bracket
     {if (cur_trend != "CAT") {
       geom_axisbracket("trend")
@@ -290,11 +315,11 @@ create_soib_trend_plot <- function(plot_type, cur_mask,
     geom_gridline(4) +
     geom_gridline(5) +
     geom_gridline(baseline = TRUE) +
-    scale_x_continuous(expand = c(0, 0), limits = plot_xlimits) +
-    scale_y_continuous(expand = c(0, 0)) +
     coord_cartesian(ylim = c(plot_ymin0 - 0.1 * plot_range_max,
                              plot_ymax0 + 0.1 * plot_range_max),
                     clip = "off") +
+    scale_x_continuous(expand = c(0, 0), limits = plot_xlimits) +
+    scale_y_continuous(expand = c(0, 0)) +
     # ggtitle(cur_spec) +
     labs(x = "Time-steps", y = "Change in eBird Abundance Index") +
     guides(colour = "none") +

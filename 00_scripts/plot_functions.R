@@ -102,16 +102,16 @@ plot_import_data <- function(mask) {
   cur_metadata <- analyses_metadata %>% filter(MASK == mask)
   
   # function to add mask titles/labels
-  add_mask_titles <- function(data, mask = mask) {
+  add_mask_titles <- function(data, which_mask) {
     data %>% 
-      mutate(MASK = mask,
+      mutate(MASK = which_mask,
              MASK.TITLE = case_when(
-               mask == "none"      ~ "Full country",
-               mask == "woodland"  ~ "Woodland grids",
-               mask == "cropland"  ~ "Cropland grids",
-               mask == "ONEland"   ~ "ONE grids",
-               mask == "PA"        ~ "Protected areas",
-               TRUE                ~ mask # states
+               which_mask == "none"      ~ "Full country",
+               which_mask == "woodland"  ~ "Woodland grids",
+               which_mask == "cropland"  ~ "Cropland grids",
+               which_mask == "ONEland"   ~ "ONE grids",
+               which_mask == "PA"        ~ "Protected areas",
+               TRUE                      ~ which_mask # states
              ))
   }
   
@@ -126,10 +126,10 @@ plot_import_data <- function(mask) {
     # load data ---------------------------------------------------------------
 
     data_main <- read.csv(cur_metadata$SOIBMAIN.PATH) %>%
-      add_mask_titles()
+      add_mask_titles(mask)
     
     data_trends <- read.csv(cur_metadata$TRENDS.OUTPATH) %>%
-      add_mask_titles()
+      add_mask_titles(mask)
     
     # filtering for qualified species ---------------------------------------------------
     
@@ -144,7 +144,7 @@ plot_import_data <- function(mask) {
                                                 "eBird Data Deficient")),
                Long.Term.Analysis == "X") %>% 
         dplyr::select(eBird.English.Name.2022) %>% 
-        add_mask_titles()
+        add_mask_titles(mask)
       
       data_trends <- data_trends %>% 
         filter(COMMON.NAME %in% spec_qual$eBird.English.Name.2022,
@@ -157,7 +157,7 @@ plot_import_data <- function(mask) {
                                               "eBird Data Deficient")),
                Current.Analysis == "X") %>% 
         dplyr::select(eBird.English.Name.2022) %>% 
-      add_mask_titles()
+      add_mask_titles(mask)
       
       data_trends <- data_trends %>% 
         filter(COMMON.NAME %in% spec_qual$eBird.English.Name.2022,
