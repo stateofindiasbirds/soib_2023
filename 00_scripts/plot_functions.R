@@ -101,6 +101,20 @@ plot_import_data <- function(mask) {
   
   cur_metadata <- analyses_metadata %>% filter(MASK == mask)
   
+  # function to add mask titles/labels
+  add_mask_titles <- function(data, mask = mask) {
+    data %>% 
+      mutate(MASK = mask,
+             MASK.TITLE = case_when(
+               mask == "none"      ~ "Full country",
+               mask == "woodland"  ~ "Woodland grids",
+               mask == "cropland"  ~ "Cropland grids",
+               mask == "ONEland"   ~ "ONE grids",
+               mask == "PA"        ~ "Protected areas",
+               TRUE                ~ mask # states
+             ))
+  }
+  
   # to catch if main/trends file does not exist
   if (!(file.exists(cur_metadata$SOIBMAIN.PATH) & file.exists(cur_metadata$TRENDS.OUTPATH))) {
     
@@ -112,24 +126,10 @@ plot_import_data <- function(mask) {
     # load data ---------------------------------------------------------------
 
     data_main <- read.csv(cur_metadata$SOIBMAIN.PATH) %>%
-      mutate(MASK = mask,
-             MASK.TITLE = case_when(
-               mask == "none"      ~ "Country as a whole",
-               mask == "woodland"  ~ "Grids with threshold woodland",
-               mask == "PA"        ~ "Protected areas",
-               mask == "cropland"  ~ "Grids with threshold cropland",
-               mask == "ONEland"   ~ "Grids with threshold ONEs"
-             ))
+      add_mask_titles()
     
     data_trends <- read.csv(cur_metadata$TRENDS.OUTPATH) %>%
-      mutate(MASK = mask,
-             MASK.TITLE = case_when(
-               mask == "none"      ~ "Country as a whole",
-               mask == "woodland"  ~ "Grids with threshold woodland",
-               mask == "PA"        ~ "Protected areas",
-               mask == "cropland"  ~ "Grids with threshold cropland",
-               mask == "ONEland"   ~ "Grids with threshold ONEs"
-             ))
+      add_mask_titles()
     
     # filtering for qualified species ---------------------------------------------------
     
@@ -144,14 +144,7 @@ plot_import_data <- function(mask) {
                                                 "eBird Data Deficient")),
                Long.Term.Analysis == "X") %>% 
         dplyr::select(eBird.English.Name.2022) %>% 
-        mutate(MASK = mask,
-               MASK.TITLE = case_when(
-                 mask == "none"      ~ "Country as a whole",
-                 mask == "woodland"  ~ "Grids with threshold woodland",
-                 mask == "PA"        ~ "Protected areas",
-                 mask == "cropland"  ~ "Grids with threshold cropland",
-                 mask == "ONEland"   ~ "Grids with threshold ONEs"
-               ))
+        add_mask_titles()
       
       data_trends <- data_trends %>% 
         filter(COMMON.NAME %in% spec_qual$eBird.English.Name.2022,
@@ -164,14 +157,7 @@ plot_import_data <- function(mask) {
                                               "eBird Data Deficient")),
                Current.Analysis == "X") %>% 
         dplyr::select(eBird.English.Name.2022) %>% 
-        mutate(MASK = mask,
-               MASK.TITLE = case_when(
-                 mask == "none"      ~ "Country as a whole",
-                 mask == "woodland"  ~ "Grids with threshold woodland",
-                 mask == "PA"        ~ "Protected areas",
-                 mask == "cropland"  ~ "Grids with threshold cropland",
-                 mask == "ONEland"   ~ "Grids with threshold ONEs"
-               ))
+      add_mask_titles()
       
       data_trends <- data_trends %>% 
         filter(COMMON.NAME %in% spec_qual$eBird.English.Name.2022,
