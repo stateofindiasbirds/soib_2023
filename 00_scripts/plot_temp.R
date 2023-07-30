@@ -1,18 +1,10 @@
 plot_soib_trends("single", "none", "LTT", "Alpine Swift")
 
-plot_type = "single"
+# plot_type = "single"
 cur_mask = "none"
 cur_trend = "LTT"
 cur_spec = "Alpine Swift"
-
-#Error in rm(list = list(spec_qual = spec_qual, data_trends = data_trends),  : 
-# invalid first argument
-
-# n addition: Warning messages:
-#   1: `filename` must have length 1, not length 42.
-# ! Only the first, 02_graphs/02_single_masks/long-term trends/Alpine Swift.png, will be used. 
-# 2: Removed 1 rows containing missing values (`geom_point()`). 
-
+# cur_spec <- "all"
 #
 
 plot_type <- "single_mask"
@@ -29,10 +21,7 @@ for (z in qualifying.species)
   
   temp$COMMON.NAME = temp$Mask
   
-  cols.masks = data.frame(Mask = c("Country as a whole","Grids with threshold woodland","Protected areas","Grids with threshold cropland","Grids with threshold ONEs"),
-                          cols = c("#CC6666","#869B27","#66CC99","#B69AC9","#E49B36"))
-  cols.masks = cols.masks %>% filter(Mask %in% temp$COMMON.NAME)
-  
+
   
   t1 = temp[temp$timegroups == 2022,]
   t1 = t1 %>% arrange(desc(mean_std))
@@ -45,15 +34,7 @@ for (z in qualifying.species)
   temp$COMMON.NAME = factor(temp$COMMON.NAME, 
                             levels = order)
   
-  
-  #loadfonts(device = "win")
-  
-  cols = c("#869B27", "#31954E", "#E49B36", "#CC6666", "#78CAE0", "#9999CC", "#493F3D",
-           "#B69AC9", "#A13E2B", "#EA5599", "#000000", "#66CC99")
-  #cols = c("#41726c","#2d809b","#e0d27b","#8cc48c","#55bfaf")
-  tcol = "black"
-  pcol = "#A13E2B"
-  
+
   
   cols = cols.masks$cols
   

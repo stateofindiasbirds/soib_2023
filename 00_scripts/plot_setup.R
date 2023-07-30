@@ -27,7 +27,17 @@ create_soib_trend_plot <- function(plot_type, cur_mask,
     
   }
   
+  # for each species, arranging different (latest) mask trend values in desc. order
+  # (mainly useful for mask comparison graphs)
+  mask_order <- cur_data_trends %>%
+    filter(timegroups == 2022) %>%
+    arrange(desc(mean_std)) %>% 
+    pull(MASK)
   
+  cur_data_trends <- cur_data_trends %>% 
+    mutate(MASK = factor(MASK, levels = mask_order))
+  
+
   # plot/theme settings -----------------------------------------------------
   
   palette_plot_elem <- "#56697B"
@@ -37,6 +47,8 @@ create_soib_trend_plot <- function(plot_type, cur_mask,
                             "#EA5599", "#9999CC", "#A13E2B", "#66CC99")
   if (plot_type == "single") {
     palette_trend_groups <- palette_trend_groups[1]
+  } else if (plot_type == "single_mask") {
+    palette_masks <- palette_trend_groups[1:2]
   }
   
   plot_fontfamily <- "Gill Sans MT"
@@ -81,15 +93,28 @@ create_soib_trend_plot <- function(plot_type, cur_mask,
 
 
   # saving non-rounded values for later use in plotting
-  plot_ymax0 <- cur_data_trends %>%
-    filter(!is.na(rci_std)) %>%
-    pull(rci_std) %>%
-    max()
-
-  plot_ymin0 <- cur_data_trends %>%
-    filter(!is.na(lci_std)) %>%
-    pull(rci_std) %>%
-    min()
+  # (only single-species plot has CI band)
+  if (plot_type == "single") {
+    plot_ymax0 <- cur_data_trends %>%
+      filter(!is.na(rci_std)) %>%
+      pull(rci_std) %>%
+      max()
+    
+    plot_ymin0 <- cur_data_trends %>%
+      filter(!is.na(lci_std)) %>%
+      pull(rci_std) %>%
+      min()
+  } else {
+    plot_ymax0 <- cur_data_trends %>%
+      filter(!is.na(mean_std)) %>%
+      pull(mean_std) %>%
+      max()
+    
+    plot_ymin0 <- cur_data_trends %>%
+      filter(!is.na(mean_std)) %>%
+      pull(mean_std) %>%
+      min()
+  }
 
   plot_ymax <- plot_ymax0 %>% plyr::round_any(accuracy = 50, f = ceiling)
   plot_ymin <- plot_ymin0 %>% plyr::round_any(accuracy = 50, f = floor)
@@ -180,13 +205,17 @@ create_soib_trend_plot <- function(plot_type, cur_mask,
     )) %>%
     pull(ref)
 
-  plot_ybreaks_df <- data.frame(breaks = plot_ybreaks,
-                                ref_line = ref_line) %>%
-    # we need to adjust the closest line (min distance)
-    mutate(abs_diff = abs(breaks - ref_line),
-           min = min(abs_diff)) %>%
-    # changing the appropriate line to our reference line
-    mutate(breaks = if_else(abs_diff == min, ref_line, breaks)) %>%
+  # Define a function to update breaks based on ref_line
+  update_breaks <- function(breaks, ref_line) {
+    abs_diff <- abs(breaks - ref_line)
+    min_diff <- min(abs_diff)
+    if_else(abs_diff == min_diff, ref_line, breaks)
+  }
+  
+  # updating breaks based on each of 2022 trend values plotted (one is single-species, multiple in others)
+  plot_ybreaks <- reduce(ref_line, update_breaks, .init = plot_ybreaks)
+  
+  plot_ybreaks_df <- data.frame(breaks = plot_ybreaks) %>%
     # labels for each line/break
     mutate(breaks_eff = breaks - 100) %>% # convert to + and - values
     mutate(labs = case_when(breaks_eff > 0 ~ glue("+{breaks_eff}%"),

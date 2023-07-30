@@ -221,11 +221,13 @@ plot_load_filter_data <- function(plot_type, cur_trend) {
   if (cur_trend == "LTT") {
     path_write <- cur_metadata %>% 
       mutate(PLOT.OUTPATH = glue("{CUR.OUT.PATH}long-term trends/")) %>% 
-      pull(PLOT.OUTPATH)
+      pull(PLOT.OUTPATH) %>% 
+      unique()
   } else if (cur_trend == "CAT") {
     path_write <- cur_metadata %>% 
       mutate(PLOT.OUTPATH = glue("{CUR.OUT.PATH}current trends/")) %>% 
-      pull(PLOT.OUTPATH)
+      pull(PLOT.OUTPATH) %>% 
+      unique()
   }
   
   # create path(s) if doesn't exist
