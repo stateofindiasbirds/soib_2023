@@ -1,8 +1,7 @@
 
 # create ----------------------------------------------------------------------------
 
-create_soib_trend_plot <- function(plot_type, cur_mask, 
-                                   cur_trend, cur_spec,
+create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
                                    data_trends, path_write) {
 
   # setup -----------------------------------------------------------------------------
@@ -91,7 +90,7 @@ create_soib_trend_plot <- function(plot_type, cur_mask,
   # determining limits for current plot -----------------------------------------------
 
   plot_xmin <- cur_data_trends %>%
-    dplyr::select(COMMON.NAME, timegroups) %>%
+    distinct(COMMON.NAME, timegroups) %>%
     arrange(COMMON.NAME, timegroups) %>%
     group_by(COMMON.NAME) %>%
     slice(2) %>% # because 1st is the baseline
@@ -101,7 +100,6 @@ create_soib_trend_plot <- function(plot_type, cur_mask,
 
 
   # saving non-rounded values for later use in plotting
-  # (only single-species plot has CI band)
   if (plot_type == "single") {
     plot_ymax0 <- cur_data_trends %>%
       filter(!is.na(rci_std)) %>%
@@ -112,15 +110,19 @@ create_soib_trend_plot <- function(plot_type, cur_mask,
       filter(!is.na(lci_std)) %>%
       pull(rci_std) %>%
       min()
-  } else {
+  } else if (plot_type == "single_mask") {
     plot_ymax0 <- cur_data_trends %>%
-      filter(!is.na(mean_std)) %>%
-      pull(mean_std) %>%
+      mutate(max = case_when(MASK == "none" ~ mean_std,
+                             MASK != "none" ~ rci_std)) %>% # mask will have CI band
+      filter(!is.na(max)) %>%
+      pull(max) %>%
       max()
     
     plot_ymin0 <- cur_data_trends %>%
-      filter(!is.na(mean_std)) %>%
-      pull(mean_std) %>%
+      mutate(min = case_when(MASK == "none" ~ mean_std,
+                             MASK != "none" ~ lci_std)) %>% # mask will have CI band
+      filter(!is.na(min)) %>%
+      pull(min) %>%
       min()
   }
 
@@ -194,6 +196,9 @@ create_soib_trend_plot <- function(plot_type, cur_mask,
 
   ref_line <- cur_data_trends %>%
     filter(timegroups == 2022) %>%
+    {if (plot_type == "single_mask") {
+      filter(., MASK != "none")
+    }} %>% 
     mutate(ref = case_when(
 
       # stable/inconclusive
@@ -275,24 +280,25 @@ create_soib_trend_plot <- function(plot_type, cur_mask,
     
     plot_base <- ggplot(cur_data_trends, 
                         aes(x = timegroups, y = mean_std, 
-                            col = MASK, label = MASK.TITLE.WRAP)) +
-      geom_line(linewidth = 2) +
+                            col = MASK, fill = MASK, 
+                            label = MASK.TITLE.WRAP)) +
+      # ribbon only for mask
+      geom_ribbon(data = cur_data_trends %>% filter(MASK != "none"),
+                  aes(ymin = lci_std, ymax = rci_std), 
+                  colour = NA, linewidth = 0.7, alpha = 0.5) +
+      geom_line(linewidth = 1) +
       geom_text_repel(nudge_x = -2, direction = "y", hjust = "center", size = 4, 
                       family = plot_fontfamily, min.segment.length = Inf) +
       geom_point(size = 3) +
-      # ribbon only for mask
-      geom_lineribbon(data = cur_data_trends %>% filter(MASK != "none"),
-                      aes(ymin = lci_std, ymax = rci_std),
-                      fill = palette_trend_groups[2], colour = "black",
-                      linewidth = 0.7, alpha = 1) +
-      scale_colour_manual(values = palette_trend_groups) 
-      
+      scale_colour_manual(values = palette_trend_groups) +
+      scale_fill_manual(values = palette_trend_groups) 
+    
   } else if (plot_type == "single") {
     
     plot_base <- ggplot(cur_data_trends,
                         aes(x = timegroups, y = mean_std, ymin = lci_std, ymax = rci_std)) +
       geom_lineribbon(fill = palette_trend_groups, colour = "black",
-                      linewidth = 0.7, alpha = 1) +
+                      linewidth = 0.7, alpha = 0.5) +
       geom_point(size = 3, colour = "black")
     
   }
@@ -322,7 +328,7 @@ create_soib_trend_plot <- function(plot_type, cur_mask,
     scale_y_continuous(expand = c(0, 0)) +
     # ggtitle(cur_spec) +
     labs(x = "Time-steps", y = "Change in eBird Abundance Index") +
-    guides(colour = "none") +
+    guides(colour = "none", fill = "none") +
     # theme
     ggtheme_soibtrend()
 
@@ -340,10 +346,7 @@ create_soib_trend_plot <- function(plot_type, cur_mask,
 
 # full ------------------------------------------------------------------------------
 
-plot_soib_trends <- function(plot_type = "single", 
-                             cur_mask = "none",
-                             cur_trend = cur_trend,
-                             cur_spec = cur_spec) {
+plot_soib_trends <- function(plot_type = "single", cur_trend, cur_spec) {
   
   # error checks ----------------------------------------------------------------------
   
@@ -379,7 +382,6 @@ plot_soib_trends <- function(plot_type = "single",
   # assigning objects to environment --------------------------------------------------
   
   obj_list <- list(plot_type = plot_type, 
-                   cur_mask = cur_mask,
                    cur_trend = cur_trend,
                    cur_spec = cur_spec,
                    analyses_metadata = analyses_metadata)
@@ -387,35 +389,60 @@ plot_soib_trends <- function(plot_type = "single",
   list2env(obj_list, envir = .GlobalEnv)
   
   
-  # import metadata and data, filter for qual. species --------------------------------
+  # import metadata and data, filter for qual. species, generate plots -----------------
 
-  plot_load_filter_data(plot_type, cur_trend)
-
-  # generating plots ----------------------------------------
-  
-  if (cur_spec == "all") {
+  if (plot_type == "single") {
     
-    walk(spec_qual, create_soib_trend_plot(plot_type = plot_type, 
-                                           cur_mask = cur_mask, 
-                                           cur_trend = cur_trend, 
-                                           cur_spec = spec_qual,
-                                           data_trends = data_trends,
-                                           path_write = path_write))
+    plot_load_filter_data(plot_type, cur_trend)
+    
+    # generating plots 
+    if (cur_spec == "all") {
+      walk(spec_qual, create_soib_trend_plot(plot_type = plot_type, 
+                                             cur_trend = cur_trend, 
+                                             cur_spec = spec_qual,
+                                             data_trends = data_trends,
+                                             path_write = path_write))
+    } else {
+      create_soib_trend_plot(plot_type = plot_type, 
+                             cur_trend = cur_trend, 
+                             cur_spec = cur_spec,
+                             data_trends = data_trends,
+                             path_write = path_write)
+    }
     
   } else {
     
-    create_soib_trend_plot(plot_type = plot_type, 
-                           cur_mask = cur_mask, 
-                           cur_trend = cur_trend, 
-                           cur_spec = cur_spec,
-                           data_trends = data_trends,
-                           path_write = path_write)
+    walk(analyses_metadata %>% filter(MASK != "none"), ~ {
+
+      plot_load_filter_data(plot_type = plot_type, cur_trend = cur_trend, 
+                            cur_mask = .x)
+
+      # # generating plots if there are any qualified
+      # if (length(spec_qual) != 0) {
+      #   
+      #   if (cur_spec == "all") {
+      #     walk(spec_qual, create_soib_trend_plot(plot_type = plot_type,
+      #                                            cur_trend = cur_trend,
+      #                                            cur_spec = spec_qual,
+      #                                            data_trends = data_trends,
+      #                                            path_write = path_write))
+      #   } else {
+      #     create_soib_trend_plot(plot_type = plot_type,
+      #                            cur_trend = cur_trend,
+      #                            cur_spec = cur_spec,
+      #                            data_trends = data_trends,
+      #                            path_write = path_write)
+      #   }
+      #   
+      # }
+    
+    })
     
   }
-
+  
   # removing objects from global environment (from import step) ------------------------
 
-  rm(list = c(names(obj_list), "spec_qual", "data_trends", "path_write"), 
+  rm(list = c(names(obj_list), "spec_qual", "data_trends", "data_main", "path_write"), 
      envir = .GlobalEnv)
 
 }

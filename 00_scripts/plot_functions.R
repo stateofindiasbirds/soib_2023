@@ -94,7 +94,7 @@ ggtheme_soibtrend <- function() {
 }
 
 
-# read necessary data for a given mask  ---------------------------------------------
+# import necessary data for a given mask  ---------------------------------------------
 
 # read data and add 'Mask' column
 plot_import_data <- function(mask) {
@@ -133,15 +133,14 @@ plot_import_data <- function(mask) {
     
     # filtering for qualified species ---------------------------------------------------
     
-    # - not plotting inconclusive or data deficient; 
+    # - not plotting data deficient; inconclusive will be plotted in single-species
     # - only species sel. for that trend; 
     # - only till MY 2022
     
     if (cur_trend == "LTT") {
       
       spec_qual <- data_main %>% 
-        filter(!(SOIBv2.Long.Term.Status %in% c("eBird Data Inconclusive",
-                                                "eBird Data Deficient")),
+        filter(!(SOIBv2.Long.Term.Status %in% c("Insufficient Data")),
                Long.Term.Analysis == "X") %>% 
         dplyr::select(eBird.English.Name.2022) %>% 
         add_mask_titles(mask)
@@ -153,8 +152,7 @@ plot_import_data <- function(mask) {
     } else if (cur_trend == "CAT") {
       
       spec_qual <- data_main %>% 
-        filter(!(SOIBv2.Current.Status %in% c("eBird Data Indecisive",
-                                              "eBird Data Deficient")),
+        filter(!(SOIBv2.Current.Status %in% c("Insufficient Data")),
                Current.Analysis == "X") %>% 
         dplyr::select(eBird.English.Name.2022) %>% 
       add_mask_titles(mask)
@@ -167,7 +165,7 @@ plot_import_data <- function(mask) {
 
     # return ----------------------------------------------------------------------------
 
-    return(list(spec_qual = spec_qual, data_trends = data_trends))
+    return(list(spec_qual = spec_qual, data_trends = data_trends, data_main = data_main))
 
   }
   
@@ -175,7 +173,7 @@ plot_import_data <- function(mask) {
 
 # load appropriate data and filter for species qualified for plotting ------------------
 
-plot_load_filter_data <- function(plot_type, cur_trend) {
+plot_load_filter_data <- function(plot_type, cur_trend, cur_mask) {
   
   # metadata and paths --------------------------------------------------
   
@@ -187,9 +185,10 @@ plot_load_filter_data <- function(plot_type, cur_trend) {
     
   } else if (plot_type == "single_mask") {
     
-    # process all masks' data
+    # process mask data
     cur_metadata <- analyses_metadata %>% 
-      mutate(CUR.OUT.PATH = PLOT.SINGLE.MASKS.FOLDER) # path (folder) to write to
+      filter(MASK %in% c("none", cur_mask)) %>% 
+      mutate(CUR.OUT.PATH = PLOT.SINGLE.FOLDER) # path (folder) to write to
   #   
   # } else if (plot_type == "multi") {
   #   
@@ -202,20 +201,17 @@ plot_load_filter_data <- function(plot_type, cur_trend) {
   #     mutate(CUR.OUT.PATH = PLOT.COMPOSITE.FOLDER) # path (folder) to write to
     
   }
-
-  # long-term or current trend?
-  if (cur_trend == "LTT") {
-    path_write <- cur_metadata %>% 
-      mutate(PLOT.OUTPATH = glue("{CUR.OUT.PATH}long-term trends/")) %>% 
-      pull(PLOT.OUTPATH) %>% 
-      unique()
-  } else if (cur_trend == "CAT") {
-    path_write <- cur_metadata %>% 
-      mutate(PLOT.OUTPATH = glue("{CUR.OUT.PATH}current trends/")) %>% 
-      pull(PLOT.OUTPATH) %>% 
-      unique()
-  }
   
+  path_write <- cur_metadata %>% 
+    mutate(PLOT.OUTPATH = case_when(cur_trend == "LTT" ~ glue("{CUR.OUT.PATH}long-term trends/"),
+                                    cur_trend == "CAT" ~ glue("{CUR.OUT.PATH}current trends/"))) %>% 
+    # for mask comparisons, don't output full country plot
+    {if (plot_type == "single_mask") {
+      filter(., MASK != "none")
+    }} %>% 
+    pull(PLOT.OUTPATH) %>% 
+    unique()
+
   # create path(s) if doesn't exist
   walk(path_write, ~ {
     if (!dir.exists(.x)) {dir.create(.x, recursive = TRUE)}
@@ -229,6 +225,7 @@ plot_load_filter_data <- function(plot_type, cur_trend) {
     # remove NULL elements, which are masks whose data file(s) are missing
     purrr::compact() 
   
+  data_main <- map(data_processed, pluck, "data_main") %>% bind_rows()
   data_trends <- map(data_processed, pluck, "data_trends") %>% bind_rows()
 
   # for mask comparison, even though we have filtered each mask's trends for its qual. spp.,
@@ -248,14 +245,17 @@ plot_load_filter_data <- function(plot_type, cur_trend) {
 
   } else {
     
-    spec_qual <- map(data_processed, pluck, "spec_qual") %>% bind_rows() %>% pull(eBird.English.Name.2022)
+    spec_qual <- map(data_processed, pluck, "spec_qual") %>% 
+      bind_rows() %>% 
+      pull(eBird.English.Name.2022)
     
   }
   
 
   # assigning necessary objects to global environment ---------------------------------
 
-  obj_list <- list(spec_qual = spec_qual, data_trends = data_trends, path_write = path_write)
+  obj_list <- list(spec_qual = spec_qual, data_trends = data_trends, 
+                   data_main = data_main, path_write = path_write)
   
   list2env(obj_list, envir = .GlobalEnv)
   

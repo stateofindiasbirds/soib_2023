@@ -1,7 +1,7 @@
 plot_soib_trends("single", "none", "LTT", "Alpine Swift")
 
 # plot_type = "single"
-cur_mask = "none"
+cur_mask = "woodland"
 cur_trend = "LTT"
 cur_spec = "Alpine Swift"
 # cur_spec <- "all"
