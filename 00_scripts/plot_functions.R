@@ -112,7 +112,19 @@ plot_import_data <- function(mask) {
                which_mask == "ONEland"   ~ "ONE grids",
                which_mask == "PA"        ~ "Protected areas",
                TRUE                      ~ which_mask # states
-             ))
+             )) %>% 
+      mutate(MASK = factor(MASK, levels = levels(analyses_metadata$MASK)),
+             MASK.TITLE = factor(MASK.TITLE, 
+                                 levels = analyses_metadata %>% 
+                                   mutate(MASK.TITLE = case_when(
+                                     MASK == "none"      ~ "Full country",
+                                     MASK == "woodland"  ~ "Woodland grids",
+                                     MASK == "cropland"  ~ "Cropland grids",
+                                     MASK == "ONEland"   ~ "ONE grids",
+                                     MASK == "PA"        ~ "Protected areas",
+                                     TRUE                ~ MASK # states
+                                   )) %>% 
+                                   pull(MASK.TITLE)))
   }
   
   # to catch if main/trends file does not exist

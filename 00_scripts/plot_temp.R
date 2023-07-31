@@ -7,8 +7,11 @@ cur_mask = "PA"
 # cur_spec <- "all"
 fn_plot_type = "single_mask"
 fn_cur_trend = "LTT"
-fn_cur_mask = "PA"
-#
+fn_cur_mask = "cropland"
+
+plot_load_filter_data(fn_plot_type = plot_type, 
+                      fn_cur_trend = cur_trend, 
+                      fn_cur_mask = "cropland")
 
 plot_type <- "single_mask"
 cur_trend = "LTT"

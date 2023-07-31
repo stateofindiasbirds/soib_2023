@@ -283,13 +283,15 @@ create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
   # creating the plot base based on plot type ------------------------------------------
 
   if (plot_type != "single") {
-    
+
     plot_base <- ggplot(cur_data_trends, 
                         aes(x = timegroups, y = mean_std, 
-                            col = MASK, fill = MASK, 
+                            col = fct_inorder(MASK), fill = fct_inorder(MASK), 
                             label = MASK.TITLE.WRAP)) +
-      # ribbon only for mask
-      geom_ribbon(data = cur_data_trends %>% filter(MASK != "none"),
+      # ribbon only for mask (not filter, cos we need colour palette to remain)
+      geom_ribbon(data = cur_data_trends %>% 
+                    mutate(across(c(lci_std, rci_std), 
+                                  ~ if_else(MASK == "none", NA_real_, .))),
                   aes(ymin = lci_std, ymax = rci_std), 
                   colour = NA, linewidth = 0.7, alpha = 0.5) +
       # don't plot full country trend line if Inconclusive
