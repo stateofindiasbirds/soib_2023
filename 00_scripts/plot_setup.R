@@ -83,6 +83,7 @@ create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
   }
   
 
+  wrap_nchar <- 15 # number of characters to retain in one line while wrapping
   
   if (plot_type != "multi") {
     
@@ -90,7 +91,7 @@ create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     # we will be plotting the label as a geom, not as a label of a geom, so only need for first x value
     cur_data_trends <- cur_data_trends %>% 
       mutate(MASK.TITLE.WRAP = case_when(
-        timegroupsf == timegroups_lab[2] ~ str_wrap(MASK.TITLE, width = 18),
+        timegroupsf == timegroups_lab[2] ~ str_wrap(MASK.TITLE, width = wrap_nchar),
         TRUE ~ ""
       ))
     
@@ -110,11 +111,11 @@ create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     cur_data_trends <- cur_data_trends %>% 
       mutate(COMMON.NAME = factor(COMMON.NAME, levels = cur_spec)) %>% 
       mutate(COMMON.NAME.WRAP = case_when(
-        timegroupsf == timegroups_lab[2] ~ str_wrap(COMMON.NAME, width = 18),
+        timegroupsf == timegroups_lab[2] ~ str_wrap(COMMON.NAME, width = wrap_nchar),
         TRUE ~ ""
         )) %>% 
       mutate(COMMON.NAME.WRAP = factor(COMMON.NAME.WRAP,
-                                       levels = str_wrap(cur_spec, width = 18)))
+                                       levels = str_wrap(cur_spec, width = wrap_nchar)))
     
   }
   
