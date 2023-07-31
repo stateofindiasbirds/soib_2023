@@ -398,13 +398,13 @@ create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
   # completing and writing the plot -----------------------------------------------------
 
   # joining plot base with other constant aesthetic features of graph
-  
+
   cur_plot <- plot_base +
     # timegroup brackets
     geom_axisbracket("time") + 
     # "Current Trend" bracket
     {if (cur_trend != "CAT") {
-      geom_axisbracket("trend")
+      geom_axisbracket("trend", bracket_trend = cur_trend)
     }} +
     # manual grid lines with labels because we want empty space before the first timegroup
     geom_gridline(1) +
@@ -446,14 +446,16 @@ plot_soib_trends <- function(plot_type = "single", cur_trend, cur_spec) {
     return("Select valid plot type!")
   }
   
-  if (!exists("cur_trend")) {
-    return("Need to select which trend to plot!")
-  } else if (!cur_trend %in% c("LTT", "CAT")) {
-    return("Select valid trend!")
-  }
+  if (plot_type != "multi") {
+    if (!exists("cur_trend")) {
+      return("Need to select which trend to plot!")
+    } else if (!cur_trend %in% c("LTT", "CAT")) {
+      return("Select valid trend!")
+    }
     
-  if (!exists("cur_spec")) {
-    return('Need to select at least one species to plot trends for! Or use "all" to plot this trend for all qualifying species.')
+    if (!exists("cur_spec")) {
+      return('Need to select at least one species to plot trends for! Or use "all" to plot this trend for all qualifying species.')
+    }
   }
   
   
@@ -472,12 +474,11 @@ plot_soib_trends <- function(plot_type = "single", cur_trend, cur_spec) {
   
   # assigning objects to environment --------------------------------------------------
   
-  
   if (plot_type != "multi") {
     obj_list <- list(plot_type = plot_type, 
-                   cur_trend = cur_trend,
-                   cur_spec = cur_spec,
-                   analyses_metadata = analyses_metadata)
+                     cur_trend = cur_trend,
+                     cur_spec = cur_spec,
+                     analyses_metadata = analyses_metadata)
   } else {
     obj_list <- list(plot_type = plot_type, 
                      analyses_metadata = analyses_metadata)
@@ -554,26 +555,29 @@ plot_soib_trends <- function(plot_type = "single", cur_trend, cur_spec) {
     
     plot_metadata <- fetch_plot_metadata(plot_type)
     
-    plot_load_filter_data(plot_type, cur_trend)
-    
-    #
-    
-    plot_metadata <- plot_metadata %>% 
-      filter(PLOT.NAME == "Raptors") %>% 
-      mutate(PLOT.SPEC = str_split(PLOT.SPEC, ", ")) %>% 
-      unnest(PLOT.SPEC)
-    
-    cur_spec <- plot_metadata %>% pull(PLOT.SPEC)
-    cur_plot_metadata <- plot_metadata %>% mutate(PLOT.SPEC = NULL) %>% distinct()
-    
-    create_soib_trend_plot(plot_type = plot_type,
-                           cur_trend = cur_trend,
-                           cur_spec = cur_spec,
-                           data_trends = data_trends,
-                           data_main = data_main,
-                           path_write = path_write,
-                           cur_plot_metadata = cur_plot_metadata)
+    walk(plot_metadata %>% pull(PLOT.NO), ~ {
+      
+      cur_plot_metadata <- plot_metadata %>%
+        filter(PLOT.NO == .x) %>% 
+        mutate(PLOT.SPEC = str_split(PLOT.SPEC, ", ")) %>%
+        unnest(PLOT.SPEC)
+      
+      cur_spec <- cur_plot_metadata %>% pull(PLOT.SPEC)
+      cur_plot_metadata <- cur_plot_metadata %>% mutate(PLOT.SPEC = NULL) %>% distinct()
+      cur_trend <- cur_plot_metadata %>% pull(TREND)
+      
+      plot_load_filter_data(fn_plot_type = plot_type, fn_cur_trend = cur_trend)
 
+      create_soib_trend_plot(plot_type = plot_type,
+                             cur_trend = cur_trend,
+                             cur_spec = cur_spec,
+                             data_trends = data_trends,
+                             data_main = data_main,
+                             path_write = path_write,
+                             cur_plot_metadata = cur_plot_metadata)
+      
+    })
+    
   }
   
   # removing objects from global environment (from import step) ------------------------

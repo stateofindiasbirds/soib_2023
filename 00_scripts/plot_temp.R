@@ -21,7 +21,3 @@ cur_spec = "Ashy Drongo"
 
 ###########
 
-
-  family = "Gandhi Sans"
-  
-

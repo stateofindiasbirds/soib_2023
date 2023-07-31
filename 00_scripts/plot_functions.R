@@ -45,7 +45,7 @@ geom_gridline <- function(index_y = NULL, baseline = FALSE) {
 
 # x-axis brackets -------------------------------------------------------------------
 
-geom_axisbracket <- function(bracket_type = "time") {
+geom_axisbracket <- function(bracket_type = "time", bracket_trend = cur_trend) {
 
   if (bracket_type == "time") {
 
@@ -60,7 +60,7 @@ geom_axisbracket <- function(bracket_type = "time") {
   
   } else if (bracket_type == "trend") {
     
-    if (cur_trend == "CAT") {
+    if (bracket_trend == "CAT") {
       return("Current Trend bracket should not be plotted in the CAT plot!")
     }
     
@@ -104,7 +104,7 @@ ggtheme_soibtrend <- function() {
 # import necessary data for a given mask  ---------------------------------------------
 
 # read data and add 'Mask' column
-plot_import_data <- function(mask) {
+plot_import_data <- function(mask, import_trend = fn_cur_trend) {
   
   cur_metadata <- analyses_metadata %>% filter(MASK == mask)
   
@@ -156,7 +156,7 @@ plot_import_data <- function(mask) {
     # - only species sel. for that trend; 
     # - only till MY 2022
     
-    if (cur_trend == "LTT") {
+    if (import_trend == "LTT") {
       
       spec_qual <- data_main %>% 
         filter(!(SOIBv2.Long.Term.Status %in% c("Insufficient Data")),
@@ -168,7 +168,7 @@ plot_import_data <- function(mask) {
         filter(COMMON.NAME %in% spec_qual$eBird.English.Name.2022,
                timegroups <= 2022)
       
-    } else if (cur_trend == "CAT") {
+    } else if (import_trend == "CAT") {
       
       spec_qual <- data_main %>% 
         filter(!(SOIBv2.Current.Status %in% c("Insufficient Data")),
@@ -197,7 +197,7 @@ plot_import_data <- function(mask) {
 # load appropriate data and filter for species qualified for plotting ------------------
 
 plot_load_filter_data <- function(fn_plot_type, fn_cur_trend, fn_cur_mask) {
-
+  
   # metadata and paths --------------------------------------------------
 
   if (fn_plot_type == "single") {
@@ -252,7 +252,7 @@ plot_load_filter_data <- function(fn_plot_type, fn_cur_trend, fn_cur_mask) {
   
   # importing appropriate data filtered for qualified species
 
-  data_processed <- map(cur_metadata$MASK, plot_import_data) %>% 
+  data_processed <- map(cur_metadata$MASK, ~ plot_import_data(., import_trend = fn_cur_trend)) %>% 
     # remove NULL elements, which are masks whose data file(s) are missing
     purrr::compact() 
   
