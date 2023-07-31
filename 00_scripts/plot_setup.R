@@ -49,7 +49,7 @@ create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
   plot_fontfamily <- "Gill Sans MT"
   
   
-  # other plot settings
+  # other plot settings (LTT vs CAT)
   if (cur_trend == "LTT") {
     
     timegroups_lab <- c("before 2000", "2000-2006", "2007-2010", "2011-2012", 
@@ -58,9 +58,10 @@ create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     timegroups_bracket_min <- c(1999, 2006, 2010, 2012, seq(2013, 2021)) + 0.5
     timegroups_bracket_max <- c(2006, 2010, 2012, seq(2013, 2022)) + 0.5
     plot_ytitle_margin <- margin(0, -0.6, 0, 0.4, "cm")
-    plot_xlimits <- c(1999, 2024.7)
-    plot_gridline_x <- 2023.5
+    plot_xlimits <- c(1999.5, 2024.5)
+    plot_gridline_x <- 2023.3
     plot_baseline_lab <- "Pre-2000\nbaseline"
+    plot_repel_nudge <- -1.5
     
   } else if (cur_trend == "CAT") {
     
@@ -68,9 +69,10 @@ create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     timegroups_bracket_min <- seq(2015, 2021) + 0.5
     timegroups_bracket_max <- seq(2016, 2022) + 0.5
     plot_ytitle_margin <- margin(0, 0.6, 0, 0.4, "cm")
-    plot_xlimits <- c(2015.5, 2023.1)
+    plot_xlimits <- c(2015.09, 2023.1)
     plot_gridline_x <- 2022.7
     plot_baseline_lab <- "2015\nbaseline"
+    plot_repel_nudge <- -0.65
     
   }
   
@@ -303,7 +305,8 @@ create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
       } else {
         geom_line(linewidth = 1)
       }} +
-      geom_text_repel(nudge_x = -2, direction = "y", hjust = "center", size = 4, 
+      geom_text_repel(nudge_x = plot_repel_nudge, direction = "y", 
+                      hjust = "center", size = 4, 
                       family = plot_fontfamily, min.segment.length = Inf) +
       geom_point(size = 3) +
       scale_colour_manual(values = palette_trend_groups) +
