@@ -384,7 +384,7 @@ create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     
     plot_base <- ggplot(cur_data_trends, 
                         aes(x = timegroups, y = mean_std, 
-                            col = fct_inorder(COMMON.NAME), label = fct_inorder(COMMON.NAME.WRAP))) +
+                            col = COMMON.NAME, label = COMMON.NAME.WRAP)) +
       geom_line(linewidth = 1, lineend = "round") +
       geom_text_repel(nudge_x = plot_repel_nudge, direction = "y", 
                       hjust = "center", size = 4, 

@@ -14,9 +14,14 @@ plot_load_filter_data(fn_plot_type = plot_type,
                       fn_cur_trend = cur_trend, 
                       fn_cur_mask = "cropland")
 
-plot_type <- "single_mask"
+plot_type <- "multi"
 cur_trend = "CAT"
 cur_spec = "Ashy Drongo"
+
+cur_plot_metadata <- plot_metadata %>%
+  filter(PLOT.NO == "09") %>% 
+  mutate(PLOT.SPEC = str_split(PLOT.SPEC, ", ")) %>%
+  unnest(PLOT.SPEC)
 
 
 ###########
