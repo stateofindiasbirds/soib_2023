@@ -221,6 +221,8 @@ plot_load_filter_data <- function(fn_plot_type, fn_cur_trend, fn_cur_mask) {
     # for mask comparisons, don't output full country plot
     {if (fn_plot_type == "single_mask") {
       filter(., MASK != "none")
+    } else {
+      .
     }} %>% 
     pull(PLOT.OUTPATH) %>% 
     unique()

@@ -204,6 +204,8 @@ create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     filter(timegroups == 2022) %>%
     {if (plot_type == "single_mask") {
       filter(., MASK != "none")
+    } else {
+      .
     }} %>% 
     mutate(ref = case_when(
 
@@ -310,10 +312,14 @@ create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
   } else if (plot_type == "single") {
     
     plot_base <- ggplot(cur_data_trends,
-                        aes(x = timegroups, y = mean_std, ymin = lci_std, ymax = rci_std)) +
-      geom_lineribbon(fill = palette_trend_groups, colour = "black",
-                      linewidth = 0.7, alpha = 0.5) +
-      geom_point(size = 3, colour = "black")
+                        aes(x = timegroups, y = mean_std, 
+                            ymin = lci_std, ymax = rci_std, 
+                            col = fct_inorder(MASK), fill = fct_inorder(MASK))) +
+      geom_ribbon(colour = NA, linewidth = 0.7, alpha = 0.5) +
+      geom_line(linewidth = 1) +
+      geom_point(size = 3) +
+      scale_colour_manual(values = palette_trend_groups) +
+      scale_fill_manual(values = palette_trend_groups) 
     
   }
   
@@ -382,7 +388,6 @@ plot_soib_trends <- function(plot_type = "single", cur_trend, cur_spec) {
   # setup -------------------------------------------------------
   
   require(tidyverse)
-  require(ggdist) # geom_lineribbon
   require(ggpubr) # geom_bracket
   require(extrafont)
   require(glue)
@@ -409,19 +414,27 @@ plot_soib_trends <- function(plot_type = "single", cur_trend, cur_spec) {
     
     plot_load_filter_data(plot_type, cur_trend)
     
-    # generating plots 
-    if (cur_spec == "all") {
-      walk(spec_qual, create_soib_trend_plot(plot_type = plot_type, 
-                                             cur_trend = cur_trend, 
-                                             cur_spec = spec_qual,
-                                             data_trends = data_trends,
-                                             path_write = path_write))
+    # generating plots if there are any qualified
+    if (length(spec_qual) != 0) {
+      
+      if (cur_spec == "all") {
+        walk(spec_qual, create_soib_trend_plot(plot_type = plot_type, 
+                                               cur_trend = cur_trend, 
+                                               cur_spec = spec_qual,
+                                               data_trends = data_trends,
+                                               path_write = path_write))
+      } else {
+        create_soib_trend_plot(plot_type = plot_type, 
+                               cur_trend = cur_trend, 
+                               cur_spec = cur_spec,
+                               data_trends = data_trends,
+                               path_write = path_write)
+      }
+      
     } else {
-      create_soib_trend_plot(plot_type = plot_type, 
-                             cur_trend = cur_trend, 
-                             cur_spec = cur_spec,
-                             data_trends = data_trends,
-                             path_write = path_write)
+      
+      print(glue("Skipping single-species plots for {cur_trend} (no qualified species)"))
+      
     }
     
   } else {
@@ -430,9 +443,7 @@ plot_soib_trends <- function(plot_type = "single", cur_trend, cur_spec) {
            filter(MASK != "none") %>% 
            pull(MASK), ~ {
              
-             plot_load_filter_data(fn_plot_type = plot_type, 
-                                   fn_cur_trend = cur_trend, 
-                                   fn_cur_mask = .x)
+             plot_load_filter_data(plot_type, fn_cur_trend = cur_trend, .x)
              
              # generating plots if there are any qualified
              if (length(spec_qual) != 0) {
