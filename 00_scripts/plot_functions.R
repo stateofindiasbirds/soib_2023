@@ -14,6 +14,7 @@ geom_gridline <- function(index_y = NULL, baseline = FALSE) {
     # label on y-axis
     ann_size <- 5
     ann_lab <- plot_baseline_lab
+    ann_fontface <- 3
     
   } else {
     
@@ -24,6 +25,7 @@ geom_gridline <- function(index_y = NULL, baseline = FALSE) {
     # label on y-axis
     ann_size <- 6
     ann_lab <- plot_ybreaks_lab[index_y]
+    ann_fontface <- 1
   
   }
   
@@ -35,7 +37,7 @@ geom_gridline <- function(index_y = NULL, baseline = FALSE) {
     
     annotate("text", x = plot_gridline_x, # constant
              colour = palette_plot_elem, family = plot_fontfamily, # constant
-             y = line_y, label = ann_lab, size = ann_size)
+             y = line_y, label = ann_lab, size = ann_size, fontface = ann_fontface)
   )
   
 }
@@ -51,8 +53,10 @@ geom_axisbracket <- function(bracket_type = "time") {
   bracket_max <- timegroups_bracket_max
   bracket_ypos <- plot_ymin0 - 0.01 * plot_range_max
   bracket_lab <- timegroups_lab[-1]
-  bracket_tiplength <- 0.03 # CAT 0.04? ###
-  bracket_vjust <- 2.5 # CAT 3?
+  bracket_tiplength <- 0
+  bracket_labelsize <- 3.8
+  bracket_fontface <- 1
+  bracket_vjust <- 2.5
   
   } else if (bracket_type == "trend") {
     
@@ -62,17 +66,20 @@ geom_axisbracket <- function(bracket_type = "time") {
     
     bracket_min <- 2015 - 0.5
     bracket_max <- 2022 + 0.5
-    bracket_ypos <- plot_ymin0 - 0.05 * plot_range_max
+    bracket_ypos <- plot_ymin0 - 0.065 * plot_range_max
     bracket_lab <- "Current Trend"
-    bracket_tiplength <- 0.02
-    bracket_vjust <- 2.1
+    bracket_tiplength <- -0.017
+    bracket_labelsize <- 5
+    bracket_fontface <- 3
+    bracket_vjust <- 2.7
     
   }
   
   geom_bracket(inherit.aes = FALSE, bracket.shorten = 0.15, # constant
-               label.size = 3, col = palette_plot_elem, # constant
+               family = plot_fontfamily, col = palette_plot_elem, # constant
                xmin = bracket_min, xmax = bracket_max, y.position = bracket_ypos,
-               label = bracket_lab, tip.length = bracket_tiplength, vjust = bracket_vjust)
+               label = bracket_lab, label.size = bracket_labelsize, fontface = bracket_fontface,
+               tip.length = bracket_tiplength, vjust = bracket_vjust)
   
 }
 
@@ -174,6 +181,10 @@ plot_import_data <- function(mask) {
                timegroups >= 2015 & timegroups <= 2022)
       
     }
+    
+    # data_main <- data_main %>% 
+    #   filter(eBird.English.Name.2022 %in% spec_qual$eBird.English.Name.2022)
+    
 
     # return ----------------------------------------------------------------------------
 
@@ -201,12 +212,13 @@ plot_load_filter_data <- function(fn_plot_type, fn_cur_trend, fn_cur_mask) {
     cur_metadata <- analyses_metadata %>% 
       filter(MASK %in% c("none", as.character(fn_cur_mask))) %>% 
       mutate(CUR.OUT.PATH = PLOT.SINGLE.FOLDER) # path (folder) to write to
-  #   
-  # } else if (fn_plot_type == "multi") {
-  #   
-  #   cur_metadata <- analyses_metadata %>% 
-  #     mutate(CUR.OUT.PATH = PLOT.MULTI.FOLDER) # path (folder) to write to
-  #   
+
+  } else if (fn_plot_type == "multi") {
+
+    cur_metadata <- analyses_metadata %>%
+      filter(MASK == "none") %>% 
+      mutate(CUR.OUT.PATH = PLOT.MULTI.FOLDER) # path (folder) to write to
+
   # } else if (fn_plot_type == "composite") {
   #   
   #   cur_metadata <- analyses_metadata %>% 
@@ -216,8 +228,12 @@ plot_load_filter_data <- function(fn_plot_type, fn_cur_trend, fn_cur_mask) {
 
   
   path_write <- cur_metadata %>% 
-    mutate(PLOT.OUTPATH = case_when(fn_cur_trend == "LTT" ~ glue("{CUR.OUT.PATH}long-term trends/"),
-                                    fn_cur_trend == "CAT" ~ glue("{CUR.OUT.PATH}current trends/"))) %>% 
+    {if (fn_plot_type != "multi") {
+      mutate(., PLOT.OUTPATH = case_when(fn_cur_trend == "LTT" ~ glue("{CUR.OUT.PATH}long-term trends/"),
+                                      fn_cur_trend == "CAT" ~ glue("{CUR.OUT.PATH}current trends/")))
+    } else {
+      mutate(., PLOT.OUTPATH = CUR.OUT.PATH)
+    }} %>% 
     # for mask comparisons, don't output full country plot
     {if (fn_plot_type == "single_mask") {
       filter(., MASK != "none")
@@ -275,4 +291,79 @@ plot_load_filter_data <- function(fn_plot_type, fn_cur_trend, fn_cur_mask) {
   list2env(obj_list2, envir = .GlobalEnv)
   
 
+}
+
+# fetch plot metadata for multi and composite graphs --------------------------------
+
+fetch_plot_metadata <- function(plot_type) {
+  
+  if (plot_type == "multi") {
+    
+    metadata_LTT <- data.frame(
+      
+      PLOT.SPEC = c(
+        str_flatten_comma(c("Isabelline Wheatear","Great Gray Shrike","Rufous-tailed Lark",
+                            "Yellow-billed Babbler","Eurasian Kestrel","Jerdon's Bushlark")),
+        str_flatten_comma(c("Little Ringed Plover","Little Tern","Great Thick-knee","Small Pratincole")),
+        str_flatten_comma(c("Lesser Sand-Plover","Terek Sandpiper","Whimbrel","Curlew Sandpiper",
+                            "Eurasian Curlew")),
+        str_flatten_comma(c("Oriental Honey-buzzard","Black Kite","Eurasian Marsh-Harrier",
+                            "Short-toed Snake-Eagle","Pallid Harrier","Greater Spotted Eagle")),
+        str_flatten_comma(c("White-rumped Vulture","Indian Vulture","Red-headed Vulture",
+                            "Egyptian Vulture","Eurasian Griffon")),
+        str_flatten_comma(c("Indian Gray Hornbill","Oriental Pied-Hornbill")),
+        str_flatten_comma(c("Spot-billed Pelican","Black-headed Ibis","Purple Heron","Painted Stork",
+                            "Eurasian Spoonbill","Glossy Ibis")),
+        str_flatten_comma(c("Black-rumped Flameback","Lesser Yellownape","White-bellied Woodpecker",
+                            "Yellow-crowned Woodpecker","Brown-capped Pygmy Woodpecker",
+                            "Himalayan Woodpecker")),
+        str_flatten_comma(c("Northern Shoveler","Garganey","Cotton Pygmy-Goose",
+                            "Common Merganser","Ruddy Shelduck","Tufted Duck")),
+        str_flatten_comma(c("Ashy Prinia","Rock Pigeon","Indian Peafowl","Asian Koel")),
+        str_flatten_comma(c("Large-billed Crow","Olive-backed Pipit","Greater Coucal"))
+        
+      )) %>% 
+      mutate(PLOT.NAME = c("Open Ecosystems", "Rivers", "Coasts", "Raptors", "Vultures",
+                           "Hornbills", "Large Waterbirds", "Woodpeckers", "Ducks", "Thriving Birds",
+                           "Methods_Comparison"),
+             TREND = "LTT")
+    
+    metadata_CAT <- data.frame(
+      PLOT.SPEC = c(
+        str_flatten_comma(c("White-rumped Vulture","Indian Vulture","Red-headed Vulture",
+                            "Egyptian Vulture")),
+        str_flatten_comma(c("Spot-billed Pelican","Black-headed Ibis","Purple Heron","Painted Stork",
+                            "Eurasian Spoonbill","Oriental Darter"))
+      )) %>% 
+      mutate(PLOT.NAME = c("Vultures", "Large Waterbirds"),
+             TREND = "CAT") 
+    
+    plot_metadata <- metadata_LTT %>% 
+      bind_rows(metadata_CAT) %>% 
+      mutate(PLOT.NAME = factor(PLOT.NAME, levels = 
+                                  c("Open Ecosystems", "Rivers", "Coasts", "Raptors", "Vultures",
+                                    "Hornbills", "Large Waterbirds", "Woodpeckers", "Ducks", "Thriving Birds",
+                                    "Methods_Comparison"))) %>% 
+      arrange(PLOT.NAME) %>% 
+      mutate(PLOT.NO = 1:n() %>% str_pad(width = 2, pad = 0),
+             PLOT.NAME.MOD = str_replace_all(PLOT.NAME, " ", "-")) %>% 
+      mutate(FILE.NAME = glue("{PLOT.NO}_{PLOT.NAME.MOD}_{TREND}"))
+    
+    return(plot_metadata)
+    
+  } else if (plot_type == "composite") {
+    
+    cur_trend <- "LTT"
+    data_processed <- plot_import_data("none")
+    data_main <- data_processed %>% pluck("data_main") %>% bind_rows()
+    data_trends <- data_processed %>% pluck("data_trends") %>% bind_rows()
+    
+    # diet guilds
+    data1 <- data_main %>% 
+      mutate(Diet.Guild = if_else(Diet.Guild == "", NA_character_, Diet.Guild)) %>% 
+      group_by(Diet.Guild) %>% 
+      distinct(eBird.English.Name.2022)
+    
+  }
+  
 }

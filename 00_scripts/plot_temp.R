@@ -6,7 +6,7 @@ plot_soib_trends("single_mask", "LTT", "Ashy Drongo")
 cur_mask = "PA"
 
 # cur_spec <- "all"
-fn_plot_type = "single_mask"
+fn_plot_type = "multi"
 fn_cur_trend = "LTT"
 fn_cur_mask = "cropland"
 
@@ -18,9 +18,10 @@ plot_type <- "single_mask"
 cur_trend = "CAT"
 cur_spec = "Ashy Drongo"
 
-ref_line <- c(75, 75, 50)
-# plot_ybreaks <- c(0, 20, 50, 80, 100)
-plot_ybreaks <- c(0, 20, 40, 80, 100)
 
 ###########
+
+
+  family = "Gandhi Sans"
+  
 

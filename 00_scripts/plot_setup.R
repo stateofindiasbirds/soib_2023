@@ -2,12 +2,17 @@
 # create ----------------------------------------------------------------------------
 
 create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
-                                   data_trends, data_main, path_write) {
+                                   data_trends, data_main, path_write,
+                                   cur_plot_metadata) {
 
   # setup -----------------------------------------------------------------------------
   
   # output file name
-  path_write_file <- glue("{path_write}{cur_spec}.png")
+  if (plot_type != "multi") {
+    path_write_file <- glue("{path_write}{cur_spec}.png")
+  } else {
+    path_write_file <- glue("{path_write}{cur_plot_metadata$FILE.NAME}.png")
+  }
   
   # filtering data for current case
   cur_data_trends <- data_trends %>%
@@ -18,6 +23,7 @@ create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
            rci_std = case_when(cur_trend == "CAT" ~ rci_std_recent, 
                                TRUE ~ rci_std))%>%
     filter(COMMON.NAME %in% cur_spec)
+  
   
   # don't plot full-country trend line (which does not have CI band) if it is Inconclusive
   if (plot_type == "single_mask") {
@@ -77,23 +83,40 @@ create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
   }
   
 
-  # wrapping the labels for each trend line based on number of characters
-  # we will be plotting the label as a geom, not as a label of a geom, so only need for first x value
-  cur_data_trends <- cur_data_trends %>% 
+  
+  if (plot_type != "multi") {
+    
+    # wrapping the labels for each trend line based on number of characters
+    # we will be plotting the label as a geom, not as a label of a geom, so only need for first x value
+    cur_data_trends <- cur_data_trends %>% 
       mutate(MASK.TITLE.WRAP = case_when(
         timegroupsf == timegroups_lab[2] ~ str_wrap(MASK.TITLE, width = 18),
         TRUE ~ ""
       ))
+    
+    # for each species, arranging different (latest) mask trend values in desc. order
+    # (mainly useful for mask comparison graphs)
+    mask_order <- cur_data_trends %>%
+      filter(timegroups == 2022) %>%
+      arrange(desc(mean_std)) %>% 
+      distinct(MASK, MASK.TITLE.WRAP)
+    
+    cur_data_trends <- cur_data_trends %>% 
+      mutate(MASK = factor(MASK, levels = mask_order$MASK))
+    
+  } else {
 
-  # for each species, arranging different (latest) mask trend values in desc. order
-  # (mainly useful for mask comparison graphs)
-  mask_order <- cur_data_trends %>%
-    filter(timegroups == 2022) %>%
-    arrange(desc(mean_std)) %>% 
-    distinct(MASK, MASK.TITLE.WRAP)
-  
-  cur_data_trends <- cur_data_trends %>% 
-    mutate(MASK = factor(MASK, levels = mask_order$MASK))
+    # ordered as in the metadata (mainly for colour selection in graphs)
+    cur_data_trends <- cur_data_trends %>% 
+      mutate(COMMON.NAME = factor(COMMON.NAME, levels = cur_spec)) %>% 
+      mutate(COMMON.NAME.WRAP = case_when(
+        timegroupsf == timegroups_lab[2] ~ str_wrap(COMMON.NAME, width = 18),
+        TRUE ~ ""
+        )) %>% 
+      mutate(COMMON.NAME.WRAP = factor(COMMON.NAME.WRAP,
+                                       levels = str_wrap(cur_spec, width = 18)))
+    
+  }
   
   # determining limits for current plot -----------------------------------------------
 
@@ -131,6 +154,16 @@ create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
                              MASK != "none" ~ lci_std)) %>% # mask will have CI band
       filter(!is.na(min)) %>%
       pull(min) %>%
+      min()
+  } else {
+    plot_ymax0 <- cur_data_trends %>%
+      filter(!is.na(mean_std)) %>% # no CI band
+      pull(mean_std) %>%
+      max()
+    
+    plot_ymin0 <- cur_data_trends %>%
+      filter(!is.na(mean_std)) %>% # no CI band
+      pull(mean_std) %>%
       min()
   }
 
@@ -209,33 +242,56 @@ create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     } else {
       .
     }} %>% 
-    mutate(ref = case_when(
-
-      # stable/inconclusive
-      lci_std <= 100 & rci_std >= 100 ~ 100,
-
-      # increases
-      lci_std > 100 & lci_std <= 125 ~ 125,
-      lci_std > 125 & lci_std <= 150 ~ 125, # I
-      lci_std > 150 & lci_std <= 200 ~ 150, # RI
-      lci_std > 200 ~ 200, # RI+
-
-      # declines
-      rci_std < 100 & rci_std >= 75 ~ 75,
-      rci_std < 75 & rci_std >= 50 ~ 75, # D
-      rci_std < 50 ~ 50 # RD
-
-    )) %>%
+    {if (plot_type != "multi") {
+      mutate(., ref = case_when(
+        
+        # stable/inconclusive
+        lci_std <= 100 & rci_std >= 100 ~ 100,
+        
+        # increases
+        lci_std > 100 & lci_std <= 125 ~ 125,
+        lci_std > 125 & lci_std <= 150 ~ 125, # I
+        lci_std > 150 & lci_std <= 200 ~ 150, # RI
+        lci_std > 200 ~ 200, # RI+
+        
+        # declines
+        rci_std < 100 & rci_std >= 75 ~ 75,
+        rci_std < 75 & rci_std >= 50 ~ 75, # D
+        rci_std < 50 ~ 50 # RD
+        
+      ))
+    } else {
+      mutate(., ref = case_when(
+        
+        # stable/inconclusive
+        mean_std <= 100 & mean_std >= 100 ~ 100,
+        
+        # increases
+        mean_std > 100 & mean_std <= 125 ~ 125,
+        mean_std > 125 & mean_std <= 150 ~ 125, # I
+        mean_std > 150 & mean_std <= 200 ~ 150, # RI
+        mean_std > 200 ~ 200, # RI+
+        
+        # declines
+        mean_std < 100 & mean_std >= 75 ~ 75,
+        mean_std < 75 & mean_std >= 50 ~ 75, # D
+        mean_std < 50 ~ 50 # RD
+        
+      )) 
+    }} %>%
     pull(ref)
 
   # Define a function to update breaks based on ref_line
   update_breaks <- function(breaks, ref_line) {
     abs_diff <- abs(breaks - ref_line)
     min_diff <- min(abs_diff)
-    if_else(abs_diff == min_diff, ref_line, breaks)
+    index <- which(abs_diff == min_diff)[1] # if draw between two, we take just one
+    
+    breaks[index] <- ref_line
+    return(breaks)
   }
   
-  # updating breaks based on each of 2022 trend values plotted (one is single-species, multiple in others)
+  # updating breaks based on each of 2022 trend values plotted (one in single, multiple in others)
   plot_ybreaks <- reduce(ref_line, update_breaks, .init = plot_ybreaks)
   
   plot_ybreaks_df <- data.frame(breaks = plot_ybreaks) %>%
@@ -286,7 +342,7 @@ create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
 
   # creating the plot base based on plot type ------------------------------------------
 
-  if (plot_type != "single") {
+  if (plot_type == "single_mask") {
 
     plot_base <- ggplot(cur_data_trends, 
                         aes(x = timegroups, y = mean_std, 
@@ -301,9 +357,9 @@ create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
       # don't plot full country trend line if Inconclusive
       {if (plot_full_country == "Trend Inconclusive") {
         geom_line(data = cur_data_trends %>% filter(MASK != "none"),
-                  linewidth = 1)
+                  linewidth = 1, lineend = "round")
       } else {
-        geom_line(linewidth = 1)
+        geom_line(linewidth = 1, lineend = "round")
       }} +
       geom_text_repel(nudge_x = plot_repel_nudge, direction = "y", 
                       hjust = "center", size = 4, 
@@ -319,7 +375,20 @@ create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
                             ymin = lci_std, ymax = rci_std, 
                             col = fct_inorder(MASK), fill = fct_inorder(MASK))) +
       geom_ribbon(colour = NA, linewidth = 0.7, alpha = 0.5) +
-      geom_line(linewidth = 1) +
+      geom_line(linewidth = 1, lineend = "round") +
+      geom_point(size = 3) +
+      scale_colour_manual(values = palette_trend_groups) +
+      scale_fill_manual(values = palette_trend_groups) 
+    
+  } else {
+    
+    plot_base <- ggplot(cur_data_trends, 
+                        aes(x = timegroups, y = mean_std, 
+                            col = fct_inorder(COMMON.NAME), label = fct_inorder(COMMON.NAME.WRAP))) +
+      geom_line(linewidth = 1, lineend = "round") +
+      geom_text_repel(nudge_x = plot_repel_nudge, direction = "y", 
+                      hjust = "center", size = 4, 
+                      family = plot_fontfamily, min.segment.length = Inf) +
       geom_point(size = 3) +
       scale_colour_manual(values = palette_trend_groups) +
       scale_fill_manual(values = palette_trend_groups) 
@@ -350,7 +419,7 @@ create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     scale_x_continuous(expand = c(0, 0), limits = plot_xlimits) +
     scale_y_continuous(expand = c(0, 0)) +
     # ggtitle(cur_spec) +
-    labs(x = "Time-steps", y = "Change in eBird Abundance Index") +
+    labs(x = "Time-steps", y = "Change in Abundance Index") +
     guides(colour = "none", fill = "none") +
     # theme
     ggtheme_soibtrend()
@@ -403,10 +472,16 @@ plot_soib_trends <- function(plot_type = "single", cur_trend, cur_spec) {
   
   # assigning objects to environment --------------------------------------------------
   
-  obj_list <- list(plot_type = plot_type, 
+  
+  if (plot_type != "multi") {
+    obj_list <- list(plot_type = plot_type, 
                    cur_trend = cur_trend,
                    cur_spec = cur_spec,
                    analyses_metadata = analyses_metadata)
+  } else {
+    obj_list <- list(plot_type = plot_type, 
+                     analyses_metadata = analyses_metadata)
+  }
   
   list2env(obj_list, envir = .GlobalEnv)
   
@@ -440,13 +515,13 @@ plot_soib_trends <- function(plot_type = "single", cur_trend, cur_spec) {
       
     }
     
-  } else {
+  } else if (plot_type == "single_mask") {
     
     walk(analyses_metadata %>% 
            filter(MASK != "none") %>% 
            pull(MASK), ~ {
              
-             plot_load_filter_data(plot_type, fn_cur_trend = cur_trend, .x)
+             plot_load_filter_data(plot_type, cur_trend, .x)
              
              # generating plots if there are any qualified
              if (length(spec_qual) != 0) {
@@ -475,6 +550,30 @@ plot_soib_trends <- function(plot_type = "single", cur_trend, cur_spec) {
              
            })
     
+  } else if (plot_type == "multi") {
+    
+    plot_metadata <- fetch_plot_metadata(plot_type)
+    
+    plot_load_filter_data(plot_type, cur_trend)
+    
+    #
+    
+    plot_metadata <- plot_metadata %>% 
+      filter(PLOT.NAME == "Raptors") %>% 
+      mutate(PLOT.SPEC = str_split(PLOT.SPEC, ", ")) %>% 
+      unnest(PLOT.SPEC)
+    
+    cur_spec <- plot_metadata %>% pull(PLOT.SPEC)
+    cur_plot_metadata <- plot_metadata %>% mutate(PLOT.SPEC = NULL) %>% distinct()
+    
+    create_soib_trend_plot(plot_type = plot_type,
+                           cur_trend = cur_trend,
+                           cur_spec = cur_spec,
+                           data_trends = data_trends,
+                           data_main = data_main,
+                           path_write = path_write,
+                           cur_plot_metadata = cur_plot_metadata)
+
   }
   
   # removing objects from global environment (from import step) ------------------------
