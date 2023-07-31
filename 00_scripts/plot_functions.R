@@ -173,40 +173,41 @@ plot_import_data <- function(mask) {
 
 # load appropriate data and filter for species qualified for plotting ------------------
 
-plot_load_filter_data <- function(plot_type, cur_trend, cur_mask) {
-  
+plot_load_filter_data <- function(fn_plot_type, fn_cur_trend, fn_cur_mask) {
+
   # metadata and paths --------------------------------------------------
-  
-  if (plot_type == "single") {
+
+  if (fn_plot_type == "single") {
     
     cur_metadata <- analyses_metadata %>% 
       filter(MASK == "none") %>% 
       mutate(CUR.OUT.PATH = PLOT.SINGLE.FOLDER) # path (folder) to write to
     
-  } else if (plot_type == "single_mask") {
+  } else if (fn_plot_type == "single_mask") {
     
     # process mask data
     cur_metadata <- analyses_metadata %>% 
-      filter(MASK %in% c("none", cur_mask)) %>% 
+      filter(MASK %in% c("none", as.character(fn_cur_mask))) %>% 
       mutate(CUR.OUT.PATH = PLOT.SINGLE.FOLDER) # path (folder) to write to
   #   
-  # } else if (plot_type == "multi") {
+  # } else if (fn_plot_type == "multi") {
   #   
   #   cur_metadata <- analyses_metadata %>% 
   #     mutate(CUR.OUT.PATH = PLOT.MULTI.FOLDER) # path (folder) to write to
   #   
-  # } else if (plot_type == "composite") {
+  # } else if (fn_plot_type == "composite") {
   #   
   #   cur_metadata <- analyses_metadata %>% 
   #     mutate(CUR.OUT.PATH = PLOT.COMPOSITE.FOLDER) # path (folder) to write to
     
   }
+
   
   path_write <- cur_metadata %>% 
-    mutate(PLOT.OUTPATH = case_when(cur_trend == "LTT" ~ glue("{CUR.OUT.PATH}long-term trends/"),
-                                    cur_trend == "CAT" ~ glue("{CUR.OUT.PATH}current trends/"))) %>% 
+    mutate(PLOT.OUTPATH = case_when(fn_cur_trend == "LTT" ~ glue("{CUR.OUT.PATH}long-term trends/"),
+                                    fn_cur_trend == "CAT" ~ glue("{CUR.OUT.PATH}current trends/"))) %>% 
     # for mask comparisons, don't output full country plot
-    {if (plot_type == "single_mask") {
+    {if (fn_plot_type == "single_mask") {
       filter(., MASK != "none")
     }} %>% 
     pull(PLOT.OUTPATH) %>% 
@@ -220,7 +221,7 @@ plot_load_filter_data <- function(plot_type, cur_trend, cur_mask) {
   # load data ---------------------------------------------------------------
   
   # importing appropriate data filtered for qualified species
-  
+
   data_processed <- map(cur_metadata$MASK, plot_import_data) %>% 
     # remove NULL elements, which are masks whose data file(s) are missing
     purrr::compact() 
@@ -232,7 +233,7 @@ plot_load_filter_data <- function(plot_type, cur_trend, cur_mask) {
   # we want an additional filter so that comparisons are only made for those species in masks
   # that are also there in full-country data
   
-  if (plot_type == "single_mask") {
+  if (fn_plot_type == "single_mask") {
     
     spec_qual <- map(data_processed, pluck, "spec_qual") %>% bind_rows()
     
@@ -242,7 +243,7 @@ plot_load_filter_data <- function(plot_type, cur_trend, cur_mask) {
     spec_qual <- intersect(spec_qual_country, spec_qual_masks)
     
     data_trends <- data_trends %>% filter(COMMON.NAME %in% spec_qual)
-
+    
   } else {
     
     spec_qual <- map(data_processed, pluck, "spec_qual") %>% 
@@ -250,14 +251,14 @@ plot_load_filter_data <- function(plot_type, cur_trend, cur_mask) {
       pull(eBird.English.Name.2022)
     
   }
-  
+
 
   # assigning necessary objects to global environment ---------------------------------
-
-  obj_list <- list(spec_qual = spec_qual, data_trends = data_trends, 
+  
+  obj_list2 <- list(spec_qual = spec_qual, data_trends = data_trends,
                    data_main = data_main, path_write = path_write)
+
+  list2env(obj_list2, envir = .GlobalEnv)
   
-  list2env(obj_list, envir = .GlobalEnv)
-  
-  
+
 }

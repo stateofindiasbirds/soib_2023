@@ -2,7 +2,7 @@
 # create ----------------------------------------------------------------------------
 
 create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
-                                   data_trends, path_write) {
+                                   data_trends, data_main, path_write) {
 
   # setup -----------------------------------------------------------------------------
   
@@ -10,22 +10,29 @@ create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
   path_write_file <- glue("{path_write}{cur_spec}.png")
   
   # filtering data for current case
-  if (cur_trend == "LTT") {
+  cur_data_trends <- data_trends %>%
+    mutate(lci_std = case_when(cur_trend == "CAT" ~ lci_std_recent, 
+                               TRUE ~ lci_std),
+           mean_std = case_when(cur_trend == "CAT" ~ mean_std_recent, 
+                                TRUE ~ mean_std),
+           rci_std = case_when(cur_trend == "CAT" ~ rci_std_recent, 
+                               TRUE ~ rci_std))%>%
+    filter(COMMON.NAME %in% cur_spec)
+  
+  # don't plot full-country trend line (which does not have CI band) if it is Inconclusive
+  if (plot_type == "single_mask") {
     
-    cur_data_trends <- data_trends %>% 
-      filter(COMMON.NAME %in% cur_spec)
-    
-  } else if (cur_trend == "CAT") {
-    
-    cur_data_trends <- data_trends %>%
-      # renaming columns to be plotted
-      mutate(lci_std = lci_std_recent,
-             mean_std = mean_std_recent,
-             rci_std = rci_std_recent) %>%
-      filter(COMMON.NAME %in% cur_spec)
+    plot_full_country <- data_main %>% 
+      filter(eBird.English.Name.2022 %in% cur_spec,
+             MASK == "none") %>% 
+      {if (cur_trend == "LTT") {
+        pull(., SOIBv2.Long.Term.Status)
+      } else if (cur_trend == "CAT") {
+        pull(., SOIBv2.Current.Status)
+      }}
     
   }
-
+  
   # plot/theme settings -----------------------------------------------------
   
   palette_plot_elem <- "#56697B"
@@ -67,8 +74,7 @@ create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     
   }
   
-  
-  
+
   # wrapping the labels for each trend line based on number of characters
   # we will be plotting the label as a geom, not as a label of a geom, so only need for first x value
   cur_data_trends <- cur_data_trends %>% 
@@ -286,7 +292,13 @@ create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
       geom_ribbon(data = cur_data_trends %>% filter(MASK != "none"),
                   aes(ymin = lci_std, ymax = rci_std), 
                   colour = NA, linewidth = 0.7, alpha = 0.5) +
-      geom_line(linewidth = 1) +
+      # don't plot full country trend line if Inconclusive
+      {if (plot_full_country == "Trend Inconclusive") {
+        geom_line(data = cur_data_trends %>% filter(MASK != "none"),
+                  linewidth = 1)
+      } else {
+        geom_line(linewidth = 1)
+      }} +
       geom_text_repel(nudge_x = -2, direction = "y", hjust = "center", size = 4, 
                       family = plot_fontfamily, min.segment.length = Inf) +
       geom_point(size = 3) +
@@ -412,31 +424,40 @@ plot_soib_trends <- function(plot_type = "single", cur_trend, cur_spec) {
     
   } else {
     
-    walk(analyses_metadata %>% filter(MASK != "none"), ~ {
-
-      plot_load_filter_data(plot_type = plot_type, cur_trend = cur_trend, 
-                            cur_mask = .x)
-
-      # # generating plots if there are any qualified
-      # if (length(spec_qual) != 0) {
-      #   
-      #   if (cur_spec == "all") {
-      #     walk(spec_qual, create_soib_trend_plot(plot_type = plot_type,
-      #                                            cur_trend = cur_trend,
-      #                                            cur_spec = spec_qual,
-      #                                            data_trends = data_trends,
-      #                                            path_write = path_write))
-      #   } else {
-      #     create_soib_trend_plot(plot_type = plot_type,
-      #                            cur_trend = cur_trend,
-      #                            cur_spec = cur_spec,
-      #                            data_trends = data_trends,
-      #                            path_write = path_write)
-      #   }
-      #   
-      # }
-    
-    })
+    walk(analyses_metadata %>% 
+           filter(MASK != "none") %>% 
+           pull(MASK), ~ {
+             
+             plot_load_filter_data(fn_plot_type = plot_type, 
+                                   fn_cur_trend = cur_trend, 
+                                   fn_cur_mask = .x)
+             
+             # generating plots if there are any qualified
+             if (length(spec_qual) != 0) {
+               
+               if (cur_spec == "all") {
+                 walk(spec_qual, create_soib_trend_plot(plot_type = plot_type,
+                                                        cur_trend = cur_trend,
+                                                        cur_spec = spec_qual,
+                                                        data_trends = data_trends,
+                                                        data_main = data_main,
+                                                        path_write = path_write))
+               } else {
+                 create_soib_trend_plot(plot_type = plot_type,
+                                        cur_trend = cur_trend,
+                                        cur_spec = cur_spec,
+                                        data_trends = data_trends,
+                                        data_main = data_main,
+                                        path_write = path_write)
+               }
+               
+             } else {
+               
+               print(glue("Skipping mask-comparison plots for {.x} (no qualified species)"))
+               
+             }
+             
+           })
     
   }
   
