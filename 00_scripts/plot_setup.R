@@ -476,6 +476,7 @@ plot_soib_trends <- function(plot_type = "single", cur_trend, cur_spec) {
   }
   
   if (!(plot_type %in% c("multi", "composite"))) {
+    
     if (!exists("cur_trend")) {
       return("Need to select which trend to plot!")
     } else if (!cur_trend %in% c("LTT", "CAT")) {
@@ -483,8 +484,16 @@ plot_soib_trends <- function(plot_type = "single", cur_trend, cur_spec) {
     }
     
     if (!exists("cur_spec")) {
-      return('Need to select at least one species to plot trends for! Or use "all" to plot this trend for all qualifying species.')
+      cur_spec <- "all"
+      print("No species selected, plotting trends for all qualifying species.")
     }
+    
+  } else {
+    
+    if (exists("cur_trend") | exists("cur_spec")) {
+      return("Specific trend types or species are not allowed for current plot type!")
+    }
+    
   }
   
   

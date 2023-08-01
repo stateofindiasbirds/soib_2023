@@ -159,7 +159,7 @@ plot_import_data <- function(mask, import_trend = fn_cur_trend, import_plot_type
     # inconclusive should only be plotted when we have CI bands
     # since single-mask has band only for mask, we remove Inconclusive for country in plotting step
     # but for multispecies and composites we don't have CI bands, so remove here itself
-    status_to_filter <- if (import_plot_type %in% c("single", "single-mask")) {
+    status_to_filter <- if (import_plot_type %in% c("single", "single_mask")) {
       c("Insufficient Data") 
     } else {
       c("Insufficient Data", "Trend Inconclusive") 
