@@ -88,6 +88,7 @@ create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     plot_gridline_x <- 2023.3
     plot_baseline_lab <- "Pre-2000\nbaseline"
     plot_repel_nudge <- -1.5
+    plot_xmin_minus <- 0.26
     
   } else if (cur_trend == "CAT") {
     
@@ -98,7 +99,8 @@ create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     plot_xlimits <- c(2015.09, 2023.1)
     plot_gridline_x <- 2022.7
     plot_baseline_lab <- "2015\nbaseline"
-    plot_repel_nudge <- -0.65
+    plot_repel_nudge <- -0.57
+    plot_xmin_minus <- 0.1
     
   }
   
@@ -401,7 +403,8 @@ create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
         geom_line(linewidth = 1, lineend = "round")
       }} +
       geom_text_repel(nudge_x = plot_repel_nudge, direction = "y", 
-                      hjust = "center", size = 4, 
+                      hjust = 0.5, size = 4, force_pull = 0,
+                      xlim = c(plot_xlimits[1] - 0.1, plot_xmin - plot_xmin_minus),
                       family = plot_fontfamily, min.segment.length = Inf) +
       geom_point(size = 3) +
       scale_colour_manual(values = palette_trend_groups) +
@@ -430,7 +433,8 @@ create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
       }} +
       geom_line(linewidth = 1, lineend = "round") +
       geom_text_repel(nudge_x = plot_repel_nudge, direction = "y", 
-                      hjust = "center", size = 4, 
+                      hjust = 0.5, size = 4, force_pull = 0,
+                      xlim = c(plot_xlimits[1] - 0.1, plot_xmin - plot_xmin_minus),
                       family = plot_fontfamily, min.segment.length = Inf) +
       geom_point(size = 3) +
       scale_colour_manual(values = palette_trend_groups) +
