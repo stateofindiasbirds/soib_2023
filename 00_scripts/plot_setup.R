@@ -5,6 +5,18 @@ create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
                                    data_trends, data_main, path_write,
                                    cur_plot_metadata) {
 
+  # convert to India Checklist names --------------------------------------------------
+  
+  if (plot_type != "composite") { 
+    # because composite doesn't have any species names at this stage
+    data_trends <- data_trends %>% 
+      mutate(COMMON.NAME = specname_to_india_checklist(COMMON.NAME))
+    data_main <- data_main %>% 
+      mutate(eBird.English.Name.2022 = specname_to_india_checklist(eBird.English.Name.2022))
+    cur_spec <- cur_spec %>% 
+      specname_to_india_checklist()
+  }
+  
   # setup -----------------------------------------------------------------------------
   
   # output file name
@@ -563,6 +575,7 @@ plot_soib_trends <- function(plot_type = "single",
                                                cur_trend = cur_trend, 
                                                cur_spec = spec_qual,
                                                data_trends = data_trends,
+                                               data_main = data_main,
                                                path_write = path_write,
                                                cur_plot_metadata = web_metadata))
       } else {
@@ -570,6 +583,7 @@ plot_soib_trends <- function(plot_type = "single",
                                cur_trend = cur_trend, 
                                cur_spec = cur_spec,
                                data_trends = data_trends,
+                               data_main = data_main,
                                path_write = path_write,
                                cur_plot_metadata = web_metadata)
       }

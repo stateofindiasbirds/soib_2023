@@ -538,6 +538,8 @@ create_composite_summary <- function(metadata, init_obj) {
   temp1 <- metadata %>% 
     rename(COMPOSITE.NO = PLOT.NO, COMPOSITE.NAME = PLOT.NAME) %>% 
     group_by(COMPOSITE.NO, COMPOSITE.NAME, GROUP) %>% 
+    # converting to India Checklist names
+    mutate(PLOT.SPEC = specname_to_india_checklist(PLOT.SPEC)) %>% 
     dplyr::summarise(LIST.SPEC = str_flatten_comma(PLOT.SPEC))
   
   temp2 <- metadata %>% 
@@ -561,3 +563,4 @@ create_composite_summary <- function(metadata, init_obj) {
   return(init_obj)
 
 }
+

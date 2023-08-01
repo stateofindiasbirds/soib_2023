@@ -1535,3 +1535,22 @@ scale_trends_to_bands <- function(data) {
                                                          TRUE ~ .)))
 
 }
+
+# convert eBird name to India Checklist name ----------------------------------------
+
+specname_to_india_checklist <- function(spec_names) {
+  
+  names_map <- read.csv("00_data/SoIB_mapping_2022.csv") %>% 
+    distinct(eBird.English.Name.2022, India.Checklist.Common.Name)
+  
+  df_names <- data.frame(OLD = spec_names) %>% 
+    left_join(names_map, by = c("OLD" = "eBird.English.Name.2022")) %>% 
+    rename(NEW = India.Checklist.Common.Name)
+  
+  if (any(is.na(df_names$NEW))) {
+    return("Input species name is not valid eBird name")
+  }
+  
+  return(df_names$NEW)
+  
+}
