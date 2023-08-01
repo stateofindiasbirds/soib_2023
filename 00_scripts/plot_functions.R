@@ -202,7 +202,7 @@ plot_import_data <- function(mask, import_trend = fn_cur_trend, import_plot_type
 
 # load appropriate data and filter for species qualified for plotting ------------------
 
-plot_load_filter_data <- function(fn_plot_type, fn_cur_trend, fn_cur_mask) {
+plot_load_filter_data <- function(fn_plot_type, fn_cur_trend, fn_cur_mask = "none") {
   
   # metadata and paths --------------------------------------------------
 
