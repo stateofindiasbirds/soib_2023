@@ -379,16 +379,15 @@ fetch_plot_metadata <- function(plot_type) {
     
     data3 <- data_main %>% 
       mutate(GROUP = case_when(
-        Endemic.Region == "Andaman and Nicobar Islands" ~ NA_character_, 
+        str_detect(Endemic.Region, "Island") ~ NA_character_, 
         str_ends(Endemic.Region, "Himalayas") ~ "Himalaya",
         # Endemic.Region %in% c("Eastern Himalayas", "Western Himalayas") ~ "Himalaya",
         Endemic.Region == "Western Ghats" ~ "Western Ghats & Sri Lanka",
         Endemic.Region == "Mainland India" ~ "Indian Subcontinent",
-        Endemic.Region == "Western Ghats" ~ "Western Ghats & Sri Lanka",
         Endemic.Region == "None" ~ "Non-endemic",
         TRUE ~ Endemic.Region
       )) %>% 
-      filter(!is.na(GROUP)) %>% # A&N removed
+      filter(!is.na(GROUP)) %>% # all islands removed
       distinct(GROUP, Endemic.Region) %>% 
       mutate(PLOT.NAME = "Endemic Regions")
     
@@ -449,7 +448,7 @@ fetch_plot_metadata <- function(plot_type) {
         TRUE ~ Habitat.Specialization
       )) %>% 
       filter(!is.na(GROUP)) %>% 
-      distinct(GROUP, Habitat.Specialization) %>% 
+      distinct(GROUP, Order, Habitat.Specialization) %>% 
       mutate(PLOT.NAME = "Raptor Habitat Specialisations")
 
     
