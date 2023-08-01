@@ -535,30 +535,20 @@ fetch_plot_metadata <- function(plot_type) {
 
 create_composite_summary <- function(metadata, init_obj) {
 
-  temp1 <- metadata %>% 
+  summary_composite <- metadata %>% 
     rename(COMPOSITE.NO = PLOT.NO, COMPOSITE.NAME = PLOT.NAME) %>% 
-    group_by(COMPOSITE.NO, COMPOSITE.NAME, GROUP) %>% 
     # converting to India Checklist names
-    mutate(PLOT.SPEC = specname_to_india_checklist(PLOT.SPEC)) %>% 
-    dplyr::summarise(LIST.SPEC = str_flatten_comma(PLOT.SPEC))
-  
-  temp2 <- metadata %>% 
-    rename(COMPOSITE.NO = PLOT.NO, COMPOSITE.NAME = PLOT.NAME) %>% 
-    group_by(COMPOSITE.NO, COMPOSITE.NAME, GROUP, SOIBv2.Priority.Status) %>% 
-    dplyr::summarise(NO.SPEC = n_distinct(PLOT.SPEC)) %>% 
-    ungroup() %>% 
-    mutate(SOIBv2.Priority.Status = case_when(SOIBv2.Priority.Status == "Moderate" ~ "MOD",
+    mutate(PLOT.SPEC = specname_to_india_checklist(PLOT.SPEC),
+           SOIBv2.Priority.Status = case_when(SOIBv2.Priority.Status == "Moderate" ~ "MOD",
                                               TRUE ~ str_to_upper(SOIBv2.Priority.Status))) %>% 
-    pivot_wider(names_from = SOIBv2.Priority.Status, values_from = NO.SPEC,
-                names_glue = "PRIORITY.{SOIBv2.Priority.Status}",
-                values_fill = 0)
+    mutate(SOIBv2.Priority.Status = factor(SOIBv2.Priority.Status,
+                                           levels = c("HIGH", "MOD", "LOW"))) %>% 
+    group_by(COMPOSITE.NO, COMPOSITE.NAME, GROUP, SOIBv2.Priority.Status) %>% 
+    dplyr::summarise(NO.SPEC = n_distinct(PLOT.SPEC),
+                     LIST.SPEC = str_flatten_comma(PLOT.SPEC)) %>% 
+    ungroup()
   
-  summary_composite <- temp2 %>% full_join(temp1)
-  
-  
-  init_obj <- init_obj %>% 
-    left_join(summary_composite) %>% 
-    relocate(COMPOSITE.NO, COMPOSITE.NAME, GROUP, PRIORITY.HIGH, PRIORITY.MOD, PRIORITY.LOW, LIST.SPEC)
+  init_obj <- init_obj %>% left_join(summary_composite)
   
   return(init_obj)
 
@@ -608,7 +598,7 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     }
     
   } else {
-    path_write_file <- glue("{path_write}{cur_plot_metadata$FILE.NAME}.png")
+    path_write_file <- glue("{path_write}{unique(cur_plot_metadata$FILE.NAME)}.png")
   }
   
   # filtering data for current case
