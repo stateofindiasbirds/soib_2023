@@ -9,7 +9,21 @@ create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
   
   # output file name
   if (!(plot_type %in% c("multi", "composite"))) {
+    
     path_write_file <- glue("{path_write}{cur_spec}.png")
+    
+    if (cur_trend == "LTT") {
+      # for website
+      source("00_scripts/20_functions.R")
+      cur_plot_metadata <- join_mask_codes(cur_plot_metadata)
+      web_folder <- cur_plot_metadata$WEB.PLOTS.FOLDER
+      web_spec <- str_replace_all(cur_spec, c(" " = "-", "'" = "_"))
+      web_mask <- cur_plot_metadata$MASK.CODE
+      path_write_file_web <- glue("{web_folder}{web_spec}_{web_mask}_trend.jpg")
+    } else {
+      print("Not generating CAT plots for website.")
+    }
+    
   } else {
     path_write_file <- glue("{path_write}{cur_plot_metadata$FILE.NAME}.png")
   }
@@ -457,6 +471,11 @@ create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
          dpi = 500, bg = "transparent",
          width = 11, height = 7.5, units = "in")
   
+  if (plot_type %in% c("single", "single_mask") & cur_trend == "LTT") {
+    ggsave(filename = path_write_file_web, plot = cur_plot,
+           dpi = 500, bg = "transparent",
+           width = 11, height = 7.5, units = "in")
+  }
 
   # removing objects from global environment ------------------------------------------
   
@@ -467,7 +486,8 @@ create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
 
 # full ------------------------------------------------------------------------------
 
-plot_soib_trends <- function(plot_type = "single", cur_trend, cur_spec) {
+plot_soib_trends <- function(plot_type = "single", 
+                             cur_trend = NULL, cur_spec = NULL) {
   
   # error checks ----------------------------------------------------------------------
   
@@ -477,20 +497,20 @@ plot_soib_trends <- function(plot_type = "single", cur_trend, cur_spec) {
   
   if (!(plot_type %in% c("multi", "composite"))) {
     
-    if (!exists("cur_trend")) {
+    if (is.null(cur_trend)) {
       return("Need to select which trend to plot!")
     } else if (!cur_trend %in% c("LTT", "CAT")) {
       return("Select valid trend!")
     }
     
-    if (!exists("cur_spec")) {
+    if (is.null(cur_spec)) {
       cur_spec <- "all"
       print("No species selected, plotting trends for all qualifying species.")
     }
     
   } else {
-    
-    if (exists("cur_trend") | exists("cur_spec")) {
+
+    if (!is.null(cur_trend) | !is.null(cur_trend)) {
       return("Specific trend types or species are not allowed for current plot type!")
     }
     
@@ -539,13 +559,15 @@ plot_soib_trends <- function(plot_type = "single", cur_trend, cur_spec) {
                                                cur_trend = cur_trend, 
                                                cur_spec = spec_qual,
                                                data_trends = data_trends,
-                                               path_write = path_write))
+                                               path_write = path_write,
+                                               cur_plot_metadata = web_metadata))
       } else {
         create_soib_trend_plot(plot_type = plot_type, 
                                cur_trend = cur_trend, 
                                cur_spec = cur_spec,
                                data_trends = data_trends,
-                               path_write = path_write)
+                               path_write = path_write,
+                               cur_plot_metadata = web_metadata)
       }
       
     } else {
@@ -553,6 +575,8 @@ plot_soib_trends <- function(plot_type = "single", cur_trend, cur_spec) {
       print(glue("Skipping single-species plots for {cur_trend} (no qualified species)"))
       
     }
+    
+    rm(web_metadata, envir = .GlobalEnv)
     
   } else if (plot_type == "single_mask") {
     
@@ -571,14 +595,16 @@ plot_soib_trends <- function(plot_type = "single", cur_trend, cur_spec) {
                                                         cur_spec = spec_qual,
                                                         data_trends = data_trends,
                                                         data_main = data_main,
-                                                        path_write = path_write))
+                                                        path_write = path_write,
+                                                        cur_plot_metadata = web_metadata))
                } else {
                  create_soib_trend_plot(plot_type = plot_type,
                                         cur_trend = cur_trend,
                                         cur_spec = cur_spec,
                                         data_trends = data_trends,
                                         data_main = data_main,
-                                        path_write = path_write)
+                                        path_write = path_write,
+                                        cur_plot_metadata = web_metadata)
                }
                
              } else {
@@ -586,6 +612,8 @@ plot_soib_trends <- function(plot_type = "single", cur_trend, cur_spec) {
                print(glue("Skipping mask-comparison plots for {.x} (no qualified species)"))
                
              }
+             
+             rm(web_metadata, envir = .GlobalEnv)
              
            })
     
@@ -613,7 +641,7 @@ plot_soib_trends <- function(plot_type = "single", cur_trend, cur_spec) {
                              data_main = data_main,
                              path_write = path_write,
                              cur_plot_metadata = cur_plot_metadata)
-      
+
     })
     
   } else if (plot_type == "composite") {

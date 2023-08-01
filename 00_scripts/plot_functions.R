@@ -253,6 +253,17 @@ plot_load_filter_data <- function(fn_plot_type, fn_cur_trend, fn_cur_mask = "non
     if (!dir.exists(.x)) {dir.create(.x, recursive = TRUE)}
   })
   
+  if (fn_plot_type %in% c("single", "single_mask") & fn_cur_trend == "LTT") {
+    web_metadata <- cur_metadata %>% 
+      {if (fn_plot_type == "single_mask") {
+        filter(., MASK != "none")
+      } else {
+        .
+      }} 
+  } else {
+    web_metadata <- NULL
+  }
+  
   # load data ---------------------------------------------------------------
   
   # importing appropriate data filtered for qualified species
@@ -297,7 +308,7 @@ plot_load_filter_data <- function(fn_plot_type, fn_cur_trend, fn_cur_mask = "non
   # assigning necessary objects to global environment ---------------------------------
   
   obj_list2 <- list(spec_qual = spec_qual, data_trends = data_trends,
-                    data_main = data_main, path_write = path_write)
+                    data_main = data_main, path_write = path_write, web_metadata = web_metadata)
   
   list2env(obj_list2, envir = .GlobalEnv)
   
