@@ -31,6 +31,7 @@ create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
   
   
   # don't plot full-country trend line (which does not have CI band) if it is Inconclusive
+  # single-species will always plot Inconclusive
   if (plot_type == "single_mask") {
     
     plot_full_country <- data_main %>% 
@@ -610,6 +611,11 @@ plot_soib_trends <- function(plot_type = "single", cur_trend, cur_spec) {
     
     plot_metadata <- fetch_plot_metadata(plot_type)
     
+    # initialise composite summary 
+    init_summary <- plot_metadata %>% 
+      distinct(PLOT.NO) %>% 
+      rename(COMPOSITE.NO = PLOT.NO)
+    
     walk(plot_metadata %>% 
            distinct(PLOT.NO) %>% 
            pull(PLOT.NO), ~ {
@@ -627,35 +633,52 @@ plot_soib_trends <- function(plot_type = "single", cur_trend, cur_spec) {
       cur_plot_metadata <- cur_plot_metadata %>% 
         # joining species or species groups for current composite
         left_join(data_main) %>% 
-        dplyr::select(starts_with("PLOT."), FILE.NAME, GROUP, eBird.English.Name.2022) %>% 
+        dplyr::select(starts_with("PLOT."), FILE.NAME, GROUP,
+                      eBird.English.Name.2022, SOIBv2.Priority.Status) %>% 
         filter(eBird.English.Name.2022 %in% spec_qual) %>% 
         rename(PLOT.SPEC = eBird.English.Name.2022)
       
-      # summarising trends for groups (from individual species)
-      data_trends <- cur_plot_metadata %>% 
-        left_join(data_trends, by = c("PLOT.SPEC" = "COMMON.NAME")) %>% 
-        dplyr::select(starts_with("PLOT."), FILE.NAME, GROUP, 
-                      timegroups, timegroupsf, lci_std, mean_std, rci_std) %>% 
-        # get trends per group
-        group_by(GROUP, timegroups, timegroupsf) %>% 
-        reframe(across(ends_with("_std"), ~ mean(.)))
+      # saving summary of current composite groups
+      cur_summary <- init_summary %>% filter(COMPOSITE.NO == .x)
+      
+      if (exists("full_summary", envir = .GlobalEnv)) {
+        full_summary <- bind_rows(full_summary,
+                                  create_composite_summary(cur_plot_metadata, cur_summary))
+      } else {
+        full_summary <- create_composite_summary(cur_plot_metadata, cur_summary)
+      }
+      assign("full_summary", full_summary, envir = .GlobalEnv)
+      
+      # # summarising trends for groups (from individual species)
+      # data_trends <- cur_plot_metadata %>% 
+      #   left_join(data_trends, by = c("PLOT.SPEC" = "COMMON.NAME")) %>% 
+      #   dplyr::select(starts_with("PLOT."), FILE.NAME, GROUP, 
+      #                 timegroups, timegroupsf, lci_std, mean_std, rci_std) %>% 
+      #   # get trends per group
+      #   group_by(GROUP, timegroups, timegroupsf) %>% 
+      #   reframe(across(ends_with("_std"), ~ mean(.)))
+      # 
+      # # to order factor levels later (here "spec" is actually "group")
+      # cur_spec <- data_trends %>% distinct(GROUP) %>% pull(GROUP)
+      # 
+      # cur_plot_metadata <- cur_plot_metadata %>% 
+      #   mutate(GROUP = NULL, PLOT.SPEC = NULL) %>% 
+      #   distinct()
+      # 
+      # create_soib_trend_plot(plot_type = plot_type,
+      #                        cur_trend = cur_trend,
+      #                        cur_spec = cur_spec,
+      #                        data_trends = data_trends,
+      #                        data_main = data_main,
+      #                        path_write = path_write,
+      #                        cur_plot_metadata = cur_plot_metadata)
 
-      # to order factor levels later (here "spec" is actually "group")
-      cur_spec <- data_trends %>% distinct(GROUP) %>% pull(GROUP)
-      
-      cur_plot_metadata <- cur_plot_metadata %>% 
-        mutate(GROUP = NULL, PLOT.SPEC = NULL) %>% 
-        distinct()
-      
-      create_soib_trend_plot(plot_type = plot_type,
-                             cur_trend = cur_trend,
-                             cur_spec = cur_spec,
-                             data_trends = data_trends,
-                             data_main = data_main,
-                             path_write = path_write,
-                             cur_plot_metadata = cur_plot_metadata)
-      
     })
+    
+    write.csv(full_summary, row.names = FALSE,
+              file = "02_graphs/03_composite/00_composites_summary.csv")
+    
+    rm(full_summary, envir = .GlobalEnv)
     
   }
   

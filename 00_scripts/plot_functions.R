@@ -508,3 +508,34 @@ fetch_plot_metadata <- function(plot_type) {
   }
   
 }
+
+# generate summary of composites ----------------------------------------------------
+
+create_composite_summary <- function(metadata, init_obj) {
+
+  temp1 <- metadata %>% 
+    rename(COMPOSITE.NO = PLOT.NO, COMPOSITE.NAME = PLOT.NAME) %>% 
+    group_by(COMPOSITE.NO, COMPOSITE.NAME, GROUP) %>% 
+    dplyr::summarise(LIST.SPEC = str_flatten_comma(PLOT.SPEC))
+  
+  temp2 <- metadata %>% 
+    rename(COMPOSITE.NO = PLOT.NO, COMPOSITE.NAME = PLOT.NAME) %>% 
+    group_by(COMPOSITE.NO, COMPOSITE.NAME, GROUP, SOIBv2.Priority.Status) %>% 
+    dplyr::summarise(NO.SPEC = n_distinct(PLOT.SPEC)) %>% 
+    ungroup() %>% 
+    mutate(SOIBv2.Priority.Status = case_when(SOIBv2.Priority.Status == "Moderate" ~ "MOD",
+                                              TRUE ~ str_to_upper(SOIBv2.Priority.Status))) %>% 
+    pivot_wider(names_from = SOIBv2.Priority.Status, values_from = NO.SPEC,
+                names_glue = "PRIORITY.{SOIBv2.Priority.Status}",
+                values_fill = 0)
+  
+  summary_composite <- temp2 %>% full_join(temp1)
+  
+  
+  init_obj <- init_obj %>% 
+    left_join(summary_composite) %>% 
+    relocate(COMPOSITE.NO, COMPOSITE.NAME, GROUP, PRIORITY.HIGH, PRIORITY.MOD, PRIORITY.LOW, LIST.SPEC)
+  
+  return(init_obj)
+
+}

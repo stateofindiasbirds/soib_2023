@@ -20,7 +20,7 @@ cur_trend = "CAT"
 cur_spec = "Ashy Drongo"
 
 cur_plot_metadata <- plot_metadata %>%
-  filter(PLOT.NO == "02") %>% 
+  filter(PLOT.NO == "04") %>% 
   dplyr::select(where(~ !any(is.na(.))))
 
 # %>% 
