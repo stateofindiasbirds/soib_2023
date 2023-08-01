@@ -399,7 +399,7 @@ key.state.species.report.final = key.state.species.report %>%
          SOIBv2.Long.Term.Status, SOIBv2.Current.Status, SOIBv2.Range.Status)
 
 
-write.csv(key.state.species.report.final, "01_analyses_full/results/key_state_species_4.csv", row.names = F)
+write.csv(key.state.species.report.final, "01_analyses_full/results/key_state_species_top4.csv", row.names = F)
 
 
 
@@ -488,14 +488,14 @@ key.state.species.full.list = full.list.prop.comb %>%
   left_join(india.checklist.map) %>%
   select(ST_NM, India.Checklist.Common.Name, prop.range)
 
-write.csv(key.state.species.full.list, "01_analyses_full/results/key_state_species_full_list.csv", row.names = F)
+write.csv(key.state.species.full.list, "01_analyses_full/results/key_state_species_full.csv", row.names = F)
 
 delim.state.list = key.state.species.full.list %>%
   group_by(ST_NM) %>%
   summarise(India.Checklist.Common.Name = toString(India.Checklist.Common.Name)) %>%
   ungroup()
 
-write.csv(delim.state.list, "01_analyses_full/results/key_state_species_full_list_delim.csv", row.names = F)
+write.csv(delim.state.list, "01_analyses_full/results/key_state_species_delim.csv", row.names = F)
 
 
 rm(list = ls()[!ls() %in% c("data0", "key.state.species0")])
