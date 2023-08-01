@@ -104,7 +104,7 @@ ggtheme_soibtrend <- function() {
 # import necessary data for a given mask  ---------------------------------------------
 
 # read data and add 'Mask' column
-plot_import_data <- function(mask, import_trend = fn_cur_trend) {
+plot_import_data <- function(mask, import_trend = fn_cur_trend, import_plot_type = fn_plot_type) {
   
   cur_metadata <- analyses_metadata %>% filter(MASK == mask)
   
@@ -156,10 +156,19 @@ plot_import_data <- function(mask, import_trend = fn_cur_trend) {
     # - only species sel. for that trend; 
     # - only till MY 2022
     
+    # inconclusive should only be plotted when we have CI bands
+    # since single-mask has band only for mask, we remove Inconclusive for country in plotting step
+    # but for multispecies and composites we don't have CI bands, so remove here itself
+    status_to_filter <- if (import_plot_type %in% c("single", "single-mask")) {
+      c("Insufficient Data") 
+    } else {
+      c("Insufficient Data", "Trend Inconclusive") 
+    }
+    
     if (import_trend == "LTT") {
       
       spec_qual <- data_main %>% 
-        filter(!(SOIBv2.Long.Term.Status %in% c("Insufficient Data")),
+        filter(!(SOIBv2.Long.Term.Status %in% status_to_filter),
                Long.Term.Analysis == "X") %>% 
         dplyr::select(eBird.English.Name.2022) %>% 
         add_mask_titles(mask)
@@ -171,7 +180,7 @@ plot_import_data <- function(mask, import_trend = fn_cur_trend) {
     } else if (import_trend == "CAT") {
       
       spec_qual <- data_main %>% 
-        filter(!(SOIBv2.Current.Status %in% c("Insufficient Data")),
+        filter(!(SOIBv2.Current.Status %in% status_to_filter),
                Current.Analysis == "X") %>% 
         dplyr::select(eBird.English.Name.2022) %>% 
       add_mask_titles(mask)
@@ -209,21 +218,19 @@ plot_load_filter_data <- function(fn_plot_type, fn_cur_trend, fn_cur_mask) {
       filter(MASK == "none") %>% 
       mutate(CUR.OUT.PATH = PLOT.MULTI.FOLDER) # path (folder) to write to
     
-  } else if (fn_plot_type == "single_mask") {
+  } else {
     
     # process mask data
     cur_metadata <- analyses_metadata %>% 
       filter(MASK %in% c("none", as.character(fn_cur_mask))) %>% 
-      mutate(CUR.OUT.PATH = PLOT.SINGLE.FOLDER) # path (folder) to write to
-
-  } else if (fn_plot_type == "composite") {
-
-    cur_metadata <- analyses_metadata %>% 
-      filter(MASK %in% c("none", as.character(fn_cur_mask))) %>% 
-      mutate(CUR.OUT.PATH = PLOT.COMPOSITE.FOLDER) # path (folder) to write to
+      # path (folder) to write to
+      {if (fn_plot_type == "single_mask") {
+        mutate(., CUR.OUT.PATH = PLOT.SINGLE.FOLDER) 
+      } else if (fn_plot_type == "composite") {
+        mutate(., CUR.OUT.PATH = PLOT.COMPOSITE.FOLDER) 
+      }}
     
   }
-  
   
   path_write <- cur_metadata %>% 
     {if (!(fn_plot_type %in% c("multi", "composite"))) {
@@ -249,8 +256,12 @@ plot_load_filter_data <- function(fn_plot_type, fn_cur_trend, fn_cur_mask) {
   # load data ---------------------------------------------------------------
   
   # importing appropriate data filtered for qualified species
-
-  data_processed <- map(cur_metadata$MASK, ~ plot_import_data(., import_trend = fn_cur_trend)) %>% 
+  
+  data_processed <- map(
+    cur_metadata$MASK, ~ plot_import_data(., 
+                                          import_trend = fn_cur_trend, 
+                                          import_plot_type = fn_plot_type)
+  ) %>% 
     # remove NULL elements, which are masks whose data file(s) are missing
     purrr::compact() 
   
@@ -354,7 +365,7 @@ fetch_plot_metadata <- function(plot_type) {
   } else if (plot_type == "composite") {
     
     cur_trend <- "LTT"
-    data_processed <- plot_import_data("none", cur_trend)
+    data_processed <- plot_import_data("none", cur_trend, plot_type)
     data_main <- data_processed %>% pluck("data_main") %>% bind_rows()
 
 

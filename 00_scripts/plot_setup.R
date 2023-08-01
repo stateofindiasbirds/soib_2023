@@ -649,29 +649,29 @@ plot_soib_trends <- function(plot_type = "single", cur_trend, cur_spec) {
       }
       assign("full_summary", full_summary, envir = .GlobalEnv)
       
-      # # summarising trends for groups (from individual species)
-      # data_trends <- cur_plot_metadata %>% 
-      #   left_join(data_trends, by = c("PLOT.SPEC" = "COMMON.NAME")) %>% 
-      #   dplyr::select(starts_with("PLOT."), FILE.NAME, GROUP, 
-      #                 timegroups, timegroupsf, lci_std, mean_std, rci_std) %>% 
-      #   # get trends per group
-      #   group_by(GROUP, timegroups, timegroupsf) %>% 
-      #   reframe(across(ends_with("_std"), ~ mean(.)))
-      # 
-      # # to order factor levels later (here "spec" is actually "group")
-      # cur_spec <- data_trends %>% distinct(GROUP) %>% pull(GROUP)
-      # 
-      # cur_plot_metadata <- cur_plot_metadata %>% 
-      #   mutate(GROUP = NULL, PLOT.SPEC = NULL) %>% 
-      #   distinct()
-      # 
-      # create_soib_trend_plot(plot_type = plot_type,
-      #                        cur_trend = cur_trend,
-      #                        cur_spec = cur_spec,
-      #                        data_trends = data_trends,
-      #                        data_main = data_main,
-      #                        path_write = path_write,
-      #                        cur_plot_metadata = cur_plot_metadata)
+      # summarising trends for groups (from individual species)
+      data_trends <- cur_plot_metadata %>%
+        left_join(data_trends, by = c("PLOT.SPEC" = "COMMON.NAME")) %>%
+        dplyr::select(starts_with("PLOT."), FILE.NAME, GROUP,
+                      timegroups, timegroupsf, lci_std, mean_std, rci_std) %>%
+        # get trends per group
+        group_by(GROUP, timegroups, timegroupsf) %>%
+        reframe(across(ends_with("_std"), ~ mean(.)))
+
+      # to order factor levels later (here "spec" is actually "group")
+      cur_spec <- data_trends %>% distinct(GROUP) %>% pull(GROUP)
+
+      cur_plot_metadata <- cur_plot_metadata %>%
+        mutate(GROUP = NULL, PLOT.SPEC = NULL) %>%
+        distinct()
+
+      create_soib_trend_plot(plot_type = plot_type,
+                             cur_trend = cur_trend,
+                             cur_spec = cur_spec,
+                             data_trends = data_trends,
+                             data_main = data_main,
+                             path_write = path_write,
+                             cur_plot_metadata = cur_plot_metadata)
 
     })
     
