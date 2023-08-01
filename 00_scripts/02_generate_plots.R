@@ -245,7 +245,7 @@ gen_trend_plots <- function(plot_type = "single",
   
   # cleaning environment ------------------------
   
-  rm(list = setdiff(ls(), "gen_trend_plots"), 
+  rm(list = setdiff(ls(envir = .GlobalEnv), "gen_trend_plots"), 
      envir = .GlobalEnv)
   
 }

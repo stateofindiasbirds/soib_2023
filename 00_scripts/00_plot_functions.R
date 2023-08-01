@@ -342,7 +342,7 @@ fetch_plot_metadata <- function(plot_type) {
         str_flatten_comma(c("Northern Shoveler","Garganey","Cotton Pygmy-Goose",
                             "Common Merganser","Ruddy Shelduck","Tufted Duck")),
         str_flatten_comma(c("Ashy Prinia","Rock Pigeon","Indian Peafowl","Asian Koel")),
-        str_flatten_comma(c("Large-billed Crow","Olive-backed Pipit","Greater Coucal"))
+        str_flatten_comma(c("Greater Coucal","Jerdon's Bushlark","Forest Wagtail"))
         
       )) %>% 
       mutate(PLOT.NAME = c("Open Ecosystems", "Rivers", "Coasts", "Raptors", "Vultures",
