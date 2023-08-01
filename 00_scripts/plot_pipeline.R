@@ -1,9 +1,23 @@
-source("00_scripts/02_generate_plots")
+source("00_scripts/02_generate_plots.R")
 
-gen_trend_plots("single", "LTT", "Alpine Swift")
-gen_trend_plots("single", "LTT", "Lesser Sand-Plover") # in eBird name
-gen_trend_plots("single_mask", "LTT", "Ashy Drongo")
-gen_trend_plots("single_mask", "CAT", "Ashy Drongo")
-gen_trend_plots("multi")
-gen_trend_plots("composite")
+# single-species for full country ---------------------------------------------------
+
+gen_trend_plots("single", "LTT") # 20 mins
+gen_trend_plots("single", "CAT") # 19.5 mins
+
+# single-species masks vs country ---------------------------------------------------
+
+gen_trend_plots("single_mask", "LTT") # 2.8 sec per species * no.sp * (no. masks or states)
+gen_trend_plots("single_mask", "CAT") # 1.8 sec per species * no.sp * (no. masks or states)
+
+# multiple species plots ------------------------------------------------------------
+
+gen_trend_plots("multi") # 30 sec
+
+# composite plots -------------------------------------------------------------------
+
+gen_trend_plots("composite") # 15 sec
+
+# systematic monitoring plots -------------------------------------------------------
+
 

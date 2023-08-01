@@ -582,6 +582,12 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
       specname_to_india_checklist()
   }
   
+  if (!(plot_type %in% c("multi", "composite"))) {
+    tic(glue("Finished plotting {plot_type} ({cur_trend}) for {cur_spec}"))
+  } else {
+    tic(glue("Finished plotting {cur_plot_metadata$FILE.NAME}"))
+  }
+  
   # setup -----------------------------------------------------------------------------
   
   # output file name
@@ -1062,5 +1068,6 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
   
   rm(list = names(obj_list), envir = .GlobalEnv)
   
+  toc()
 }
 
