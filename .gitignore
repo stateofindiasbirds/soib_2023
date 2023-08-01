@@ -36,6 +36,7 @@ occupancy-presence/
 # image outputs
 *.gif
 *.jpeg
+*.jpg
 *.tiff
 *.tif
 *.png
