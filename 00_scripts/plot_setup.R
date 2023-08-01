@@ -8,21 +8,26 @@ create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
   # setup -----------------------------------------------------------------------------
   
   # output file name
-  if (plot_type != "multi") {
+  if (!(plot_type %in% c("multi", "composite"))) {
     path_write_file <- glue("{path_write}{cur_spec}.png")
   } else {
     path_write_file <- glue("{path_write}{cur_plot_metadata$FILE.NAME}.png")
   }
   
   # filtering data for current case
-  cur_data_trends <- data_trends %>%
-    mutate(lci_std = case_when(cur_trend == "CAT" ~ lci_std_recent, 
-                               TRUE ~ lci_std),
-           mean_std = case_when(cur_trend == "CAT" ~ mean_std_recent, 
-                                TRUE ~ mean_std),
-           rci_std = case_when(cur_trend == "CAT" ~ rci_std_recent, 
-                               TRUE ~ rci_std))%>%
-    filter(COMMON.NAME %in% cur_spec)
+  
+  if (plot_type != "composite") {
+    cur_data_trends <- data_trends %>%
+      mutate(lci_std = case_when(cur_trend == "CAT" ~ lci_std_recent, 
+                                 TRUE ~ lci_std),
+             mean_std = case_when(cur_trend == "CAT" ~ mean_std_recent, 
+                                  TRUE ~ mean_std),
+             rci_std = case_when(cur_trend == "CAT" ~ rci_std_recent, 
+                                 TRUE ~ rci_std))%>%
+      filter(COMMON.NAME %in% cur_spec)
+  } else {
+    cur_data_trends <- data_trends
+  }
   
   
   # don't plot full-country trend line (which does not have CI band) if it is Inconclusive
@@ -85,7 +90,7 @@ create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
 
   wrap_nchar <- 15 # number of characters to retain in one line while wrapping
   
-  if (plot_type != "multi") {
+  if (plot_type %in% c("single", "single_mask")) {
     
     # wrapping the labels for each trend line based on number of characters
     # we will be plotting the label as a geom, not as a label of a geom, so only need for first x value
@@ -105,7 +110,7 @@ create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     cur_data_trends <- cur_data_trends %>% 
       mutate(MASK = factor(MASK, levels = mask_order$MASK))
     
-  } else {
+  } else if (plot_type == "multi") {
 
     # ordered as in the metadata (mainly for colour selection in graphs)
     cur_data_trends <- cur_data_trends %>% 
@@ -117,14 +122,32 @@ create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
       mutate(COMMON.NAME.WRAP = factor(COMMON.NAME.WRAP,
                                        levels = str_wrap(cur_spec, width = wrap_nchar)))
     
+  } else if (plot_type == "composite") {
+    
+    # ordered as in the metadata (mainly for colour selection in graphs)
+    cur_data_trends <- cur_data_trends %>% 
+      mutate(GROUP = factor(GROUP, levels = cur_spec)) %>% 
+      mutate(GROUP.WRAP = case_when(
+        timegroupsf == timegroups_lab[2] ~ str_wrap(GROUP, width = wrap_nchar),
+        TRUE ~ ""
+      )) %>% 
+      mutate(GROUP.WRAP = factor(GROUP.WRAP,
+                                 levels = str_wrap(cur_spec, width = wrap_nchar)))
+    
   }
   
   # determining limits for current plot -----------------------------------------------
-
+  
   plot_xmin <- cur_data_trends %>%
-    distinct(COMMON.NAME, timegroups) %>%
-    arrange(COMMON.NAME, timegroups) %>%
-    group_by(COMMON.NAME) %>%
+    {if (plot_type != "composite") {
+      distinct(., COMMON.NAME, timegroups) %>%
+        arrange(., COMMON.NAME, timegroups) %>%
+        group_by(., COMMON.NAME)
+    } else {
+      distinct(., GROUP, timegroups) %>%
+        arrange(., GROUP, timegroups) %>%
+        group_by(., GROUP)
+    }} %>% 
     slice(2) %>% # because 1st is the baseline
     ungroup() %>%
     pull(timegroups) %>%
@@ -243,7 +266,7 @@ create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     } else {
       .
     }} %>% 
-    {if (plot_type != "multi") {
+    {if (!(plot_type %in% c("multi", "composite"))) {
       mutate(., ref = case_when(
         
         # stable/inconclusive
@@ -383,9 +406,13 @@ create_soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     
   } else {
     
-    plot_base <- ggplot(cur_data_trends, 
-                        aes(x = timegroups, y = mean_std, 
-                            col = COMMON.NAME, label = COMMON.NAME.WRAP)) +
+    plot_base <- {if (plot_type == "multi") {
+      ggplot(cur_data_trends, 
+             aes(x = timegroups, y = mean_std, col = COMMON.NAME, label = COMMON.NAME.WRAP))
+      } else {
+        ggplot(cur_data_trends, 
+               aes(x = timegroups, y = mean_std, col = GROUP, label = GROUP.WRAP))
+      }} +
       geom_line(linewidth = 1, lineend = "round") +
       geom_text_repel(nudge_x = plot_repel_nudge, direction = "y", 
                       hjust = "center", size = 4, 
@@ -447,7 +474,7 @@ plot_soib_trends <- function(plot_type = "single", cur_trend, cur_spec) {
     return("Select valid plot type!")
   }
   
-  if (plot_type != "multi") {
+  if (!(plot_type %in% c("multi", "composite"))) {
     if (!exists("cur_trend")) {
       return("Need to select which trend to plot!")
     } else if (!cur_trend %in% c("LTT", "CAT")) {
@@ -569,6 +596,55 @@ plot_soib_trends <- function(plot_type = "single", cur_trend, cur_spec) {
       
       plot_load_filter_data(fn_plot_type = plot_type, fn_cur_trend = cur_trend)
 
+      create_soib_trend_plot(plot_type = plot_type,
+                             cur_trend = cur_trend,
+                             cur_spec = cur_spec,
+                             data_trends = data_trends,
+                             data_main = data_main,
+                             path_write = path_write,
+                             cur_plot_metadata = cur_plot_metadata)
+      
+    })
+    
+  } else if (plot_type == "composite") {
+    
+    plot_metadata <- fetch_plot_metadata(plot_type)
+    
+    walk(plot_metadata %>% pull(PLOT.NO), ~ {
+      
+      cur_trend <- "LTT"
+      
+      cur_plot_metadata <- plot_metadata %>% 
+        filter(PLOT.NO == .x) %>% 
+        # for each plot, we only want relevant columns to join
+        dplyr::select(where(~ !any(is.na(.)))) 
+      
+      
+      plot_load_filter_data(plot_type, cur_trend, "none")
+      
+      cur_plot_metadata <- cur_plot_metadata %>% 
+        # joining species or species groups for current composite
+        left_join(data_main) %>% 
+        dplyr::select(starts_with("PLOT."), FILE.NAME, GROUP, eBird.English.Name.2022) %>% 
+        filter(eBird.English.Name.2022 %in% spec_qual) %>% 
+        rename(PLOT.SPEC = eBird.English.Name.2022)
+      
+      # summarising trends for groups (from individual species)
+      data_trends <- cur_plot_metadata %>% 
+        left_join(data_trends, by = c("PLOT.SPEC" = "COMMON.NAME")) %>% 
+        dplyr::select(starts_with("PLOT."), FILE.NAME, GROUP, 
+                      timegroups, timegroupsf, lci_std, mean_std, rci_std) %>% 
+        # get trends per group
+        group_by(GROUP, timegroups, timegroupsf) %>% 
+        reframe(across(ends_with("_std"), ~ mean(.)))
+
+      # to order factor levels later (here "spec" is actually "group")
+      cur_spec <- data_trends %>% distinct(GROUP) %>% pull(GROUP)
+      
+      cur_plot_metadata <- cur_plot_metadata %>% 
+        mutate(GROUP = NULL, PLOT.SPEC = NULL) %>% 
+        distinct()
+      
       create_soib_trend_plot(plot_type = plot_type,
                              cur_trend = cur_trend,
                              cur_spec = cur_spec,

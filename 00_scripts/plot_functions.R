@@ -181,10 +181,7 @@ plot_import_data <- function(mask, import_trend = fn_cur_trend) {
                timegroups >= 2015 & timegroups <= 2022)
       
     }
-    
-    # data_main <- data_main %>% 
-    #   filter(eBird.English.Name.2022 %in% spec_qual$eBird.English.Name.2022)
-    
+
 
     # return ----------------------------------------------------------------------------
 
@@ -206,6 +203,12 @@ plot_load_filter_data <- function(fn_plot_type, fn_cur_trend, fn_cur_mask) {
       filter(MASK == "none") %>% 
       mutate(CUR.OUT.PATH = PLOT.SINGLE.FOLDER) # path (folder) to write to
     
+  } else if (fn_plot_type == "multi") {
+    
+    cur_metadata <- analyses_metadata %>%
+      filter(MASK == "none") %>% 
+      mutate(CUR.OUT.PATH = PLOT.MULTI.FOLDER) # path (folder) to write to
+    
   } else if (fn_plot_type == "single_mask") {
     
     # process mask data
@@ -213,24 +216,19 @@ plot_load_filter_data <- function(fn_plot_type, fn_cur_trend, fn_cur_mask) {
       filter(MASK %in% c("none", as.character(fn_cur_mask))) %>% 
       mutate(CUR.OUT.PATH = PLOT.SINGLE.FOLDER) # path (folder) to write to
 
-  } else if (fn_plot_type == "multi") {
+  } else if (fn_plot_type == "composite") {
 
-    cur_metadata <- analyses_metadata %>%
-      filter(MASK == "none") %>% 
-      mutate(CUR.OUT.PATH = PLOT.MULTI.FOLDER) # path (folder) to write to
-
-  # } else if (fn_plot_type == "composite") {
-  #   
-  #   cur_metadata <- analyses_metadata %>% 
-  #     mutate(CUR.OUT.PATH = PLOT.COMPOSITE.FOLDER) # path (folder) to write to
+    cur_metadata <- analyses_metadata %>% 
+      filter(MASK %in% c("none", as.character(fn_cur_mask))) %>% 
+      mutate(CUR.OUT.PATH = PLOT.COMPOSITE.FOLDER) # path (folder) to write to
     
   }
-
+  
   
   path_write <- cur_metadata %>% 
-    {if (fn_plot_type != "multi") {
+    {if (!(fn_plot_type %in% c("multi", "composite"))) {
       mutate(., PLOT.OUTPATH = case_when(fn_cur_trend == "LTT" ~ glue("{CUR.OUT.PATH}long-term trends/"),
-                                      fn_cur_trend == "CAT" ~ glue("{CUR.OUT.PATH}current trends/")))
+                                         fn_cur_trend == "CAT" ~ glue("{CUR.OUT.PATH}current trends/")))
     } else {
       mutate(., PLOT.OUTPATH = CUR.OUT.PATH)
     }} %>% 
@@ -263,7 +261,8 @@ plot_load_filter_data <- function(fn_plot_type, fn_cur_trend, fn_cur_mask) {
   # we want an additional filter so that comparisons are only made for those species in masks
   # that are also there in full-country data
   
-  if (fn_plot_type == "single_mask") {
+  if (fn_plot_type == "single_mask" |
+      (fn_plot_type == "composite" & fn_cur_mask != "none")) {
     
     spec_qual <- map(data_processed, pluck, "spec_qual") %>% bind_rows()
     
@@ -273,6 +272,7 @@ plot_load_filter_data <- function(fn_plot_type, fn_cur_trend, fn_cur_mask) {
     spec_qual <- intersect(spec_qual_country, spec_qual_masks)
     
     data_trends <- data_trends %>% filter(COMMON.NAME %in% spec_qual)
+    data_main <- data_main %>% filter(eBird.English.Name.2022 %in% spec_qual)
     
   } else {
     
@@ -286,8 +286,8 @@ plot_load_filter_data <- function(fn_plot_type, fn_cur_trend, fn_cur_mask) {
   # assigning necessary objects to global environment ---------------------------------
   
   obj_list2 <- list(spec_qual = spec_qual, data_trends = data_trends,
-                   data_main = data_main, path_write = path_write)
-
+                    data_main = data_main, path_write = path_write)
+  
   list2env(obj_list2, envir = .GlobalEnv)
   
 
@@ -354,15 +354,155 @@ fetch_plot_metadata <- function(plot_type) {
   } else if (plot_type == "composite") {
     
     cur_trend <- "LTT"
-    data_processed <- plot_import_data("none")
+    data_processed <- plot_import_data("none", cur_trend)
     data_main <- data_processed %>% pluck("data_main") %>% bind_rows()
-    data_trends <- data_processed %>% pluck("data_trends") %>% bind_rows()
-    
-    # diet guilds
+
+
     data1 <- data_main %>% 
-      mutate(Diet.Guild = if_else(Diet.Guild == "", NA_character_, Diet.Guild)) %>% 
-      group_by(Diet.Guild) %>% 
-      distinct(eBird.English.Name.2022)
+      mutate(GROUP = case_when(Diet.Guild == "" ~ NA_character_, 
+                               Diet.Guild == "Fruit & Nect" ~ "Fruit & Nectar",
+                               TRUE ~ Diet.Guild)) %>% 
+      filter(!is.na(GROUP)) %>% 
+      distinct(GROUP, Diet.Guild) %>% 
+      mutate(PLOT.NAME = "Diet Guilds")
+    
+    data2 <- data_main %>% 
+      mutate(GROUP = case_when(
+        Habitat.Specialization == "Grassland" ~ "Grassland & Scrub",
+        Habitat.Specialization == "Alpine & Cold Desert" ~ "Open Habitat",
+        Habitat.Specialization == "None" ~ "No Specialisation",
+        TRUE ~ Habitat.Specialization
+      )) %>% 
+      filter(!is.na(GROUP)) %>% 
+      distinct(GROUP, Habitat.Specialization) %>% 
+      mutate(PLOT.NAME = "Habitat Specialisations")
+    
+    data3 <- data_main %>% 
+      mutate(GROUP = case_when(
+        Endemic.Region == "Andaman and Nicobar Islands" ~ NA_character_, 
+        str_ends(Endemic.Region, "Himalayas") ~ "Himalaya",
+        # Endemic.Region %in% c("Eastern Himalayas", "Western Himalayas") ~ "Himalaya",
+        Endemic.Region == "Western Ghats" ~ "Western Ghats & Sri Lanka",
+        Endemic.Region == "Mainland India" ~ "Indian Subcontinent",
+        Endemic.Region == "Western Ghats" ~ "Western Ghats & Sri Lanka",
+        Endemic.Region == "None" ~ "Non-endemic",
+        TRUE ~ Endemic.Region
+      )) %>% 
+      filter(!is.na(GROUP)) %>% # A&N removed
+      distinct(GROUP, Endemic.Region) %>% 
+      mutate(PLOT.NAME = "Endemic Regions")
+    
+    
+    # shorebirds composite
+    data4 <- data_main %>% 
+      mutate(GROUP = fct_collapse(
+        
+        eBird.English.Name.2022,
+        
+        "Near Resident or Palearctic Migrant" = c(
+          "Indian Thick-knee","Great Thick-knee","Beach Thick-knee","Black-winged Stilt",
+          "Red-wattled Lapwing","Little Ringed Plover","Greater Painted-Snipe",
+          "Pheasant-tailed Jacana","Bronze-winged Jacana","Solitary Snipe",
+          "Barred Buttonquail","Indian Courser","Jerdon's Courser","Small Pratincole"
+        ),
+        
+        "Near Resident or Palearctic Migrant" = c(
+          "Pied Avocet","Ibisbill","Eurasian Oystercatcher","Northern Lapwing",
+          "Gray-headed Lapwing","Sociable Lapwing","White-tailed Lapwing",
+          "Lesser Sand-Plover","Greater Sand-Plover","Caspian Plover",
+          "Kentish Plover","Common Ringed Plover","Long-billed Plover",
+          "Oriental Plover","Eurasian Curlew","Black-tailed Godwit","Ruff",
+          "Jack Snipe","Eurasian Woodcock","Wood Snipe","Great Snipe","Common Snipe",
+          "Pin-tailed Snipe","Swinhoe's Snipe","Common Sandpiper","Green Sandpiper",
+          "Spotted Redshank","Common Greenshank","Nordmann's Greenshank",
+          "Marsh Sandpiper","Wood Sandpiper","Common Redshank","Small Buttonquail",
+          "Yellow-legged Buttonquail","Crab-Plover","Cream-colored Courser",
+          "Collared Pratincole","Oriental Pratincole"
+        ),
+        
+        "Arctic Migrant" = c(
+          "Black-bellied Plover","European Golden-Plover","American Golden-Plover",
+          "Pacific Golden-Plover","Whimbrel","Bar-tailed Godwit","Ruddy Turnstone",
+          "Great Knot","Red Knot","Broad-billed Sandpiper","Sharp-tailed Sandpiper",
+          "Curlew Sandpiper","Temminck's Stint","Long-toed Stint",
+          "Spoon-billed Sandpiper","Red-necked Stint","Sanderling","Dunlin",
+          "Little Stint","Buff-breasted Sandpiper","Pectoral Sandpiper",
+          "Asian Dowitcher","Long-billed Dowitcher","Terek Sandpiper",
+          "Red-necked Phalarope","Red Phalarope","Gray-tailed Tattler"
+        )
+        
+      )) %>% 
+      mutate(GROUP = case_when(!GROUP %in% c("Near Resident or Palearctic Migrant",
+                                             "Arctic Migrant") ~ NA_character_,
+                               TRUE ~ GROUP)) %>% 
+      filter(!is.na(GROUP)) %>% 
+      distinct(GROUP, eBird.English.Name.2022) %>% 
+      mutate(PLOT.NAME = "Shorebird Migratory Behaviours")
+    
+    data5 <- data_main %>% 
+      filter(Order %in% c("Accipitriformes", "Falconiformes")) %>% 
+      mutate(GROUP = case_when(
+        Habitat.Specialization %in% c("Grassland", "Wetland", 
+                                      "Alpine & Cold Desert") ~ "Open Habitat",
+        Habitat.Specialization == "Forest" ~ "Forest & Plantation",
+        Habitat.Specialization == "None" ~ "No Specialisation",
+        TRUE ~ Habitat.Specialization
+      )) %>% 
+      filter(!is.na(GROUP)) %>% 
+      distinct(GROUP, Habitat.Specialization) %>% 
+      mutate(PLOT.NAME = "Raptor Habitat Specialisations")
+
+    
+    # mask composites
+    
+    plot_load_filter_data(plot_type, cur_trend, "woodland")
+    
+    data6 <- data_main %>% 
+      rename(GROUP = MASK.TITLE) %>% 
+      filter(!is.na(GROUP)) %>% 
+      distinct(GROUP, eBird.English.Name.2022) %>% 
+      mutate(PLOT.NAME = "Woodland")
+    
+    
+    plot_load_filter_data(plot_type, cur_trend, c("ONEland", "cropland"))
+    
+    data7 <- data_main %>% 
+      rename(GROUP = MASK.TITLE) %>% 
+      filter(!is.na(GROUP)) %>% 
+      distinct(GROUP, eBird.English.Name.2022) %>% 
+      mutate(PLOT.NAME = "Open Natural Ecosystems & Cropland")
+
+    
+    plot_load_filter_data(plot_type, cur_trend, "PA")
+    
+    data8 <- data_main %>% 
+      rename(GROUP = MASK.TITLE) %>% 
+      filter(!is.na(GROUP)) %>% 
+      distinct(GROUP, eBird.English.Name.2022) %>% 
+      mutate(PLOT.NAME = "Protected Areas")
+    
+    
+    
+    plot_metadata <- bind_rows(data1, data2, data3, data4, data5, data6, data7, data8) %>% 
+      mutate(PLOT.NAME = factor(PLOT.NAME, levels = c(
+        "Diet Guilds", "Habitat Specialisations", "Endemic Regions",
+        "Shorebird Migratory Behaviours", "Raptor Habitat Specialisations",
+        "Woodland", "Open Natural Ecosystems & Cropland", "Protected Areas"
+      ))) %>% 
+      mutate(PLOT.NO = as.numeric(PLOT.NAME) %>% str_pad(width = 2, pad = 0),
+             # LTT for all composites
+             TREND = "LTT") %>% 
+      mutate(PLOT.NAME.MOD = str_replace_all(PLOT.NAME, " ", "-"),
+             FILE.NAME = glue("{PLOT.NO}_{PLOT.NAME.MOD}_{TREND}")) %>% 
+      relocate(PLOT.NO, PLOT.NAME, PLOT.NAME.MOD, FILE.NAME)
+    
+    
+    
+    rm(list = c("spec_qual", "data_trends", "data_main", "path_write"), 
+       envir = .GlobalEnv)
+    
+
+    return(plot_metadata)
     
   }
   
