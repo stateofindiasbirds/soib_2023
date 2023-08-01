@@ -655,7 +655,7 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     palette_trend_groups <- palette_trend_groups[1:2]
   }
   
-  plot_fontfamily <- "Gill Sans MT"
+  plot_fontfamily <- "Gandhi Sans"
   
   
   # other plot settings (LTT vs CAT)
@@ -671,7 +671,7 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     plot_gridline_x <- 2023.3
     plot_baseline_lab <- "Pre-2000\nbaseline"
     plot_repel_nudge <- -1.5
-    plot_xmin_minus <- 0.26
+    plot_xmin_minus <- 0.22
     
   } else if (cur_trend == "CAT") {
     
