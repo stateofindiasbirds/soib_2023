@@ -494,7 +494,9 @@ fetch_plot_metadata <- function(plot_type) {
              TREND = "LTT") %>% 
       mutate(PLOT.NAME.MOD = str_replace_all(PLOT.NAME, " ", "-"),
              FILE.NAME = glue("{PLOT.NO}_{PLOT.NAME.MOD}_{TREND}")) %>% 
-      relocate(PLOT.NO, PLOT.NAME, PLOT.NAME.MOD, FILE.NAME)
+      relocate(PLOT.NO, PLOT.NAME, PLOT.NAME.MOD, FILE.NAME) %>% 
+      # as of latest, we don't use the habitat-mask composites
+      filter(!PLOT.NAME %in% c("Woodland", "Open Natural Ecosystems & Cropland", "Protected Areas"))
     
     
     

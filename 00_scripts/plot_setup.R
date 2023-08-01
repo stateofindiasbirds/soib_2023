@@ -502,7 +502,7 @@ plot_soib_trends <- function(plot_type = "single", cur_trend, cur_spec) {
   
   # assigning objects to environment --------------------------------------------------
   
-  if (plot_type != "multi") {
+  if (!(plot_type %in% c("multi", "composite"))) {
     obj_list <- list(plot_type = plot_type, 
                      cur_trend = cur_trend,
                      cur_spec = cur_spec,
@@ -610,7 +610,9 @@ plot_soib_trends <- function(plot_type = "single", cur_trend, cur_spec) {
     
     plot_metadata <- fetch_plot_metadata(plot_type)
     
-    walk(plot_metadata %>% pull(PLOT.NO), ~ {
+    walk(plot_metadata %>% 
+           distinct(PLOT.NO) %>% 
+           pull(PLOT.NO), ~ {
       
       cur_trend <- "LTT"
       
