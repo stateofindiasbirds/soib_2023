@@ -250,3 +250,144 @@ gen_trend_plots <- function(plot_type = "single",
   
 }
 
+
+# various trend plots (sysmon) ------------------------------------------------------
+
+# needs to be integrated with above; leaving separate for want of time
+
+gen_trend_plots_sysmon <- function(cur_case) {
+  
+  # setup -------------------------------------------------------
+  
+  require(tidyverse)
+  require(ggpubr) # geom_bracket
+  require(extrafont)
+  require(glue)
+  require(ggrepel) # text repel
+  require(tictoc)
+  
+  source('00_scripts/00_functions.R')
+  source('00_scripts/00_plot_functions.R')
+  
+  # import and prepare data for plot --------------------------------------------------
+  
+  fetch_sysmon_metadata(cur_case)
+  
+  # caching output path because it gets overwritten in some steps
+  path_out_cache <- path_out
+  
+  
+  if (cur_case == "bustards") {
+    
+    data_trends <- read.csv(path_data) %>% 
+      # rename columns to match eBird data names
+      rename(mean_std = mean) %>% 
+      # creating CI columns even though we are not plotting it
+      mutate(lci_std = mean_std, rci_std = mean_std)
+
+  } else if (cur_case == "vembanad") {
+    
+    data_trends <- read.csv(path_data) %>% rename(mean_std = mean)
+    data_trends_extra <- read.csv(path_data_extra) %>% 
+      rename(mean_std = mean) %>% 
+      mutate(COMMON.NAME = "Total")
+    
+  } else {
+    
+    data_trends <- read.csv(path_data) %>% 
+      rename(mean_std = mean, lci_std = cil, rci_std = cir)
+    
+    if (cur_case == "spiti") {
+      
+      data_trends <- data_trends %>% 
+        filter(!is.na(mean_std), 
+               !((rci_std - mean_std) > 0.3 & rci_std / mean_std > 2)) %>% 
+        # eBird names changed in the meantime
+        mutate(COMMON.NAME = case_when(
+          COMMON.NAME == "Black-headed Mountain-Finch" ~ "Black-headed Mountain Finch",
+          COMMON.NAME == "Plain Mountain-Finch" ~ "Plain Mountain Finch",
+          TRUE ~ COMMON.NAME
+        ))
+      
+      # habitats are already called COMMON.NAME
+      data_trends_extra <- read.csv(path_data_extra) %>% 
+        rename(mean_std = mean, lci_std = cil, rci_std = cir) %>% 
+        filter(!is.na(mean_std), 
+               !((rci_std - mean_std) > 0.3 & rci_std / mean_std > 2))
+      
+    }
+    
+  }
+  
+  # plotting composite  -----------------------------------------------------------
+  
+  if (!cur_case %in% c("spiti", "vembanad")) {
+    
+    soib_trend_plot_sysmon(plot_type = cur_case, cur_data_trends = data_trends,
+                    analysis_type = "sysmon")
+    
+  } else if (cur_case == "vembanad") {
+    
+    data_trends_filt <- data_trends %>%
+      filter(COMMON.NAME %in% c("Black-headed Ibis", "Glossy Ibis", "Whiskered Tern"))
+    
+    soib_trend_plot_sysmon(plot_type = cur_case, cur_data_trends = data_trends_filt,
+                    analysis_type = "sysmon")
+    
+  } else {
+    
+    soib_trend_plot_sysmon(plot_type = cur_case, cur_data_trends = data_trends_extra,
+                    analysis_type = "sysmon")
+    
+  }
+  
+  
+  # plotting single-species in some cases ---------------------------------------------
+
+  if (cur_case %in% c("nannaj", "spiti", "vembanad")) {
+    
+    assign("path_all", path_out, envir = .GlobalEnv)
+    
+    data_trends %>% 
+      distinct(COMMON.NAME) %>% 
+      pull(COMMON.NAME) %>% 
+      walk(., ~ {
+        
+        data_trends_filt <- data_trends %>% filter(COMMON.NAME == .x)
+        
+        name_to_save <- .x %>% 
+          specname_to_india_checklist() %>% 
+          str_replace_all(c(" " = "-"))
+        
+        # single species out path
+        path_out <- str_replace(path_all, ".png", glue("_{name_to_save}.png"))
+        assign("path_out", path_out, envir = .GlobalEnv)
+        
+        soib_trend_plot_sysmon(plot_type = cur_case, cur_data_trends = data_trends_filt,
+                        analysis_type = "sysmon")
+      })
+    
+  }
+  
+
+  # vembanad plot of total counts -----------------------------------------------------
+
+  if (cur_case == "vembanad") {
+    
+    path_out <- str_replace(path_out_cache, ".png", glue("_tot.png"))
+    assign("path_out", path_out, envir = .GlobalEnv)
+    
+    soib_trend_plot_sysmon(plot_type = cur_case, cur_data_trends = data_trends_extra,
+                    analysis_type = "sysmon")
+    
+  }
+  
+
+  # cleaning environment ------------------------
+  
+  rm(list = setdiff(ls(envir = .GlobalEnv), "gen_trend_plots_sysmon"), 
+     envir = .GlobalEnv)
+  
+  
+}
+
