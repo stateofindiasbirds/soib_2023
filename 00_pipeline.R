@@ -141,8 +141,9 @@ tic("generated random group IDs for PA")
 source("00_scripts/create_random_groupids.R")
 toc() # 409 sec (7 min)
 
+# states
 tic.clearlog()
-tic("generated random group IDs for all states")
+tic("generated random group IDs for all states") # 74 min
 
 analyses_metadata %>% 
   filter(MASK.TYPE == "state") %>% 
@@ -152,7 +153,7 @@ analyses_metadata %>%
   walk(~ {
     
     tic(glue("generated random group IDs for {.x} state"))
-    cur_mask <- .x
+    assign("cur_mask", .x, envir = .GlobalEnv)
     source("00_scripts/create_random_groupids.R")
     toc(log = TRUE, quiet = TRUE) 
     
@@ -204,8 +205,9 @@ tic(glue("Generated subsampled data for {cur_mask}"))
 source("00_scripts/create_random_datafiles.R")
 toc() 
 
+# states
 tic.clearlog()
-tic("Generated subsampled data for all states")
+tic("Generated subsampled data for all states") # 71 hours
 
 analyses_metadata %>% 
   filter(MASK.TYPE == "state") %>% 
@@ -215,7 +217,7 @@ analyses_metadata %>%
   walk(~ {
     
     tic(glue("Generated subsampled data for {.x} state"))
-    cur_mask <- .x
+    assign("cur_mask", .x, envir = .GlobalEnv)
     source("00_scripts/create_random_datafiles.R")
     toc(log = TRUE, quiet = TRUE) 
     
