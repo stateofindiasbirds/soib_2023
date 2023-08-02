@@ -57,8 +57,8 @@ analyses_metadata <- data.frame(MASK = c("none",
   # paths for different plot outputs
   mutate(WEB.PLOTS.FOLDER = "20_website/graphs/",
          PLOT.SINGLE.FOLDER = glue("02_graphs/01_single/{MASK.ORDERED}/"),
-         PLOT.MULTI.FOLDER = glue("02_graphs/02_multispecies/{MASK.ORDERED}/"),
-         PLOT.COMPOSITE.FOLDER = glue("02_graphs/03_composite/{MASK.ORDERED}/"))
+         PLOT.MULTI.FOLDER = "02_graphs/02_multispecies/",
+         PLOT.COMPOSITE.FOLDER = "02_graphs/03_composite/")
 
 
 # ensuring folders are created if they don't already exist
