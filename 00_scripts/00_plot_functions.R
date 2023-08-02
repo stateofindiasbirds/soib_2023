@@ -818,7 +818,7 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     
     plot_ymin0 <- cur_data_trends %>%
       filter(!is.na(lci_std)) %>%
-      pull(rci_std) %>%
+      pull(lci_std) %>%
       min()
   } else if (plot_type == "single_mask") {
     plot_ymax0 <- cur_data_trends %>%
