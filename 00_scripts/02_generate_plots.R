@@ -283,11 +283,17 @@ gen_trend_plots_sysmon <- function(cur_case) {
       # rename columns to match eBird data names
       rename(mean_std = mean) %>% 
       # creating CI columns even though we are not plotting it
-      mutate(lci_std = mean_std, rci_std = mean_std)
+      mutate(lci_std = mean_std, rci_std = mean_std) %>% 
+      # convert to India Checklist name
+      mutate(COMMON.NAME = specname_to_india_checklist(COMMON.NAME))
 
   } else if (cur_case == "vembanad") {
     
-    data_trends <- read.csv(path_data) %>% rename(mean_std = mean)
+    data_trends <- read.csv(path_data) %>% 
+      rename(mean_std = mean) %>% 
+      # convert to India Checklist name
+      mutate(COMMON.NAME = specname_to_india_checklist(COMMON.NAME))
+    
     data_trends_extra <- read.csv(path_data_extra) %>% 
       rename(mean_std = mean) %>% 
       mutate(COMMON.NAME = "Total")
@@ -295,19 +301,21 @@ gen_trend_plots_sysmon <- function(cur_case) {
   } else {
     
     data_trends <- read.csv(path_data) %>% 
-      rename(mean_std = mean, lci_std = cil, rci_std = cir)
+      rename(mean_std = mean, lci_std = cil, rci_std = cir) %>% 
+      # eBird names changed in the meantime
+      mutate(COMMON.NAME = case_when(
+        COMMON.NAME == "Black-headed Mountain-Finch" ~ "Black-headed Mountain Finch",
+        COMMON.NAME == "Plain Mountain-Finch" ~ "Plain Mountain Finch",
+        TRUE ~ COMMON.NAME
+      )) %>% 
+      # convert to India Checklist name
+      mutate(COMMON.NAME = specname_to_india_checklist(COMMON.NAME))
     
     if (cur_case == "spiti") {
       
       data_trends <- data_trends %>% 
         filter(!is.na(mean_std), 
-               !((rci_std - mean_std) > 0.3 & rci_std / mean_std > 2)) %>% 
-        # eBird names changed in the meantime
-        mutate(COMMON.NAME = case_when(
-          COMMON.NAME == "Black-headed Mountain-Finch" ~ "Black-headed Mountain Finch",
-          COMMON.NAME == "Plain Mountain-Finch" ~ "Plain Mountain Finch",
-          TRUE ~ COMMON.NAME
-        ))
+               !((rci_std - mean_std) > 0.3 & rci_std / mean_std > 2))
       
       # habitats are already called COMMON.NAME
       data_trends_extra <- read.csv(path_data_extra) %>% 

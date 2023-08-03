@@ -1245,10 +1245,10 @@ soib_trend_plot_sysmon <- function(plot_type, cur_data_trends,
     timegroups_bracket_max <- tail(timegroups_num, -1) + 0.5
     
     plot_ytitle_margin <- margin(0, 0.6, 0, 0.4, "cm")
-    plot_xlimits <- c(head(timegroups_num, 1) - 0.07, tail(timegroups_num, 1) + 1)
+    plot_xlimits <- c(head(timegroups_num, 1) - 0.128, tail(timegroups_num, 1) + 1)
     plot_gridline_x <- tail(timegroups_bracket_max, 1) + 0.2
-    plot_repel_nudge <- -0.75
-    plot_xmin_minus <- 0.3
+    plot_repel_nudge <- -0.742
+    plot_xmin_minus <- 0.275
     
   } else if (plot_type == "vembanad") {
     
@@ -1352,7 +1352,8 @@ soib_trend_plot_sysmon <- function(plot_type, cur_data_trends,
     round_deci <- 2
   } else if (plot_type == "vembanad") { # high counts
     round_deci <- -2
-    if ("Total" %in% unique(cur_data_trends$COMMON.NAME)){
+    if ("Total" %in% unique(cur_data_trends$COMMON.NAME) |
+        sysmon_single == FALSE){
       round_deci <- -3
     }
   } else {

@@ -28,5 +28,6 @@ fetch_sysmon_metadata("full")
 # 2 mins
 sysmon_metadata %>% 
   filter(CASE != "eaglenest") %>% 
+  # filter(CASE == "nannaj") %>% 
   pull(CASE) %>% 
   walk(., ~ gen_trend_plots_sysmon(.x))
