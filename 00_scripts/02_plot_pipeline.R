@@ -5,8 +5,8 @@ source("00_scripts/00_plot_functions.R")
 
 # single-species for full country ---------------------------------------------------
 
-gen_trend_plots("single", "LTT") # 20 mins
-gen_trend_plots("single", "CAT") # 19.5 mins
+gen_trend_plots("single", "LTT") # 25 mins
+gen_trend_plots("single", "CAT") # 20.5 mins
 
 # single-species masks vs country ---------------------------------------------------
 

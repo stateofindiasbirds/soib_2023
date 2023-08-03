@@ -625,6 +625,8 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
                             data_trends, data_main, path_write,
                             cur_plot_metadata) {
   
+  analysis_type <- "ebird"
+  
   # convert to India Checklist names --------------------------------------------------
   
   if (plot_type != "composite") { 
@@ -632,6 +634,11 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     data_trends <- data_trends %>% 
       mutate(COMMON.NAME = specname_to_india_checklist(COMMON.NAME))
     data_main <- data_main %>% 
+      # species name changed in between
+      mutate(eBird.English.Name.2022 = case_when(
+        eBird.English.Name.2022 == "Common Grasshopper-Warbler" ~ "Common Grasshopper Warbler",
+        TRUE ~ eBird.English.Name.2022
+      )) %>% 
       mutate(eBird.English.Name.2022 = specname_to_india_checklist(eBird.English.Name.2022))
     cur_spec <- cur_spec %>% 
       specname_to_india_checklist()
@@ -995,7 +1002,8 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
   
   # assigning objects to environment --------------------------------------------------
   
-  obj_list <- list(path_write_file = path_write_file,
+  obj_list <- list(analysis_type = analysis_type,
+                   path_write_file = path_write_file,
                    cur_data_trends = cur_data_trends,
                    palette_plot_elem = palette_plot_elem,
                    palette_plot_title = palette_plot_title,
