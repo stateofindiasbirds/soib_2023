@@ -29,9 +29,15 @@ geom_gridline <- function(index_y = NULL, baseline = FALSE) {
   
   }
   
+  if (analysis_type == "sysmon") {
+    line_end <- tail(timegroups_num, 1)
+  } else {
+    line_end <- 2022
+  }
+  
   # provide both the grid line and its label
   list(
-    geom_segment(x = plot_xmin, xend = 2022, col = palette_plot_elem, # constant 
+    geom_segment(x = plot_xmin, xend = line_end, col = palette_plot_elem, # constant 
                  y = line_y, yend = line_y, 
                  linetype = line_linetype, linewidth = line_linewidth),
     
@@ -75,11 +81,21 @@ geom_axisbracket <- function(bracket_type = "time", bracket_trend = cur_trend) {
     
   }
   
-  geom_bracket(inherit.aes = FALSE, bracket.shorten = 0.15, # constant
-               family = plot_fontfamily, col = palette_plot_elem, # constant
+  bracket_shorten <- 0.15
+
+  if (analysis_type == "sysmon" & plot_type == "bustards") {
+    bracket_lab <- timegroups_lab
+    bracket_shorten <- 0
+  } 
+  
+  if (analysis_type == "sysmon" & plot_type %in% c("spiti", "vembanad")) {
+    bracket_lab <- timegroups_lab
+  }
+
+  geom_bracket(inherit.aes = FALSE, family = plot_fontfamily, col = palette_plot_elem, # constant
                xmin = bracket_min, xmax = bracket_max, y.position = bracket_ypos,
                label = bracket_lab, label.size = bracket_labelsize, fontface = bracket_fontface,
-               tip.length = bracket_tiplength, vjust = bracket_vjust)
+               tip.length = bracket_tiplength, vjust = bracket_vjust, bracket.shorten = bracket_shorten)
   
 }
 
@@ -531,6 +547,55 @@ fetch_plot_metadata <- function(plot_type) {
   
 }
 
+# fetch metadata for current systematic monitoring case --------------------------------
+
+fetch_sysmon_metadata <- function(cur_case) {
+  
+  if (cur_case == "full") {
+    
+    load("00_data/sysmon_metadata.RData")
+    list2env(list(sysmon_metadata = sysmon_metadata), envir = .GlobalEnv)
+    
+  } else {
+    
+    load("00_data/sysmon_metadata.RData")
+    
+    if (!(cur_case %in% unique(sysmon_metadata$CASE))) {
+      return("Select valid case study!")
+    }
+    
+    cur_metadata <- sysmon_metadata %>% filter(CASE == cur_case)
+    
+    path_data <- cur_metadata$PATH.DATA
+    path_out <- cur_metadata$PATH.OUT
+    
+    if (cur_case %in% c("spiti", "vembanad")) {
+      path_data_extra <- cur_metadata$PATH.DATA.EXTRA
+      path_out_extra <- cur_metadata$PATH.OUT.EXTRA
+    }
+    
+    plot_ylab <- cur_metadata$METRIC
+    
+    
+    # assign to environment
+    
+    obj_list <- list(cur_metadata = cur_metadata,
+                     path_data = path_data, 
+                     path_out = path_out,
+                     plot_ylab = plot_ylab)
+    
+    if (cur_case %in% c("spiti", "vembanad")) {
+      obj_list <- c(obj_list, 
+                    list(path_data_extra = path_data_extra,
+                         path_out_extra = path_out_extra))
+    }
+    
+    list2env(obj_list, envir = .GlobalEnv)
+    
+  }
+  
+}
+
 # generate summary of composites ----------------------------------------------------
 
 create_composite_summary <- function(metadata, init_obj) {
@@ -557,8 +622,10 @@ create_composite_summary <- function(metadata, init_obj) {
 # ### PLOT: SoIB 2023 trend -------------------------------------------------------------
 
 soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
-                                   data_trends, data_main, path_write,
-                                   cur_plot_metadata) {
+                            data_trends, data_main, path_write,
+                            cur_plot_metadata) {
+  
+  analysis_type <- "ebird"
   
   # convert to India Checklist names --------------------------------------------------
   
@@ -567,6 +634,11 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     data_trends <- data_trends %>% 
       mutate(COMMON.NAME = specname_to_india_checklist(COMMON.NAME))
     data_main <- data_main %>% 
+      # species name changed in between
+      mutate(eBird.English.Name.2022 = case_when(
+        eBird.English.Name.2022 == "Common Grasshopper-Warbler" ~ "Common Grasshopper Warbler",
+        TRUE ~ eBird.English.Name.2022
+      )) %>% 
       mutate(eBird.English.Name.2022 = specname_to_india_checklist(eBird.English.Name.2022))
     cur_spec <- cur_spec %>% 
       specname_to_india_checklist()
@@ -753,7 +825,7 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     
     plot_ymin0 <- cur_data_trends %>%
       filter(!is.na(lci_std)) %>%
-      pull(rci_std) %>%
+      pull(lci_std) %>%
       min()
   } else if (plot_type == "single_mask") {
     plot_ymax0 <- cur_data_trends %>%
@@ -930,7 +1002,8 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
   
   # assigning objects to environment --------------------------------------------------
   
-  obj_list <- list(path_write_file = path_write_file,
+  obj_list <- list(analysis_type = analysis_type,
+                   path_write_file = path_write_file,
                    cur_data_trends = cur_data_trends,
                    palette_plot_elem = palette_plot_elem,
                    palette_plot_title = palette_plot_title,
@@ -1059,5 +1132,326 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
   rm(list = names(obj_list), envir = .GlobalEnv)
   
   toc()
+}
+
+
+# ### PLOT: SoIB 2023 trend (sysmon) -------------------------------------------------------------
+
+# needs to be integrated with above; leaving separate for want of time
+
+
+soib_trend_plot_sysmon <- function(plot_type, cur_data_trends,
+                                   analysis_type = "sysmon") {
+  
+  # is it a single-species plot
+  if (plot_type %in% c("nannaj", "spiti", "vembanad") & 
+      n_distinct(cur_data_trends$COMMON.NAME) == 1) {
+    sysmon_single <- TRUE
+  } else {
+    sysmon_single <- FALSE
+  }
+  
+  # plot/theme settings -----------------------------------------------------
+  
+  palette_plot_elem <- "#56697B"
+  palette_plot_title <- "#A13E2B"
+  palette_trend_groups <- c("#869B27", "#E49B36", "#436b74", "#CC6666", 
+                            "#B69AC9", "#78CAE0","#31954E","#493F3D",
+                            "#EA5599", "#9999CC", "#A13E2B", "#66CC99")
+  if (plot_type == "nannaj" & sysmon_single == TRUE) {
+    palette_trend_groups <- palette_trend_groups[1]
+  } 
+  
+  plot_fontfamily <- "Gandhi Sans"
+  
+  
+  # other plot settings ###
+  
+  if (plot_type == "bustards") {
+    
+    geom_pos_setting <- "identity"
+    
+    # defining and adjusting timegroups
+    timegroups_num <- cur_data_trends %>%
+      distinct(timegroups) %>% 
+      arrange(timegroups) %>% 
+      # if two years are consecutive, take the later one
+      mutate(diff_tg = lead(timegroups, default = 0) - timegroups) %>%
+      filter(diff_tg >= 2 | diff_tg < 0) %>% # the last year will give negative diff_tg
+      distinct(timegroups) %>% 
+      pull(timegroups) %>% 
+      c(1968, .) # add first year
+    
+  } else if (plot_type == "hornbills") {
+    
+    # for those plots with errorbars
+    geom_pos_setting <- position_dodge(0.3)
+    timegroups_num <- 2015:2022
+    
+  } else if (plot_type == "nannaj") {
+    
+    geom_pos_setting <- position_dodge(0.3)
+    timegroups_num <- 2012:2021
+    
+  } else if (plot_type == "spiti" & sysmon_single == TRUE) {
+    
+    geom_pos_setting <- position_dodge(0.3)
+    timegroups_num <- 2002:2022
+    
+  } else if (plot_type == "vembanad") {
+    
+    geom_pos_setting <- position_dodge(0.3)
+    timegroups_num <- 2001:2023
+    
+  } else {
+    
+    geom_pos_setting <- position_dodge(0.3)
+    timegroups_num <- min(cur_data_trends$timegroups):max(cur_data_trends$timegroups)
+    
+  }
+  
+  timegroups_lab <- timegroups_num %>% as.character()
+  
+  
+  if (plot_type == "bustards") {
+    
+    # to sort out problematic timeline and resultant x brackets
+    temp1 = timegroups_num[-1] + 0.5
+    temp1 = temp1[-length(temp1)]
+    
+    temp2 = timegroups_num[-1] - 0.5
+    temp2 = temp2[-1]
+    
+    timegroups_bracket_min <- sort(c(timegroups_num[-1] - 0.5, temp1))
+    timegroups_bracket_max <- sort(c(timegroups_num[-1] + 0.5, temp2))
+    
+    temp3 <- character(length(timegroups_lab[-1]) * 2 - 1)
+    temp3[seq(1, length(temp3), 2)] <- timegroups_lab[-1]
+    timegroups_lab <- temp3
+    
+    
+    plot_ytitle_margin <- margin(0, -0.6, 0, 0.4, "cm")
+    plot_xlimits <- c(head(timegroups_num, 1) - 8, tail(timegroups_num, 1) + 8)
+    plot_gridline_x <- tail(timegroups_num, 1) + 2
+    plot_repel_nudge <- -2.5
+    plot_xmin_minus <- 0.7
+    
+  } else if (plot_type == "spiti") {
+    
+    timegroups_bracket_min <- c(seq(2001, 2021)) + 0.5
+    timegroups_bracket_max <- c(seq(2002, 2022)) + 0.5
+    
+    plot_ytitle_margin <- margin(0, 0.6, 0, 0.4, "cm")
+    plot_xlimits <- c(1999.1, 2023.5)
+    plot_gridline_x <- tail(timegroups_bracket_max, 1) + 0.5
+    plot_repel_nudge <- -1.7
+    plot_xmin_minus <- 0.2
+    
+  } else if (plot_type %in% c("hornbills", "nannaj")) {
+    
+    timegroups_bracket_min <- tail(timegroups_num, -1) - 0.5
+    timegroups_bracket_max <- tail(timegroups_num, -1) + 0.5
+    
+    plot_ytitle_margin <- margin(0, 0.6, 0, 0.4, "cm")
+    plot_xlimits <- c(head(timegroups_num, 1) - 0.128, tail(timegroups_num, 1) + 1)
+    plot_gridline_x <- tail(timegroups_bracket_max, 1) + 0.2
+    plot_repel_nudge <- -0.742
+    plot_xmin_minus <- 0.275
+    
+  } else if (plot_type == "vembanad") {
+    
+    timegroups_bracket_min <- timegroups_num - 0.5
+    timegroups_bracket_max <- timegroups_num + 0.5
+    
+    plot_ytitle_margin <- margin(0, 0.6, 0, 0.4, "cm")
+    plot_xlimits <- c(head(timegroups_num, 1) - 3.5, tail(timegroups_num, 1) + 3)
+    plot_gridline_x <- tail(timegroups_bracket_max, 1) + 1
+    plot_repel_nudge <- -2.2
+    plot_xmin_minus <- 0.7
+    
+  }
+  
+  
+  # wrap names and reorder species based on final year value ###
+  
+  wrap_nchar <- 15 
+  
+  # for each species, arranging different (latest) mask trend values in desc. order
+  # (mainly useful for mask comparison graphs)
+  spec_order <- cur_data_trends %>%
+    group_by(COMMON.NAME) %>% 
+    filter(timegroups == max(timegroups)) %>%
+    arrange(desc(mean_std)) %>% 
+    distinct(COMMON.NAME)
+  
+  cur_data_trends <- cur_data_trends %>% 
+    mutate(COMMON.NAME = factor(COMMON.NAME, levels = spec_order$COMMON.NAME)) %>% 
+    group_by(COMMON.NAME) %>% 
+    # wrapping the labels for each trend line based on number of characters
+    # we will be plotting the label as a geom, not as a label of a geom, so only need for first x value
+    mutate(COMMON.NAME.WRAP = case_when(
+      timegroups == min(timegroups) ~ str_wrap(COMMON.NAME, width = wrap_nchar),
+      TRUE ~ ""
+    )) %>% 
+    ungroup()
+  
+  
+  # determining limits & breaks for current plot -----------------------------------------------
+  
+  # x lim
+  plot_xmin <- cur_data_trends %>%
+    distinct(COMMON.NAME, timegroups) %>%
+    arrange(COMMON.NAME, timegroups) %>%
+    group_by(COMMON.NAME) %>% 
+    slice(1) %>% # because no baseline in sysmon graphs
+    ungroup() %>%
+    pull(timegroups)
+  
+  if (plot_type == "bustards" |
+      plot_type == "spiti" & sysmon_single == FALSE |
+      plot_type == "vembanad") {
+    
+    plot_xmin <- min(plot_xmin)
+    
+    # ylim
+    plot_ymin <- cur_data_trends %>%
+      filter(!is.na(mean_std)) %>%
+      pull(mean_std) %>%
+      min()
+    plot_ymax <- cur_data_trends %>%
+      filter(!is.na(mean_std)) %>%
+      pull(mean_std) %>%
+      max()
+    
+  } else {
+    
+    plot_xmin <- max(plot_xmin)
+    
+    # ylim
+    plot_ymin <- cur_data_trends %>%
+      filter(!is.na(lci_std)) %>%
+      pull(lci_std) %>%
+      min()
+    plot_ymax <- cur_data_trends %>%
+      filter(!is.na(rci_std)) %>%
+      pull(rci_std) %>%
+      max()
+    
+  }
+  
+  
+  plot_range_max <- plot_ymax - plot_ymin
+  
+  plot_ymin <- plot_ymin - 0.1 * plot_range_max
+  if (plot_ymin < 0) {
+    plot_ymin <- 0
+  }
+  plot_ymax <- plot_ymax + 0.1 * plot_range_max
+  
+  # for plotting
+  plot_ymax0 <- plot_ymax 
+  plot_ymin0 <- plot_ymin 
+  
+  
+  # y breaks
+  if (plot_type == "bustards") { # estimate
+    round_deci <- -1
+  } else if (plot_type %in% c("nannaj", "spiti") & sysmon_single == TRUE) {
+    round_deci <- 2
+  } else if (plot_type == "vembanad") { # high counts
+    round_deci <- -2
+    if ("Total" %in% unique(cur_data_trends$COMMON.NAME) |
+        sysmon_single == FALSE){
+      round_deci <- -3
+    }
+  } else {
+    round_deci <- 1
+  }
+  
+  plot_ybreaks <- seq(plot_ymin, plot_ymax, length.out = 5) %>% round(round_deci)
+  plot_ybreaks_lab <- plot_ybreaks %>% round(round_deci)
+  
+  # assigning objects to environment --------------------------------------------------
+  
+  obj_list <- list(analysis_type = analysis_type,
+                   plot_type = plot_type,
+                   sysmon_single = sysmon_single,
+                   path_write_file = path_out,
+                   cur_data_trends = cur_data_trends,
+                   palette_plot_elem = palette_plot_elem,
+                   palette_plot_title = palette_plot_title,
+                   palette_trend_groups = palette_trend_groups,
+                   plot_fontfamily = plot_fontfamily,
+                   timegroups_num = timegroups_num,
+                   timegroups_lab = timegroups_lab,
+                   timegroups_bracket_min = timegroups_bracket_min,
+                   timegroups_bracket_max = timegroups_bracket_max,
+                   plot_ytitle_margin = plot_ytitle_margin,
+                   plot_xlimits = plot_xlimits,
+                   plot_gridline_x = plot_gridline_x,
+                   plot_xmin = plot_xmin,
+                   plot_ymin = plot_ymin,
+                   plot_ymin0 = plot_ymin0,
+                   plot_ymax = plot_ymax,
+                   plot_ymax0 = plot_ymax0,
+                   plot_ybreaks = plot_ybreaks,
+                   plot_ybreaks_lab = plot_ybreaks_lab,
+                   plot_range_max = plot_range_max)
+  
+  list2env(obj_list, envir = .GlobalEnv)
+  
+  # creating the plot base based on plot type ------------------------------------------
+  
+  plot_base <- ggplot(cur_data_trends, 
+                      aes(x = timegroups, y = mean_std, 
+                          col = COMMON.NAME, label = COMMON.NAME.WRAP)) +
+    geom_line(linewidth = 1, lineend = "round", position = geom_pos_setting) +
+    {if (sysmon_single == FALSE) {
+      geom_text_repel(nudge_x = plot_repel_nudge, direction = "y", 
+                      hjust = 0.5, size = 4, force_pull = 0,
+                      xlim = c(plot_xlimits[1] - 0.1, plot_xmin - plot_xmin_minus),
+                      family = plot_fontfamily, min.segment.length = Inf)
+    }} +
+    geom_point(size = 3, position = geom_pos_setting) +
+    {if (plot_type %in% c("hornbills", "nannaj") |
+         plot_type == "spiti" & sysmon_single == TRUE) {
+      geom_errorbar(aes(ymin = lci_std, ymax = rci_std), 
+                    linewidth = 1, width = 0.2, position = geom_pos_setting)    
+    }} +
+    scale_colour_manual(values = palette_trend_groups) +
+    scale_fill_manual(values = palette_trend_groups) 
+  
+  # completing and writing the plot -----------------------------------------------------
+  
+  # joining plot base with other constant aesthetic features of graph
+  
+  cur_plot <- plot_base +
+    # timegroup brackets
+    geom_axisbracket("time") + 
+    # manual grid lines with labels because we want empty space before the first timegroup
+    geom_gridline(1) +
+    geom_gridline(2) +
+    geom_gridline(3) +
+    geom_gridline(4) +
+    geom_gridline(5) +
+    coord_cartesian(ylim = c(plot_ymin0 - 0.1 * plot_range_max,
+                             plot_ymax0 + 0.1 * plot_range_max),
+                    clip = "off") +
+    scale_x_continuous(expand = c(0, 0), limits = plot_xlimits) +
+    scale_y_continuous(expand = c(0, 0)) +
+    # ggtitle(cur_spec) +
+    labs(x = "Time-steps", y = plot_ylab) +
+    guides(colour = "none", fill = "none") +
+    # theme
+    ggtheme_soibtrend()
+  
+  ggsave(filename = path_write_file, plot = cur_plot,
+         dpi = 500, bg = "transparent",
+         width = 11, height = 7.5, units = "in")
+
+  # removing objects from global environment ------------------------------------------
+  
+  rm(list = names(obj_list), envir = .GlobalEnv)
+  
 }
 

@@ -1544,12 +1544,21 @@ specname_to_india_checklist <- function(spec_names) {
   names_map <- read.csv("00_data/SoIB_mapping_2022.csv") %>% 
     distinct(eBird.English.Name.2022, India.Checklist.Common.Name)
   
-  df_names <- data.frame(OLD = spec_names) %>% 
+  df_names <- data.frame(OLD = spec_names)
+  
+  # quit if already India Checklist name
+  if (all(df_names$OLD %in% names_map$India.Checklist.Common.Name)) {
+    print("Species name(s) already align with India Checklist.")
+    return(spec_names)
+  }
+  
+  df_names <- df_names %>% 
     left_join(names_map, by = c("OLD" = "eBird.English.Name.2022")) %>% 
     rename(NEW = India.Checklist.Common.Name)
   
   if (any(is.na(df_names$NEW))) {
-    return("Input species name is not valid eBird name")
+    print("Input species name is not valid eBird name")
+    stop()
   }
   
   return(df_names$NEW)
