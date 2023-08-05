@@ -317,7 +317,9 @@ key.state.species.report = key.state.species.report %>%
 
 key.state.species.report.final = key.state.species.report %>%
   left_join(india.checklist.map) %>%
-  select(ST_NM,India.Checklist.Common.Name,prop.range,SOIBv2.Long.Term.Status,SOIBv2.Current.Status,SOIBv2.Range.Status)
+  mutate(India.Checklist.Common.Name = factor(India.Checklist.Common.Name, levels = unique(india.checklist.map$India.Checklist.Common.Name))) %>%
+  select(ST_NM,India.Checklist.Common.Name,prop.range,SOIBv2.Long.Term.Status,SOIBv2.Current.Status,SOIBv2.Range.Status) %>%
+  group_by(ST_NM) %>% arrange(India.Checklist.Common.Name, .by_group = T)
 
 
 write.csv(key.state.species.report.final, "01_analyses_full/key_state_species_4.csv", row.names = F)
@@ -384,7 +386,7 @@ full.list.prop.rem = data0 %>%
   mutate(n = case_when(is.na(n)~0,TRUE~n)) %>%                                                      
   group_by(ST_NM) %>% arrange(desc(prop.range), .by_group=TRUE) %>% slice(1:(20-max(n))) %>%
   dplyr::select(-n) %>%
-  filter(prop.range >= 0.05)
+  filter(prop.range >= 0.035)
 
 full.list.prop.comb = full.list.prop.rem %>%
   bind_rows(full.list.4.prop) %>%
@@ -393,7 +395,9 @@ full.list.prop.comb = full.list.prop.rem %>%
 
 key.state.species.full.list = full.list.prop.comb %>%
   left_join(india.checklist.map) %>%
-  select(ST_NM,India.Checklist.Common.Name,prop.range)
+  mutate(India.Checklist.Common.Name = factor(India.Checklist.Common.Name, levels = unique(india.checklist.map$India.Checklist.Common.Name))) %>%
+  select(ST_NM,India.Checklist.Common.Name,prop.range) %>%
+  group_by(ST_NM) %>% arrange(India.Checklist.Common.Name, .by_group = T)
  
 write.csv(key.state.species.full.list, "01_analyses_full/key_state_species_full_list.csv", row.names = F)
 
