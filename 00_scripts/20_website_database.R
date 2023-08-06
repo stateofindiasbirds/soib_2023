@@ -90,18 +90,16 @@ web_db <- web_db %>%
          map_filename_originals = glue("{URL_pre_uploads}originals/{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
          graph_filename = glue("{URL_pre_uploads}{URL_species}_{MASK.CODE}{URL_suf_trend}"),
          graph_filename_originals = glue("{URL_pre_uploads}originals/{URL_species}_{MASK.CODE}{URL_suf_trend}")) %>% 
-  mutate(HTML_str = create_HTML_strings(.),
-         full_url_2 = glue("{MASK.CODE}/{custom_url}"),
+  mutate(full_url_2 = glue("{MASK.CODE}/{custom_url}"),
          post_category = MASK.LABEL)
 
 # get list of all masks for each species
 web_db <- web_db %>% 
   group_by(India.Checklist.Common.Name, MASK.TYPE) %>% 
   # HTML string, mask codes and mask labels (for states) of all masks of current mask type
-  summarise(trends = str_flatten(HTML_str, collapse = ","),
-            trends_addn = str_flatten(MASK.CODE, collapse = ",")) %>% 
+  summarise(trends_addn = str_flatten(MASK.CODE, collapse = ",")) %>% 
   pivot_wider(names_from = MASK.TYPE, 
-              values_from = c(trends, trends_addn), 
+              values_from = trends_addn, 
               names_glue = "{MASK.TYPE}_{.value}") %>% 
   ungroup() %>% 
   left_join(web_db)
@@ -139,7 +137,6 @@ web_db <- web_db %>%
                 current_status, distribution_status, iucn_status, long_term_status,
                 migratory_status, status_of_conservation_concern, wlpa_schedule,
                 primary_assessment, habitat_specialization, endemicity, custom_url, 
-                state_trends, national_trends, habitat_trends, conservation_area_trends,
                 `long-term_trend_in`, `long-term_trend_ci_in`, current_annual_change_in, current_annual_change_ci_in, 
                 distribution_range_size_in, distribution_range_size_ci_units_of_10000_sqkm_in,
                 migratory_status_in, habitat_specialization_in, endemicity_in,
