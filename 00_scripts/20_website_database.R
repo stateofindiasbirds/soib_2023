@@ -5,6 +5,11 @@ load("00_data/analyses_metadata.RData")
 source("00_scripts/20_functions.R")
 load("00_data/spec_mask_selections.RData")
 
+# key states for each species
+keystates <- read.csv("01_analyses_full/results/key_state_species_full.csv") %>% 
+  arrange(India.Checklist.Common.Name, ST_NM) %>% 
+  group_by(India.Checklist.Common.Name) %>% 
+  summarise(key_states = str_flatten_comma(ST_NM))
 
 # import ----------------------------------------------------------------------------
 
@@ -44,6 +49,8 @@ web_db0 <- map2(analyses_metadata$SOIBMAIN.PATH, analyses_metadata$MASK,
 # creation of fields ----------------------------------------------------------------
 
 web_db <- web_db0 %>% 
+  # join key states for each species
+  left_join(keystates) %>% 
   rename(`long-term_trend` = longtermmean,
          current_annual_change = currentslopemean,
          distribution_range_size = rangemean,
@@ -75,7 +82,7 @@ web_db <- web_db %>%
          URL_species = str_replace_all(India.Checklist.Common.Name, 
                                        c(" " = "-", "'" = "_")), 
          URL_suf_rangemap = "_rangemap.png",
-         URL_suf_trend = "_trend.pngg") %>% 
+         URL_suf_trend = "_trend.png") %>% 
   # some long strings
   mutate(featured_image = glue("{URL_pre_uploads}{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
          downloadlink = glue("{URL_pre_uploads}{URL_species}_{MASK.CODE}_Infosheets.jpg"), ### JPG or PNG?
@@ -92,16 +99,11 @@ web_db <- web_db %>%
   group_by(India.Checklist.Common.Name, MASK.TYPE) %>% 
   # HTML string, mask codes and mask labels (for states) of all masks of current mask type
   summarise(trends = str_flatten(HTML_str, collapse = ","),
-            trends_addn = str_flatten(MASK.CODE, collapse = ","),
-            mask_labs = str_flatten(MASK.LABEL, collapse = ",")) %>% 
+            trends_addn = str_flatten(MASK.CODE, collapse = ",")) %>% 
   pivot_wider(names_from = MASK.TYPE, 
-              values_from = c(trends, trends_addn, mask_labs), 
+              values_from = c(trends, trends_addn), 
               names_glue = "{MASK.TYPE}_{.value}") %>% 
   ungroup() %>% 
-  # we only want state names
-  dplyr::select(-c(habitat_mask_labs, national_mask_labs, conservation_area_mask_labs)) %>% 
-  # column of key states for each species
-  rename(key_states = state_mask_labs) %>% 
   left_join(web_db)
 
 # national trend values as separate columns
