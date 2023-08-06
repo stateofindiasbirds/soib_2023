@@ -60,7 +60,7 @@ geom_axisbracket <- function(bracket_type = "time", bracket_trend = cur_trend) {
   bracket_ypos <- plot_ymin0 - 0.01 * plot_range_max
   bracket_lab <- timegroups_lab[-1]
   bracket_tiplength <- 0
-  bracket_labelsize <- 3.8
+  bracket_labelsize <- 4.8
   bracket_fontface <- 1
   bracket_vjust <- 2.5
   
@@ -91,7 +91,7 @@ geom_axisbracket <- function(bracket_type = "time", bracket_trend = cur_trend) {
   if (analysis_type == "sysmon" & plot_type %in% c("spiti", "vembanad")) {
     bracket_lab <- timegroups_lab
   }
-
+  
   geom_bracket(inherit.aes = FALSE, family = plot_fontfamily, col = palette_plot_elem, # constant
                xmin = bracket_min, xmax = bracket_max, y.position = bracket_ypos,
                label = bracket_lab, label.size = bracket_labelsize, fontface = bracket_fontface,
@@ -501,7 +501,8 @@ fetch_plot_metadata <- function(plot_type) {
       mutate(PLOT.NAME = "Woodland")
     
     
-    plot_load_filter_data(plot_type, cur_trend, c("ONEland", "cropland"))
+    #plot_load_filter_data(plot_type, cur_trend, c("ONEland", "cropland"))
+    #getting an error here so removing this step for now
     
     data7 <- data_main %>% 
       rename(GROUP = MASK.TITLE) %>% 
@@ -724,8 +725,8 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
   if (cur_trend == "LTT") {
     
     timegroups_lab <- c("before 2000", "2000-2006", "2007-2010", "2011-2012", 
-                        "2013", "2014", "2015", "2016", "2017", "2018", "2019", 
-                        "2020", "2021", "2022")
+                        "", "2014", "", "2016", "", "2018", "", 
+                        "2020", "", "2022")
     timegroups_bracket_min <- c(1999, 2006, 2010, 2012, seq(2013, 2021)) + 0.5
     timegroups_bracket_max <- c(2006, 2010, 2012, seq(2013, 2022)) + 0.5
     plot_ytitle_margin <- margin(0, -0.6, 0, 0.4, "cm")
@@ -914,6 +915,12 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
   }
   
   plot_range_max <- plot_ymax - plot_ymin
+
+  # to standardize the y-range
+  if (plot_range_max == 100)
+    plot_range_max = 125
+  if (plot_range_max == 200)
+    plot_range_max = 250
   
   
   # fixing the Status reference grid line -------------------------------------------------
@@ -1241,6 +1248,9 @@ soib_trend_plot_sysmon <- function(plot_type, cur_data_trends,
     timegroups_bracket_min <- c(seq(2001, 2021)) + 0.5
     timegroups_bracket_max <- c(seq(2002, 2022)) + 0.5
     
+    temp3 <- seq(2,length(timegroups_lab),2)
+    timegroups_lab[temp3] = ""
+    
     plot_ytitle_margin <- margin(0, 0.6, 0, 0.4, "cm")
     plot_xlimits <- c(1999.1, 2023.5)
     plot_gridline_x <- tail(timegroups_bracket_max, 1) + 0.5
@@ -1262,6 +1272,9 @@ soib_trend_plot_sysmon <- function(plot_type, cur_data_trends,
     
     timegroups_bracket_min <- timegroups_num - 0.5
     timegroups_bracket_max <- timegroups_num + 0.5
+    
+    temp3 <- seq(2,length(timegroups_lab),2)
+    timegroups_lab[temp3] = ""
     
     plot_ytitle_margin <- margin(0, 0.6, 0, 0.4, "cm")
     plot_xlimits <- c(head(timegroups_num, 1) - 3.5, tail(timegroups_num, 1) + 3)
