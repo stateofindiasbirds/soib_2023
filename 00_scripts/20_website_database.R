@@ -37,7 +37,7 @@ web_db0 <- map2(analyses_metadata$SOIBMAIN.PATH, analyses_metadata$MASK,
   mutate(MASK.TYPE = if_else(MASK.TYPE == "country", "national", MASK.TYPE)) %>% 
   relocate(India.Checklist.Common.Name, MASK) %>% 
   arrange(India.Checklist.Common.Name, MASK) %>% 
-  mutate(ID = "", post_content = "", post_excerpt = "", post_date = "", post_name = "",
+  mutate(ID = "", post_excerpt = "", post_date = "", post_name = "",
          wp_page_template = "", pinged = "", primary_assessment = "",
          post_author = "amithkumar.4",
          post_status = "publish",
@@ -90,14 +90,19 @@ web_db <- web_db %>%
          map_filename_originals = glue("{URL_pre_uploads}originals/{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
          graph_filename = glue("{URL_pre_uploads}{URL_species}_{MASK.CODE}{URL_suf_trend}"),
          graph_filename_originals = glue("{URL_pre_uploads}originals/{URL_species}_{MASK.CODE}{URL_suf_trend}")) %>% 
-  mutate(full_url_2 = glue("{MASK.CODE}/{custom_url}"),
-         post_category = MASK.LABEL)
+  mutate(full_url_2 = case_when(MASK.TYPE == "national" ~ glue("{custom_url}"),
+                                  TRUE ~ glue("{MASK.CODE}-{custom_url}")),
+         post_category = MASK.LABEL,
+         post_content = MASK.LABEL,
+         all_trends = MASK.LABEL,
+         habitats = if_else(MASK.TYPE == "habitat", MASK.LABEL, NA_character_),
+         conservation_areas = if_else(MASK.TYPE == "conservation_area", MASK.LABEL, NA_character_))
 
 # get list of all masks for each species
 web_db <- web_db %>% 
   group_by(India.Checklist.Common.Name, MASK.TYPE) %>% 
   # HTML string, mask codes and mask labels (for states) of all masks of current mask type
-  summarise(trends_addn = str_flatten(MASK.CODE, collapse = ",")) %>% 
+  summarise(trends_addn = str_flatten(full_url_2, collapse = ",")) %>% 
   pivot_wider(names_from = MASK.TYPE, 
               values_from = trends_addn, 
               names_glue = "{MASK.TYPE}_{.value}") %>% 
@@ -140,8 +145,8 @@ web_db <- web_db %>%
                 `long-term_trend_in`, `long-term_trend_ci_in`, current_annual_change_in, current_annual_change_ci_in, 
                 distribution_range_size_in, distribution_range_size_ci_units_of_10000_sqkm_in,
                 migratory_status_in, habitat_specialization_in, endemicity_in,
-                national_trends_addn, habitat_trends_addn, state_trends_addn, conservation_area_trends_addn,
-                full_url_2, post_category, key_states) %>% 
+                national_trends_addn, habitat_trends_addn, state_trends_addn, full_url_2, 
+                habitats, conservation_areas, conservation_area_trends_addn, key_states, all_trends, post_category) %>% 
   # converting all NAs to blanks
   mutate(across(everything(), ~ ifelse(is.na(.), "", .)))
 
