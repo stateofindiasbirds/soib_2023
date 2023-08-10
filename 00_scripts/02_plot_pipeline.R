@@ -1,9 +1,12 @@
+require(tidyverse)
+
 source("00_scripts/02_generate_plots.R")
+source("00_scripts/00_plot_functions.R")
 
 # single-species for full country ---------------------------------------------------
 
-gen_trend_plots("single", "LTT") # 20 mins
-gen_trend_plots("single", "CAT") # 19.5 mins
+gen_trend_plots("single", "LTT") # 25 mins
+gen_trend_plots("single", "CAT") # 20.5 mins
 
 # single-species masks vs country ---------------------------------------------------
 
@@ -20,4 +23,11 @@ gen_trend_plots("composite") # 15 sec
 
 # systematic monitoring plots -------------------------------------------------------
 
+fetch_sysmon_metadata("full")
 
+# 2 mins
+sysmon_metadata %>% 
+  filter(CASE != "eaglenest") %>% 
+  # filter(CASE == "nannaj") %>% 
+  pull(CASE) %>% 
+  walk(., ~ gen_trend_plots_sysmon(.x))
