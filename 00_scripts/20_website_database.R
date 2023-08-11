@@ -37,7 +37,7 @@ web_db0 <- map2(analyses_metadata$SOIBMAIN.PATH, analyses_metadata$MASK,
   mutate(MASK.TYPE = if_else(MASK.TYPE == "country", "national", MASK.TYPE)) %>% 
   relocate(India.Checklist.Common.Name, MASK) %>% 
   arrange(India.Checklist.Common.Name, MASK) %>% 
-  mutate(ID = "", post_excerpt = "", post_date = "", post_name = "",
+  mutate(ID = "", post_excerpt = "", post_date = "", downloadlink = "",
          wp_page_template = "", pinged = "", primary_assessment = "",
          post_author = "amithkumar.4",
          post_status = "publish",
@@ -85,7 +85,6 @@ web_db <- web_db %>%
          URL_suf_trend = "_trend.png") %>% 
   # some long strings
   mutate(featured_image = glue("{URL_pre_uploads}{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
-         downloadlink = glue("{URL_pre_uploads}{URL_species}_{MASK.CODE}_Infosheets.jpg"), ### JPG or PNG?
          map_filename = glue("{URL_pre_uploads}{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
          map_filename_originals = glue("{URL_pre_uploads}originals/{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
          graph_filename = glue("{URL_pre_uploads}{URL_species}_{MASK.CODE}{URL_suf_trend}"),
@@ -102,12 +101,13 @@ web_db <- web_db %>%
 web_db <- web_db %>% 
   group_by(India.Checklist.Common.Name, MASK.TYPE) %>% 
   # HTML string, mask codes and mask labels (for states) of all masks of current mask type
-  summarise(trends_addn = str_flatten(full_url_2, collapse = ",")) %>% 
+  summarise(trends_addn = str_flatten(glue("{MASK.CODE}-{custom_url}"), collapse = ",")) %>% 
   pivot_wider(names_from = MASK.TYPE, 
               values_from = trends_addn, 
               names_glue = "{MASK.TYPE}_{.value}") %>% 
   ungroup() %>% 
-  left_join(web_db)
+  left_join(web_db) %>% 
+  mutate(post_name = if_else(MASK.TYPE == "national", national_trends_addn, full_url_2))
 
 # national trend values as separate columns
 web_db <- web_db %>% 
