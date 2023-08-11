@@ -219,7 +219,7 @@ analyses_metadata %>%
     tic(glue("Generated subsampled data for {.x} state"))
     assign("cur_mask", .x, envir = .GlobalEnv)
     source("00_scripts/create_random_datafiles.R")
-    toc(log = TRUE, quiet = TRUE) 
+    toc(log = TRUE) 
     
   })
 
@@ -272,18 +272,20 @@ toc() # 195 sec for 1 sim (~ 11 hours for 200 sim)
 
 tic.clearlog()
 tic("Ran species trends for all states")
+# Karnataka takes 4.5 min per 1 sim
 
 analyses_metadata %>% 
   filter(MASK.TYPE == "state") %>% 
   distinct(MASK) %>% 
+  slice(9:25) %>%
   pull(MASK) %>% 
   # walking over each state
   walk(~ {
     
     tic(glue("Ran species trends for {.x} state"))
-    cur_mask <- .x
+    assign("cur_mask", .x, envir = .GlobalEnv)
     source("00_scripts/run_species_trends.R")
-    toc(log = TRUE, quiet = TRUE) 
+    toc(log = TRUE) 
     
   })
 
@@ -333,7 +335,7 @@ analyses_metadata %>%
     source("00_scripts/run_species_occupancy-setup.R")
     
     tic(glue("Ran presence-based occupancy for {.x} state"))
-    cur_mask <- .x
+    assign("cur_mask", .x, envir = .GlobalEnv)
     source("00_scripts/run_species_occupancy-presence.R")
     toc(log = TRUE, quiet = TRUE) 
     
