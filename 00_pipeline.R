@@ -395,9 +395,25 @@ tic(glue("Resolved trends & occupancy for {cur_mask}"))
 source("00_scripts/resolve_trends_and_occupancy.R")
 toc() 
 
-cur_mask <- "Kerala"
-tic(glue("Resolved trends & occupancy for {cur_mask}"))
-source("00_scripts/resolve_trends_and_occupancy.R")
-toc() 
+tic.clearlog()
+tic("Resolved trends & occupancy for all states")
 
+analyses_metadata %>% 
+  filter(MASK.TYPE == "state") %>% 
+  distinct(MASK) %>% 
+  # slice(1) %>% 
+  pull(MASK) %>% 
+  # walking over each state
+  walk(~ {
+    
+    assign("cur_mask", .x, envir = .GlobalEnv)
+
+    tic(glue("Resolved trends & occupancy for {.x} state"))
+    source("00_scripts/resolve_trends_and_occupancy.R")
+    toc(log = TRUE)
+
+  })
+
+toc(log = TRUE, quiet = TRUE) 
+tic.log()
 
