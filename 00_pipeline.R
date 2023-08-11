@@ -219,7 +219,7 @@ analyses_metadata %>%
     tic(glue("Generated subsampled data for {.x} state"))
     assign("cur_mask", .x, envir = .GlobalEnv)
     source("00_scripts/create_random_datafiles.R")
-    toc(log = TRUE, quiet = TRUE) 
+    toc(log = TRUE) 
     
   })
 
@@ -285,7 +285,7 @@ analyses_metadata %>%
     tic(glue("Ran species trends for {.x} state"))
     assign("cur_mask", .x, envir = .GlobalEnv)
     source("00_scripts/run_species_trends.R")
-    toc(log = TRUE, quiet = TRUE) 
+    toc(log = TRUE) 
     
   })
 
