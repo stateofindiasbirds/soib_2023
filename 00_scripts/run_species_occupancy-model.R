@@ -1,3 +1,8 @@
+# error check: presence-based occupancy not be run for habitat masks
+if (cur_metadata$MASK.TYPE != "country") {
+  return("Model-based occupancy only to be run for full-country!")
+}
+
 # creating new directory if it doesn't already exist
 if (!dir.exists(cur_metadata$OCCU.MOD.PATHONLY)) {
   dir.create(cur_metadata$OCCU.MOD.PATHONLY, 
