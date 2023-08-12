@@ -37,8 +37,12 @@ analyses_metadata <- data.frame(MASK = c("none",
          
          SIMDATA.PATHONLY = glue("{FOLDER}dataforsim/"),
          TRENDS.PATHONLY = glue("{FOLDER}trends/"),
-         OCCU.PRES.PATHONLY = glue("{FOLDER}occupancy-presence/"),
-         OCCU.MOD.PATHONLY = glue("{FOLDER}occupancy-model/"),
+         # occu model run only for full country; presence only for country and states
+         OCCU.PRES.PATHONLY = case_when(
+           MASK.TYPE %in% c("country", "state") ~ glue("{FOLDER}occupancy-presence/"),
+           TRUE ~ "01_analyses_full/occupancy-presence/"
+           ),
+         OCCU.MOD.PATHONLY = "01_analyses_full/occupancy-model/",
          RESULTS = glue("{FOLDER}results/"),
          
          OCCU.OUTPATH = glue("{RESULTS}occupancy/"),

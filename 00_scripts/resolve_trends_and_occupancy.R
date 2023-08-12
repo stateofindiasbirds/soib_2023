@@ -6,16 +6,8 @@ base_path <- cur_metadata$FULLSPECLIST.PATH
 speclist_path <- cur_metadata$SPECLISTDATA.PATH
 
 trends_pathonly <- cur_metadata$TRENDS.PATHONLY
-occu_pres_pathonly <- if (cur_metadata$MASK.TYPE %in% c("country", "state")) {
-  cur_metadata$OCCU.PRES.PATHONLY
-} else {
-  analyses_metadata %>% filter(MASK == "none") %>% pull(OCCU.PRES.PATHONLY)
-}
-occu_mod_pathonly <- if (cur_metadata$MASK.TYPE == "country") {
-  cur_metadata$OCCU.MOD.PATHONLY
-} else {
-  analyses_metadata %>% filter(MASK == "none") %>% pull(OCCU.MOD.PATHONLY)
-}
+occu_pres_pathonly <- cur_metadata$OCCU.PRES.PATHONLY
+occu_mod_pathonly <- cur_metadata$OCCU.MOD.PATHONLY
 
 # write paths
 cursens_path <- cur_metadata$CURSENS.PATH 
