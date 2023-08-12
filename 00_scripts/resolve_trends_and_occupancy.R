@@ -850,6 +850,7 @@ est = array(data = NA,
             dimnames = list(main$eBird.English.Name.2022, c("occ", "occ.ci")))
 
 
+# <annotation_pending_AV> full steps below
 
 for (i in main$eBird.English.Name.2022)
 {
@@ -890,16 +891,17 @@ for (i in main$eBird.English.Name.2022)
 }
 
 
-tojoin = data.frame(rep(rownames(est))) %>% 
-  magrittr::set_colnames("eBird.English.Name.2022") 
-
-tojoin$rangelci = round(as.numeric(est[,1])/10000,3) - round(as.numeric(est[,2])/10000,3)
-tojoin$rangemean = round(as.numeric(est[,1])/10000,3)
-tojoin$rangerci = round(as.numeric(est[,1])/10000,3) + round(as.numeric(est[,2])/10000,3)
-
-tojoin$rangemean[(tojoin$eBird.English.Name.2022 %in% specieslist$COMMON.NAME) & is.na(tojoin$rangemean)] = 0
-tojoin$rangelci[tojoin$rangemean == 0] = 0
-tojoin$rangerci[tojoin$rangemean == 0] = 0
+tojoin = data.frame(eBird.English.Name.2022 = rownames(est)) %>% 
+  mutate(rangemean = round(as.numeric(est[, 1]) / 10000, 3),
+         rangeci = round(as.numeric(est[, 2]) / 10000, 3)) %>% 
+  mutate(rangelci = rangemean - rangeci,
+         rangerci = rangemean + rangeci, 
+         rangeci = NULL) %>% 
+  mutate(rangemean = case_when(is.na(rangemean) &
+                                 eBird.English.Name.2022 %in% specieslist$COMMON.NAME ~ 0,
+                               TRUE ~ rangemean)) %>% 
+  mutate(across(c("rangelci", "rangerci"), ~ case_when(rangemean == 0 ~ 0, 
+                                                       TRUE ~ .)))
 
 
 # joining to main object
