@@ -5,6 +5,11 @@ load("00_data/analyses_metadata.RData")
 source("00_scripts/20_functions.R")
 load("00_data/spec_mask_selections.RData")
 
+# key states for each species
+keystates <- read.csv("01_analyses_full/results/key_state_species_full.csv") %>% 
+  arrange(India.Checklist.Common.Name, ST_NM) %>% 
+  group_by(India.Checklist.Common.Name) %>% 
+  summarise(key_states = str_flatten_comma(ST_NM))
 
 # import ----------------------------------------------------------------------------
 
@@ -32,7 +37,7 @@ web_db0 <- map2(analyses_metadata$SOIBMAIN.PATH, analyses_metadata$MASK,
   mutate(MASK.TYPE = if_else(MASK.TYPE == "country", "national", MASK.TYPE)) %>% 
   relocate(India.Checklist.Common.Name, MASK) %>% 
   arrange(India.Checklist.Common.Name, MASK) %>% 
-  mutate(ID = "", post_content = "", post_excerpt = "", post_date = "", post_name = "",
+  mutate(ID = "", post_excerpt = "", post_date = "", downloadlink = "",
          wp_page_template = "", pinged = "", primary_assessment = "",
          post_author = "amithkumar.4",
          post_status = "publish",
@@ -44,6 +49,8 @@ web_db0 <- map2(analyses_metadata$SOIBMAIN.PATH, analyses_metadata$MASK,
 # creation of fields ----------------------------------------------------------------
 
 web_db <- web_db0 %>% 
+  # join key states for each species
+  left_join(keystates) %>% 
   rename(`long-term_trend` = longtermmean,
          current_annual_change = currentslopemean,
          distribution_range_size = rangemean,
@@ -75,34 +82,32 @@ web_db <- web_db %>%
          URL_species = str_replace_all(India.Checklist.Common.Name, 
                                        c(" " = "-", "'" = "_")), 
          URL_suf_rangemap = "_rangemap.png",
-         URL_suf_trend = "_trend.pngg") %>% 
+         URL_suf_trend = "_trend.png") %>% 
   # some long strings
   mutate(featured_image = glue("{URL_pre_uploads}{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
-         downloadlink = glue("{URL_pre_uploads}{URL_species}_{MASK.CODE}_Infosheets.jpg"), ### JPG or PNG?
          map_filename = glue("{URL_pre_uploads}{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
          map_filename_originals = glue("{URL_pre_uploads}originals/{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
          graph_filename = glue("{URL_pre_uploads}{URL_species}_{MASK.CODE}{URL_suf_trend}"),
          graph_filename_originals = glue("{URL_pre_uploads}originals/{URL_species}_{MASK.CODE}{URL_suf_trend}")) %>% 
-  mutate(HTML_str = create_HTML_strings(.),
-         full_url_2 = glue("{MASK.CODE}/{custom_url}"),
-         post_category = MASK.LABEL)
+  mutate(full_url_2 = case_when(MASK.TYPE == "national" ~ glue("{custom_url}"),
+                                  TRUE ~ glue("{MASK.CODE}-{custom_url}")),
+         post_category = MASK.LABEL,
+         post_content = MASK.LABEL,
+         all_trends = MASK.LABEL,
+         habitats = if_else(MASK.TYPE == "habitat", MASK.LABEL, NA_character_),
+         conservation_areas = if_else(MASK.TYPE == "conservation_area", MASK.LABEL, NA_character_))
 
 # get list of all masks for each species
 web_db <- web_db %>% 
   group_by(India.Checklist.Common.Name, MASK.TYPE) %>% 
   # HTML string, mask codes and mask labels (for states) of all masks of current mask type
-  summarise(trends = str_flatten(HTML_str, collapse = ","),
-            trends_addn = str_flatten(MASK.CODE, collapse = ","),
-            mask_labs = str_flatten(MASK.LABEL, collapse = ",")) %>% 
+  summarise(trends_addn = str_flatten(glue("{MASK.CODE}-{custom_url}"), collapse = ",")) %>% 
   pivot_wider(names_from = MASK.TYPE, 
-              values_from = c(trends, trends_addn, mask_labs), 
+              values_from = trends_addn, 
               names_glue = "{MASK.TYPE}_{.value}") %>% 
   ungroup() %>% 
-  # we only want state names
-  dplyr::select(-c(habitat_mask_labs, national_mask_labs, conservation_area_mask_labs)) %>% 
-  # column of key states for each species
-  rename(key_states = state_mask_labs) %>% 
-  left_join(web_db)
+  left_join(web_db) %>% 
+  mutate(post_name = if_else(MASK.TYPE == "national", national_trends_addn, full_url_2))
 
 # national trend values as separate columns
 web_db <- web_db %>% 
@@ -137,12 +142,11 @@ web_db <- web_db %>%
                 current_status, distribution_status, iucn_status, long_term_status,
                 migratory_status, status_of_conservation_concern, wlpa_schedule,
                 primary_assessment, habitat_specialization, endemicity, custom_url, 
-                state_trends, national_trends, habitat_trends, conservation_area_trends,
                 `long-term_trend_in`, `long-term_trend_ci_in`, current_annual_change_in, current_annual_change_ci_in, 
                 distribution_range_size_in, distribution_range_size_ci_units_of_10000_sqkm_in,
                 migratory_status_in, habitat_specialization_in, endemicity_in,
-                national_trends_addn, habitat_trends_addn, state_trends_addn, conservation_area_trends_addn,
-                full_url_2, post_category, key_states) %>% 
+                national_trends_addn, habitat_trends_addn, state_trends_addn, full_url_2, 
+                habitats, conservation_areas, conservation_area_trends_addn, key_states, all_trends, post_category) %>% 
   # converting all NAs to blanks
   mutate(across(everything(), ~ ifelse(is.na(.), "", .)))
 

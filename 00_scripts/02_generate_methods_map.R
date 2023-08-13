@@ -6,7 +6,7 @@ library(spdep)
 library(glue)
 # library(raster)
 
-load("00_data/dataforanalyses.RData")
+load("00_data/dataforanalyses_extra.RData")
 load("00_data/maps_sf.RData")
 
 ### settings ###
@@ -19,7 +19,7 @@ points_col <- "#347895"
 
 # filter data for points
 # convert to sf
-points_sf = data %>% 
+points_sf = data0 %>% 
   distinct(LOCALITY.ID, LONGITUDE, LATITUDE) %>% 
   st_as_sf(coords = c("LONGITUDE", "LATITUDE")) %>% 
   st_set_crs(st_crs(india_sf))
@@ -29,9 +29,10 @@ points_sf = data %>%
 
 
 methods_map <- ggplot() +
+  geom_sf(data = points_sf, colour = points_col, size = 0.5) +
   geom_sf(data = india_sf, colour = "black", fill = NA) +
-  geom_sf(data = g3_in_sf, colour = "black", fill = NA) +
-  geom_sf(data = points_sf, colour = points_col) +
+  geom_sf(data = g1_in_sf, colour = "grey", fill = NA) +
+  geom_sf(data = g3_in_sf, colour = "black", fill = NA, linewidth = 0.5) +
   theme_void() +
   coord_sf(clip = "off")
 

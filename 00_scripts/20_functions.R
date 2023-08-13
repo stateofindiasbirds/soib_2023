@@ -81,23 +81,23 @@ join_mask_codes <- function(data) {
 }
 
 
-# function to create specific HTML string -------------------------------------------
-
-create_HTML_strings <- function(data) {
-  
-  data_new <- data %>% 
-    mutate(link1 = glue('"{URL_base}birds/{MASK.CODE}/{custom_url}/"'),
-           link2 = glue('"{URL_pre_uploads}{MASK}.png"'),
-           
-           a_href_a = glue("<a href={link1}>"),
-           span1_a = glue('<span class="soib_trends_img">'),
-           span1_img = glue("<img src={link2}>"),
-           span1_b = glue("</span>"),
-           span2 = glue('<span class="soib_trends_lbl">{MASK.LABEL}</span>'),
-           a_href_b = "</a>",
-           
-           HTML_string = glue("{a_href_a}{span1_a}{span1_img}{span1_b}{span2}{a_href_b}"))
-  
-  return(data_new$HTML_string)
-  
-}
+# # function to create specific HTML string -------------------------------------------
+# 
+# create_HTML_strings <- function(data) {
+#   
+#   data_new <- data %>% 
+#     mutate(link1 = glue('"{URL_base}birds/{MASK.CODE}/{custom_url}/"'),
+#            link2 = glue('"{URL_pre_uploads}{MASK}.png"'),
+#            
+#            a_href_a = glue("<a href={link1}>"),
+#            span1_a = glue('<span class="soib_trends_img">'),
+#            span1_img = glue("<img src={link2}>"),
+#            span1_b = glue("</span>"),
+#            span2 = glue('<span class="soib_trends_lbl">{MASK.LABEL}</span>'),
+#            a_href_b = "</a>",
+#            
+#            HTML_string = glue("{a_href_a}{span1_a}{span1_img}{span1_b}{span2}{a_href_b}"))
+#   
+#   return(data_new$HTML_string)
+#   
+# }
