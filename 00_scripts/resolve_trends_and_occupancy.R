@@ -37,32 +37,29 @@ load(speclist_path)
 priorityrules = read.csv("00_data/priorityclassificationrules.csv") 
 load("00_data/vagrantdata.RData")
 
-if (cur_metadata$MASK.TYPE == "habitat") {
+
+# if habitat/conservation area mask, we skip resolve_occu completely (take from full-country)
+if (!cur_metadata$MASK.TYPE %in% c("country", "state")) {
   
-  load("00_data/habmasks_sf.RData")
+  skip_res_occu <- TRUE 
   
-  if (cur_mask == "woodland") {
-    cur_grid_filt <- habmasks_sf %>% 
-      filter(maskWdl == 1) %>% 
-      transmute(gridg1 = GRID_G1)
-  } else if (cur_mask == "cropland") {
-    cur_grid_filt <- habmasks_sf %>% 
-      filter(maskCrp == 1) %>% 
-      transmute(gridg1 = GRID_G1)
-  } else if (cur_mask == "ONEland") {
-    cur_grid_filt <- habmasks_sf %>% 
-      filter(maskOne == 1) %>% 
-      transmute(gridg1 = GRID_G1)
+} else {
+  
+  skip_res_occu <- FALSE 
+  
+  if (cur_metadata$MASK.TYPE == "state") {
+    
+    # if state, we have own occu-presence but we take full country occu-model
+    # latter needs to be filtered for grid cells of interest
+    
+    load("00_data/grids_st_sf.RData")
+    
+    cur_grid_filt <- g1_st_sf %>% 
+      filter(STATE.NAME == cur_mask) %>% 
+      transmute(gridg1 = GRID.G1)
+    
   }
   
-} else if (cur_metadata$MASK.TYPE == "state") {
-  
-  load("00_data/grids_st_sf.RData")
-  
-  cur_grid_filt <- g1_st_sf %>% 
-    filter(STATE.NAME == cur_mask) %>% 
-    transmute(gridg1 = GRID.G1)
-
 }
 
 ###
@@ -836,125 +833,137 @@ if (to_run == TRUE) {
 
 tic("Calculating occupancy")
 
-# occupancy-model files
-occu_model <- list.files(path = occu_mod_pathonly, full.names = T) %>% 
-  map_df(read.csv)
-
-# in non-country mask, filtering for relevant grids
-if (cur_metadata$MASK.TYPE != "country") {
-  occu_model <- occu_model %>% 
-    filter(gridg1 %in% cur_grid_filt$gridg1)
-}
-
-# occupancy-presence files
-occu_presence <- list.files(path = occu_pres_pathonly, full.names = T) %>% 
-  map_df(read.csv)
-
-# in habitat mask, filtering for relevant grids
-if (!cur_metadata$MASK.TYPE %in% c("country", "state")) {
-  occu_presence <- occu_presence %>% 
-    filter(gridg1 %in% cur_grid_filt$gridg1)
-}
-
-# taking modelled occupancy values for species in cell where "absent"
-occ.full1 = occu_model %>% 
-  filter(presence == 0) 
-
-# "presences"
-occ.full2 = occu_presence %>% 
-  left_join(occu_model) %>% 
-  dplyr::select(names(occ.full1))
-
-
-occu_full = rbind(occ.full1, occ.full2) %>% 
-  mutate(gridg1 = as.character(gridg1)) %>% 
-  # joining areas of each grid cell
-  left_join(g1_in_sf %>% 
-              st_drop_geometry() %>% 
-              transmute(gridg1 = GRID.G1, area = AREA.G1)) %>% 
-  # for grid cells where species present, taking overall occupancy to be 1
-  mutate(occupancy = case_when(presence == 1 ~ 1, TRUE ~ occupancy),
-         se = case_when(presence == 1 ~ 0, TRUE ~ se)) %>% 
-  filter(!is.na(occupancy), !is.na(se), !is.na(gridg1))
-
-
-occu_summary = occu_full %>%
-  filter(presence != 0 | prop_nb != 0) %>%
-  group_by(COMMON.NAME, status) %>% 
-  # <annotation_pending_AV>
-  reframe(occ = sum(occupancy * area),
-          occ.ci = round((erroradd(se * area)) * 1.96))
-
-est = array(data = NA, 
-            dim = c(length(main$eBird.English.Name.2022), 2),
-            dimnames = list(main$eBird.English.Name.2022, c("occ", "occ.ci")))
-
-
-# <annotation_pending_AV> full steps below
-
-for (i in main$eBird.English.Name.2022)
-{
-  write_path <- glue("{occu_outpath}{i}.csv")
-  cur_occu_full = occu_full %>% filter(COMMON.NAME == i)
-  cur_occu_summary = occu_summary %>% filter(COMMON.NAME == i)
+if (skip_res_occu == TRUE) {
   
-  # move to next species if this one empty
-  if (length(cur_occu_full$COMMON.NAME) == 0)
-    next
+  # take relevant columns from wocats file of full-country
+  tojoin <- read.csv("01_analyses_full/results/SoIB_main_wocats.csv") %>% 
+    distinct(eBird.English.Name.2022, rangelci, rangemean, rangerci)
   
-  # file to be used for creating maps later
-  write.csv(cur_occu_full, file = write_path, row.names = F)
+  # joining to main object
+  main <- main %>% left_join(tojoin)
   
-  l = length(cur_occu_summary$status)
+  # checkpoint-object "main"
+  main5_postoccu <- main
   
-  for (j in 1:l)
-  {
-    if (cur_occu_summary$status[j] %in% c("MP") & 
-        (is.na(est[i,"occ"]) | (as.numeric(cur_occu_summary$occ[j])>est[i,"occ"])))
-    {
-      est[i,"occ"] = cur_occu_summary$occ[j]
-      est[i,"occ.ci"] = cur_occu_summary$occ.ci[j]
-    }
-    
-    if (cur_occu_summary$status[j] %in% c("R","MS") & 
-        (is.na(est[i,"occ"]) | (as.numeric(cur_occu_summary$occ[j]) > est[i,"occ"])))
-    {
-      est[i,"occ"] = cur_occu_summary$occ[j]
-      est[i,"occ.ci"] = cur_occu_summary$occ.ci[j]
-    }
-    
-    if (cur_occu_summary$status[j] %in% c("M","MW") & 
-        (is.na(est[i,"occ"]) | (as.numeric(cur_occu_summary$occ[j]) > est[i,"occ"])))
-    {
-      est[i,"occ"] = cur_occu_summary$occ[j]
-      est[i,"occ.ci"] = cur_occu_summary$occ.ci[j]
-    }
-    
+  write.csv(main, file = mainwocats_path, row.names = F)
+  
+} else {
+
+  # occupancy-model files
+  # (path is same for all masks--the full-country folder)
+  occu_model <- list.files(path = occu_mod_pathonly, full.names = T) %>% 
+    map_df(read.csv)
+  
+  # in state, filtering for relevant grids
+  if (cur_metadata$MASK.TYPE == "state") {
+    occu_model <- occu_model %>% 
+      filter(gridg1 %in% cur_grid_filt$gridg1)
   }
+  
+  # occupancy-presence files
+  occu_presence <- list.files(path = occu_pres_pathonly, full.names = T) %>% 
+    map_df(read.csv)
+
+  # taking modelled occupancy values for species in cell where "absent"
+  occ.full1 = occu_model %>% 
+    filter(presence == 0) 
+  
+  # "presences"
+  occ.full2 = occu_presence %>% 
+    left_join(occu_model) %>% 
+    dplyr::select(names(occ.full1))
+  
+  
+  occu_full = rbind(occ.full1, occ.full2) %>% 
+    mutate(gridg1 = as.character(gridg1)) %>% 
+    # joining areas of each grid cell
+    left_join(g1_in_sf %>% 
+                st_drop_geometry() %>% 
+                transmute(gridg1 = GRID.G1, area = AREA.G1)) %>% 
+    # for grid cells where species present, taking overall occupancy to be 1
+    mutate(occupancy = case_when(presence == 1 ~ 1, TRUE ~ occupancy),
+           se = case_when(presence == 1 ~ 0, TRUE ~ se)) %>% 
+    filter(!is.na(occupancy), !is.na(se), !is.na(gridg1))
+  
+  
+  occu_summary = occu_full %>%
+    filter(presence != 0 | prop_nb != 0) %>%
+    group_by(COMMON.NAME, status) %>% 
+    # <annotation_pending_AV>
+    reframe(occ = sum(occupancy * area),
+            occ.ci = round((erroradd(se * area)) * 1.96))
+  
+  est = array(data = NA, 
+              dim = c(length(main$eBird.English.Name.2022), 2),
+              dimnames = list(main$eBird.English.Name.2022, c("occ", "occ.ci")))
+  
+  
+  # <annotation_pending_AV> full steps below
+  
+  for (i in main$eBird.English.Name.2022)
+  {
+    write_path <- glue("{occu_outpath}{i}.csv")
+    cur_occu_full = occu_full %>% filter(COMMON.NAME == i)
+    cur_occu_summary = occu_summary %>% filter(COMMON.NAME == i)
+    
+    # move to next species if this one empty
+    if (length(cur_occu_full$COMMON.NAME) == 0)
+      next
+    
+    # file to be used for creating maps later
+    write.csv(cur_occu_full, file = write_path, row.names = F)
+    
+    l = length(cur_occu_summary$status)
+    
+    for (j in 1:l)
+    {
+      if (cur_occu_summary$status[j] %in% c("MP") & 
+          (is.na(est[i,"occ"]) | (as.numeric(cur_occu_summary$occ[j])>est[i,"occ"])))
+      {
+        est[i,"occ"] = cur_occu_summary$occ[j]
+        est[i,"occ.ci"] = cur_occu_summary$occ.ci[j]
+      }
+      
+      if (cur_occu_summary$status[j] %in% c("R","MS") & 
+          (is.na(est[i,"occ"]) | (as.numeric(cur_occu_summary$occ[j]) > est[i,"occ"])))
+      {
+        est[i,"occ"] = cur_occu_summary$occ[j]
+        est[i,"occ.ci"] = cur_occu_summary$occ.ci[j]
+      }
+      
+      if (cur_occu_summary$status[j] %in% c("M","MW") & 
+          (is.na(est[i,"occ"]) | (as.numeric(cur_occu_summary$occ[j]) > est[i,"occ"])))
+      {
+        est[i,"occ"] = cur_occu_summary$occ[j]
+        est[i,"occ.ci"] = cur_occu_summary$occ.ci[j]
+      }
+      
+    }
+  }
+  
+  
+  tojoin = data.frame(eBird.English.Name.2022 = rownames(est)) %>% 
+    mutate(rangemean = round(as.numeric(est[, 1]) / 10000, 3),
+           rangeci = round(as.numeric(est[, 2]) / 10000, 3)) %>% 
+    mutate(rangelci = rangemean - rangeci,
+           rangerci = rangemean + rangeci, 
+           rangeci = NULL) %>% 
+    mutate(rangemean = case_when(is.na(rangemean) &
+                                   eBird.English.Name.2022 %in% specieslist$COMMON.NAME ~ 0,
+                                 TRUE ~ rangemean)) %>% 
+    mutate(across(c("rangelci", "rangerci"), ~ case_when(rangemean == 0 ~ 0, 
+                                                         TRUE ~ .)))
+  
+  
+  # joining to main object
+  main <- main %>% left_join(tojoin)
+  
+  # checkpoint-object "main"
+  main5_postoccu <- main
+  
+  write.csv(main, file = mainwocats_path, row.names = F)
+  
 }
-
-
-tojoin = data.frame(eBird.English.Name.2022 = rownames(est)) %>% 
-  mutate(rangemean = round(as.numeric(est[, 1]) / 10000, 3),
-         rangeci = round(as.numeric(est[, 2]) / 10000, 3)) %>% 
-  mutate(rangelci = rangemean - rangeci,
-         rangerci = rangemean + rangeci, 
-         rangeci = NULL) %>% 
-  mutate(rangemean = case_when(is.na(rangemean) &
-                                 eBird.English.Name.2022 %in% specieslist$COMMON.NAME ~ 0,
-                               TRUE ~ rangemean)) %>% 
-  mutate(across(c("rangelci", "rangerci"), ~ case_when(rangemean == 0 ~ 0, 
-                                                       TRUE ~ .)))
-
-
-# joining to main object
-main <- main %>% left_join(tojoin)
-
-# checkpoint-object "main"
-main5_postoccu <- main
-
-write.csv(main, file = mainwocats_path, row.names = F)
-
 
 toc()
 
