@@ -23,9 +23,6 @@ gen_trend_plots("composite") # 15 sec
 
 # systematic monitoring plots -------------------------------------------------------
 
-source("00_scripts/02_generate_plots.R")
-source("00_scripts/00_plot_functions.R")
-
 fetch_sysmon_metadata("full")
 
 # 2 mins
