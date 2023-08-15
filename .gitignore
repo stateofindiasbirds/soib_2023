@@ -11,6 +11,7 @@
 *.rar
 
 20_website/website_database.csv
+*/data_rangemap_vagrants.csv
 
 # RData files
 00_data/rawdata.RData
