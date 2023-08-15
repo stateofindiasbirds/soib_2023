@@ -105,7 +105,7 @@ geom_axisbracket <- function(bracket_type = "time", bracket_trend = cur_trend) {
 ggtheme_soibtrend <- function() {
   
   theme_void() +
-    theme(axis.title.y = element_text(size = 22, colour = palette_plot_elem,
+    theme(axis.title.y = element_text(size = plot_ylab_size, colour = palette_plot_elem,
                                       angle = 90, margin = plot_ytitle_margin),
           plot.margin = unit(c(0, 0, 0, 0), "cm"),
           plot.title = element_text(face = "bold", size = 20, hjust = 0.5, vjust = -2, 
@@ -710,7 +710,7 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
   palette_plot_elem <- "#56697B"
   palette_plot_title <- "#A13E2B"
   palette_trend_groups <- c("#869B27", "#E49B36", "#436b74", "#CC6666", 
-                            "#B69AC9", "#78CAE0","#31954E","#493F3D",
+                            "#B69AC9", "#319cc0","#31954E","#493F3D",
                             "#EA5599", "#9999CC", "#A13E2B", "#66CC99")
   if (plot_type == "single") {
     palette_trend_groups <- palette_trend_groups[1]
@@ -730,6 +730,7 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     timegroups_bracket_min <- c(1999, 2006, 2010, 2012, seq(2013, 2021)) + 0.5
     timegroups_bracket_max <- c(2006, 2010, 2012, seq(2013, 2022)) + 0.5
     plot_ytitle_margin <- margin(0, -0.6, 0, 0.4, "cm")
+    plot_ylab_size = 22
     plot_xlimits <- c(1999.5, 2024.5)
     plot_gridline_x <- 2023.3
     plot_baseline_lab <- "Pre-2000\nbaseline"
@@ -742,6 +743,7 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     timegroups_bracket_min <- seq(2015, 2021) + 0.5
     timegroups_bracket_max <- seq(2016, 2022) + 0.5
     plot_ytitle_margin <- margin(0, 0.6, 0, 0.4, "cm")
+    plot_ylab_size = 22
     plot_xlimits <- c(2015.09, 2023.1)
     plot_gridline_x <- 2022.7
     plot_baseline_lab <- "2015\nbaseline"
@@ -1020,6 +1022,7 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
                    timegroups_bracket_min = timegroups_bracket_min,
                    timegroups_bracket_max = timegroups_bracket_max,
                    plot_ytitle_margin = plot_ytitle_margin,
+                   plot_ylab_size = plot_ylab_size,
                    plot_xlimits = plot_xlimits,
                    plot_gridline_x = plot_gridline_x,
                    plot_baseline_lab = plot_baseline_lab,
@@ -1163,7 +1166,7 @@ soib_trend_plot_sysmon <- function(plot_type, cur_data_trends,
   palette_plot_elem <- "#56697B"
   palette_plot_title <- "#A13E2B"
   palette_trend_groups <- c("#869B27", "#E49B36", "#436b74", "#CC6666", 
-                            "#B69AC9", "#78CAE0","#31954E","#493F3D",
+                            "#B69AC9", "#319cc0","#31954E","#493F3D",
                             "#EA5599", "#9999CC", "#A13E2B", "#66CC99")
   if (plot_type == "nannaj" & sysmon_single == TRUE) {
     palette_trend_groups <- palette_trend_groups[1]
@@ -1238,6 +1241,7 @@ soib_trend_plot_sysmon <- function(plot_type, cur_data_trends,
     
     
     plot_ytitle_margin <- margin(0, -0.6, 0, 0.4, "cm")
+    plot_ylab_size = 22
     plot_xlimits <- c(head(timegroups_num, 1) - 8, tail(timegroups_num, 1) + 8)
     plot_gridline_x <- tail(timegroups_num, 1) + 2
     plot_repel_nudge <- -2.5
@@ -1252,21 +1256,37 @@ soib_trend_plot_sysmon <- function(plot_type, cur_data_trends,
     timegroups_lab[temp3] = ""
     
     plot_ytitle_margin <- margin(0, 0.6, 0, 0.4, "cm")
+    plot_ylab_size = 22
     plot_xlimits <- c(1999.1, 2023.5)
     plot_gridline_x <- tail(timegroups_bracket_max, 1) + 0.5
     plot_repel_nudge <- -1.7
     plot_xmin_minus <- 0.2
     
-  } else if (plot_type %in% c("hornbills", "nannaj")) {
+  } else if (plot_type %in% c("hornbills")) {
     
     timegroups_bracket_min <- tail(timegroups_num, -1) - 0.5
     timegroups_bracket_max <- tail(timegroups_num, -1) + 0.5
     
     plot_ytitle_margin <- margin(0, 0.6, 0, 0.4, "cm")
+    plot_ylab_size = 22
     plot_xlimits <- c(head(timegroups_num, 1) - 0.128, tail(timegroups_num, 1) + 1)
     plot_gridline_x <- tail(timegroups_bracket_max, 1) + 0.2
     plot_repel_nudge <- -0.742
     plot_xmin_minus <- 0.275
+    
+  } else if (plot_type %in% c("nannaj")) {
+    
+    timegroups_bracket_min <- tail(timegroups_num, -1) - 0.5
+    timegroups_bracket_max <- tail(timegroups_num, -1) + 0.5
+    
+    plot_ytitle_margin <- margin(0, 0.6, 0, 0.4, "cm")
+    plot_ylab_size = 25
+    plot_xlimits <- c(head(timegroups_num, 1) - 0.128, tail(timegroups_num, 1) + 1)
+    plot_gridline_x <- tail(timegroups_bracket_max, 1) + 0.2
+    plot_repel_nudge <- -0.742
+    plot_xmin_minus <- 0.275
+    
+    bracket_labelsize <- 6
     
   } else if (plot_type == "vembanad") {
     
@@ -1277,6 +1297,7 @@ soib_trend_plot_sysmon <- function(plot_type, cur_data_trends,
     timegroups_lab[temp3] = ""
     
     plot_ytitle_margin <- margin(0, 0.6, 0, 0.4, "cm")
+    plot_ylab_size = 22
     plot_xlimits <- c(head(timegroups_num, 1) - 3.5, tail(timegroups_num, 1) + 3)
     plot_gridline_x <- tail(timegroups_bracket_max, 1) + 1
     plot_repel_nudge <- -2.2
@@ -1400,6 +1421,7 @@ soib_trend_plot_sysmon <- function(plot_type, cur_data_trends,
                    timegroups_bracket_min = timegroups_bracket_min,
                    timegroups_bracket_max = timegroups_bracket_max,
                    plot_ytitle_margin = plot_ytitle_margin,
+                   plot_ylab_size = plot_ylab_size,
                    plot_xlimits = plot_xlimits,
                    plot_gridline_x = plot_gridline_x,
                    plot_xmin = plot_xmin,
