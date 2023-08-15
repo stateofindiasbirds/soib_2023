@@ -100,6 +100,68 @@ geom_axisbracket <- function(bracket_type = "time", bracket_trend = cur_trend) {
 }
 
 
+# manual legend for rangemap --------------------------------------------------------------
+
+# we have to manually create the legend
+
+geom_rangemap_legend <- function() {
+
+  # outer translucent colour block
+  block1 <- annotate("rect", fill = palette_range_groups$COLOUR, # constant
+                     alpha = 0.6, 
+                     xmin = c(82.2, 82.2, 82.2, 82.2), xmax = c(83.7, 83.7, 83.7, 83.7),
+                     ymin = c(13, 11, 9, 7), ymax = c(14.5, 12.5, 10.5, 8.5))
+  
+  # inner opaque colour block
+  block2 <- annotate("rect", fill = palette_range_groups$COLOUR, # constant
+                     alpha = 1, 
+                     xmin = c(82.4, 82.4, 82.4, 82.4), xmax = c(83.5, 83.5, 83.5, 83.5),
+                     ymin = c(13.2, 11.2, 9.2, 7.2), ymax = c(14.3, 12.3, 10.3, 8.3))
+
+  block_labels <- annotate("text", colour = palette_plot_elem, family = plot_fontfamily,
+                           size = 4.5, label = palette_range_groups$LABEL, hjust = 0,
+                           x = c(84.5, 84.5, 84.5, 84.5), y = c(13.75, 11.75, 9.75, 7.75))
+  # output:
+  list(block1, block2, block_labels)
+  
+}
+
+
+# manually adding migratory status occupancy for rangemap -------------------------------
+
+# we have to manually add the four types (since scale_fill already used for DEM basemap)
+
+geom_rangemap_occ <- function(data_occ, data_vag, which_mig) {
+  
+  data_occ <- data_occ %>% 
+    right_join(g1_in_sf, by = c("gridg1" = "GRID.G1")) %>% 
+    filter(status == which_mig)
+  data_palette <- palette_range_groups %>% filter(LABEL.CODE == which_mig)
+  
+  # colour block for proper occurrence
+  occ_block <- geom_sf(data = data_occ, aes(alpha = occupancy, geometry = GEOM.G1), 
+                       col = NA, fill = data_palette$COLOUR)
+  
+  if (which_mig == "YR") {
+    
+    list(occ_block)
+    
+  } else {
+    
+    data_vag <- data_vag %>% filter(status == which_mig)
+
+    # x-points for vagrant records
+    occ_vag <- geom_point(data = data_vag, aes(x = LONGITUDE, y = LATITUDE), 
+                          shape = 4, size = 1, alpha = 1, col = data_palette$COLOUR)
+    
+    # output:
+    list(occ_block, occ_vag)
+  
+  }
+  
+}
+
+
 # SoIB trend plot theme -------------------------------------------------------------
 
 ggtheme_soibtrend <- function() {
@@ -113,6 +175,24 @@ ggtheme_soibtrend <- function() {
           text = element_text(family = plot_fontfamily),
           plot.background = element_rect(fill = "transparent", colour = NA),
           panel.background = element_rect(fill = "transparent", colour = NA))
+  
+}
+
+
+# SoIB range map theme -------------------------------------------------------------
+
+ggtheme_soibrangemap <- function() {
+  
+  theme_void() +
+    theme(plot.margin = unit(c(0.5, 0, 0.5, 0), "cm"),
+          plot.title = element_text(face = "bold", size = 20, hjust = 0.5, vjust = -2, 
+                                    colour = palette_plot_title),
+          text = element_text(family = plot_fontfamily),
+          plot.background = element_rect(fill = "transparent", colour = NA),
+          panel.background = element_rect(fill = "transparent", colour = NA),
+          # we are creating separate legend using the colours; but omitting this specification
+          # also results in very high plotting time 
+          legend.position = "none")
   
 }
 
@@ -1487,6 +1567,195 @@ soib_trend_plot_sysmon <- function(plot_type, cur_data_trends,
   # removing objects from global environment ------------------------------------------
   
   rm(list = names(obj_list), envir = .GlobalEnv)
+  
+}
+
+
+# ### PLOT: SoIB 2023 trend -------------------------------------------------------------
+
+soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
+  
+  # which_spec either "all" or eBird name
+  
+  # setup -----------------------------------------------------------------------------
+  
+  require(tidyverse)
+  require(raster)
+  require(sf)
+  require(tictoc)
+  require(glue)
+  
+  tic(glue("[Mask: {cur_mask}] Finished creating range map for [species: {str_flatten_comma(which_spec)}]"))
+  
+  
+  source("00_scripts/00_functions.R")
+  source("00_scripts/20_functions.R")
+  
+  load("00_data/analyses_metadata.RData")
+  
+  cur_metadata <- analyses_metadata %>% 
+    filter(MASK == cur_mask) %>% 
+    join_mask_codes()
+  
+  if (!cur_metadata$MASK.TYPE %in% c("country", "state")) {
+    return("Select either a country or a state!")
+  }
+  
+  
+  # input paths
+  path_main <- cur_metadata$SOIBMAIN.PATH
+  path_speclists <- cur_metadata$SPECLISTDATA.PATH
+  path_toplot <- cur_metadata$MAP.DATA.OCC.PATH
+  path_vagrants <- cur_metadata$MAP.DATA.VAG.PATH
+  
+  
+  # load data -------------------------------------------------------------------------
+  
+  load("00_data/maps_sf.RData")
+  
+  
+  tic("Processed TIF basemap")
+  # import DEM TIF (our basemap)
+  indiatif <- brick("00_data/IndiaDEM-Colour.tif")
+  # making sure same CRS
+  st_crs(indiatif) == st_crs(india_sf)
+  # further processing
+  indiatif <- indiatif %>% 
+    raster::mask(india_sf) %>%
+    as.data.frame(xy = TRUE) %>% 
+    mutate(across(starts_with("IndiaDEM.Colour"), ~ . / 255)) %>% 
+    magrittr::set_colnames(c("x", "y", "r", "g", "b")) %>% 
+    replace_na(replace = list(r = 0, g = 0, b = 0)) %>% 
+    # getting hexcodes based on RGB values, and changing blacks (zeroes) to NA
+    mutate(codes = rgb(r, g, b) %>% replace(., . == "#000000", NA))
+  toc()
+  
+  
+  # data
+  occ_final = read.csv(path_toplot) %>% 
+    mutate(gridg1 = as.character(gridg1))
+  
+  vagrant_presence = read.csv(path_vagrants)
+  main = read.csv(path_main)
+  
+  load(path_speclists)
+  
+  
+  # plot/theme settings -----------------------------------------------------
+  
+  palette_plot_elem <- "#56697B"
+  palette_plot_title <- "#A13E2B"
+  
+  palette_range_groups <- data.frame(
+    LABEL = c("Year-round", "Summer", "Spring/Autumn", "Winter"),
+    COLOUR = c("#562377", "#dc6f42", "#e4b73e", "#00858f"),
+    # useful for joining later
+    LABEL.CODE = c("YR", "S", "P", "W"),
+    LABEL.ALT = c("Year-round", "Summer", "Passage", "Winter")
+  ) %>% 
+    mutate(across(everything(), ~ fct_inorder(.)))
+
+  plot_fontfamily <- "Gandhi Sans"
+  
+  
+  # assigning objects to environment --------------------------------------------------
+  
+  obj_list <- list(palette_plot_elem = palette_plot_elem,
+                   palette_plot_title = palette_plot_title,
+                   palette_range_groups = palette_range_groups,
+                   plot_fontfamily = plot_fontfamily,
+                   g1_in_sf = g1_in_sf)
+  
+  list2env(obj_list, envir = .GlobalEnv)
+  
+  # creating the plot base ------------------------------------------
+
+  tic("Created base plot")
+  plot_base <- ggplot() +
+    geom_raster(data = indiatif , aes(x = x, y = y, fill = codes), 
+                alpha = 0.3) +
+    scale_fill_grey(na.value = "transparent") +
+    scale_x_continuous(expand = c(0,0)) +
+    scale_y_continuous(expand = c(0,0)) +
+    # legend
+    geom_rangemap_legend() +
+    # theme
+    ggtheme_soibrangemap()
+  toc()
+
+  
+  # completing and writing the plot -----------------------------------------------------
+  
+  if (which_spec != "all") {
+    
+    cur_spec <- which_spec
+    # cur_spec <- "Black-backed Dwarf-Kingfisher"
+    
+  } else {
+    
+    cur_spec <- specieslists %>% 
+      distinct(COMMON.NAME) %>% 
+      pull(COMMON.NAME)
+    
+  }
+  
+  # walking creation of maps over all specified species
+  walk(cur_spec, ~ {
+    
+    tic("Walked over one species")
+    
+    # filtering data for species
+    cur_data_occ = occ_final %>% 
+      left_join(palette_range_groups, by = c("status" = "LABEL.CODE")) %>% 
+      filter(COMMON.NAME == .x)
+    
+    cur_data_vag = vagrant_presence %>% 
+      filter(COMMON.NAME == .x) %>% 
+      left_join(palette_range_groups, by = c("status" = "LABEL.CODE"))
+    
+    
+    # output paths
+    
+    # convert to India Checklist names 
+    converted_spec <- specname_to_india_checklist(.x) 
+    
+    path_map <- glue("{cur_metadata$MAP.FOLDER}{converted_spec}.png")
+    # for website
+    web_spec <- str_replace_all(converted_spec, c(" " = "-", "'" = "_"))
+    web_mask <- cur_metadata$MASK.CODE
+    path_map_web <- glue("{cur_metadata$WEB.MAP.FOLDER}{web_spec}_{web_mask}_rangemap.jpg")
+    
+    
+    
+    # joining plot base with other constant aesthetic features of graph
+    cur_plot <- plot_base +
+      geom_rangemap_occ(cur_data_occ, cur_data_vag, "YR") +
+      geom_rangemap_occ(cur_data_occ, cur_data_vag, "S") +
+      geom_rangemap_occ(cur_data_occ, cur_data_vag, "P") +
+      geom_rangemap_occ(cur_data_occ, cur_data_vag, "W") +
+      # state outlines
+      geom_sf(data = states_sf, colour = "white", fill = NA, size = 0.2)
+    
+    
+    # writing maps
+    ggsave(filename = path_map, plot = cur_plot,
+           dpi = 1000, bg = "white",
+           width = 7, height = 7, units = "in")
+    
+    ggsave(filename = path_map_web, plot = cur_plot,
+           dpi = 500, bg = "white",
+           width = 7, height = 7, units = "in")
+    
+    toc()
+    
+  })
+  
+  
+  # removing objects from global environment ------------------------------------------
+  
+  rm(list = names(obj_list), envir = .GlobalEnv)
+  
+  toc()
   
 }
 

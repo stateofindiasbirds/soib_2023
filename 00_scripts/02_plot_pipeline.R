@@ -31,3 +31,11 @@ sysmon_metadata %>%
   # filter(CASE == "nannaj") %>% 
   pull(CASE) %>% 
   walk(., ~ gen_trend_plots_sysmon(.x))
+
+
+# range maps -------------------------------------------------------------------------
+
+# only for full country and states
+
+soib_rangemap("Black-backed Dwarf-Kingfisher")
+soib_rangemap(c("Black-backed Dwarf-Kingfisher", "Black Eagle"))
