@@ -1730,13 +1730,13 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
     
     # joining plot base with other constant aesthetic features of graph
     cur_plot <- plot_base +
+      # state outlines (below occupancy grid fill)
+      geom_sf(data = states_sf, colour = "white", fill = NA, size = 0.2) +
       new_scale_fill() +
       geom_rangemap_occ(cur_data_occ, cur_data_vag) +
       # using identity scale since we have specified the column of hexcodes in aes of geom
       scale_fill_identity() +
-      scale_colour_identity() +
-      # state outlines
-      geom_sf(data = states_sf, colour = "white", fill = NA, size = 0.2)
+      scale_colour_identity()
     
     
     # writing maps
