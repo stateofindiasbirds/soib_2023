@@ -37,8 +37,12 @@ analyses_metadata <- data.frame(MASK = c("none",
          
          SIMDATA.PATHONLY = glue("{FOLDER}dataforsim/"),
          TRENDS.PATHONLY = glue("{FOLDER}trends/"),
-         OCCU.PRES.PATHONLY = glue("{FOLDER}occupancy-presence/"),
-         OCCU.MOD.PATHONLY = glue("{FOLDER}occupancy-model/"),
+         # occu model run only for full country; presence only for country and states
+         OCCU.PRES.PATHONLY = case_when(
+           MASK.TYPE %in% c("country", "state") ~ glue("{FOLDER}occupancy-presence/"),
+           TRUE ~ "01_analyses_full/occupancy-presence/"
+           ),
+         OCCU.MOD.PATHONLY = "01_analyses_full/occupancy-model/",
          RESULTS = glue("{FOLDER}results/"),
          
          OCCU.OUTPATH = glue("{RESULTS}occupancy/"),
@@ -58,7 +62,11 @@ analyses_metadata <- data.frame(MASK = c("none",
   mutate(WEB.PLOTS.FOLDER = "20_website/graphs/",
          PLOT.SINGLE.FOLDER = glue("02_graphs/01_single/{MASK.ORDERED}/"),
          PLOT.MULTI.FOLDER = "02_graphs/02_multispecies/",
-         PLOT.COMPOSITE.FOLDER = "02_graphs/03_composite/")
+         PLOT.COMPOSITE.FOLDER = "02_graphs/03_composite/") %>% 
+  mutate(MAP.FOLDER = "02_graphs/10_rangemaps/",
+         WEB.MAP.FOLDER = "20_website/maps/",
+         MAP.DATA.OCC.PATH = glue("{FOLDER}data_rangemap_toplot.csv"),
+         MAP.DATA.VAG.PATH = glue("{FOLDER}data_rangemap_vagrants.csv"))
 
 
 # ensuring folders are created if they don't already exist
@@ -79,6 +87,14 @@ walk2(analyses_metadata$WEB.PLOTS.FOLDER, analyses_metadata$PLOT.SINGLE.FOLDER, 
 })
 
 walk2(analyses_metadata$PLOT.MULTI.FOLDER, analyses_metadata$PLOT.COMPOSITE.FOLDER, ~ {
+  
+  if (!dir.exists(.x)) {dir.create(.x, recursive = TRUE)}
+  
+  if (!dir.exists(.y)) {dir.create(.y, recursive = TRUE)}
+  
+})
+
+walk2(analyses_metadata$MAP.FOLDER, analyses_metadata$WEB.MAP.FOLDER, ~ {
   
   if (!dir.exists(.x)) {dir.create(.x, recursive = TRUE)}
   

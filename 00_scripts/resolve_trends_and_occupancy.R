@@ -37,6 +37,31 @@ load(speclist_path)
 priorityrules = read.csv("00_data/priorityclassificationrules.csv") 
 load("00_data/vagrantdata.RData")
 
+
+# if habitat/conservation area mask, we skip resolve_occu completely (take from full-country)
+if (!cur_metadata$MASK.TYPE %in% c("country", "state")) {
+  
+  skip_res_occu <- TRUE 
+  
+} else {
+  
+  skip_res_occu <- FALSE 
+  
+  if (cur_metadata$MASK.TYPE == "state") {
+    
+    # if state, we have own occu-presence but we take full country occu-model
+    # latter needs to be filtered for grid cells of interest
+    
+    load("00_data/grids_st_sf.RData")
+    
+    cur_grid_filt <- g1_st_sf %>% 
+      filter(STATE.NAME == cur_mask) %>% 
+      transmute(gridg1 = GRID.G1)
+    
+  }
+  
+}
+
 ###
 
 # don't run if no species selected
@@ -44,740 +69,6 @@ to_run <- (1 %in% specieslist$ht) | (1 %in% specieslist$rt) |
   (1 %in% restrictedspecieslist$ht) | (1 %in% restrictedspecieslist$rt)
 
 if (to_run == TRUE) {
-  
-# data processing and prep ------------------------------------------------
-
-base = read.csv(base_path) %>% dplyr::select(-SCIENTIFIC.NAME)
-
-main = read.csv("00_data/SoIB_mapping_2022.csv") %>% 
-  left_join(base, by = c("eBird.English.Name.2022" = "COMMON.NAME"))
-
-# separate object for sensitivity analysis
-sens = main %>% dplyr::select(eBird.English.Name.2022)
-
-
-# trends files
-trends <- list.files(path = trends_pathonly, 
-                     # Generate the full file paths
-                     full.names = T) %>% 
-  # Read each CSV file and combine them into a single data frame
-  map_df(read.csv) 
-
-totsims = n_distinct(trends$sl)
-
-
-# data filtering: problem species -----------------------------------------
-
-# removing problem species from current and long-term analyses
-# (model output contains both species types together)
-
-spec_lt <- main %>% 
-  filter(Long.Term.Analysis == "X") %>% 
-  dplyr::select(eBird.English.Name.2022) %>% 
-  as.vector() %>% list_c()
-spec_ct <- main %>% 
-  filter(Current.Analysis == "X") %>% 
-  dplyr::select(eBird.English.Name.2022) %>% 
-  as.vector() %>% list_c()
-
-# long-term (problematic species) ###
-
-trendsa = trends %>%
-  filter(timegroups < 2015,
-         COMMON.NAME %in% spec_lt) %>%
-  group_by(sl, COMMON.NAME) %>%  
-  # is any simulation of any species problematic: unable to calc. SE or SE > |mean|
-  filter(any(is.na(se) | se > abs(freq))) %>%
-  distinct(sl, COMMON.NAME)
-
-# for a species, if problematic sims are more than half of total sims, ignore species completely.
-# if less than half of total sims, we ignore those particular sims so that those values don't affect 
-# overall estimate.
-if (length(trendsa$sl) > 0)
-{
-  tab_lt_rem = table(trendsa$COMMON.NAME) %>% 
-    as.data.frame() %>% 
-    magrittr::set_colnames(c("COMMON.NAME","count")) %>% 
-    mutate(COMMON.NAME = as.character(COMMON.NAME))
-  
-  specs_lt_remove <- tab_lt_rem %>% 
-    filter(count >= round(totsims/2)) %>% 
-    dplyr::select(COMMON.NAME) %>% 
-    as.vector() %>% list_c()
-    
-  specs_lt_remove_part = tab_lt_rem %>% 
-    filter(count < round(totsims/2)) %>% 
-    dplyr::select(COMMON.NAME) %>% 
-    as.vector() %>% list_c()
-  
-
-  trends = trends %>%
-    mutate(freq = case_when(timegroups < 2015 & 
-                              COMMON.NAME %in% specs_lt_remove ~ NA,
-                            TRUE ~ freq),
-           se = case_when(timegroups < 2015 & 
-                            COMMON.NAME %in% specs_lt_remove ~ NA,
-                          TRUE ~ se))
-  main <- main %>% 
-    mutate(Long.Term.Analysis = if_else(eBird.English.Name.2022 %in% specs_lt_remove,
-                                        "",
-                                        Long.Term.Analysis))
-
-  # when species problematic in less than half of total sims, ignoring those sims
-  trendsa = trendsa %>%
-    filter(COMMON.NAME %in% specs_lt_remove_part) %>%
-    distinct(sl, COMMON.NAME) %>%
-    mutate(comb = paste(sl, COMMON.NAME))
-  
-  trends = trends %>%
-    mutate(comb = paste(sl, COMMON.NAME)) %>%
-    filter(!comb %in% trendsa$comb) %>%
-    dplyr::select(-comb)
-  
-}
-
-
-# current (problematic species) ###
-
-trendsb = trends %>%
-  filter(timegroups >= 2015,
-         COMMON.NAME %in% spec_ct) %>%
-  group_by(sl, COMMON.NAME) %>%  
-  # is any simulation of any species problematic: unable to calc. SE or SE > |mean|
-  filter(any(is.na(se) | se > abs(freq))) %>%
-  distinct(sl, COMMON.NAME)
-
-
-if (length(trendsb$sl) > 0)
-{
-  tab_ct_rem = table(trendsb$COMMON.NAME) %>% 
-    as.data.frame() %>% 
-    magrittr::set_colnames(c("COMMON.NAME","count")) %>% 
-    mutate(COMMON.NAME = as.character(COMMON.NAME))
-  
-  specs_ct_remove <- tab_ct_rem %>% 
-    filter(count >= round(totsims/2)) %>% 
-    dplyr::select(COMMON.NAME) %>% 
-    as.vector() %>% list_c()
-  
-  specs_ct_remove_part = tab_ct_rem %>% 
-    filter(count < round(totsims/2)) %>% 
-    dplyr::select(COMMON.NAME) %>% 
-    as.vector() %>% list_c()
-
-
-  trends = trends %>%
-    filter(!COMMON.NAME %in% specs_ct_remove)
-  
-  main <- main %>% 
-    mutate(Long.Term.Analysis = if_else(eBird.English.Name.2022 %in% specs_ct_remove,
-                                        "", Long.Term.Analysis),
-           Current.Analysis = if_else(eBird.English.Name.2022 %in% specs_ct_remove,
-                                      "", Current.Analysis))
-  
-
-  trendsb = trendsb %>%
-    filter(COMMON.NAME %in% specs_ct_remove_part) %>%
-    distinct(sl, COMMON.NAME) %>%
-    mutate(comb = paste(sl, COMMON.NAME))
-  
-  trends = trends %>%
-    mutate(comb = paste(sl, COMMON.NAME)) %>%
-    filter(!comb %in% trendsb$comb) %>%
-    dplyr::select(-comb)
-  
-}
-  
-
-# data filtering: extra metrics -------------------------------------------
-
-# remove species based on 2 extra metrics (only 1 for PAs and states)
-
-
-# 1. number of sampled 5kmx5km cells within (not for PAs or states)
-
-if (cur_mask %in% c("none", "woodland", "cropland", "ONEland")) {
-  
-  specsc1 = main %>%
-    # <annotation_pending_AV> rationale for 0.8 (even if arbitrary, what does it mean?)
-    filter(!is.na(mean5km) & mean5km < 8 &
-             (Long.Term.Analysis == "X" | Current.Analysis == "X") &
-             is.na(Restricted.Islands)) %>% 
-    dplyr::select(eBird.English.Name.2022) %>% 
-    as.vector() %>% list_c()
-  
-  specsc2 = main %>%
-    # <annotation_pending_AV> rationale for 0.25 (even if arbitrary, what does it mean?)
-    filter(!is.na(ci5km) & (main$ci5km/main$mean5km) > 0.25 &
-             (Long.Term.Analysis == "X" | Current.Analysis == "X") &
-             is.na(Restricted.Islands)) %>% 
-    dplyr::select(eBird.English.Name.2022) %>% 
-    as.vector() %>% list_c()
-  
-  specsc = union(specsc1, specsc2)
-  
-  
-  trends = trends %>%
-    filter(!COMMON.NAME %in% specsc)
-  
-  main <- main %>% 
-    mutate(Long.Term.Analysis = if_else(eBird.English.Name.2022 %in% specsc,
-                                        "", Long.Term.Analysis),
-           Current.Analysis = if_else(eBird.English.Name.2022 %in% specsc,
-                                      "", Current.Analysis))
-  
-}
-
-
-# 2. proportion of 25kmx25km cells sampled
-
-# <annotation_pending_AV> this isn't used anywhere, can be removed?
-specsd3 = main %>%
-  # <annotation_pending_AV> rationale for 0.6 (even if arbitrary, what does it mean?)
-  filter(!is.na(proprange25km.current) & 
-           (proprange25km.current/proprange25km2022) < 0.6 &
-           (Current.Analysis == "X")) %>% 
-  dplyr::select(eBird.English.Name.2022) %>% 
-  as.vector() %>% list_c()
-
-# <annotation_pending_AV> should these lines be referencing specsd3?
-trends = trends %>%
-  filter(!COMMON.NAME %in% specsd3)
-
-
-main <- main %>%
-  # remove these species from both analyses, since unlikely that it qualifies for long-term
-  # but not for current
-  mutate(Long.Term.Analysis = if_else(eBird.English.Name.2022 %in% specsd3,
-                                      "", Long.Term.Analysis),
-         Current.Analysis = if_else(eBird.English.Name.2022 %in% specsd3,
-                                    "", Current.Analysis))
-
-
-# rewriting selected species for LTT and CAT
-spec_lt = main %>% 
-  filter(Long.Term.Analysis == "X") %>% 
-  dplyr::select(eBird.English.Name.2022) %>% 
-  as.vector() %>% list_c()
-
-spec_ct = main %>% 
-  filter(Current.Analysis == "X") %>% 
-  dplyr::select(eBird.English.Name.2022) %>% 
-  as.vector() %>% list_c()
-
-
-# checkpoint-object "main"
-main1_postfilt <- main
-
-
-# calculations: prep --------------------------------------------------------
-
-# This section performs calculations on the trends data frame to derive new columns, 
-# such as lci, mean, and rci. It also creates a data frame called trends_framework to 
-# define the timegroups and species combinations. (Summary from ChatGPT)
-
-# Mean is calculated first, then CI. This is done for long-term and current 
-# trend separately.
-
-
-# Years to project for PJ's IUCN comparison
-extra.years = 2023:2029
-
-trends = trends %>%
-  group_by(COMMON.NAME, timegroupsf, timegroups) %>% 
-  reframe(mean_trans = mean(freq), 
-          # <annotation_pending_AV> SE calculation worth a small comment?
-          se_trans = sd(freq) + sqrt(sum(se^2))/n()) %>%
-  group_by(COMMON.NAME, timegroupsf, timegroups) %>% 
-  mutate(lci = clogloglink(mean_trans - 1.96*se_trans, inverse = T),
-         mean = clogloglink(mean_trans, inverse = T),
-         rci = clogloglink(mean_trans + 1.96*se_trans, inverse = T)) %>%
-  ungroup()
-
-# adding extra years to dataframe (and completing species combinations)
-trends_framework <- trends %>%
-  distinct(timegroups, COMMON.NAME) %>%
-  tidyr::expand(timegroups = c(unique(timegroups), extra.years),
-                COMMON.NAME) %>%
-  complete(timegroups, COMMON.NAME) %>% 
-  left_join(trends %>% distinct(COMMON.NAME, timegroupsf, timegroups)) %>% 
-  mutate(timegroupsf = ifelse(is.na(timegroupsf), timegroups, timegroupsf))
-
-
-# calculations: trends (long-term) ----------------------------------------
-
-modtrends = na.omit(trends) %>% # NAs are all spp. not included in long-term
-  filter(COMMON.NAME %in% spec_lt) %>%
-  arrange(COMMON.NAME, timegroups) %>%
-  # getting trends values of first year (only for long-term, i.e., pre-2000)
-  group_by(COMMON.NAME) %>% 
-  # _trans are link-scale, "mean" is back-transformed
-  mutate(m1 = first(mean_trans),
-         mean_year1 = first(mean),
-         s1 = first(se_trans)) %>% 
-  ungroup() %>% 
-  # for calculating change in abundance index (as % change)
-  mutate(mean_std = 100*mean/mean_year1) # back-transformed so value is % of year1 value
-
-
-# sensitivity check to ensure edge species are later converted to the conservative status
-modtrends1 <- ltt_sens_sim(my_seed = 1)
-modtrends2 <- ltt_sens_sim(my_seed = 2)
-modtrends3 <- ltt_sens_sim(my_seed = 3)
-modtrends4 <- ltt_sens_sim(my_seed = 4)
-modtrends5 <- ltt_sens_sim(my_seed = 5)
-
-# "main" simulated CIs
-set.seed(10) 
-modtrends = modtrends %>% 
-  # calculating CIs
-  group_by(COMMON.NAME, timegroups) %>% 
-  # 1000 simulations of transformed ratio of present:original values
-  # quantiles*100 from these gives us our CI limits for mean_std
-  reframe(tp0 = simerrordiv(mean_trans, m1, se_trans, s1)$rat) %>% 
-  group_by(COMMON.NAME, timegroups) %>% 
-  reframe(lci_std = 100*as.numeric(quantile(tp0, 0.025)),
-          rci_std = 100*as.numeric(quantile(tp0, 0.975))) %>% 
-  right_join(modtrends, by = c("COMMON.NAME", "timegroups"))
-
-# saving the values for 2022 in "main" as well:
-# temp object then left_join instead of right_join because species order in main
-# needs to be preserved
-temp <- modtrends %>%
-  filter(timegroups == 2022) %>%
-  dplyr::select(COMMON.NAME, lci_std, mean_std, rci_std) %>%
-  rename(longtermlci = lci_std,
-         longtermmean = mean_std,
-         longtermrci = rci_std)
-
-main <- main %>%
-  left_join(temp, by = c("eBird.English.Name.2022" = "COMMON.NAME"))
-
-
-modtrends = modtrends %>%
-  group_by(COMMON.NAME) %>%
-  # making CI band zero for first year
-  mutate(lci_std = case_when(timegroups == first(timegroups) ~ mean_std,
-                             TRUE ~ lci_std),
-         rci_std = case_when(timegroups == first(timegroups) ~ mean_std,
-                             TRUE ~ rci_std)) %>%
-  ungroup() %>%
-  dplyr::select(timegroupsf, timegroups, COMMON.NAME, lci_std, mean_std, rci_std)
-
-
-# checkpoint-object "main"
-main2_postLTT <- main
-
-
-# calculations: trends (current) ------------------------------------------
-
-# Unlike trends for long-term, this is not last year divided by first year, instead a slope.
-# For each year, sim 1000 points within CI for each year. In each sim, line is fitted.
-# In each case, three models fitted (main, exponential for projection, sensitivity).
-# Exponential is for Praveen's IUCN estimation using annual change, not used here.
-
-tic("Calculating current trends")
-
-# First, getting mean + CI for each year
-modtrends_recent = trends %>% 
-  filter(COMMON.NAME %in% spec_ct &
-           timegroups >= recentcutoff) %>%
-  arrange(COMMON.NAME, timegroups) %>%
-  # getting trends values of first year (only for current)
-  group_by(COMMON.NAME) %>% 
-  mutate(m1 = first(mean_trans),
-         mean_year1 = first(mean),
-         s1 = first(se_trans)) %>% 
-  ungroup() %>% 
-  # for calculating change in abundance index (as % change)
-  mutate(mean_std_recent = 100*mean/mean_year1)
-
-# Getting CIs for each year
-set.seed(10)
-modtrends_recent = modtrends_recent %>% 
-  # calculating CIs
-  group_by(COMMON.NAME, timegroups) %>% 
-  # 1000 simulations of transformed ratio of present:original values
-  # quantiles*100 from these gives us our CI limits for mean_std
-  reframe(simerrordiv(mean_trans, m1, se_trans, s1)) %>%  # gives rat and val columns
-  group_by(COMMON.NAME, timegroups) %>% 
-  reframe(lci_std_recent = 100*as.numeric(quantile(rat, 0.025)),
-          rci_std_recent = 100*as.numeric(quantile(rat, 0.975)),
-          rat = rat,
-          val = val) %>% 
-  right_join(modtrends_recent, by = c("COMMON.NAME", "timegroups"))
-
-
-# Now running simulations for:
-#   - slope and SE of main trend
-#   - 8x slopes and SEs for sensitivity analyses
-#   - exponential model predictions into future years
-
-set.seed(1)
-temp_sims <- modtrends_recent %>%
-  group_by(COMMON.NAME) %>%
-  dplyr::select(timegroups, rat, val) %>%
-  group_by(COMMON.NAME, timegroups) %>%
-  mutate(sim = 1:n(),
-         # for each sim, sampling from 1000 val values within species-year group
-         val_sample = map_dbl(sim, ~ sample(val, 1)))
-
-
-# IN NEXT SECTION:
-# Take these simulated values of reporting frequency for each year,
-# fit lm through them, then predict new values based on that lm.
-
-# Numerator and denominator for slope calculation, along with error propagation
-# Uncertainty between 2015 and 2016 is highest, hence indexing them, i.e.,
-# using that uncertainty for entire slope (being cautious).
-
-# errordiv calculates and returns slope and SE from predicted values.
-
-
-# making CI band zero for first year
-modtrends_recent = modtrends_recent %>%
-  # now we don't need rat and val
-  distinct(COMMON.NAME, timegroupsf, timegroups, 
-           lci_std_recent, mean_std_recent, rci_std_recent) %>% 
-  group_by(COMMON.NAME) %>% 
-  mutate(lci_std_recent = case_when(timegroups == first(timegroups) ~ mean_std_recent,
-                                    TRUE ~ lci_std_recent)) %>%
-  mutate(rci_std_recent = case_when(timegroups == first(timegroups) ~ mean_std_recent,
-                                    TRUE ~ rci_std_recent)) %>%
-  ungroup() %>%
-  dplyr::select(timegroupsf, timegroups, COMMON.NAME,
-                lci_std_recent, mean_std_recent, rci_std_recent)
-
-
-# calculations: trends (current): MAIN ------------------------------------
-
-sl_data_main <- temp_sims %>% 
-  group_by(COMMON.NAME, sim) %>% 
-  # group_modify() performs function per grouping, so sl and slse calculated for all sim
-  group_modify(~ {
-    
-    datatopred <- .x %>% dplyr::select(timegroups)
-    
-    modelfit <- lm(val_sample ~ timegroups, data = .x)
-    pred <- predict(modelfit, newdata = datatopred, se = TRUE)
-    
-    num <- pred$fit[2] - pred$fit[1]
-    den <- abs(pred$fit[1])
-    numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
-    dense <- pred$se.fit[1]
-    
-    # indexing for mean and se
-    sl <- 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
-    slse <- errordiv(num, den, numse, dense)[2] %>% as.numeric()
-    
-    .x %>%
-      reframe(sl = sl, 
-              slse = slse)
-    
-  }) %>%
-  group_by(COMMON.NAME) %>%
-  reframe(mean.slope = mean(sl),
-          se.slope = sd(sl) + sqrt(sum(slse^2)/length(slse))) %>%
-  group_by(COMMON.NAME) %>%
-  reframe(currentslopelci = mean.slope - 1.96*se.slope,
-          currentslopemean = mean.slope,
-          currentsloperci = mean.slope + 1.96*se.slope)
-
-# joining to main data
-main <- main %>%
-  left_join(sl_data_main, by = c("eBird.English.Name.2022" = "COMMON.NAME"))
-
-
-# checkpoint-object "main"
-main3_postCATmain <- main
-
-# calculations: trends (current): SENS ------------------------------------
-
-# here, fitting the same linear model as for main trend, but for data in which
-# one year is dropped each time.
-# this is to see how much each year affects the estimate.
-sl_data_sens <- temp_sims %>%
-  group_by(COMMON.NAME, sim) %>%
-  group_modify(~ {
-    
-    modelfit <- lm(val_sample ~ timegroups, 
-                   # one year dropped
-                   data = .x[.x$timegroups != 2015,])
-    
-    pred <- predict(modelfit, se = TRUE,
-                    # one year dropped
-                    newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2015]))
-    
-    num <- pred$fit[2] - pred$fit[1]
-    den <- abs(pred$fit[1])
-    numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
-    dense <- pred$se.fit[1]
-    
-    sl1 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
-    slse1 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
-    
-    
-    modelfit <- lm(val_sample ~ timegroups, 
-                   # one year dropped
-                   data = .x[.x$timegroups != 2016,])
-    
-    pred <- predict(modelfit, se = TRUE,
-                    # one year dropped
-                    newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2016]))
-    
-    num <- pred$fit[2] - pred$fit[1]
-    den <- abs(pred$fit[1])
-    numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
-    dense <- pred$se.fit[1]
-    
-    sl2 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
-    slse2 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
-    
-    
-    modelfit <- lm(val_sample ~ timegroups, 
-                   # one year dropped
-                   data = .x[.x$timegroups != 2017,])
-    
-    pred <- predict(modelfit, se = TRUE,
-                    # one year dropped
-                    newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2017]))
-    
-    num <- pred$fit[2] - pred$fit[1]
-    den <- abs(pred$fit[1])
-    numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
-    dense <- pred$se.fit[1]
-    
-    sl3 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
-    slse3 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
-    
-    
-    modelfit <- lm(val_sample ~ timegroups, 
-                   # one year dropped
-                   data = .x[.x$timegroups != 2018,])
-    
-    pred <- predict(modelfit, se = TRUE,
-                    # one year dropped
-                    newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2018]))
-    
-    num <- pred$fit[2] - pred$fit[1]
-    den <- abs(pred$fit[1])
-    numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
-    dense <- pred$se.fit[1]
-    
-    sl4 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
-    slse4 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
-    
-    
-    modelfit <- lm(val_sample ~ timegroups, 
-                   # one year dropped
-                   data = .x[.x$timegroups != 2019,])
-    
-    pred <- predict(modelfit, se = TRUE,
-                    # one year dropped
-                    newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2019]))
-    
-    num <- pred$fit[2] - pred$fit[1]
-    den <- abs(pred$fit[1])
-    numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
-    dense <- pred$se.fit[1]
-    
-    sl5 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
-    slse5 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
-    
-    
-    modelfit <- lm(val_sample ~ timegroups, 
-                   # one year dropped
-                   data = .x[.x$timegroups != 2020,])
-    
-    pred <- predict(modelfit, se = TRUE,
-                    # one year dropped
-                    newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2020]))
-    
-    num <- pred$fit[2] - pred$fit[1]
-    den <- abs(pred$fit[1])
-    numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
-    dense <- pred$se.fit[1]
-    
-    sl6 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
-    slse6 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
-    
-    
-    modelfit <- lm(val_sample ~ timegroups, 
-                   # one year dropped
-                   data = .x[.x$timegroups != 2021,])
-    
-    pred <- predict(modelfit, se = TRUE,
-                    # one year dropped
-                    newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2021]))
-    
-    num <- pred$fit[2] - pred$fit[1]
-    den <- abs(pred$fit[1])
-    numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
-    dense <- pred$se.fit[1]
-    
-    sl7 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
-    slse7 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
-    
-    
-    modelfit <- lm(val_sample ~ timegroups, 
-                   # one year dropped
-                   data = .x[.x$timegroups != 2022,])
-    
-    pred <- predict(modelfit, se = TRUE,
-                    # one year dropped
-                    newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2022]))
-    
-    num <- pred$fit[2] - pred$fit[1]
-    den <- abs(pred$fit[1])
-    numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
-    dense <- pred$se.fit[1]
-    
-    sl8 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
-    slse8 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
-    
-    
-    .x %>%
-      reframe(sl1 = sl1, slse1 = slse1,
-              sl2 = sl2, slse2 = slse2,
-              sl3 = sl3, slse3 = slse3,
-              sl4 = sl4, slse4 = slse4,
-              sl5 = sl5, slse5 = slse5,
-              sl6 = sl6, slse6 = slse6,
-              sl7 = sl7, slse7 = slse7,
-              sl8 = sl8, slse8 = slse8)
-    
-    
-  }) %>%
-  
-  # mean and SE of slope
-  group_by(COMMON.NAME) %>%
-  reframe(across(
-    
-    .cols = matches("^sl\\d+$"), # sl1 to sl8 but not "slse"s
-    .fn = list(mean.slope = ~ mean(.),
-               se.slope = ~ sd(.) + sqrt(sum(get(str_replace(cur_column(), "sl", "slse"))^2) / 
-                                           length(.))),
-    .names = c("{.fn}_{.col}")
-    
-  )) %>% 
-  rename_with(~ str_remove(., "_sl")) %>%
-  
-  # (mean + SE) to (LCI, mean, RCI)
-  group_by(COMMON.NAME) %>%
-  reframe(across(
-    
-    .cols = starts_with("mean.slope"), 
-    .fn = list(lci = ~ . - 1.96 * get(str_replace(cur_column(), "mean", "se")),
-               mean = ~ .,
-               rci = ~ . + 1.96 * get(str_replace(cur_column(), "mean", "se"))),
-    .names = c("currentslope{.fn}{.col}")
-    
-  )) %>%
-  rename_with(~ str_remove(., "mean.slope"))
-
-# joining to data object
-sens <- sens %>%
-  left_join(sl_data_sens, by = c("eBird.English.Name.2022" = "COMMON.NAME"))
-
-write.csv(sens, file = cursens_path, row.names = F)
-
-
-# calculations: trends (current): PROJ ------------------------------------
-
-ext_trends <- temp_sims %>%
-  group_by(COMMON.NAME, sim) %>%
-  group_modify(~ {
-    
-    datatopred <- data.frame(timegroups = extra.years)
-    
-    modelfit <- lm(log(val_sample) ~ timegroups, data = .x)
-    pred <- predict(modelfit, newdata = datatopred, se = TRUE)
-    
-    # No need to calculate slope here. 
-    
-    first_year <- .x %>% filter(timegroups == recentcutoff)
-    
-    .x %>%
-      reframe(timegroups = datatopred$timegroups,
-              mean = pred$fit,
-              se = pred$se.fit,
-              # value in first year
-              val = first_year$val)
-    
-  }) %>%
-  # we want mean and SE of change in repfreq between years, so divide by first year value
-  mutate(lci_bt = 100*exp(mean - 1.96 * se)/val, 
-         mean_bt = 100*exp(mean)/val,
-         rci_bt = 100*exp(mean + 1.96 * se)/val) %>%
-  group_by(COMMON.NAME, timegroups) %>%
-  reframe(lci_ext_std = mean(lci_bt),
-          mean_ext_std = mean(mean_bt),
-          rci_ext_std = mean(rci_bt))
-
-# ext_trends = ext_trends %>% select(-c(lci_bt,mean_bt,rci_bt))
-
-toc()
-
-# calculations: combining two trends --------------------------------------
-
-trends = trends %>% 
-  left_join(modtrends) %>% 
-  left_join(modtrends_recent) %>%
-  dplyr::select(timegroups, COMMON.NAME, timegroupsf, mean_trans, se_trans,
-                lci, mean, rci, lci_std, mean_std, rci_std,
-                lci_std_recent, mean_std_recent, rci_std_recent) %>% 
-  right_join(trends_framework) %>% 
-  # projected trends
-  left_join(ext_trends) %>% 
-  # changing names to factor, so they maintain order
-  mutate(COMMON.NAME = factor(COMMON.NAME, levels = base$COMMON.NAME)) %>%
-  arrange(COMMON.NAME, timegroups) %>% 
-  # <annotation_pending_AV>
-  mutate(lci_comb_std = case_when(is.na(lci_ext_std) ~ lci_std_recent,
-                                  !is.na(lci_ext_std) ~ lci_ext_std),
-         mean_comb_std = case_when(is.na(mean_ext_std) ~ mean_std_recent,
-                                   !is.na(mean_ext_std) ~ mean_ext_std),
-         rci_comb_std = case_when(is.na(rci_ext_std) ~ rci_std_recent,
-                                  !is.na(rci_ext_std) ~ rci_ext_std)) %>% 
-  # truncating LCI at 0
-  mutate(lci_comb_std = case_when(lci_comb_std < 0 ~ 0, 
-                                  TRUE ~ lci_comb_std)) %>% 
-  # ensuring correct order of columns
-  relocate(timegroups, COMMON.NAME, timegroupsf, mean_trans, se_trans,
-           lci, mean, rci, lci_std, mean_std, rci_std,
-           lci_std_recent, mean_std_recent, rci_std_recent,
-           lci_ext_std, mean_ext_std, rci_ext_std,
-           lci_comb_std, mean_comb_std, rci_comb_std)
-
-write.csv(trends, file = trends_outpath, row.names = F)
-
-
-
-# joining future projected trends to main dataframe ###
-
-tojoin <- map(2023:2029, ~ trends %>%
-           filter(timegroups == .x) %>%
-           dplyr::select(COMMON.NAME, lci_comb_std, mean_comb_std, rci_comb_std) %>%
-           magrittr::set_colnames(c("eBird.English.Name.2022", 
-                                    glue("proj{.x}.lci"),
-                                    glue("proj{.x}.mean"),
-                                    glue("proj{.x}.rci")))) %>% 
-  reduce(full_join, by = "eBird.English.Name.2022")
-
-main <- main %>% 
-  left_join(tojoin) %>% 
-  # removing misIDd species "selection" for long-term and current analyses
-  mutate(Long.Term.Analysis = ifelse(eBird.English.Name.2022 %in% spec_misid, 
-                                     "", Long.Term.Analysis),
-         Current.Analysis = ifelse(eBird.English.Name.2022 %in% spec_misid, 
-                                   "", Current.Analysis))  
-
-
-# checkpoint-object "main"
-main4_postCATcomb <- main
-
-
-} else {
   
   # list of columns that need to be created since we have skipped steps
   na_columns <- c("longtermlci", "longtermmean", "longtermrci",     
@@ -802,115 +93,877 @@ main4_postCATcomb <- main
   
   print(glue("Skipping resolving species trends for {cur_mask}"))
   
+} else {
+  
+  # data processing and prep ------------------------------------------------
+  
+  base = read.csv(base_path) %>% dplyr::select(-SCIENTIFIC.NAME)
+  
+  main = read.csv("00_data/SoIB_mapping_2022.csv") %>% 
+    left_join(base, by = c("eBird.English.Name.2022" = "COMMON.NAME"))
+  
+  # separate object for sensitivity analysis
+  sens = main %>% dplyr::select(eBird.English.Name.2022)
+  
+  
+  # trends files
+  trends <- list.files(path = trends_pathonly, 
+                       # Generate the full file paths
+                       full.names = T) %>% 
+    # Read each CSV file and combine them into a single data frame
+    map_df(read.csv) 
+  
+  totsims = n_distinct(trends$sl)
+  
+  
+  # data filtering: problem species -----------------------------------------
+  
+  # removing problem species from current and long-term analyses
+  # (model output contains both species types together)
+  
+  spec_lt <- main %>% 
+    filter(Long.Term.Analysis == "X") %>% 
+    dplyr::select(eBird.English.Name.2022) %>% 
+    as.vector() %>% list_c()
+  spec_ct <- main %>% 
+    filter(Current.Analysis == "X") %>% 
+    dplyr::select(eBird.English.Name.2022) %>% 
+    as.vector() %>% list_c()
+  
+  # long-term (problematic species) ###
+  
+  trendsa = trends %>%
+    filter(timegroups < 2015,
+           COMMON.NAME %in% spec_lt) %>%
+    group_by(sl, COMMON.NAME) %>%  
+    # is any simulation of any species problematic: unable to calc. SE or SE > |mean|
+    filter(any(is.na(se) | se > abs(freq))) %>%
+    distinct(sl, COMMON.NAME)
+  
+  # for a species, if problematic sims are more than half of total sims, ignore species completely.
+  # if less than half of total sims, we ignore those particular sims so that those values don't affect 
+  # overall estimate.
+  if (length(trendsa$sl) > 0)
+  {
+    tab_lt_rem = table(trendsa$COMMON.NAME) %>% 
+      as.data.frame() %>% 
+      magrittr::set_colnames(c("COMMON.NAME","count")) %>% 
+      mutate(COMMON.NAME = as.character(COMMON.NAME))
+    
+    specs_lt_remove <- tab_lt_rem %>% 
+      filter(count >= round(totsims/2)) %>% 
+      dplyr::select(COMMON.NAME) %>% 
+      as.vector() %>% list_c()
+    
+    specs_lt_remove_part = tab_lt_rem %>% 
+      filter(count < round(totsims/2)) %>% 
+      dplyr::select(COMMON.NAME) %>% 
+      as.vector() %>% list_c()
+    
+    
+    trends = trends %>%
+      mutate(freq = case_when(timegroups < 2015 & 
+                                COMMON.NAME %in% specs_lt_remove ~ NA,
+                              TRUE ~ freq),
+             se = case_when(timegroups < 2015 & 
+                              COMMON.NAME %in% specs_lt_remove ~ NA,
+                            TRUE ~ se))
+    main <- main %>% 
+      mutate(Long.Term.Analysis = if_else(eBird.English.Name.2022 %in% specs_lt_remove,
+                                          "",
+                                          Long.Term.Analysis))
+    
+    # when species problematic in less than half of total sims, ignoring those sims
+    trendsa = trendsa %>%
+      filter(COMMON.NAME %in% specs_lt_remove_part) %>%
+      distinct(sl, COMMON.NAME) %>%
+      mutate(comb = paste(sl, COMMON.NAME))
+    
+    trends = trends %>%
+      mutate(comb = paste(sl, COMMON.NAME)) %>%
+      filter(!comb %in% trendsa$comb) %>%
+      dplyr::select(-comb)
+    
+  }
+  
+  
+  # current (problematic species) ###
+  
+  trendsb = trends %>%
+    filter(timegroups >= 2015,
+           COMMON.NAME %in% spec_ct) %>%
+    group_by(sl, COMMON.NAME) %>%  
+    # is any simulation of any species problematic: unable to calc. SE or SE > |mean|
+    filter(any(is.na(se) | se > abs(freq))) %>%
+    distinct(sl, COMMON.NAME)
+  
+  
+  if (length(trendsb$sl) > 0)
+  {
+    tab_ct_rem = table(trendsb$COMMON.NAME) %>% 
+      as.data.frame() %>% 
+      magrittr::set_colnames(c("COMMON.NAME","count")) %>% 
+      mutate(COMMON.NAME = as.character(COMMON.NAME))
+    
+    specs_ct_remove <- tab_ct_rem %>% 
+      filter(count >= round(totsims/2)) %>% 
+      dplyr::select(COMMON.NAME) %>% 
+      as.vector() %>% list_c()
+    
+    specs_ct_remove_part = tab_ct_rem %>% 
+      filter(count < round(totsims/2)) %>% 
+      dplyr::select(COMMON.NAME) %>% 
+      as.vector() %>% list_c()
+    
+    
+    trends = trends %>%
+      filter(!COMMON.NAME %in% specs_ct_remove)
+    
+    main <- main %>% 
+      mutate(Long.Term.Analysis = if_else(eBird.English.Name.2022 %in% specs_ct_remove,
+                                          "", Long.Term.Analysis),
+             Current.Analysis = if_else(eBird.English.Name.2022 %in% specs_ct_remove,
+                                        "", Current.Analysis))
+    
+    
+    trendsb = trendsb %>%
+      filter(COMMON.NAME %in% specs_ct_remove_part) %>%
+      distinct(sl, COMMON.NAME) %>%
+      mutate(comb = paste(sl, COMMON.NAME))
+    
+    trends = trends %>%
+      mutate(comb = paste(sl, COMMON.NAME)) %>%
+      filter(!comb %in% trendsb$comb) %>%
+      dplyr::select(-comb)
+    
+  }
+  
+  
+  # data filtering: extra metrics -------------------------------------------
+  
+  # remove species based on 2 extra metrics (only 1 for PAs and states)
+  
+  
+  # 1. number of sampled 5kmx5km cells within (not for PAs or states)
+  
+  if (cur_mask %in% c("none", "woodland", "cropland", "ONEland")) {
+    
+    specsc1 = main %>%
+      # <annotation_pending_AV> rationale for 0.8 (even if arbitrary, what does it mean?)
+      filter(!is.na(mean5km) & mean5km < 8 &
+               (Long.Term.Analysis == "X" | Current.Analysis == "X") &
+               is.na(Restricted.Islands)) %>% 
+      dplyr::select(eBird.English.Name.2022) %>% 
+      as.vector() %>% list_c()
+    
+    specsc2 = main %>%
+      # <annotation_pending_AV> rationale for 0.25 (even if arbitrary, what does it mean?)
+      filter(!is.na(ci5km) & (main$ci5km/main$mean5km) > 0.25 &
+               (Long.Term.Analysis == "X" | Current.Analysis == "X") &
+               is.na(Restricted.Islands)) %>% 
+      dplyr::select(eBird.English.Name.2022) %>% 
+      as.vector() %>% list_c()
+    
+    specsc = union(specsc1, specsc2)
+    
+    
+    trends = trends %>%
+      filter(!COMMON.NAME %in% specsc)
+    
+    main <- main %>% 
+      mutate(Long.Term.Analysis = if_else(eBird.English.Name.2022 %in% specsc,
+                                          "", Long.Term.Analysis),
+             Current.Analysis = if_else(eBird.English.Name.2022 %in% specsc,
+                                        "", Current.Analysis))
+    
+  }
+  
+  
+  # 2. proportion of 25kmx25km cells sampled
+  
+  # <annotation_pending_AV> this isn't used anywhere, can be removed?
+  specsd3 = main %>%
+    # <annotation_pending_AV> rationale for 0.6 (even if arbitrary, what does it mean?)
+    filter(!is.na(proprange25km.current) & 
+             (proprange25km.current/proprange25km2022) < 0.6 &
+             (Current.Analysis == "X")) %>% 
+    dplyr::select(eBird.English.Name.2022) %>% 
+    as.vector() %>% list_c()
+  
+  # <annotation_pending_AV> should these lines be referencing specsd3?
+  trends = trends %>%
+    filter(!COMMON.NAME %in% specsd3)
+  
+  
+  main <- main %>%
+    # remove these species from both analyses, since unlikely that it qualifies for long-term
+    # but not for current
+    mutate(Long.Term.Analysis = if_else(eBird.English.Name.2022 %in% specsd3,
+                                        "", Long.Term.Analysis),
+           Current.Analysis = if_else(eBird.English.Name.2022 %in% specsd3,
+                                      "", Current.Analysis))
+  
+  
+  # rewriting selected species for LTT and CAT
+  spec_lt = main %>% 
+    filter(Long.Term.Analysis == "X") %>% 
+    dplyr::select(eBird.English.Name.2022) %>% 
+    as.vector() %>% list_c()
+  
+  spec_ct = main %>% 
+    filter(Current.Analysis == "X") %>% 
+    dplyr::select(eBird.English.Name.2022) %>% 
+    as.vector() %>% list_c()
+  
+  
+  # checkpoint-object "main"
+  main1_postfilt <- main
+  
+  
+  # calculations: prep --------------------------------------------------------
+  
+  # This section performs calculations on the trends data frame to derive new columns, 
+  # such as lci, mean, and rci. It also creates a data frame called trends_framework to 
+  # define the timegroups and species combinations. (Summary from ChatGPT)
+  
+  # Mean is calculated first, then CI. This is done for long-term and current 
+  # trend separately.
+  
+  
+  # Years to project for PJ's IUCN comparison
+  extra.years = 2023:2029
+  
+  trends = trends %>%
+    group_by(COMMON.NAME, timegroupsf, timegroups) %>% 
+    reframe(mean_trans = mean(freq), 
+            # <annotation_pending_AV> SE calculation worth a small comment?
+            se_trans = sd(freq) + sqrt(sum(se^2))/n()) %>%
+    group_by(COMMON.NAME, timegroupsf, timegroups) %>% 
+    mutate(lci = clogloglink(mean_trans - 1.96*se_trans, inverse = T),
+           mean = clogloglink(mean_trans, inverse = T),
+           rci = clogloglink(mean_trans + 1.96*se_trans, inverse = T)) %>%
+    ungroup()
+  
+  # adding extra years to dataframe (and completing species combinations)
+  trends_framework <- trends %>%
+    distinct(timegroups, COMMON.NAME) %>%
+    tidyr::expand(timegroups = c(unique(timegroups), extra.years),
+                  COMMON.NAME) %>%
+    complete(timegroups, COMMON.NAME) %>% 
+    left_join(trends %>% distinct(COMMON.NAME, timegroupsf, timegroups)) %>% 
+    mutate(timegroupsf = ifelse(is.na(timegroupsf), timegroups, timegroupsf))
+  
+  
+  # calculations: trends (long-term) ----------------------------------------
+  
+  modtrends = na.omit(trends) %>% # NAs are all spp. not included in long-term
+    filter(COMMON.NAME %in% spec_lt) %>%
+    arrange(COMMON.NAME, timegroups) %>%
+    # getting trends values of first year (only for long-term, i.e., pre-2000)
+    group_by(COMMON.NAME) %>% 
+    # _trans are link-scale, "mean" is back-transformed
+    mutate(m1 = first(mean_trans),
+           mean_year1 = first(mean),
+           s1 = first(se_trans)) %>% 
+    ungroup() %>% 
+    # for calculating change in abundance index (as % change)
+    mutate(mean_std = 100*mean/mean_year1) # back-transformed so value is % of year1 value
+  
+  
+  # sensitivity check to ensure edge species are later converted to the conservative status
+  modtrends1 <- ltt_sens_sim(my_seed = 1)
+  modtrends2 <- ltt_sens_sim(my_seed = 2)
+  modtrends3 <- ltt_sens_sim(my_seed = 3)
+  modtrends4 <- ltt_sens_sim(my_seed = 4)
+  modtrends5 <- ltt_sens_sim(my_seed = 5)
+  
+  # "main" simulated CIs
+  set.seed(10) 
+  modtrends = modtrends %>% 
+    # calculating CIs
+    group_by(COMMON.NAME, timegroups) %>% 
+    # 1000 simulations of transformed ratio of present:original values
+    # quantiles*100 from these gives us our CI limits for mean_std
+    reframe(tp0 = simerrordiv(mean_trans, m1, se_trans, s1)$rat) %>% 
+    group_by(COMMON.NAME, timegroups) %>% 
+    reframe(lci_std = 100*as.numeric(quantile(tp0, 0.025)),
+            rci_std = 100*as.numeric(quantile(tp0, 0.975))) %>% 
+    right_join(modtrends, by = c("COMMON.NAME", "timegroups"))
+  
+  # saving the values for 2022 in "main" as well:
+  # temp object then left_join instead of right_join because species order in main
+  # needs to be preserved
+  temp <- modtrends %>%
+    filter(timegroups == 2022) %>%
+    dplyr::select(COMMON.NAME, lci_std, mean_std, rci_std) %>%
+    rename(longtermlci = lci_std,
+           longtermmean = mean_std,
+           longtermrci = rci_std)
+  
+  main <- main %>%
+    left_join(temp, by = c("eBird.English.Name.2022" = "COMMON.NAME"))
+  
+  
+  modtrends = modtrends %>%
+    group_by(COMMON.NAME) %>%
+    # making CI band zero for first year
+    mutate(lci_std = case_when(timegroups == first(timegroups) ~ mean_std,
+                               TRUE ~ lci_std),
+           rci_std = case_when(timegroups == first(timegroups) ~ mean_std,
+                               TRUE ~ rci_std)) %>%
+    ungroup() %>%
+    dplyr::select(timegroupsf, timegroups, COMMON.NAME, lci_std, mean_std, rci_std)
+  
+  
+  # checkpoint-object "main"
+  main2_postLTT <- main
+  
+  
+  # calculations: trends (current) ------------------------------------------
+  
+  # Unlike trends for long-term, this is not last year divided by first year, instead a slope.
+  # For each year, sim 1000 points within CI for each year. In each sim, line is fitted.
+  # In each case, three models fitted (main, exponential for projection, sensitivity).
+  # Exponential is for Praveen's IUCN estimation using annual change, not used here.
+  
+  tic("Calculating current trends")
+  
+  # First, getting mean + CI for each year
+  modtrends_recent = trends %>% 
+    filter(COMMON.NAME %in% spec_ct &
+             timegroups >= recentcutoff) %>%
+    arrange(COMMON.NAME, timegroups) %>%
+    # getting trends values of first year (only for current)
+    group_by(COMMON.NAME) %>% 
+    mutate(m1 = first(mean_trans),
+           mean_year1 = first(mean),
+           s1 = first(se_trans)) %>% 
+    ungroup() %>% 
+    # for calculating change in abundance index (as % change)
+    mutate(mean_std_recent = 100*mean/mean_year1)
+  
+  # Getting CIs for each year
+  set.seed(10)
+  modtrends_recent = modtrends_recent %>% 
+    # calculating CIs
+    group_by(COMMON.NAME, timegroups) %>% 
+    # 1000 simulations of transformed ratio of present:original values
+    # quantiles*100 from these gives us our CI limits for mean_std
+    reframe(simerrordiv(mean_trans, m1, se_trans, s1)) %>%  # gives rat and val columns
+    group_by(COMMON.NAME, timegroups) %>% 
+    reframe(lci_std_recent = 100*as.numeric(quantile(rat, 0.025)),
+            rci_std_recent = 100*as.numeric(quantile(rat, 0.975)),
+            rat = rat,
+            val = val) %>% 
+    right_join(modtrends_recent, by = c("COMMON.NAME", "timegroups"))
+  
+  
+  # Now running simulations for:
+  #   - slope and SE of main trend
+  #   - 8x slopes and SEs for sensitivity analyses
+  #   - exponential model predictions into future years
+  
+  set.seed(1)
+  temp_sims <- modtrends_recent %>%
+    group_by(COMMON.NAME) %>%
+    dplyr::select(timegroups, rat, val) %>%
+    group_by(COMMON.NAME, timegroups) %>%
+    mutate(sim = 1:n(),
+           # for each sim, sampling from 1000 val values within species-year group
+           val_sample = map_dbl(sim, ~ sample(val, 1)))
+  
+  
+  # IN NEXT SECTION:
+  # Take these simulated values of reporting frequency for each year,
+  # fit lm through them, then predict new values based on that lm.
+  
+  # Numerator and denominator for slope calculation, along with error propagation
+  # Uncertainty between 2015 and 2016 is highest, hence indexing them, i.e.,
+  # using that uncertainty for entire slope (being cautious).
+  
+  # errordiv calculates and returns slope and SE from predicted values.
+  
+  
+  # making CI band zero for first year
+  modtrends_recent = modtrends_recent %>%
+    # now we don't need rat and val
+    distinct(COMMON.NAME, timegroupsf, timegroups, 
+             lci_std_recent, mean_std_recent, rci_std_recent) %>% 
+    group_by(COMMON.NAME) %>% 
+    mutate(lci_std_recent = case_when(timegroups == first(timegroups) ~ mean_std_recent,
+                                      TRUE ~ lci_std_recent)) %>%
+    mutate(rci_std_recent = case_when(timegroups == first(timegroups) ~ mean_std_recent,
+                                      TRUE ~ rci_std_recent)) %>%
+    ungroup() %>%
+    dplyr::select(timegroupsf, timegroups, COMMON.NAME,
+                  lci_std_recent, mean_std_recent, rci_std_recent)
+  
+  
+  # calculations: trends (current): MAIN ------------------------------------
+  
+  sl_data_main <- temp_sims %>% 
+    group_by(COMMON.NAME, sim) %>% 
+    # group_modify() performs function per grouping, so sl and slse calculated for all sim
+    group_modify(~ {
+      
+      datatopred <- .x %>% dplyr::select(timegroups)
+      
+      modelfit <- lm(val_sample ~ timegroups, data = .x)
+      pred <- predict(modelfit, newdata = datatopred, se = TRUE)
+      
+      num <- pred$fit[2] - pred$fit[1]
+      den <- abs(pred$fit[1])
+      numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
+      dense <- pred$se.fit[1]
+      
+      # indexing for mean and se
+      sl <- 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
+      slse <- errordiv(num, den, numse, dense)[2] %>% as.numeric()
+      
+      .x %>%
+        reframe(sl = sl, 
+                slse = slse)
+      
+    }) %>%
+    group_by(COMMON.NAME) %>%
+    reframe(mean.slope = mean(sl),
+            se.slope = sd(sl) + sqrt(sum(slse^2)/length(slse))) %>%
+    group_by(COMMON.NAME) %>%
+    reframe(currentslopelci = mean.slope - 1.96*se.slope,
+            currentslopemean = mean.slope,
+            currentsloperci = mean.slope + 1.96*se.slope)
+  
+  # joining to main data
+  main <- main %>%
+    left_join(sl_data_main, by = c("eBird.English.Name.2022" = "COMMON.NAME"))
+  
+  
+  # checkpoint-object "main"
+  main3_postCATmain <- main
+  
+  # calculations: trends (current): SENS ------------------------------------
+  
+  # here, fitting the same linear model as for main trend, but for data in which
+  # one year is dropped each time.
+  # this is to see how much each year affects the estimate.
+  sl_data_sens <- temp_sims %>%
+    group_by(COMMON.NAME, sim) %>%
+    group_modify(~ {
+      
+      modelfit <- lm(val_sample ~ timegroups, 
+                     # one year dropped
+                     data = .x[.x$timegroups != 2015,])
+      
+      pred <- predict(modelfit, se = TRUE,
+                      # one year dropped
+                      newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2015]))
+      
+      num <- pred$fit[2] - pred$fit[1]
+      den <- abs(pred$fit[1])
+      numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
+      dense <- pred$se.fit[1]
+      
+      sl1 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
+      slse1 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
+      
+      
+      modelfit <- lm(val_sample ~ timegroups, 
+                     # one year dropped
+                     data = .x[.x$timegroups != 2016,])
+      
+      pred <- predict(modelfit, se = TRUE,
+                      # one year dropped
+                      newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2016]))
+      
+      num <- pred$fit[2] - pred$fit[1]
+      den <- abs(pred$fit[1])
+      numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
+      dense <- pred$se.fit[1]
+      
+      sl2 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
+      slse2 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
+      
+      
+      modelfit <- lm(val_sample ~ timegroups, 
+                     # one year dropped
+                     data = .x[.x$timegroups != 2017,])
+      
+      pred <- predict(modelfit, se = TRUE,
+                      # one year dropped
+                      newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2017]))
+      
+      num <- pred$fit[2] - pred$fit[1]
+      den <- abs(pred$fit[1])
+      numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
+      dense <- pred$se.fit[1]
+      
+      sl3 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
+      slse3 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
+      
+      
+      modelfit <- lm(val_sample ~ timegroups, 
+                     # one year dropped
+                     data = .x[.x$timegroups != 2018,])
+      
+      pred <- predict(modelfit, se = TRUE,
+                      # one year dropped
+                      newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2018]))
+      
+      num <- pred$fit[2] - pred$fit[1]
+      den <- abs(pred$fit[1])
+      numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
+      dense <- pred$se.fit[1]
+      
+      sl4 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
+      slse4 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
+      
+      
+      modelfit <- lm(val_sample ~ timegroups, 
+                     # one year dropped
+                     data = .x[.x$timegroups != 2019,])
+      
+      pred <- predict(modelfit, se = TRUE,
+                      # one year dropped
+                      newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2019]))
+      
+      num <- pred$fit[2] - pred$fit[1]
+      den <- abs(pred$fit[1])
+      numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
+      dense <- pred$se.fit[1]
+      
+      sl5 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
+      slse5 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
+      
+      
+      modelfit <- lm(val_sample ~ timegroups, 
+                     # one year dropped
+                     data = .x[.x$timegroups != 2020,])
+      
+      pred <- predict(modelfit, se = TRUE,
+                      # one year dropped
+                      newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2020]))
+      
+      num <- pred$fit[2] - pred$fit[1]
+      den <- abs(pred$fit[1])
+      numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
+      dense <- pred$se.fit[1]
+      
+      sl6 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
+      slse6 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
+      
+      
+      modelfit <- lm(val_sample ~ timegroups, 
+                     # one year dropped
+                     data = .x[.x$timegroups != 2021,])
+      
+      pred <- predict(modelfit, se = TRUE,
+                      # one year dropped
+                      newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2021]))
+      
+      num <- pred$fit[2] - pred$fit[1]
+      den <- abs(pred$fit[1])
+      numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
+      dense <- pred$se.fit[1]
+      
+      sl7 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
+      slse7 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
+      
+      
+      modelfit <- lm(val_sample ~ timegroups, 
+                     # one year dropped
+                     data = .x[.x$timegroups != 2022,])
+      
+      pred <- predict(modelfit, se = TRUE,
+                      # one year dropped
+                      newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2022]))
+      
+      num <- pred$fit[2] - pred$fit[1]
+      den <- abs(pred$fit[1])
+      numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
+      dense <- pred$se.fit[1]
+      
+      sl8 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
+      slse8 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
+      
+      
+      .x %>%
+        reframe(sl1 = sl1, slse1 = slse1,
+                sl2 = sl2, slse2 = slse2,
+                sl3 = sl3, slse3 = slse3,
+                sl4 = sl4, slse4 = slse4,
+                sl5 = sl5, slse5 = slse5,
+                sl6 = sl6, slse6 = slse6,
+                sl7 = sl7, slse7 = slse7,
+                sl8 = sl8, slse8 = slse8)
+      
+      
+    }) %>%
+    
+    # mean and SE of slope
+    group_by(COMMON.NAME) %>%
+    reframe(across(
+      
+      .cols = matches("^sl\\d+$"), # sl1 to sl8 but not "slse"s
+      .fn = list(mean.slope = ~ mean(.),
+                 se.slope = ~ sd(.) + sqrt(sum(get(str_replace(cur_column(), "sl", "slse"))^2) / 
+                                             length(.))),
+      .names = c("{.fn}_{.col}")
+      
+    )) %>% 
+    rename_with(~ str_remove(., "_sl")) %>%
+    
+    # (mean + SE) to (LCI, mean, RCI)
+    group_by(COMMON.NAME) %>%
+    reframe(across(
+      
+      .cols = starts_with("mean.slope"), 
+      .fn = list(lci = ~ . - 1.96 * get(str_replace(cur_column(), "mean", "se")),
+                 mean = ~ .,
+                 rci = ~ . + 1.96 * get(str_replace(cur_column(), "mean", "se"))),
+      .names = c("currentslope{.fn}{.col}")
+      
+    )) %>%
+    rename_with(~ str_remove(., "mean.slope"))
+  
+  # joining to data object
+  sens <- sens %>%
+    left_join(sl_data_sens, by = c("eBird.English.Name.2022" = "COMMON.NAME"))
+  
+  write.csv(sens, file = cursens_path, row.names = F)
+  
+  
+  # calculations: trends (current): PROJ ------------------------------------
+  
+  ext_trends <- temp_sims %>%
+    group_by(COMMON.NAME, sim) %>%
+    group_modify(~ {
+      
+      datatopred <- data.frame(timegroups = extra.years)
+      
+      modelfit <- lm(log(val_sample) ~ timegroups, data = .x)
+      pred <- predict(modelfit, newdata = datatopred, se = TRUE)
+      
+      # No need to calculate slope here. 
+      
+      first_year <- .x %>% filter(timegroups == recentcutoff)
+      
+      .x %>%
+        reframe(timegroups = datatopred$timegroups,
+                mean = pred$fit,
+                se = pred$se.fit,
+                # value in first year
+                val = first_year$val)
+      
+    }) %>%
+    # we want mean and SE of change in repfreq between years, so divide by first year value
+    mutate(lci_bt = 100*exp(mean - 1.96 * se)/val, 
+           mean_bt = 100*exp(mean)/val,
+           rci_bt = 100*exp(mean + 1.96 * se)/val) %>%
+    group_by(COMMON.NAME, timegroups) %>%
+    reframe(lci_ext_std = mean(lci_bt),
+            mean_ext_std = mean(mean_bt),
+            rci_ext_std = mean(rci_bt))
+  
+  # ext_trends = ext_trends %>% select(-c(lci_bt,mean_bt,rci_bt))
+  
+  toc()
+  
+  # calculations: combining two trends --------------------------------------
+  
+  trends = trends %>% 
+    left_join(modtrends) %>% 
+    left_join(modtrends_recent) %>%
+    dplyr::select(timegroups, COMMON.NAME, timegroupsf, mean_trans, se_trans,
+                  lci, mean, rci, lci_std, mean_std, rci_std,
+                  lci_std_recent, mean_std_recent, rci_std_recent) %>% 
+    right_join(trends_framework) %>% 
+    # projected trends
+    left_join(ext_trends) %>% 
+    # changing names to factor, so they maintain order
+    mutate(COMMON.NAME = factor(COMMON.NAME, levels = base$COMMON.NAME)) %>%
+    arrange(COMMON.NAME, timegroups) %>% 
+    # <annotation_pending_AV>
+    mutate(lci_comb_std = case_when(is.na(lci_ext_std) ~ lci_std_recent,
+                                    !is.na(lci_ext_std) ~ lci_ext_std),
+           mean_comb_std = case_when(is.na(mean_ext_std) ~ mean_std_recent,
+                                     !is.na(mean_ext_std) ~ mean_ext_std),
+           rci_comb_std = case_when(is.na(rci_ext_std) ~ rci_std_recent,
+                                    !is.na(rci_ext_std) ~ rci_ext_std)) %>% 
+    # truncating LCI at 0
+    mutate(lci_comb_std = case_when(lci_comb_std < 0 ~ 0, 
+                                    TRUE ~ lci_comb_std)) %>% 
+    # ensuring correct order of columns
+    relocate(timegroups, COMMON.NAME, timegroupsf, mean_trans, se_trans,
+             lci, mean, rci, lci_std, mean_std, rci_std,
+             lci_std_recent, mean_std_recent, rci_std_recent,
+             lci_ext_std, mean_ext_std, rci_ext_std,
+             lci_comb_std, mean_comb_std, rci_comb_std)
+  
+  write.csv(trends, file = trends_outpath, row.names = F)
+  
+  
+  
+  # joining future projected trends to main dataframe ###
+  
+  tojoin <- map(2023:2029, ~ trends %>%
+                  filter(timegroups == .x) %>%
+                  dplyr::select(COMMON.NAME, lci_comb_std, mean_comb_std, rci_comb_std) %>%
+                  magrittr::set_colnames(c("eBird.English.Name.2022", 
+                                           glue("proj{.x}.lci"),
+                                           glue("proj{.x}.mean"),
+                                           glue("proj{.x}.rci")))) %>% 
+    reduce(full_join, by = "eBird.English.Name.2022")
+  
+  main <- main %>% 
+    left_join(tojoin) %>% 
+    # removing misIDd species "selection" for long-term and current analyses
+    mutate(Long.Term.Analysis = ifelse(eBird.English.Name.2022 %in% spec_misid, 
+                                       "", Long.Term.Analysis),
+           Current.Analysis = ifelse(eBird.English.Name.2022 %in% spec_misid, 
+                                     "", Current.Analysis))  
+  
+  
+  # checkpoint-object "main"
+  main4_postCATcomb <- main
+  
+  
 }
 
 # calculations: occupancy -------------------------------------------------
 
 tic("Calculating occupancy")
 
-# occupancy-model files
-occu_model <- list.files(path = occu_mod_pathonly, full.names = T) %>% 
-  map_df(read.csv)
-
-# occupancy-presence files
-occu_presence <- list.files(path = occu_pres_pathonly, full.names = T) %>% 
-  map_df(read.csv)
-
-# taking modelled occupancy values for species in cell where "absent"
-occ.full1 = occu_model %>% 
-  filter(presence == 0) 
-
-# "presences"
-occ.full2 = occu_presence %>% 
-  left_join(occu_model) %>% 
-  dplyr::select(names(occ.full1))
-
-
-occu_full = rbind(occ.full1, occ.full2) %>% 
-  mutate(gridg1 = as.character(gridg1)) %>% 
-  # joining areas of each grid cell
-  left_join(g1_in_sf %>% 
-              st_drop_geometry() %>% 
-              transmute(gridg1 = GRID.G1, area = AREA.G1))
-
-
-occu_full$occupancy[occu_full$presence == 1] = 1
-occu_full$se[occu_full$presence == 1] = 0
-occu_full = occu_full %>% filter(!is.na(occupancy), !is.na(se), !is.na(gridg1))
-
-
-
-occu_summary = occu_full %>%
-  filter(presence != 0 | prop_nb != 0) %>%
-  group_by(COMMON.NAME, status) %>% 
-  reframe(occ = sum(occupancy*area),
-          occ.ci = round((erroradd(se*area))*1.96))
-
-est = array(data = NA, 
-            dim = c(length(main$eBird.English.Name.2022), 2),
-            dimnames = list(main$eBird.English.Name.2022, c("occ", "occ.ci")))
-
-
-
-for (i in main$eBird.English.Name.2022)
-{
-  write_path <- glue("{occu_outpath}{i}.csv")
-  cur_occu_full = occu_full %>% filter(COMMON.NAME == i)
-  cur_occu_summary = occu_summary %>% filter(COMMON.NAME == i)
+if (skip_res_occu == TRUE) {
   
-  # move to next species if this one empty
-  if (length(cur_occu_full$COMMON.NAME) == 0)
-    next
+  # take relevant columns from wocats file of full-country
+  tojoin <- read.csv("01_analyses_full/results/SoIB_main_wocats.csv") %>% 
+    distinct(eBird.English.Name.2022, rangelci, rangemean, rangerci)
   
-  # file to be used for creating maps later
-  write.csv(cur_occu_full, file = write_path, row.names = F)
+  # joining to main object
+  main <- main %>% left_join(tojoin)
   
-  l = length(cur_occu_summary$status)
+  # checkpoint-object "main"
+  main5_postoccu <- main
   
-  for (j in 1:l)
-  {
-    if (cur_occu_summary$status[j] %in% c("MP") & (is.na(est[i,"occ"]) | (as.numeric(cur_occu_summary$occ[j])>est[i,"occ"])))
-    {
-      est[i,"occ"] = cur_occu_summary$occ[j]
-      est[i,"occ.ci"] = cur_occu_summary$occ.ci[j]
-    }
-    
-    if (cur_occu_summary$status[j] %in% c("R","MS") & (is.na(est[i,"occ"]) | (as.numeric(cur_occu_summary$occ[j]) > est[i,"occ"])))
-    {
-      est[i,"occ"] = cur_occu_summary$occ[j]
-      est[i,"occ.ci"] = cur_occu_summary$occ.ci[j]
-    }
-    
-    if (cur_occu_summary$status[j] %in% c("M","MW") & (is.na(est[i,"occ"]) | (as.numeric(cur_occu_summary$occ[j]) > est[i,"occ"])))
-    {
-      est[i,"occ"] = cur_occu_summary$occ[j]
-      est[i,"occ.ci"] = cur_occu_summary$occ.ci[j]
-    }
-    
+  write.csv(main, file = mainwocats_path, row.names = F)
+  
+} else {
+
+  # occupancy-model files
+  # (path is same for all masks--the full-country folder)
+  occu_model <- list.files(path = occu_mod_pathonly, full.names = T) %>% 
+    map_df(read.csv)
+  
+  # in state, filtering for relevant grids
+  if (cur_metadata$MASK.TYPE == "state") {
+    occu_model <- occu_model %>% 
+      filter(gridg1 %in% cur_grid_filt$gridg1)
   }
+  
+  # occupancy-presence files
+  occu_presence <- list.files(path = occu_pres_pathonly, full.names = T) %>% 
+    map_df(read.csv)
+
+  # taking modelled occupancy values for species in cell where "absent"
+  occ.full1 = occu_model %>% 
+    filter(presence == 0) 
+  
+  # "presences"
+  occ.full2 = occu_presence %>% 
+    left_join(occu_model) %>% 
+    dplyr::select(names(occ.full1))
+  
+  
+  occu_full = rbind(occ.full1, occ.full2) %>% 
+    mutate(gridg1 = as.character(gridg1)) %>% 
+    # joining areas of each grid cell
+    left_join(g1_in_sf %>% 
+                st_drop_geometry() %>% 
+                transmute(gridg1 = GRID.G1, area = AREA.G1)) %>% 
+    # for grid cells where species present, taking overall occupancy to be 1
+    mutate(occupancy = case_when(presence == 1 ~ 1, TRUE ~ occupancy),
+           se = case_when(presence == 1 ~ 0, TRUE ~ se)) %>% 
+    filter(!is.na(occupancy), !is.na(se), !is.na(gridg1))
+  
+  
+  occu_summary = occu_full %>%
+    filter(presence != 0 | prop_nb != 0) %>%
+    group_by(COMMON.NAME, status) %>% 
+    # <annotation_pending_AV>
+    reframe(occ = sum(occupancy * area),
+            occ.ci = round((erroradd(se * area)) * 1.96))
+  
+  est = array(data = NA, 
+              dim = c(length(main$eBird.English.Name.2022), 2),
+              dimnames = list(main$eBird.English.Name.2022, c("occ", "occ.ci")))
+  
+  
+  # <annotation_pending_AV> full steps below
+  
+  for (i in main$eBird.English.Name.2022)
+  {
+    write_path <- glue("{occu_outpath}{i}.csv")
+    cur_occu_full = occu_full %>% filter(COMMON.NAME == i)
+    cur_occu_summary = occu_summary %>% filter(COMMON.NAME == i)
+    
+    # move to next species if this one empty
+    if (length(cur_occu_full$COMMON.NAME) == 0)
+      next
+    
+    # file to be used for creating maps later
+    write.csv(cur_occu_full, file = write_path, row.names = F)
+    
+    l = length(cur_occu_summary$status)
+    
+    for (j in 1:l)
+    {
+      if (cur_occu_summary$status[j] %in% c("MP") & 
+          (is.na(est[i,"occ"]) | (as.numeric(cur_occu_summary$occ[j])>est[i,"occ"])))
+      {
+        est[i,"occ"] = cur_occu_summary$occ[j]
+        est[i,"occ.ci"] = cur_occu_summary$occ.ci[j]
+      }
+      
+      if (cur_occu_summary$status[j] %in% c("R","MS") & 
+          (is.na(est[i,"occ"]) | (as.numeric(cur_occu_summary$occ[j]) > est[i,"occ"])))
+      {
+        est[i,"occ"] = cur_occu_summary$occ[j]
+        est[i,"occ.ci"] = cur_occu_summary$occ.ci[j]
+      }
+      
+      if (cur_occu_summary$status[j] %in% c("M","MW") & 
+          (is.na(est[i,"occ"]) | (as.numeric(cur_occu_summary$occ[j]) > est[i,"occ"])))
+      {
+        est[i,"occ"] = cur_occu_summary$occ[j]
+        est[i,"occ.ci"] = cur_occu_summary$occ.ci[j]
+      }
+      
+    }
+  }
+  
+  
+  tojoin = data.frame(eBird.English.Name.2022 = rownames(est)) %>% 
+    mutate(rangemean = round(as.numeric(est[, 1]) / 10000, 3),
+           rangeci = round(as.numeric(est[, 2]) / 10000, 3)) %>% 
+    mutate(rangelci = rangemean - rangeci,
+           rangerci = rangemean + rangeci, 
+           rangeci = NULL) %>% 
+    mutate(rangemean = case_when(is.na(rangemean) &
+                                   eBird.English.Name.2022 %in% specieslist$COMMON.NAME ~ 0,
+                                 TRUE ~ rangemean)) %>% 
+    mutate(across(c("rangelci", "rangerci"), ~ case_when(rangemean == 0 ~ 0, 
+                                                         TRUE ~ .)))
+  
+  
+  # joining to main object
+  main <- main %>% left_join(tojoin)
+  
+  # checkpoint-object "main"
+  main5_postoccu <- main
+  
+  write.csv(main, file = mainwocats_path, row.names = F)
+  
 }
-
-
-tojoin = data.frame(rep(rownames(est))) %>% 
-  magrittr::set_colnames("eBird.English.Name.2022") 
-
-tojoin$rangelci = round(as.numeric(est[,1])/10000,3) - round(as.numeric(est[,2])/10000,3)
-tojoin$rangemean = round(as.numeric(est[,1])/10000,3)
-tojoin$rangerci = round(as.numeric(est[,1])/10000,3) + round(as.numeric(est[,2])/10000,3)
-
-tojoin$rangemean[(tojoin$eBird.English.Name.2022 %in% specieslist$COMMON.NAME) & is.na(tojoin$rangemean)] = 0
-tojoin$rangelci[tojoin$rangemean == 0] = 0
-tojoin$rangerci[tojoin$rangemean == 0] = 0
-
-
-# joining to main object
-main <- main %>% left_join(tojoin)
-
-# checkpoint-object "main"
-main5_postoccu <- main
-
-write.csv(main, file = mainwocats_path, row.names = F)
-
 
 toc()
 
@@ -1166,6 +1219,14 @@ cats_uncertain = c("Insufficient Data", "Trend Inconclusive")
 cats_restricted = c("Historical", "Very Restricted", "Restricted")
 
 
+# old categories
+cats_trend_soib1 = c("Strong Decline", "Moderate Decline", "Data Deficient", 
+                     "Uncertain", "Stable", "Moderate Increase", "Strong Increase")
+
+cats_decline_soib1 = c("Moderate Decline", "Strong Decline")
+cats_uncertain_soib1 <- c("Data Deficient", "Uncertain")
+
+
 main = main %>% 
   left_join(priorityrules) %>%
   mutate(SOIBv2.Priority.Status = as.character(SOIBv2.Priority.Status)) %>%
@@ -1241,20 +1302,68 @@ write.csv(main, file = main_path, row.names = F)
 
 # summaries -------------------------------------------------------------------
 
+# species qualifications
+species_qual0 <- main %>%
+  mutate(Range.Analysis = if_else(is.na(SOIBv2.Range.Status), "", "X")) %>% 
+  summarise(across(c(Selected.SOIB, Long.Term.Analysis, Current.Analysis, Range.Analysis),
+                   # adds up cases where condition is true
+                   ~ sum(. == "X")))
+
+# number of species with conclusive trends
+nspec_trend_inconc <- data.frame(Category = cats_trend) %>% 
+  magrittr::set_colnames("Trend Status") %>% 
+  left_join(main %>% 
+              count(SOIBv2.Long.Term.Status) %>% 
+              magrittr::set_colnames(c("Trend Status", "Long-term species (no.)"))) %>% 
+  left_join(main %>% 
+              count(SOIBv2.Current.Status) %>% 
+              magrittr::set_colnames(c("Trend Status", "Current species (no.)"))) %>% 
+  filter(`Trend Status` == "Trend Inconclusive")
+nspec_trend_conc_ltt = species_qual0$Long.Term.Analysis - nspec_trend_inconc$`Long-term species (no.)`
+nspec_trend_conc_cat = species_qual0$Current.Analysis - nspec_trend_inconc$`Current species (no.)`
+
+species_qual <- species_qual0 %>% 
+  magrittr::set_colnames(c("SoIB 2023 Assessment", "Long-term Analysis",
+                           "Current Analysis", "Range Analysis")) %>% 
+  pivot_longer(everything(), 
+               names_to = "No. of species in:", 
+               values_to = "Selected for analysis") %>% 
+  mutate(`With conclusive trends` = case_when(
+    `No. of species in:` == "Long-term Analysis" ~ nspec_trend_conc_ltt,
+    `No. of species in:` == "Current Analysis" ~ nspec_trend_conc_cat
+  ))
+
+
+# status tabulations
 status_trends = data.frame(Category = cats_trend) %>% 
   magrittr::set_colnames("Trend Status") %>% 
   left_join(main %>% 
               count(SOIBv2.Long.Term.Status) %>% 
-              magrittr::set_colnames(c("Trend Status", "Long-term species"))) %>% 
+              magrittr::set_colnames(c("Trend Status", "Long-term species (no.)"))) %>% 
   left_join(main %>% 
               count(SOIBv2.Current.Status) %>% 
-              magrittr::set_colnames(c("Trend Status", "Current species")))
+              magrittr::set_colnames(c("Trend Status", "Current species (no.)"))) %>% 
+  # percentages
+  mutate(`Long-term species conclusive (perc.)` = case_when(
+    `Trend Status` %in% cats_uncertain ~ NA_real_,
+    TRUE ~ round(100 * (`Long-term species (no.)` / nspec_trend_conc_ltt), 1)
+    ),
+    `Current species conclusive (perc.)` = case_when(
+      `Trend Status` %in% cats_uncertain ~ NA_real_,
+      TRUE ~ round(100 * (`Current species (no.)` / nspec_trend_conc_cat), 1)
+    )) %>% 
+  mutate(`Trend Status` = factor(`Trend Status`,
+                                 levels = c("Rapid Decline", "Decline", "Stable", 
+                                            "Increase", "Rapid Increase", 
+                                            "Trend Inconclusive", "Insufficient Data"))) %>% 
+  arrange(`Trend Status`)
 
 status_range <- data.frame(Category = cats_range) %>% 
   magrittr::set_colnames("Range Status") %>% 
   left_join(main %>% 
               count(SOIBv2.Range.Status) %>% 
-              magrittr::set_colnames(c("Range Status", "No. of species")))
+              magrittr::set_colnames(c("Range Status", "Species (no.)"))) %>% 
+  mutate(`Species (perc.)` = round(100 * (`Species (no.)` / sum(`Species (no.)`)), 1))
 
 status_priority <- main %>% 
   filter(!is.na(SOIBv2.Priority.Status)) %>% # count() counts NA also
@@ -1263,247 +1372,266 @@ status_priority <- main %>%
   count(SOIBv2.Priority.Status) %>% 
   magrittr::set_colnames(c("Priority Status", "No. of species"))
 
-species_qual <- main %>%
-  mutate(Range.Analysis = if_else(is.na(SOIBv2.Range.Status), "", "X")) %>% 
-  summarise(across(c(Selected.SOIB, Long.Term.Analysis, Current.Analysis, Range.Analysis),
-                   # adds up cases where condition is true
-                   ~ sum(. == "X"))) %>% 
-  magrittr::set_colnames(c("SoIB 2023 Assessment", "Long-term Analysis",
-                           "Current Analysis", "Range Analysis")) %>% 
-  pivot_longer(everything(), names_to = "Selected for:", values_to = "No. of species")
+
+# comparing two SoIBs
+SoIB1_SoIB2 = main %>%
+  filter(!is.na(SOIB.Concern.Status) & SOIB.Concern.Status != "") %>%
+  group_by(SOIB.Concern.Status) %>% 
+  mutate(n = n()) %>%
+  group_by(SOIB.Concern.Status, SOIBv2.Priority.Status) %>%
+  reframe(NO.SPEC = n(),
+          PERC.SPEC = round(100 * (NO.SPEC / max(n)), 1)) %>%
+  magrittr::set_colnames(c("SOIB Concern Status", "SOIBv2 Priority Status", 
+                           "Species (no.)", "Species (perc.)")) 
+
+SoIB2_SoIB1 = main %>%
+  filter(!is.na(SOIBv2.Priority.Status) & SOIBv2.Priority.Status != "") %>%
+  group_by(SOIBv2.Priority.Status) %>% 
+  mutate(n = n()) %>%
+  group_by(SOIBv2.Priority.Status, SOIB.Concern.Status) %>%
+  reframe(NO.SPEC = n(),
+          PERC.SPEC = round(100 * (NO.SPEC / max(n)), 1)) %>%
+  magrittr::set_colnames(c("SOIBv2 Priority Status", "SOIB Concern Status", 
+                           "Species (no.)", "Species (perc.)")) 
 
 
 # cross-tab of SoIB and IUCN assessments
-summary_SoIB_IUCN <- main %>% 
+SoIB_vs_IUCN_0 <- main %>% 
   filter(Selected.SOIB == "X") %>% 
   mutate(SOIBv2.Priority.Status = factor(SOIBv2.Priority.Status, 
                                          levels = c("High", "Moderate", "Low")),
          IUCN.Category = factor(IUCN.Category, levels = c(
            "Critically Endangered", "Endangered", "Vulnerable", "Near Threatened", 
            "Least Concern", "Not Recognised"
-           ))) %>% 
+         ))) %>% 
   group_by(SOIBv2.Priority.Status, IUCN.Category) %>% 
   tally() %>% 
   pivot_wider(names_from = SOIBv2.Priority.Status, values_from = n) %>% 
   replace(is.na(.), 0) %>% 
   magrittr::set_colnames(c(" ", "High", "Moderate", "Low")) 
 
-temp <- summary_SoIB_IUCN %>% 
+temp <- SoIB_vs_IUCN_0 %>% 
   reframe(across(c("High", "Moderate", "Low"), sum)) %>% 
   mutate(new = "Sum") %>% 
   relocate(new, High, Moderate, Low) %>% 
   magrittr::set_colnames(c(" ", "High", "Moderate", "Low"))
 
-summary_SoIB_IUCN <- summary_SoIB_IUCN %>% 
+SoIB_vs_IUCN <- SoIB_vs_IUCN_0 %>% 
   bind_rows(temp) %>% 
   mutate(Sum = High + Low + Moderate)
 
-total_trend_ltt = species_qual %>% filter(`Selected for:` == "Long-term Analysis") %>%
-  pull(`No. of species`)
-total_conc_trend_ltt = total_trend_ltt - status_trends %>% filter(`Trend Status` == "Trend Inconclusive") %>%
-  pull(`Long-term species`)
-total_trend_ct = species_qual %>% filter(`Selected for:` == "Current Analysis") %>%
-  pull(`No. of species`)
-total_conc_trend_ct = total_trend_ct - status_trends %>% filter(`Trend Status` == "Trend Inconclusive") %>%
-  pull(`Current species`)
-species_qual$`No. of species with conclusive trends` = ""
-species_qual = species_qual %>%
-  mutate(`No. of species with conclusive trends` = case_when(
-    `Selected for:` == "Long-term Analysis" ~ total_conc_trend_ltt,
-    `Selected for:` == "Current Analysis" ~ total_conc_trend_ct))
-status_trends$`Perc. of species with conclusive ltt` = ""
-status_trends$`Perc. of species with conclusive ct` = ""
-status_trends = status_trends %>%
-  mutate(`Perc. of species with conclusive ltt` = case_when(
-    !`Trend Status` %in% cats_uncertain ~ round(100*(`Long-term species`/total_conc_trend_ltt),1)),
-    `Perc. of species with conclusive ct` = case_when(
-      !`Trend Status` %in% cats_uncertain ~ round(100*(`Current species`/total_conc_trend_ct),1)))
-status_trends$`Trend Status` = factor(status_trends$`Trend Status`,
-                                      levels = c("Rapid Decline","Decline","Stable","Increase",
-                                                 "Rapid Increase","Insufficient Data",
-                                                 "Trend Inconclusive"))
-status_trends = status_trends %>% arrange(`Trend Status`)
+SoIB_vs_IUCN_percIUCN = SoIB_vs_IUCN_0 %>% 
+  mutate(Sum = High + Low + Moderate) %>%
+  mutate(across(c("High", "Moderate", "Low"), 
+                ~ round(100 * (. / Sum), 1))) %>% 
+  mutate(Sum = NULL)
 
-total_range = sum(status_range$`No. of species`)
-status_range = status_range %>%
-  mutate(`Perc. of total` = round(100*(`No. of species`/total_range),1))
+SoIB_vs_IUCN_percSoIB = SoIB_vs_IUCN_0 %>% 
+  column_to_rownames(" ") %>% 
+  t() %>% 
+  as.data.frame() %>% 
+  rownames_to_column("SoIB") %>% 
+  rowwise() %>% 
+  mutate(Sum = sum(c_across(c(everything(), - SoIB)))) %>%
+  mutate(across(c(everything(), - SoIB), 
+                ~ round(100 * (. / Sum), 1))) %>% 
+  mutate(Sum = NULL) %>% 
+  rename(` ` = SoIB)
 
-summary_SoIB_IUCN.perc.IUCN = summary_SoIB_IUCN %>%
-  filter(row_number() <= n()-1) %>%
-  mutate(`High` = round(100*(`High`/`Sum`),1),
-         `Moderate` = round(100*(`Moderate`/`Sum`),1),
-         `Low` = round(100*(`Low`/`Sum`),1),
-         `Sum` = round(100*(`Sum`/`Sum`),1))
 
-summary_SoIB_IUCN_t = summary_SoIB_IUCN %>% column_to_rownames(" ")
-summary_SoIB_IUCN_t = data.frame(t(summary_SoIB_IUCN_t))
-summary_SoIB_IUCN.perc.SoIB = summary_SoIB_IUCN_t %>%
-  filter(row_number() <= n()-1) %>%
-  rename(`Critically Endangered` = Critically.Endangered,
-         `Near Threatened` = Near.Threatened,
-         `Least Concern` = Least.Concern,
-         `Not Recognised` = Not.Recognised) %>%
-  mutate(`Critically Endangered` = round(100*(`Critically Endangered`/`Sum`),1),
-         `Endangered` = round(100*(`Endangered`/`Sum`),1),
-         `Vulnerable` = round(100*(`Vulnerable`/`Sum`),1),
-         `Near Threatened` = round(100*(`Near Threatened`/`Sum`),1),
-         `Least Concern` = round(100*(`Least Concern`/`Sum`),1),
-         `Not Recognised` = round(100*(`Not Recognised`/`Sum`),1),
-         `Sum` = round(100*(`Sum`/`Sum`),1))
+# break-up of how SoIB 2023 High Priority species which were not High in 2020 were attained
+high_priority_breakup_new = main %>%
+  filter(SOIBv2.Priority.Status == "High",
+         SOIB.Concern.Status != "High" | is.na(SOIB.Concern.Status)) %>%
+  transmute(Breakup = case_when(
+    
+    # we have conclusive trend this time, but last time was inconclusive or NA
+    (!SOIBv2.Long.Term.Status %in% cats_uncertain | !SOIBv2.Current.Status %in% cats_uncertain) &
+      (SOIB.Long.Term.Status %in% cats_uncertain_soib1 | is.na(SOIB.Long.Term.Status) |
+         SOIB.Current.Status %in% cats_uncertain_soib1 | is.na(SOIB.Current.Status)) ~ "Trend New",
+    
+    # had conclusive trends both times, but this time trend different
+    (!SOIBv2.Long.Term.Status %in% cats_uncertain | !SOIBv2.Current.Status %in% cats_uncertain) ~ 
+      "Trend Different",
+    
+    # if trends not different or new, assigned high priority based on range
+    SOIBv2.Range.Status == "Very Restricted" ~ "Range",
+    
+    # if not even by range, then assigned high priority based on IUCN category
+    TRUE ~ "IUCN"
+    
+  )) %>% 
+  mutate(Breakup = factor(Breakup, 
+                          levels = c("Trend New", "Trend Different", "Range", "IUCN"))) %>%
+  count(Breakup) %>% 
+  mutate(Perc = round(100 * (n / sum(n)), 1)) %>% 
+  magrittr::set_colnames(c("Break-up", "New High Species (no.)", "New High Species (perc.)"))
 
+# break-up of how SoIB 2023 High Priority species were attained
 high_priority_breakup = main %>%
   filter(SOIBv2.Priority.Status == "High") %>%
-  mutate(`Break-up` = case_when((!SOIBv2.Long.Term.Status %in% cats_uncertain | 
-                                   !SOIBv2.Current.Status %in% cats_uncertain) &
-                                  (SOIB.Long.Term.Status %in% c("Data Deficient","Uncertain") | is.na(SOIB.Long.Term.Status) |
-                                     SOIB.Current.Status %in% c("Data Deficient","Uncertain") | is.na(SOIB.Current.Status)) ~ "Trend New",
-                                !SOIBv2.Long.Term.Status %in% cats_uncertain | 
-                                  !SOIBv2.Current.Status %in% cats_uncertain ~ "Trend Different",
-                                SOIBv2.Range.Status == "Very Restricted" ~ "Range",
-                                TRUE ~ "IUCN")) %>% dplyr::select(`Break-up`) %>%
-  mutate(`Break-up` = factor(`Break-up`, levels = c("Trend New","Trend Different","Range","IUCN")),
-         n = n()) %>%
-  group_by(`Break-up`) %>% reframe(`No. of High species` = n(),
-                                   `Perc. of High species` = round(100*(n()/max(n)),1))
+  transmute(Breakup = case_when(
+    
+    # we have conclusive trend this time, but last time was inconclusive or NA
+    (!SOIBv2.Long.Term.Status %in% cats_uncertain | !SOIBv2.Current.Status %in% cats_uncertain) &
+      (SOIB.Long.Term.Status %in% cats_uncertain_soib1 | is.na(SOIB.Long.Term.Status) |
+         SOIB.Current.Status %in% cats_uncertain_soib1 | is.na(SOIB.Current.Status)) ~ "Trend New",
+    
+    # had conclusive trends both times, but this time trend different
+    (!SOIBv2.Long.Term.Status %in% cats_uncertain | !SOIBv2.Current.Status %in% cats_uncertain) ~ 
+      "Trend Different",
+    
+    # if trends not different or new, assigned high priority based on range
+    SOIBv2.Range.Status == "Very Restricted" ~ "Range",
+    
+    # if not even by range, then assigned high priority based on IUCN category
+    TRUE ~ "IUCN"
+    
+  )) %>% 
+  mutate(Breakup = factor(Breakup, 
+                          levels = c("Trend New", "Trend Different", "Range", "IUCN"))) %>%
+  count(Breakup) %>% 
+  mutate(Perc = round(100 * (n / sum(n)), 1)) %>% 
+  magrittr::set_colnames(c("Break-up", "High Species (no.)", "High Species (perc.)")) %>% 
+  left_join(high_priority_breakup_new)
 
-SoIB1.SoIB2 = main %>%
-  filter(!is.na(SOIB.Concern.Status) & SOIB.Concern.Status != "") %>%
-  group_by(SOIB.Concern.Status) %>% mutate(n = n()) %>%
-  group_by(SOIB.Concern.Status,SOIBv2.Priority.Status) %>% 
-  reframe(`No. of species` = n(),`Perc. of species` = round(100*(n()/max(n)),1)) %>%
-  magrittr::set_colnames(c("SOIB Concern Status", "SOIBv2 Priority Status", 
-                           "No. of species", "Perc. of species")) 
 
-SoIB2.SoIB1 = main %>%
-  filter(!is.na(SOIBv2.Priority.Status) & SOIBv2.Priority.Status != "") %>%
-  group_by(SOIBv2.Priority.Status) %>% mutate(n = n()) %>%
-  group_by(SOIBv2.Priority.Status,SOIB.Concern.Status) %>% 
-  reframe(`No. of species` = n(),`Perc. of species` = round(100*(n()/max(n)),1)) %>%
-  magrittr::set_colnames(c("SOIBv2 Priority Status", "SOIB Concern Status", 
-                           "No. of species", "Perc. of species")) 
-
-new_high_priority_breakup = main %>%
-  filter(SOIB.Concern.Status != "High" | is.na(SOIB.Concern.Status),SOIBv2.Priority.Status == "High") %>%
-  mutate(`Break-up` = case_when((!SOIBv2.Long.Term.Status %in% cats_uncertain | 
-                                  !SOIBv2.Current.Status %in% cats_uncertain) &
-                                  (SOIB.Long.Term.Status %in% c("Data Deficient","Uncertain") | is.na(SOIB.Long.Term.Status) |
-                                     SOIB.Current.Status %in% c("Data Deficient","Uncertain") | is.na(SOIB.Current.Status)) ~ "Trend New",
-                                !SOIBv2.Long.Term.Status %in% cats_uncertain | 
-                                   !SOIBv2.Current.Status %in% cats_uncertain ~ "Trend Different",
-                                SOIBv2.Range.Status == "Very Restricted" ~ "Range",
-                                TRUE ~ "IUCN")) %>% dplyr::select(`Break-up`) %>%
-  mutate(`Break-up` = factor(`Break-up`, levels = c("Trend New","Trend Different","Range","IUCN")),
-         n = n()) %>%
-  group_by(`Break-up`) %>% reframe(`No. of new High species in SoIB 2023` = n(),
-                                   `Perc. of new High species` = round(100*(n()/max(n)),1))
-
-high_priority_breakup = high_priority_breakup %>% left_join(new_high_priority_breakup)
-
+# reasons for uplisting or downlisting
 reason.uplist.high = main %>%
-  filter(SOIB.Concern.Status %in% c("Low","Moderate"),SOIBv2.Priority.Status == "High") %>%
-  mutate(`Break-up` = case_when((SOIB.Long.Term.Status %in% c("Data Deficient","Uncertain") & 
-                                   SOIB.Current.Status %in% c("Data Deficient","Uncertain")) &
-                                  (!SOIBv2.Long.Term.Status %in% cats_uncertain | 
-                                     !SOIBv2.Current.Status %in% cats_uncertain)  ~ "First-time trend",
-                                SOIB.Long.Term.Status %in% c("Moderate Decline","Stable","Moderate Increase","Strong Increase") &
-                                  SOIBv2.Long.Term.Status %in% c("Rapid Decline") ~ "More decline in ltt",
-                                SOIB.Long.Term.Status %in% c("Stable","Moderate Increase","Strong Increase") &
-                                  SOIBv2.Long.Term.Status %in% c("Rapid Decline","Decline") ~ "More decline in ltt",
-                                SOIB.Current.Status %in% c("Moderate Decline","Stable","Moderate Increase","Strong Increase") &
-                                  SOIBv2.Current.Status %in% c("Rapid Decline") ~ "More decline in ct",
-                                SOIB.Current.Status %in% c("Stable","Moderate Increase","Strong Increase") &
-                                  SOIBv2.Current.Status %in% c("Rapid Decline","Decline") ~ "More decline in ct",
-                                SOIB.Long.Term.Status %in% c("Data Deficient","Uncertain") &
-                                  !SOIBv2.Long.Term.Status %in% cats_uncertain ~ "First-time ltt",
-                                SOIB.Current.Status %in% c("Data Deficient","Uncertain") &
-                                  !SOIBv2.Current.Status %in% cats_uncertain ~ "First-time ct",
-                                (!SOIB.Long.Term.Status %in% c("Data Deficient","Uncertain") | 
-                                   !SOIB.Current.Status %in% c("Data Deficient","Uncertain")) &
-                                  (!SOIBv2.Long.Term.Status %in% cats_uncertain | 
-                                     !SOIBv2.Current.Status %in% cats_uncertain)  ~ "Other changes in trends",
-                                (!SOIB.Long.Term.Status %in% c("Data Deficient","Uncertain") | 
-                                   !SOIB.Current.Status %in% c("Data Deficient","Uncertain")) &
-                                  (SOIBv2.Long.Term.Status %in% cats_uncertain & 
-                                     SOIBv2.Current.Status %in% cats_uncertain)  ~ "Loss of trends",
-                                SOIB.Range.Status == c("Restricted") &
-                                  SOIBv2.Range.Status %in% c("Very Restricted") ~ "Reducing range",
-                                SOIB.Range.Status == c("Moderate") &
-                                  SOIBv2.Range.Status %in% "Restricted" ~ "Reducing range",
-                                SOIB.Range.Status == c("Large") &
-                                  SOIBv2.Range.Status %in% c("Moderate") ~ "Reducing range",
-                                TRUE ~ "Others")) %>%
-  mutate(n = n()) %>%
-  mutate(`Break-up` = factor(`Break-up`, levels = c("First-time trend","More decline in ltt","More decline in ct",
-                                                    "First-time ltt","First-time ct",
-                                                    "Other changes in trends","Loss of trends",
-                                                    "Reducing range","Others"))) %>%
-  group_by(`Break-up`) %>% reframe(`No. of species` = n(),`Perc. of species` = round(100*(n()/max(n)),1))
-
-temp = data.frame(temp = c("First-time trend","More decline in ltt","More decline in ct",
-                           "First-time ltt","First-time ct",
-                           "Other changes in trends","Loss of trends",
-                           "Reducing range","Others")) %>%
-  rename(`Break-up` = temp)
-reason.uplist.high = temp %>%
-  left_join(reason.uplist.high) %>%
-  replace(is.na(.), 0)
+  filter(SOIB.Concern.Status %in% c("Low", "Moderate"),
+         SOIBv2.Priority.Status == "High") %>%
+  mutate(Breakup = case_when(
+    
+    # LTT and CAT were uncertain in 2020 but we have some trend now
+    ((!SOIBv2.Long.Term.Status %in% cats_uncertain | !SOIBv2.Current.Status %in% cats_uncertain) &
+       SOIB.Long.Term.Status %in% cats_uncertain_soib1 & 
+       SOIB.Current.Status %in% cats_uncertain_soib1)  ~ "First-time trend",
+    
+    # stronger decline this time (LTT)
+    (SOIBv2.Long.Term.Status == "Rapid Decline" &
+       SOIB.Long.Term.Status %in% cats_trend_soib1[!cats_trend_soib1 == "Strong Decline" & 
+                                                   !cats_trend_soib1 %in% cats_uncertain_soib1]) |
+      (SOIBv2.Long.Term.Status %in% cats_decline &
+         SOIB.Long.Term.Status %in% cats_trend_soib1[!cats_trend_soib1 %in% cats_decline_soib1 & 
+                                                       !cats_trend_soib1 %in% cats_uncertain_soib1])
+       ~ "More decline in LTT",
+    
+    # stronger decline this time (CAT)
+    (SOIBv2.Current.Status == "Rapid Decline" &
+       SOIB.Current.Status %in% cats_trend_soib1[!cats_trend_soib1 == "Strong Decline" & 
+                                                     !cats_trend_soib1 %in% cats_uncertain_soib1]) |
+      (SOIBv2.Current.Status %in% cats_decline &
+         SOIB.Current.Status %in% cats_trend_soib1[!cats_trend_soib1 %in% cats_decline_soib1 & 
+                                                       !cats_trend_soib1 %in% cats_uncertain_soib1])
+    ~ "More decline in CAT",
+    
+    # first-time LTT & first-time CAT
+    (SOIB.Long.Term.Status %in% cats_uncertain_soib1 &
+       !SOIBv2.Long.Term.Status %in% cats_uncertain) ~ "First-time LTT",
+    (SOIB.Current.Status %in% cats_uncertain_soib1 &
+       !SOIBv2.Current.Status %in% cats_uncertain) ~ "First-time CAT",
+    
+    # both times, had at least one of two trends
+    (!SOIB.Long.Term.Status %in% cats_uncertain_soib1 | 
+       !SOIB.Current.Status %in% cats_uncertain_soib1) &
+      (!SOIBv2.Long.Term.Status %in% cats_uncertain | 
+         !SOIBv2.Current.Status %in% cats_uncertain)  ~ "Other changes in trends",
+    
+    # earlier had at least one trend, but this time both trends uncertain
+    (!SOIB.Long.Term.Status %in% cats_uncertain_soib1 | 
+       !SOIB.Current.Status %in% cats_uncertain_soib1) &
+      (SOIBv2.Long.Term.Status %in% cats_uncertain & 
+         SOIBv2.Current.Status %in% cats_uncertain) ~ "Loss of trends",
+    
+    (SOIB.Range.Status == "Restricted" & SOIBv2.Range.Status == "Very Restricted") |
+    (SOIB.Range.Status == "Moderate" & SOIBv2.Range.Status == "Restricted") |
+    (SOIB.Range.Status == "Large" & SOIBv2.Range.Status == "Moderate") ~ "Reducing range",
+    
+    TRUE ~ "Others"
+    
+    )) %>%
+  mutate(Breakup = factor(Breakup, 
+                          levels = c("More decline in LTT", "More decline in CAT",
+                                     "First-time trend", "First-time LTT", "First-time CAT",
+                                     "Other changes in trends", "Loss of trends",
+                                     "Reducing range", "Others"))) %>%
+  count(Breakup) %>% 
+  mutate(Perc = round(100 * (n / sum(n)), 1)) %>% 
+  complete(Breakup, fill = list(n = 0, Perc = 0)) %>% 
+  magrittr::set_colnames(c("Break-up", "Species (no.)", "Species (perc.)"))
 
 
 reason.downlist.high = main %>%
-  filter(SOIB.Concern.Status %in% c("High"),SOIBv2.Priority.Status %in% c("Low","Moderate")) %>%
-  mutate(`Break-up` = case_when(SOIB.Long.Term.Status %in% c("Strong Decline") &
-                                  SOIBv2.Long.Term.Status %in% c("Decline","Stable","Increase","Rapid Increase") ~ "Less decline in ltt",
-                                SOIB.Long.Term.Status %in% c("Strong Decline","Moderate Decline") &
-                                  SOIBv2.Long.Term.Status %in% c("Stable","Increase","Rapid Increase") ~ "Less decline in ltt",
-                                SOIB.Long.Term.Status %in% c("Strong Decline","Moderate Decline","Stable") &
-                                  SOIBv2.Long.Term.Status %in% c("Increase","Rapid Increase") ~ "Less decline in ltt",
-                                SOIB.Long.Term.Status %in% c("Strong Decline","Moderate Decline","Stable","Moderate Increase") &
-                                  SOIBv2.Long.Term.Status %in% c("Rapid Increase") ~ "Less decline in ltt",
-                                SOIB.Current.Status %in% c("Strong Decline") &
-                                  SOIBv2.Current.Status %in% c("Decline","Stable","Increase","Rapid Increase") ~ "Less decline in ct",
-                                SOIB.Current.Status %in% c("Strong Decline","Moderate Decline") &
-                                  SOIBv2.Current.Status %in% c("Stable","Increase","Rapid Increase") ~ "Less decline in ct",
-                                SOIB.Current.Status %in% c("Strong Decline","Moderate Decline","Stable") &
-                                  SOIBv2.Current.Status %in% c("Increase","Rapid Increase") ~ "Less decline in ct",
-                                SOIB.Current.Status %in% c("Strong Decline","Moderate Decline","Stable","Moderate Increase") &
-                                  SOIBv2.Current.Status %in% c("Rapid Increase") ~ "Less decline in ct",
-                                SOIB.Long.Term.Status %in% c("Data Deficient","Uncertain") &
-                                  !SOIBv2.Long.Term.Status %in% cats_uncertain ~ "First-time ltt",
-                                SOIB.Current.Status %in% c("Data Deficient","Uncertain") &
-                                  !SOIBv2.Current.Status %in% cats_uncertain ~ "First-time ct",
-                                (!SOIB.Long.Term.Status %in% c("Data Deficient","Uncertain") | 
-                                   !SOIB.Current.Status %in% c("Data Deficient","Uncertain")) &
-                                  (!SOIBv2.Long.Term.Status %in% cats_uncertain | 
-                                     !SOIBv2.Current.Status %in% cats_uncertain)  ~ "Other changes in trends",
-                                (!SOIB.Long.Term.Status %in% c("Data Deficient","Uncertain") | 
-                                   !SOIB.Current.Status %in% c("Data Deficient","Uncertain")) &
-                                  (SOIBv2.Long.Term.Status %in% cats_uncertain & 
-                                     SOIBv2.Current.Status %in% cats_uncertain)  ~ "Loss of trends",
-                                SOIB.Range.Status == c("Very Restricted") &
-                                  SOIBv2.Range.Status %in% c("Restricted") ~ "Increasing range",
-                                SOIB.Range.Status == c("Restricted") &
-                                  SOIBv2.Range.Status %in% "Moderate" ~ "Increasing range",
-                                SOIB.Range.Status == c("Moderate") &
-                                  SOIBv2.Range.Status %in% c("Large") ~ "Increasing range",
-                                SOIB.Range.Status == c("Large") &
-                                  SOIBv2.Range.Status %in% c("Very Large") ~ "Increasing range",
-                                TRUE ~ "Others")) %>%
-  mutate(n = n()) %>%
-  mutate(`Break-up` = factor(`Break-up`, levels = c("Less decline in ltt","Less decline in ct",
-                                                    "First-time trend","First-time ltt","First-time ct",
-                                                    "Other changes in trends","Loss of trends",
-                                                    "Increasing range","Others"))) %>%
-  group_by(`Break-up`) %>% reframe(`No. of species` = n(),`Perc. of species` = round(100*(n()/max(n)),1))        
+  filter(SOIBv2.Priority.Status %in% c("Low", "Moderate"),
+         SOIB.Concern.Status == "High") %>%
+  mutate(Breakup = case_when(
+    
+    # LTT and CAT were uncertain in 2020 but we have some trend now
+    ((!SOIBv2.Long.Term.Status %in% cats_uncertain | !SOIBv2.Current.Status %in% cats_uncertain) &
+       SOIB.Long.Term.Status %in% cats_uncertain_soib1 & 
+       SOIB.Current.Status %in% cats_uncertain_soib1)  ~ "First-time trend",
+    
+    # weaker decline this time (LTT)
+    (SOIB.Long.Term.Status == "Strong Decline" &
+       SOIBv2.Long.Term.Status %in% cats_trend[!cats_trend == "Rapid Decline" & 
+                                                 !cats_trend %in% cats_uncertain]) |
+      (SOIB.Long.Term.Status %in% cats_decline_soib1 &
+         SOIBv2.Long.Term.Status %in% cats_trend[!cats_trend %in% cats_decline & 
+                                                   !cats_trend %in% cats_uncertain]) |
+      (SOIB.Long.Term.Status %in% c(cats_decline_soib1, "Stable") &
+         SOIBv2.Long.Term.Status %in% c("Increase", "Rapid Increase")) |
+      (SOIB.Long.Term.Status %in% c(cats_decline_soib1, "Stable", "Moderate Increase") &
+         SOIBv2.Long.Term.Status == "Rapid Increase")
+    ~ "Less decline in LTT",
+    
+    # stronger decline this time (CAT)
+    (SOIB.Current.Status == "Strong Decline" &
+       SOIBv2.Current.Status %in% cats_trend[!cats_trend == "Rapid Decline" & 
+                                                 !cats_trend %in% cats_uncertain]) |
+      (SOIB.Current.Status %in% cats_decline_soib1 &
+         SOIBv2.Current.Status %in% cats_trend[!cats_trend %in% cats_decline & 
+                                                   !cats_trend %in% cats_uncertain]) |
+      (SOIB.Current.Status %in% c(cats_decline_soib1, "Stable") &
+         SOIBv2.Current.Status %in% c("Increase", "Rapid Increase")) |
+      (SOIB.Current.Status %in% c(cats_decline_soib1, "Stable", "Moderate Increase") &
+         SOIBv2.Current.Status == "Rapid Increase")
+    ~ "Less decline in CAT",
 
-temp = data.frame(temp = c("Less decline in ltt","Less decline in ct",
-                           "First-time trend","First-time ltt","First-time ct",
-                           "Other changes in trends","Loss of trends",
-                           "Increasing range","Others")) %>%
-  rename(`Break-up` = temp)
-reason.downlist.high = temp %>%
-  left_join(reason.downlist.high) %>%
-  replace(is.na(.), 0)
+    # first-time LTT & first-time CAT
+    (SOIB.Long.Term.Status %in% cats_uncertain_soib1 &
+       !SOIBv2.Long.Term.Status %in% cats_uncertain) ~ "First-time LTT",
+    (SOIB.Current.Status %in% cats_uncertain_soib1 &
+       !SOIBv2.Current.Status %in% cats_uncertain) ~ "First-time CAT",
 
+    # both times, had at least one of two trends
+    (!SOIB.Long.Term.Status %in% cats_uncertain_soib1 | 
+       !SOIB.Current.Status %in% cats_uncertain_soib1) &
+      (!SOIBv2.Long.Term.Status %in% cats_uncertain | 
+         !SOIBv2.Current.Status %in% cats_uncertain)  ~ "Other changes in trends",
+    
+    # earlier had at least one trend, but this time both trends uncertain
+    (!SOIB.Long.Term.Status %in% cats_uncertain_soib1 | 
+       !SOIB.Current.Status %in% cats_uncertain_soib1) &
+      (SOIBv2.Long.Term.Status %in% cats_uncertain & 
+         SOIBv2.Current.Status %in% cats_uncertain) ~ "Loss of trends",
+    
+    (SOIBv2.Range.Status == "Restricted" & SOIB.Range.Status == "Very Restricted") |
+      (SOIBv2.Range.Status == "Moderate" & SOIB.Range.Status == "Restricted") |
+      (SOIBv2.Range.Status == "Large" & SOIB.Range.Status == "Moderate") |
+      (SOIBv2.Range.Status == "Very Large" & SOIB.Range.Status == "Large") ~ "Increasing range",
+    
+    TRUE ~ "Others"
+    
+  )) %>%
+  mutate(Breakup = factor(Breakup, 
+                          levels = c("Less decline in LTT", "Less decline in CAT",
+                                     "First-time trend", "First-time LTT", "First-time CAT",
+                                     "Other changes in trends", "Loss of trends",
+                                     "Increasing range", "Others"))) %>%
+  count(Breakup) %>% 
+  mutate(Perc = round(100 * (n / sum(n)), 1)) %>% 
+  complete(Breakup, fill = list(n = 0, Perc = 0)) %>% 
+  magrittr::set_colnames(c("Break-up", "Species (no.)", "Species (perc.)"))
 
 
 
@@ -1512,11 +1640,11 @@ write_xlsx(path = summaries_path,
                 "Range Status" = status_range,
                 "Priority Status" = status_priority,
                 "Species qualification" = species_qual,
-                "SoIB 2020 to 2023 comparison" = SoIB1.SoIB2,
-                "SoIB 2023 to 2020 comparison" = SoIB2.SoIB1,
-                "SoIB-IUCN cross-tab" = summary_SoIB_IUCN,
-                "SoIB-IUCN percentage IUCN" = summary_SoIB_IUCN.perc.IUCN,
-                "SoIB-IUCN percentage SoIB" = summary_SoIB_IUCN.perc.SoIB,
-                "High Priority break up" = high_priority_breakup,
+                "SoIB 2020 vs 2023" = SoIB1_SoIB2,
+                "SoIB 2023 vs 2020" = SoIB2_SoIB1,
+                "SoIB vs IUCN (no.)" = SoIB_vs_IUCN,
+                "SoIB vs IUCN (IUCN %)" = SoIB_vs_IUCN_percIUCN,
+                "SoIB vs IUCN (SoIB %)" = SoIB_vs_IUCN_percSoIB,
+                "High Priority break-up" = high_priority_breakup,
                 "Reason for uplisting" = reason.uplist.high,
                 "Reason for downlisting" = reason.downlist.high))

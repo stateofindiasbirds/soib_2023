@@ -399,3 +399,275 @@ gen_trend_plots_sysmon <- function(cur_case) {
   
 }
 
+
+# range maps --------------------------------------------------------------
+
+gen_range_maps <- function(mask_type = "country", which_mask = NULL, which_spec = "all") {
+  
+  require(tidyverse)
+  require(glue)
+  require(tictoc)
+
+  source('00_scripts/00_functions.R')
+  source('00_scripts/00_plot_functions.R')
+
+      
+  # error checks ----------------------------------------------------------------------
+  
+  load("00_data/analyses_metadata.RData")
+  
+  which_metadata <- analyses_metadata %>% filter(MASK.TYPE == mask_type)
+  
+  if (!mask_type %in% c("country", "state")) {
+    return("Select either a country or a state! Range maps cannot be created for habitat or CA masks.")
+  }
+  
+  # if both mask type and mask specified, avoid mismatches
+  if (!is.null(which_mask)) {
+    
+    list_states <- analyses_metadata %>% filter(MASK.TYPE == "state") %>% pull(MASK)
+    
+    if ((mask_type == "country" & which_mask != "none") |
+        (mask_type == "state" & !(which_mask %in% list_states))) {
+      return("Incorrect 'which_mask' specification! Leave as default (NULL), or: Mask type 'country' needs to be paired with mask 'none'. Mask type 'state' needs to be paired with a valid state mask.")
+    }
+    
+  }
+  
+  
+  # setup + map creation --------------------------------------------------------------
+
+  if (is.null(which_mask)) {
+    
+    which_mask <- which_metadata %>% 
+      distinct(MASK) %>% 
+      pull(MASK)
+    
+    tic(glue("Finished plotting {mask_type} maps for all relevant masks."))
+    
+  } else {
+    
+    tic(glue("Finished plotting {mask_type} maps for specified mask {which_mask}."))
+    
+  }
+  
+  walk(which_mask, ~ {
+
+    # setup data (only if don't exist) --------------------------------------------------
+
+    # setting up data for range maps 
+    # (this only runs when the output CSVs don't already exist!)
+    
+    if (!(!file.exists(path_toplot) | !file.exists(path_vagrants))) {
+      
+      print(glue("[Mask: {which_mask}] Data required to plot range maps already exists. Skipping setup steps."))
+      
+    } else {
+      # load data -------------------------------------------------------------------------
+      
+      which_metadata <- analyses_metadata %>% filter(MASK == which_mask)
+      
+      # input paths
+      path_speclists <- which_metadata$SPECLISTDATA.PATH
+      path_main <- which_metadata$SOIBMAIN.PATH
+      path_toplot <- which_metadata$MAP.DATA.OCC.PATH
+      path_vagrants <- which_metadata$MAP.DATA.VAG.PATH
+      path_occu_pres <- which_metadata$OCCU.PRES.PATHONLY
+      path_occu_mod <- which_metadata$OCCU.MOD.PATHONLY
+      
+      
+      load(path_speclists)
+      load("00_data/vagrantdata.RData")
+      load("00_data/dataforanalyses_extra.RData")
+      
+      load("00_data/grids_sf_nb.RData")
+      our_neighbours <- g1_nb_q
+      rm(g1_nb_r, g2_nb_q, g2_nb_r, g3_nb_q, g3_nb_r, g4_nb_q, g4_nb_r)
+      
+      
+      list_mig = read.csv(path_main) %>% 
+        dplyr::select(eBird.English.Name.2022, Migratory.Status.Within.India) %>%
+        filter(Migratory.Status.Within.India != "Resident", 
+               eBird.English.Name.2022 %in% specieslist$COMMON.NAME) %>%
+        distinct(eBird.English.Name.2022) %>% 
+        pull(eBird.English.Name.2022)
+      
+      
+      # setup -----------------------------------------------------------------------------
+
+      # subset for state when required
+      if (which_metadata$MASK.TYPE == "state") {
+        data0 = data0 %>% filter(ST_NM == which_mask)
+      }
+      
+      data0 = data0 %>% 
+        filter(COMMON.NAME %in% list_mig, 
+               year > 2017) %>% 
+        dplyr::select(COMMON.NAME, day, gridg1)
+      
+      # defining summer, winter, passage
+      datas = data0 %>% 
+        filter(day > 145 & day <= 215) %>% 
+        distinct(COMMON.NAME, gridg1) %>%
+        mutate(status = "S")
+      dataw = data0 %>% 
+        filter(day <= 60 | day > 325) %>% 
+        distinct(COMMON.NAME, gridg1) %>%
+        mutate(status = "W")
+      datap = data0 %>% 
+        filter((day > 60 & day <= 145) | (day > 215 & day <= 325)) %>% 
+        distinct(COMMON.NAME, gridg1) %>%
+        mutate(status = "P")
+      
+      data_presence = datas %>% 
+        bind_rows(dataw, datap) %>%
+        dplyr::select(COMMON.NAME, status, gridg1) %>%
+        mutate(prop_nb = NA, 
+               occupancy = 1,
+               gridg1 = as.numeric(gridg1),
+               status = factor(status, levels = c("S","W","P")))
+      
+      
+      # vagrants
+      
+      # subset for state when required
+      if (which_metadata$MASK.TYPE == "state") {
+        d = d %>% filter(ST_NM == which_mask)
+      }
+      
+      d = d %>% 
+        filter(COMMON.NAME %in% list_mig, 
+               year > 2017) %>% 
+        # subset for state when required
+        dplyr::select(COMMON.NAME, day, LATITUDE, LONGITUDE)
+      
+      ds = d %>% 
+        filter(day > 145 & day <= 215) %>% 
+        distinct(COMMON.NAME, LATITUDE, LONGITUDE) %>%
+        mutate(status = "S")
+      dw = d %>% 
+        filter(day <= 60 | day > 325) %>% 
+        distinct(COMMON.NAME, LATITUDE, LONGITUDE) %>%
+        mutate(status = "W")
+      dp = d %>% 
+        filter((day > 60 & day <= 145) | (day > 215 & day <= 325)) %>% 
+        distinct(COMMON.NAME, LATITUDE, LONGITUDE) %>%
+        mutate(status = "P")
+      
+      vagrant_presence = ds %>% bind_rows(dw, dp)
+      
+      
+      # <annotation_pending_AV>
+      # occ.model files 
+      occ.model <- list.files(path = path_occu_mod, full.names = T) %>% 
+        map_df(read.csv)
+      
+      occ.model.resident = occ.model %>%
+        filter(prop_nb != 0, 
+               presence == 0, 
+               !COMMON.NAME %in% list_mig) %>%
+        dplyr::select(COMMON.NAME, status, gridg1, prop_nb, occupancy)
+      
+      occ.model.migrant = occ.model %>%
+        filter(prop_nb != 0, 
+               presence == 0, 
+               COMMON.NAME %in% list_mig) %>%
+        dplyr::select(COMMON.NAME, status, gridg1, prop_nb, occupancy) %>%
+        mutate(status = NA)
+      
+      
+      # occ.presence files 
+      occ.presence <- list.files(path = path_occu_pres, full.names = T) %>% 
+        map_df(read.csv)
+      
+      listM = occ.presence %>%
+        filter(status == "M") %>% 
+        distinct(COMMON.NAME) %>%
+        pull(COMMON.NAME)
+      
+      occ.presence.resident = occ.presence %>%
+        filter(!COMMON.NAME %in% list_mig) %>% # or "listM" here?
+        dplyr::select(COMMON.NAME, status, gridg1) %>%
+        mutate(prop_nb = NA, occupancy = 1)
+      
+      
+      # combining presence-based and modelled for residents
+      occ.resident = occ.model.resident %>% bind_rows(occ.presence.resident)
+      
+      # combining presence-based and modelled for migrants
+      # <annotation_pending_AV> !!
+      for (i in list_mig) {
+        
+        temp = occ.model.migrant %>% filter(COMMON.NAME == i)
+        temp.dat = data_presence %>% filter(COMMON.NAME == i)
+        
+        if (length(temp$COMMON.NAME) > 0) {
+          
+          for (j in unique(temp$gridg1))
+          {
+            nbs = our_neighbours[[j]]
+            
+            stats = temp.dat %>%
+              filter(gridg1 %in% nbs) %>%
+              count(status, sort = TRUE) %>%
+              slice_max(n, with_ties = FALSE) %>%
+              pull(status)
+            
+            occ.model.migrant$status[occ.model.migrant$COMMON.NAME == i & 
+                                       occ.model.migrant$gridg1 == j] = as.character(stats)
+          }
+          
+        }
+        
+        print(i)
+        
+      }
+      
+      occ.migrant = occ.model.migrant %>% bind_rows(data_presence)
+      
+      
+      occ.full = occ.resident %>%
+        bind_rows(occ.migrant) %>%
+        # remove duplicates that come in from incidentals
+        group_by(COMMON.NAME, status, gridg1) %>%
+        arrange(desc(occupancy), .by_group = T) %>% 
+        slice(1) %>% 
+        ungroup() %>%
+        arrange(COMMON.NAME, status, desc(occupancy))
+      
+      # Change everything to the four statuses of interest
+      occ_final = occ.full %>%
+        group_by(COMMON.NAME, gridg1) %>%
+        reframe(occupancy = max(occupancy),
+                status = case_when(
+                  any(status == "R") ~ "YR",
+                  any(status == "S") & any(status == "W") & !COMMON.NAME %in% listM ~ "YR",
+                  any(status == "S") ~ "S",
+                  any(status == "W") ~ "W",
+                  TRUE ~ "P"
+                ))
+      
+      
+      # write
+      write.csv(occ_final, path_toplot, row.names = FALSE)
+      write.csv(vagrant_presence, path_vagrants, row.names = FALSE)
+      
+    }
+    
+    
+    # generate maps --------------------------------------------------------------------
+
+    soib_rangemap(which_spec = which_spec, cur_mask = .x)
+    
+  })
+  
+  toc()
+  
+  
+  # cleaning environment ------------------------
+  
+  rm(list = setdiff(ls(envir = .GlobalEnv), "gen_range_maps"), 
+     envir = .GlobalEnv)
+  
+}
+

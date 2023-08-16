@@ -10,7 +10,7 @@ source("00_scripts/00_functions.R")
 source("00_scripts/01_create_metadata.R")
 
 
-# PART 1 ------------------------------------------------------------------
+# PART 1 (prepare) ------------------------------------------------------------------
 
 # Run each step in order. May start from in between but progress sequentially down.
 
@@ -97,7 +97,7 @@ tic("Processing and filtering data for analyses")
 source("00_scripts/filter_data_for_species.R")
 toc() # 51 min
 
-# PART 2 ------------------------------------------------------------------
+# PART 2 (subsample) ------------------------------------------------------------------
 
 # Preparing data for trends analysis
 
@@ -228,7 +228,7 @@ tic.log()
 
 
 
-# PART 3 ------------------------------------------------------------------
+# PART 3 (run) ------------------------------------------------------------------
 
 # STEP 1: Run trends models for all selected species
 # Run:
@@ -317,6 +317,7 @@ tic.log()
 # - "occupancy-model/chunk_X.csv" for whole country and individual states
 load("00_data/analyses_metadata.RData")
 
+
 # full country
 cur_mask <- "none"
 source("00_scripts/run_species_occupancy-setup.R")
@@ -327,26 +328,32 @@ tic("Ran modelled occupancy")
 source("00_scripts/run_species_occupancy-model.R")
 toc()  
 
+
+# occupancy not run for hab masks at all. both presence and modelled data pulled from full-country.
+
+
 # states
 tic.clearlog()
-tic("Ran species trends for all states")
+tic("Ran species occupancy for all states")
 
 analyses_metadata %>% 
   filter(MASK.TYPE == "state") %>% 
   distinct(MASK) %>% 
+  # slice(1) %>% 
   pull(MASK) %>% 
   # walking over each state
   walk(~ {
     
+    assign("cur_mask", .x, envir = .GlobalEnv)
+
     source("00_scripts/run_species_occupancy-setup.R")
     
     tic(glue("Ran presence-based occupancy for {.x} state"))
-    assign("cur_mask", .x, envir = .GlobalEnv)
     source("00_scripts/run_species_occupancy-presence.R")
-    toc(log = TRUE, quiet = TRUE) 
-    
-    ### copy files from full country to state? or save memory and only call in resolve?
-    
+    toc(log = TRUE)
+    # occupancy models only run for national level data. for hab masks and states, data
+    # pulled from full-country.
+
   })
 
 toc(log = TRUE, quiet = TRUE) 
@@ -354,9 +361,11 @@ tic.log()
 
 
 
-# STEP 3: Resolve trends for all selected species and generate necessary outputs
+# PART 4 (resolve) ------------------------------------------------------------------
+
+# STEP 1: Resolve trends for all selected species and generate necessary outputs
 # Run:
-# - after above step (P3, S1)
+# - after above steps (P3, S1-2)
 # Requires:
 # - tidyverse, tictoc, VGAM, writexl
 # - data files:
@@ -392,12 +401,25 @@ tic(glue("Resolved trends & occupancy for {cur_mask}"))
 source("00_scripts/resolve_trends_and_occupancy.R")
 toc() 
 
-cur_mask <- "Kerala"
-tic(glue("Resolved trends & occupancy for {cur_mask}"))
-source("00_scripts/resolve_trends_and_occupancy.R")
-toc() 
+tic.clearlog()
+tic("Resolved trends & occupancy for all states")
 
+analyses_metadata %>% 
+  filter(MASK.TYPE == "state") %>% 
+  distinct(MASK) %>% 
+  # slice(1) %>% 
+  pull(MASK) %>% 
+  # walking over each state
+  walk(~ {
+    
+    assign("cur_mask", .x, envir = .GlobalEnv)
 
+    tic(glue("Resolved trends & occupancy for {.x} state"))
+    source("00_scripts/resolve_trends_and_occupancy.R")
+    toc(log = TRUE)
 
+  })
 
+toc(log = TRUE, quiet = TRUE) 
+tic.log()
 
