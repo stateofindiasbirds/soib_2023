@@ -1640,6 +1640,20 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
   
   load(path_speclists)
   
+  # error check for species name
+  if (which_spec != "all") {
+    
+    correct_specnames <- specieslist %>% 
+      distinct(COMMON.NAME) %>% 
+      pull(COMMON.NAME)
+    
+    if (!which_spec %in% correct_specnames) {
+      return("Incorrect species name provided! Use the correct eBird name.")
+    }
+    
+    rm(correct_specnames)
+    
+  }
   
   # plot/theme settings -----------------------------------------------------
   
