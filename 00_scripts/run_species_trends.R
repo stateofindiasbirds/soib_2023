@@ -23,7 +23,11 @@ if (to_run == TRUE) {
     
   } else {
     
-    cur_assignment <- 1:1000
+    if (!exists("my_assignment")) {
+      cur_assignment <- 1:1000
+    } else {
+      cur_assignment <- my_assignment
+    }
     
   }
   

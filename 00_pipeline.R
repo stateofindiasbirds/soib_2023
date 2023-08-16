@@ -277,14 +277,6 @@ tic("Ran species trends for all states")
 analyses_metadata %>% 
   filter(MASK.TYPE == "state") %>% 
   distinct(MASK) %>% 
-  slice(22:37) %>%
-  # excluding states assigned to other machine
-  filter(!MASK %in% c("Gujarat", "Uttarakhand", "West Bengal", "Maharashtra",
-                      "Kerala", "Tamil Nadu"),
-         !MASK %in% c("Telangana", "Chhattisgarh", "Jammu and Kashmir", "Assam",
-                      "Meghalaya", "Ladakh", "Andhra Pradesh", "Puducherry"),
-         # below erroring for some reason; no species for LTT or CAT
-         !MASK %in% c("Tripura", "Nagaland")) %>% 
   pull(MASK) %>% 
   # walking over each state
   walk(~ {
@@ -298,6 +290,13 @@ analyses_metadata %>%
 
 toc(log = TRUE, quiet = TRUE) 
 tic.log()
+
+# # for interrupted runs
+# cur_mask <- "Rajasthan"
+# my_assignment <- 753:1000
+# tic(glue("Remaining species trends for {cur_mask}"))
+# source("00_scripts/run_species_trends.R")
+# toc()
 
 
 
