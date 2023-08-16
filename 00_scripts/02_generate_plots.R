@@ -645,7 +645,8 @@ gen_range_maps <- function(mask_type = "country", which_mask = NULL, which_spec 
                   any(status == "S") ~ "S",
                   any(status == "W") ~ "W",
                   TRUE ~ "P"
-                ))
+                )) %>% 
+        distinct(COMMON.NAME, gridg1, status, occupancy)
       
       
       # write
