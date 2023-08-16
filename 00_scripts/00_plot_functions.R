@@ -127,37 +127,23 @@ geom_rangemap_legend <- function() {
 }
 
 
-# manually adding migratory status occupancy for rangemap -------------------------------
+# manually filling occupancy for rangemap -------------------------------
 
-# we have to manually add the four types (since scale_fill already used for DEM basemap)
+# we have to manually add the four migratory types (since scale_fill already used for DEM basemap)
 
-geom_rangemap_occ <- function(data_occ, data_vag, which_mig) {
-  
-  data_occ <- data_occ %>% 
-    right_join(g1_in_sf, by = c("gridg1" = "GRID.G1")) %>% 
-    filter(status == which_mig)
-  data_palette <- palette_range_groups %>% filter(LABEL.CODE == which_mig)
-  
+geom_rangemap_occ <- function(data_occ, data_vag) {
+
   # colour block for proper occurrence
-  occ_block <- geom_sf(data = data_occ, aes(alpha = occupancy, geometry = GEOM.G1), 
-                       col = NA, fill = data_palette$COLOUR)
+  occ_block <- geom_sf(data = data_occ %>% right_join(g1_in_sf, by = c("gridg1" = "GRID.G1")), 
+                       aes(alpha = occupancy, geometry = GEOM.G1, fill = COLOUR), 
+                       col = NA)
   
-  if (which_mig == "YR") {
-    
-    list(occ_block)
-    
-  } else {
-    
-    data_vag <- data_vag %>% filter(status == which_mig)
-
-    # x-points for vagrant records
-    occ_vag <- geom_point(data = data_vag, aes(x = LONGITUDE, y = LATITUDE), 
-                          shape = 4, size = 1, alpha = 1, col = data_palette$COLOUR)
-    
-    # output:
-    list(occ_block, occ_vag)
+  # x-points for vagrant records
+  occ_vag <- geom_point(data = data_vag, aes(x = LONGITUDE, y = LATITUDE, colour = COLOUR), 
+                        shape = 4, size = 1, alpha = 1)
   
-  }
+  # output:
+  list(occ_block, occ_vag)
   
 }
 
@@ -1571,7 +1557,7 @@ soib_trend_plot_sysmon <- function(plot_type, cur_data_trends,
 }
 
 
-# ### PLOT: SoIB 2023 trend -------------------------------------------------------------
+# ### PLOT: SoIB 2023 range map -------------------------------------------------------------
 
 soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
   
@@ -1584,6 +1570,7 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
   require(sf)
   require(tictoc)
   require(glue)
+  require(ggnewscale) # to allow us to specify new scale_fill for filling occupancy grids
   
   tic(glue("[Mask: {cur_mask}] Finished creating range map for [species: {str_flatten_comma(which_spec)}]"))
   
@@ -1700,7 +1687,7 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
   
   # completing and writing the plot -----------------------------------------------------
   
-  if (which_spec != "all") {
+  if (str_flatten_comma(which_spec) != "all") {
     
     cur_spec <- which_spec
     # cur_spec <- "Black-backed Dwarf-Kingfisher"
@@ -1743,10 +1730,11 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
     
     # joining plot base with other constant aesthetic features of graph
     cur_plot <- plot_base +
-      geom_rangemap_occ(cur_data_occ, cur_data_vag, "YR") +
-      geom_rangemap_occ(cur_data_occ, cur_data_vag, "S") +
-      geom_rangemap_occ(cur_data_occ, cur_data_vag, "P") +
-      geom_rangemap_occ(cur_data_occ, cur_data_vag, "W") +
+      new_scale_fill() +
+      geom_rangemap_occ(cur_data_occ, cur_data_vag) +
+      # using identity scale since we have specified the column of hexcodes in aes of geom
+      scale_fill_identity() +
+      scale_colour_identity() +
       # state outlines
       geom_sf(data = states_sf, colour = "white", fill = NA, size = 0.2)
     
