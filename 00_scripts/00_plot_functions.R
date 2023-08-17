@@ -1689,16 +1689,18 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
   # load data -------------------------------------------------------------------------
   
   # data
+  
+  load(path_speclists)
+
   occ_final = read.csv(path_toplot) %>% 
-    mutate(gridg1 = as.character(gridg1))
+    mutate(gridg1 = as.character(gridg1)) %>% 
+    filter(COMMON.NAME %in% specieslist$COMMON.NAME)
   
   vagrant_presence = read.csv(path_vagrants) %>% 
     # for spatial join later
     rownames_to_column("ID")
   
   main = read.csv(path_main)
-  
-  load(path_speclists)
   
     
   # for states, we want to filter this data appropriately
@@ -1786,8 +1788,7 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
   if (str_flatten_comma(which_spec) != "all") {
     
     cur_spec <- which_spec
-    # cur_spec <- "Black-backed Dwarf-Kingfisher"
-    
+
   } else {
     
     cur_spec <- specieslist %>% 
@@ -1796,58 +1797,67 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
     
   }
   
-  # walking creation of maps over all specified species
-  walk(cur_spec, ~ {
+  # extra error catch step
+  if (any(!cur_spec %in% specieslist$COMMON.NAME)) {
     
-    tic("Walked over one species")
+    return("Range map can only be plotted for valid species! (Check appropriate 'specieslist'.)")
     
-    # filtering data for species
-    cur_data_occ = occ_final %>% 
-      left_join(palette_range_groups, by = c("status" = "LABEL.CODE")) %>% 
-      filter(COMMON.NAME == .x)
+  } else {
     
-    cur_data_vag = vagrant_presence %>% 
-      filter(COMMON.NAME == .x) %>% 
-      left_join(palette_range_groups, by = c("status" = "LABEL.CODE"))
+    # walking creation of maps over all specified species
+    walk(cur_spec, ~ {
+      
+      tic("Walked over one species")
+      
+      # filtering data for species
+      cur_data_occ = occ_final %>% 
+        left_join(palette_range_groups, by = c("status" = "LABEL.CODE")) %>% 
+        filter(COMMON.NAME == .x)
+      
+      cur_data_vag = vagrant_presence %>% 
+        filter(COMMON.NAME == .x) %>% 
+        left_join(palette_range_groups, by = c("status" = "LABEL.CODE"))
+      
+      all_statuses <- bind_rows(cur_data_occ, cur_data_vag) %>% 
+        distinct(LABEL, COLOUR)
+      
+      # output paths (only website folder, to save time)
+      web_spec <- .x %>% 
+        # convert to India Checklist names 
+        specname_to_india_checklist() %>% 
+        str_replace_all(c(" " = "-", "'" = "_"))
+      
+      path_map_web <- glue("{cur_metadata$WEB.MAP.FOLDER}{web_spec}_{cur_metadata$MASK.CODE}_rangemap.jpg")
+      
+      
+      # joining plot base with other constant aesthetic features of graph
+      cur_plot <- plot_base +
+        new_scale_fill() +
+        # geom_sf(data = cur_data_occ %>% right_join(cur_g1_sf, by = c("gridg1" = "GRID.G1")), 
+        #         aes(alpha = occupancy, geometry = GEOM.G1, fill = COLOUR), 
+        #         col = NA, key_glyph = draw_key_occupancy) +
+        geom_rangemap_occ(cur_g1_sf, cur_data_occ, admin_sf, cur_data_vag) +
+        # using identity scale since we have specified the column of hexcodes in aes of geom
+        scale_alpha_identity() +
+        scale_fill_identity(guide = guide_legend(title = NULL),
+                            labels = levels(all_statuses$LABEL),
+                            breaks = levels(all_statuses$COLOUR)) +
+        scale_colour_identity() +
+        # theme
+        ggtheme_soibrangemap()
+      
+      
+      # writing maps
+      ggsave(filename = path_map_web, plot = cur_plot,
+             dpi = 1000, bg = "white",
+             width = 7, height = 7, units = "in")
+      
+      toc()
+      
+    })
     
-    all_statuses <- bind_rows(cur_data_occ, cur_data_vag) %>% 
-      distinct(LABEL, COLOUR)
-    
-    # output paths (only website folder, to save time)
-    web_spec <- .x %>% 
-      # convert to India Checklist names 
-      specname_to_india_checklist() %>% 
-      str_replace_all(c(" " = "-", "'" = "_"))
-    
-    path_map_web <- glue("{cur_metadata$WEB.MAP.FOLDER}{web_spec}_{cur_metadata$MASK.CODE}_rangemap.jpg")
-    
+  }
 
-    # joining plot base with other constant aesthetic features of graph
-    cur_plot <- plot_base +
-      new_scale_fill() +
-      # geom_sf(data = cur_data_occ %>% right_join(cur_g1_sf, by = c("gridg1" = "GRID.G1")), 
-      #         aes(alpha = occupancy, geometry = GEOM.G1, fill = COLOUR), 
-      #         col = NA, key_glyph = draw_key_occupancy) +
-      geom_rangemap_occ(cur_g1_sf, cur_data_occ, admin_sf, cur_data_vag) +
-      # using identity scale since we have specified the column of hexcodes in aes of geom
-      scale_alpha_identity() +
-      scale_fill_identity(guide = guide_legend(title = NULL),
-                          labels = levels(all_statuses$LABEL),
-                          breaks = levels(all_statuses$COLOUR)) +
-      scale_colour_identity() +
-      # theme
-      ggtheme_soibrangemap()
-    
-    
-    # writing maps
-    ggsave(filename = path_map_web, plot = cur_plot,
-           dpi = 1000, bg = "white",
-           width = 7, height = 7, units = "in")
-    
-    toc()
-    
-  })
-  
   
   # removing objects from global environment ------------------------------------------
   
