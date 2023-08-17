@@ -1703,19 +1703,15 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
       left_join(palette_range_groups, by = c("status" = "LABEL.CODE"))
     
     
-    # output paths
+    # output paths (only website folder, to save time)
+    web_spec <- .x %>% 
+      # convert to India Checklist names 
+      specname_to_india_checklist() %>% 
+      str_replace_all(c(" " = "-", "'" = "_"))
     
-    # convert to India Checklist names 
-    converted_spec <- specname_to_india_checklist(.x) 
+    path_map_web <- glue("{cur_metadata$WEB.MAP.FOLDER}{web_spec}_{cur_metadata$MASK.CODE}_rangemap.jpg")
     
-    path_map <- glue("{cur_metadata$MAP.FOLDER}{converted_spec}.png")
-    # for website
-    web_spec <- str_replace_all(converted_spec, c(" " = "-", "'" = "_"))
-    web_mask <- cur_metadata$MASK.CODE
-    path_map_web <- glue("{cur_metadata$WEB.MAP.FOLDER}{web_spec}_{web_mask}_rangemap.jpg")
-    
-    
-    
+
     # joining plot base with other constant aesthetic features of graph
     cur_plot <- plot_base +
       new_scale_fill() +
@@ -1728,12 +1724,8 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
     
     
     # writing maps
-    ggsave(filename = path_map, plot = cur_plot,
-           dpi = 1000, bg = "white",
-           width = 7, height = 7, units = "in")
-    
     ggsave(filename = path_map_web, plot = cur_plot,
-           dpi = 500, bg = "white",
+           dpi = 1000, bg = "white",
            width = 7, height = 7, units = "in")
     
     toc()
