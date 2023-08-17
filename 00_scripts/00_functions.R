@@ -635,14 +635,36 @@ dataspeciesfilter = function(cur_mask = "none") {
     left_join(datah, by = c("COMMON.NAME")) %>% 
     left_join(datar, by = c("COMMON.NAME"))
   
+  # we need country specieslist to derive specieslist for states
+  if (cur_metadata$MASK.TYPE == "state") {
+    load(file = analyses_metadata %>% 
+           filter(MASK == "none") %>% 
+           pull(SPECLISTDATA.PATH))
+    
+    specieslist_nat <- specieslist
+    rm(specieslist, restrictedspecieslist)
+  }
+  
+  
   specieslist = dataf %>%
-    # <annotation_pending_AV> what does each variable mean? (e.g., Essential)
-    # what are we finally filtering for?
-    filter((Essential == 1 | Endemic.Region != "None" | ht == 1 | rt == 1) & 
+    # for states, we want to include any species reported from the state & with trend for country
+    {if (cur_metadata$MASK.TYPE != "state") {
+      filter(., 
+             (Essential == 1 | Endemic.Region != "None" | ht == 1 | rt == 1), 
              (Breeding.Activity.Period != "Nocturnal" | 
                 Non.Breeding.Activity.Period != "Nocturnal" | 
-                COMMON.NAME == "Jerdon's Courser") & 
-             (is.na(Discard))) %>%
+                COMMON.NAME == "Jerdon's Courser"),
+             (is.na(Discard))
+      )
+    } else {
+      filter(.,
+             (COMMON.NAME %in% specieslist_nat | ht == 1 | rt == 1), 
+             (Breeding.Activity.Period != "Nocturnal" | 
+                Non.Breeding.Activity.Period != "Nocturnal" | 
+                COMMON.NAME == "Jerdon's Courser"), 
+             (is.na(Discard))
+      )
+    }} %>%
     # filter out species not recorded from current mask
     filter(COMMON.NAME %in% cur_mask_spec) %>% 
     dplyr::select(COMMON.NAME, ht, rt)

@@ -100,50 +100,113 @@ geom_axisbracket <- function(bracket_type = "time", bracket_trend = cur_trend) {
 }
 
 
-# manual legend for rangemap --------------------------------------------------------------
+# rangemap: remove false presences (states) ----------------------------------------
 
-# we have to manually create the legend
+# due to edge cases: reported from same cell but point is outside current state
 
-geom_rangemap_legend <- function() {
+# First, get true list of species-grid presence combos:
+# - species relevant for state actually reported from cell relevant for state (info_state_spec_grid)
+# - retain only state and species of interest (using specieslist for state); removes slashes/spuhs
+# Then, anti_join these "true presences" from the "to plot" data where occupancy == 1 --> false presences
+# Then, remove these false presence rows from "to plot" data
 
-  # outer translucent colour block
-  block1 <- annotate("rect", fill = palette_range_groups$COLOUR, # constant
-                     alpha = 0.6, 
-                     xmin = c(82.2, 82.2, 82.2, 82.2), xmax = c(83.7, 83.7, 83.7, 83.7),
-                     ymin = c(13, 11, 9, 7), ymax = c(14.5, 12.5, 10.5, 8.5))
+
+rangemap_rm_falsepres <- function(data_occ, state, specieslist_for_state) {
   
-  # inner opaque colour block
-  block2 <- annotate("rect", fill = palette_range_groups$COLOUR, # constant
-                     alpha = 1, 
-                     xmin = c(82.4, 82.4, 82.4, 82.4), xmax = c(83.5, 83.5, 83.5, 83.5),
-                     ymin = c(13.2, 11.2, 9.2, 7.2), ymax = c(14.3, 12.3, 10.3, 8.3))
-
-  block_labels <- annotate("text", colour = palette_plot_elem, family = plot_fontfamily,
-                           size = 4.5, label = palette_range_groups$LABEL, hjust = 0,
-                           x = c(84.5, 84.5, 84.5, 84.5), y = c(13.75, 11.75, 9.75, 7.75))
-  # output:
-  list(block1, block2, block_labels)
+  load("01_analyses_full/data_rangemap_info4state.RData")
+  
+  true_presence <- info_state_spec_grid %>% 
+    filter(COMMON.NAME %in% specieslist_for_state$COMMON.NAME,
+           ST_NM == state)
+  
+  false_presence <- data_occ %>% 
+    filter(occupancy == 1) %>% 
+    anti_join(true_presence) %>% 
+    distinct(COMMON.NAME, gridg1)
+  
+  new_data_occ <- anti_join(data_occ, false_presence)
+  
+  return(new_data_occ)
   
 }
 
 
-# manually filling occupancy for rangemap -------------------------------
+# rangemap: custom key_glyph for occupancy fill legend ------------------------------
+
+# creating our own key_glyph to be used for ggplot legend in rangemaps
+# (ht https://www.emilhvitfeldt.com/post/changing-glyph-in-ggplot2/, 
+#     https://stackoverflow.com/a/69958849/13000254)
+
+draw_key_occupancy <- function(data, params, size) {
+  
+  grobTree(
+    
+    rectGrob(width = 0.67, height = 0.67,
+             gp = gpar(col = NA, fill = alpha(data$fill, data$alpha))),
+    rectGrob(gp = gpar(col = NA, fill = alpha(data$fill, data$alpha), 
+                       # this grob gets repeated because we have fill for grids and the x-points
+                       # hence, using slightly lower alpha to balance out
+                       alpha = 0.3))
+    
+  )
+  
+}
+
+# # testing
+# ggplot(iris, aes(x = Species, y = Sepal.Length, fill = Species, alpha = Sepal.Length)) +
+#   geom_point(shape = 21, key_glyph = draw_key_occupancy) +
+#   scale_fill_manual(values = levels(palette_range_groups$COLOUR)) +
+#   guides(alpha = "none")
+
+
+# rangemap: manual legend --------------------------------------------------------------
+
+# # we have to manually create the legend
+# 
+# geom_rangemap_legend <- function() {
+# 
+#   # outer translucent colour block
+#   block1 <- annotate("rect", fill = palette_range_groups$COLOUR, # constant
+#                      alpha = 0.6,
+#                      xmin = c(82.2, 82.2, 82.2, 82.2), xmax = c(83.7, 83.7, 83.7, 83.7),
+#                      ymin = c(13, 11, 9, 7), ymax = c(14.5, 12.5, 10.5, 8.5))
+# 
+#   # inner opaque colour block
+#   block2 <- annotate("rect", fill = palette_range_groups$COLOUR, # constant
+#                      alpha = 1,
+#                      xmin = c(82.4, 82.4, 82.4, 82.4), xmax = c(83.5, 83.5, 83.5, 83.5),
+#                      ymin = c(13.2, 11.2, 9.2, 7.2), ymax = c(14.3, 12.3, 10.3, 8.3))
+# 
+#   block_labels <- annotate("text", colour = palette_plot_elem, family = plot_fontfamily,
+#                            size = 4.5, label = palette_range_groups$LABEL, hjust = 0,
+#                            x = c(84.5, 84.5, 84.5, 84.5), y = c(13.75, 11.75, 9.75, 7.75))
+#   # output:
+#   list(block1, block2, block_labels)
+# 
+# }
+
+
+# rangemap: manually filling occupancy  -------------------------------
 
 # we have to manually add the four migratory types (since scale_fill already used for DEM basemap)
 
-geom_rangemap_occ <- function(data_occ, data_vag) {
-
+geom_rangemap_occ <- function(data_grids, data_occ, data_admin, data_vag) {
+  
   # colour block for proper occurrence
-  occ_block <- geom_sf(data = data_occ %>% right_join(g1_in_sf, by = c("gridg1" = "GRID.G1")), 
-                       aes(alpha = occupancy, geometry = GEOM.G1, fill = COLOUR), 
-                       col = NA)
+  occ_block <- geom_sf(data = data_occ %>% right_join(data_grids, by = c("gridg1" = "GRID.G1")), 
+                       aes(alpha = occupancy, geometry = GEOM.G1, fill = fct_inorder(COLOUR)), 
+                       col = NA, key_glyph = draw_key_occupancy)
+  
+  # admin outlines (above occupancy grid fill)
+  outline_admin <- geom_sf(data = data_admin, colour = "white", fill = NA, size = 0.2)
   
   # x-points for vagrant records
-  occ_vag <- geom_point(data = data_vag, aes(x = LONGITUDE, y = LATITUDE, colour = COLOUR), 
-                        shape = 4, size = 1, alpha = 1)
+  occ_vag <- geom_point(data = data_vag, aes(x = LONGITUDE, y = LATITUDE, 
+                                             colour = fct_inorder(COLOUR), fill = fct_inorder(COLOUR)), 
+                        shape = 4, size = 1, alpha = 1, key_glyph = draw_key_occupancy)
   
   # output:
-  list(occ_block, occ_vag)
+  list(occ_block, outline_admin, occ_vag)
   
 }
 
@@ -175,10 +238,10 @@ ggtheme_soibrangemap <- function() {
                                     colour = palette_plot_title),
           text = element_text(family = plot_fontfamily),
           plot.background = element_rect(fill = "transparent", colour = NA),
-          panel.background = element_rect(fill = "transparent", colour = NA),
-          # we are creating separate legend using the colours; but omitting this specification
-          # also results in very high plotting time 
-          legend.position = "none")
+          panel.background = element_rect(fill = "transparent", colour = NA)) +
+    theme(legend.position = "bottom",
+          legend.text = element_text(colour = palette_plot_elem, size = 12),
+          legend.box.margin = margin(3, 0, 0, 0))
   
 }
 
@@ -1566,18 +1629,17 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
   # setup -----------------------------------------------------------------------------
   
   require(tidyverse)
-  require(raster)
   require(sf)
   require(tictoc)
   require(glue)
   require(ggnewscale) # to allow us to specify new scale_fill for filling occupancy grids
+  require(grid)
+  require(rlang)
   
   tic(glue("[Mask: {cur_mask}] Finished creating range map for [species: {str_flatten_comma(which_spec)}]"))
   
   
-  source("00_scripts/00_functions.R")
   source("00_scripts/20_functions.R")
-  
   load("00_data/analyses_metadata.RData")
   
   cur_metadata <- analyses_metadata %>% 
@@ -1588,6 +1650,34 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
     return("Select either a country or a state!")
   }
   
+  # load DEM
+  load("00_data/map_DEM.RData")
+  # select relevant DEM for current mask (country or state)
+  map_dem <- get(glue("map_dem_{cur_metadata$MASK.CODE}"))
+  # remove all others
+  rm(list = setdiff(ls(), 
+                    c("analyses_metadata", "cur_metadata", "cur_mask", "which_spec", "map_dem", 
+                      "geom_rangemap_legend", "geom_rangemap_occ", "ggtheme_soibrangemap",
+                      "rangemap_rm_falsepres", "draw_key_occupancy")))
+  
+  
+  source("00_scripts/00_functions.R")
+  load("00_data/maps_sf.RData")
+  
+  if (cur_metadata$MASK.TYPE == "country") {
+    admin_sf <- states_sf
+    cur_g1_sf <- g1_in_sf
+  } else if (cur_metadata$MASK.TYPE == "state") {
+    admin_sf <- dists_sf %>% filter(STATE.NAME == cur_mask)
+    
+    load("00_data/grids_st_sf.RData")
+    rm(g2_st_sf, g3_st_sf, g4_st_sf)
+    cur_g1_sf <- g1_st_sf %>% filter(STATE.NAME == cur_mask)
+    
+    # for filtering data later
+    cur_g1_filt <- cur_g1_sf %>% distinct(GRID.G1) %>% pull(GRID.G1)
+  }
+
   
   # input paths
   path_main <- cur_metadata$SOIBMAIN.PATH
@@ -1598,34 +1688,48 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
   
   # load data -------------------------------------------------------------------------
   
-  load("00_data/maps_sf.RData")
-  
-  
-  tic("Processed TIF basemap")
-  # import DEM TIF (our basemap)
-  indiatif <- brick("00_data/IndiaDEM-Colour.tif")
-  # making sure same CRS
-  st_crs(indiatif) == st_crs(india_sf)
-  # further processing
-  indiatif <- indiatif %>% 
-    raster::mask(india_sf) %>%
-    as.data.frame(xy = TRUE) %>% 
-    mutate(across(starts_with("IndiaDEM.Colour"), ~ . / 255)) %>% 
-    magrittr::set_colnames(c("x", "y", "r", "g", "b")) %>% 
-    replace_na(replace = list(r = 0, g = 0, b = 0)) %>% 
-    # getting hexcodes based on RGB values, and changing blacks (zeroes) to NA
-    mutate(codes = rgb(r, g, b) %>% replace(., . == "#000000", NA))
-  toc()
-  
-  
   # data
-  occ_final = read.csv(path_toplot) %>% 
-    mutate(gridg1 = as.character(gridg1))
-  
-  vagrant_presence = read.csv(path_vagrants)
-  main = read.csv(path_main)
   
   load(path_speclists)
+
+  occ_final = read.csv(path_toplot) %>% 
+    mutate(gridg1 = as.character(gridg1)) %>% 
+    filter(COMMON.NAME %in% specieslist$COMMON.NAME)
+  
+  vagrant_presence = read.csv(path_vagrants) %>% 
+    # for spatial join later
+    rownames_to_column("ID")
+  
+  main = read.csv(path_main)
+  
+    
+  # for states, we want to filter this data appropriately
+  if (cur_metadata$MASK.TYPE == "state") {
+    
+    # 1. filter "to plot" data for valid grids in current state
+    occ_final <- occ_final %>% filter(gridg1 %in% cur_g1_filt)
+    
+    # 2. spatial filter for vagrant data
+    vagrant_filt <- vagrant_presence %>% 
+      st_as_sf(coords = c("LONGITUDE", "LATITUDE")) %>% 
+      st_set_crs(st_crs(states_sf))
+
+    vagrant_filt <- vagrant_filt[unlist(st_intersects(states_sf %>% filter(STATE.NAME == cur_mask), 
+                                                      vagrant_filt)),] %>% 
+      st_drop_geometry() %>% 
+      distinct(ID)
+    
+    vagrant_presence <- vagrant_presence %>% 
+      filter(ID %in% vagrant_filt$ID) %>% 
+      mutate(ID = NULL)
+    
+    rm(vagrant_filt)
+
+    # 3. remove false presences (edge cases: reported from same cell but point is outside current state)
+    occ_final <- occ_final %>% rangemap_rm_falsepres(cur_mask, specieslist)
+    
+  }
+  
   
   # error check for species name
   if (which_spec != "all") {
@@ -1635,7 +1739,8 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
       pull(COMMON.NAME)
     
     if (!which_spec %in% correct_specnames) {
-      return("Incorrect species name provided! Use the correct eBird name.")
+      return(c("Range map can only be plotted for valid species! (Check appropriate 'specieslist'.)",
+               "Or, incorrect species name provided! Use the correct eBird taxonomy name."))
     }
     
     rm(correct_specnames)
@@ -1664,25 +1769,18 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
   obj_list <- list(palette_plot_elem = palette_plot_elem,
                    palette_plot_title = palette_plot_title,
                    palette_range_groups = palette_range_groups,
-                   plot_fontfamily = plot_fontfamily,
-                   g1_in_sf = g1_in_sf)
+                   plot_fontfamily = plot_fontfamily)
   
   list2env(obj_list, envir = .GlobalEnv)
   
   # creating the plot base ------------------------------------------
 
-  tic("Created base plot")
   plot_base <- ggplot() +
-    geom_raster(data = indiatif , aes(x = x, y = y, fill = codes), 
+    geom_raster(data = map_dem , aes(x = x, y = y, fill = codes), 
                 alpha = 0.3) +
-    scale_fill_grey(na.value = "transparent") +
+    scale_fill_grey(na.value = "transparent", guide = "none") +
     scale_x_continuous(expand = c(0,0)) +
-    scale_y_continuous(expand = c(0,0)) +
-    # legend
-    geom_rangemap_legend() +
-    # theme
-    ggtheme_soibrangemap()
-  toc()
+    scale_y_continuous(expand = c(0,0))
 
   
   # completing and writing the plot -----------------------------------------------------
@@ -1690,68 +1788,76 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
   if (str_flatten_comma(which_spec) != "all") {
     
     cur_spec <- which_spec
-    # cur_spec <- "Black-backed Dwarf-Kingfisher"
-    
+
   } else {
     
-    cur_spec <- specieslists %>% 
+    cur_spec <- specieslist %>% 
       distinct(COMMON.NAME) %>% 
       pull(COMMON.NAME)
     
   }
   
-  # walking creation of maps over all specified species
-  walk(cur_spec, ~ {
+  # extra error catch step
+  if (any(!cur_spec %in% specieslist$COMMON.NAME)) {
     
-    tic("Walked over one species")
+    return("Range map can only be plotted for valid species! (Check appropriate 'specieslist'.)")
     
-    # filtering data for species
-    cur_data_occ = occ_final %>% 
-      left_join(palette_range_groups, by = c("status" = "LABEL.CODE")) %>% 
-      filter(COMMON.NAME == .x)
+  } else {
     
-    cur_data_vag = vagrant_presence %>% 
-      filter(COMMON.NAME == .x) %>% 
-      left_join(palette_range_groups, by = c("status" = "LABEL.CODE"))
+    # walking creation of maps over all specified species
+    walk(cur_spec, ~ {
+      
+      tic("Walked over one species")
+      
+      # filtering data for species
+      cur_data_occ = occ_final %>% 
+        left_join(palette_range_groups, by = c("status" = "LABEL.CODE")) %>% 
+        filter(COMMON.NAME == .x)
+      
+      cur_data_vag = vagrant_presence %>% 
+        filter(COMMON.NAME == .x) %>% 
+        left_join(palette_range_groups, by = c("status" = "LABEL.CODE"))
+      
+      all_statuses <- bind_rows(cur_data_occ, cur_data_vag) %>% 
+        distinct(LABEL, COLOUR)
+      
+      # output paths (only website folder, to save time)
+      web_spec <- .x %>% 
+        # convert to India Checklist names 
+        specname_to_india_checklist() %>% 
+        str_replace_all(c(" " = "-", "'" = "_"))
+      
+      path_map_web <- glue("{cur_metadata$WEB.MAP.FOLDER}{web_spec}_{cur_metadata$MASK.CODE}_rangemap.jpg")
+      
+      
+      # joining plot base with other constant aesthetic features of graph
+      cur_plot <- plot_base +
+        new_scale_fill() +
+        # geom_sf(data = cur_data_occ %>% right_join(cur_g1_sf, by = c("gridg1" = "GRID.G1")), 
+        #         aes(alpha = occupancy, geometry = GEOM.G1, fill = COLOUR), 
+        #         col = NA, key_glyph = draw_key_occupancy) +
+        geom_rangemap_occ(cur_g1_sf, cur_data_occ, admin_sf, cur_data_vag) +
+        # using identity scale since we have specified the column of hexcodes in aes of geom
+        scale_alpha_identity() +
+        scale_fill_identity(guide = guide_legend(title = NULL),
+                            labels = levels(all_statuses$LABEL),
+                            breaks = levels(all_statuses$COLOUR)) +
+        scale_colour_identity() +
+        # theme
+        ggtheme_soibrangemap()
+      
+      
+      # writing maps
+      ggsave(filename = path_map_web, plot = cur_plot,
+             dpi = 1000, bg = "white",
+             width = 7, height = 7, units = "in")
+      
+      toc()
+      
+    })
     
-    
-    # output paths
-    
-    # convert to India Checklist names 
-    converted_spec <- specname_to_india_checklist(.x) 
-    
-    path_map <- glue("{cur_metadata$MAP.FOLDER}{converted_spec}.png")
-    # for website
-    web_spec <- str_replace_all(converted_spec, c(" " = "-", "'" = "_"))
-    web_mask <- cur_metadata$MASK.CODE
-    path_map_web <- glue("{cur_metadata$WEB.MAP.FOLDER}{web_spec}_{web_mask}_rangemap.jpg")
-    
-    
-    
-    # joining plot base with other constant aesthetic features of graph
-    cur_plot <- plot_base +
-      # state outlines (below occupancy grid fill)
-      geom_sf(data = states_sf, colour = "white", fill = NA, size = 0.2) +
-      new_scale_fill() +
-      geom_rangemap_occ(cur_data_occ, cur_data_vag) +
-      # using identity scale since we have specified the column of hexcodes in aes of geom
-      scale_fill_identity() +
-      scale_colour_identity()
-    
-    
-    # writing maps
-    ggsave(filename = path_map, plot = cur_plot,
-           dpi = 1000, bg = "white",
-           width = 7, height = 7, units = "in")
-    
-    ggsave(filename = path_map_web, plot = cur_plot,
-           dpi = 500, bg = "white",
-           width = 7, height = 7, units = "in")
-    
-    toc()
-    
-  })
-  
+  }
+
   
   # removing objects from global environment ------------------------------------------
   

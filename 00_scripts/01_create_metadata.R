@@ -65,8 +65,9 @@ analyses_metadata <- data.frame(MASK = c("none",
          PLOT.COMPOSITE.FOLDER = "02_graphs/03_composite/") %>% 
   mutate(MAP.FOLDER = "02_graphs/10_rangemaps/",
          WEB.MAP.FOLDER = "20_website/maps/",
-         MAP.DATA.OCC.PATH = glue("{FOLDER}data_rangemap_toplot.csv"),
-         MAP.DATA.VAG.PATH = glue("{FOLDER}data_rangemap_vagrants.csv"))
+         # for states, we take full-country and just filter appropriately
+         MAP.DATA.OCC.PATH = glue("01_analyses_full/data_rangemap_toplot.csv"),
+         MAP.DATA.VAG.PATH = glue("01_analyses_full/data_rangemap_vagrants.csv"))
 
 
 # ensuring folders are created if they don't already exist
