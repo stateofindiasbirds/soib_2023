@@ -100,7 +100,7 @@ geom_axisbracket <- function(bracket_type = "time", bracket_trend = cur_trend) {
 }
 
 
-# manual legend for rangemap --------------------------------------------------------------
+# rangemap: manual legend --------------------------------------------------------------
 
 # we have to manually create the legend
 
@@ -127,14 +127,14 @@ geom_rangemap_legend <- function() {
 }
 
 
-# manually filling occupancy for rangemap -------------------------------
+# rangemap: manually filling occupancy  -------------------------------
 
 # we have to manually add the four migratory types (since scale_fill already used for DEM basemap)
 
-geom_rangemap_occ <- function(data_occ, data_admin, data_vag) {
+geom_rangemap_occ <- function(data_grids, data_occ, data_admin, data_vag) {
 
   # colour block for proper occurrence
-  occ_block <- geom_sf(data = data_occ %>% right_join(g1_in_sf, by = c("gridg1" = "GRID.G1")), 
+  occ_block <- geom_sf(data = data_occ %>% right_join(data_grids, by = c("gridg1" = "GRID.G1")), 
                        aes(alpha = occupancy, geometry = GEOM.G1, fill = COLOUR), 
                        col = NA)
   
@@ -147,6 +147,37 @@ geom_rangemap_occ <- function(data_occ, data_admin, data_vag) {
   
   # output:
   list(occ_block, outline_admin, occ_vag)
+  
+}
+
+
+# rangemap: remove false presences (states) ----------------------------------------
+
+# due to edge cases: reported from same cell but point is outside current state
+
+# First, get true list of species-grid presence combos:
+# - species relevant for state actually reported from cell relevant for state (info_state_spec_grid)
+# - retain only state and species of interest (using specieslist for state); removes slashes/spuhs
+# Then, anti_join these "true presences" from the "to plot" data where occupancy == 1 --> false presences
+# Then, remove these false presence rows from "to plot" data
+
+
+rangemap_rm_falsepres <- function(data_occ, state, specieslist_for_state) {
+  
+  load("01_analyses_full/data_rangemap_info4state.RData")
+  
+  true_presence <- info_state_spec_grid %>% 
+    filter(COMMON.NAME %in% specieslist_for_state$COMMON.NAME,
+           ST_NM == state)
+  
+  false_presence <- data_occ %>% 
+    filter(occupancy == 1) %>% 
+    anti_join(true_presence) %>% 
+    distinct(COMMON.NAME, gridg1)
+  
+  new_data_occ <- anti_join(data_occ, false_presence)
+  
+  return(new_data_occ)
   
 }
 
@@ -1594,8 +1625,9 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
   map_dem <- get(glue("map_dem_{cur_metadata$MASK.CODE}"))
   # remove all others
   rm(list = setdiff(ls(), 
-                    c("analyses_metadata", "cur_metadata", "cur_mask", "which_spec", 
-                      "map_dem", "geom_rangemap_legend", "geom_rangemap_occ", "ggtheme_soibrangemap")))
+                    c("analyses_metadata", "cur_metadata", "cur_mask", "which_spec", "map_dem", 
+                      "geom_rangemap_legend", "geom_rangemap_occ", "ggtheme_soibrangemap",
+                      "rangemap_rm_falsepres")))
   
   
   source("00_scripts/00_functions.R")
@@ -1603,8 +1635,16 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
   
   if (cur_metadata$MASK.TYPE == "country") {
     admin_sf <- states_sf
+    cur_g1_sf <- g1_in_sf
   } else if (cur_metadata$MASK.TYPE == "state") {
     admin_sf <- dists_sf %>% filter(STATE.NAME == cur_mask)
+    
+    load("00_data/grids_st_sf.RData")
+    rm(g2_st_sf, g3_st_sf, g4_st_sf)
+    cur_g1_sf <- g1_st_sf %>% filter(STATE.NAME == cur_mask)
+    
+    # for filtering data later
+    cur_g1_filt <- cur_g1_sf %>% distinct(GRID.G1) %>% pull(GRID.G1)
   }
 
   
@@ -1626,20 +1666,15 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
     rownames_to_column("ID")
   
   main = read.csv(path_main)
-
+  
+  load(path_speclists)
+  
     
   # for states, we want to filter this data appropriately
   if (cur_metadata$MASK.TYPE == "state") {
     
-    load("00_data/grids_st_sf.RData")
-    g1_st_sf <- g1_st_sf %>% 
-      st_drop_geometry() %>% 
-      filter(STATE.NAME == cur_mask) %>% 
-      distinct(GRID.G1)
-    rm(g2_st_sf, g3_st_sf, g4_st_sf)
-    
     # 1. filter "to plot" data for valid grids in current state
-    occ_final <- occ_final %>% filter(gridg1 %in% g1_st_sf$GRID.G1)
+    occ_final <- occ_final %>% filter(gridg1 %in% cur_g1_filt)
     
     # 2. spatial filter for vagrant data
     vagrant_filt <- vagrant_presence %>% 
@@ -1655,10 +1690,13 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
       filter(ID %in% vagrant_filt$ID) %>% 
       mutate(ID = NULL)
     
+    rm(vagrant_filt)
+
+    # 3. remove false presences (edge cases: reported from same cell but point is outside current state)
+    occ_final <- occ_final %>% rangemap_rm_falsepres(cur_mask, specieslist)
+    
   }
   
-  
-  load(path_speclists)
   
   # error check for species name
   if (which_spec != "all") {
@@ -1668,7 +1706,8 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
       pull(COMMON.NAME)
     
     if (!which_spec %in% correct_specnames) {
-      return("Incorrect species name provided! Use the correct eBird name.")
+      return(c("Range map can only be plotted for valid species! (Check appropriate 'specieslist'.)",
+               "Or, incorrect species name provided! Use the correct eBird taxonomy name."))
     }
     
     rm(correct_specnames)
@@ -1697,14 +1736,12 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
   obj_list <- list(palette_plot_elem = palette_plot_elem,
                    palette_plot_title = palette_plot_title,
                    palette_range_groups = palette_range_groups,
-                   plot_fontfamily = plot_fontfamily,
-                   g1_in_sf = g1_in_sf)
+                   plot_fontfamily = plot_fontfamily)
   
   list2env(obj_list, envir = .GlobalEnv)
   
   # creating the plot base ------------------------------------------
 
-  tic("Created base plot")
   plot_base <- ggplot() +
     geom_raster(data = map_dem , aes(x = x, y = y, fill = codes), 
                 alpha = 0.3) +
@@ -1715,7 +1752,6 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
     geom_rangemap_legend() +
     # theme
     ggtheme_soibrangemap()
-  toc()
 
   
   # completing and writing the plot -----------------------------------------------------
@@ -1760,7 +1796,7 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
     # joining plot base with other constant aesthetic features of graph
     cur_plot <- plot_base +
       new_scale_fill() +
-      geom_rangemap_occ(cur_data_occ, admin_sf, cur_data_vag) +
+      geom_rangemap_occ(cur_g1_sf, cur_data_occ, admin_sf, cur_data_vag) +
       # using identity scale since we have specified the column of hexcodes in aes of geom
       scale_fill_identity() +
       scale_colour_identity() 
