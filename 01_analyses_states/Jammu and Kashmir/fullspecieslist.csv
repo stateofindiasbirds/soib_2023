@@ -357,6 +357,7 @@
 "Cory's Shearwater","Calonectris diomedea","","","",NA,NA,NA,NA,NA,NA
 "Flesh-footed Shearwater","Ardenna carneipes","","","",NA,NA,NA,NA,NA,NA
 "Wedge-tailed Shearwater","Ardenna pacifica","","","",NA,NA,NA,NA,NA,NA
+"Sooty Shearwater","Ardenna grisea","","","",NA,NA,NA,NA,NA,NA
 "Short-tailed Shearwater","Ardenna tenuirostris","","","",NA,NA,NA,NA,NA,NA
 "Tropical Shearwater","Puffinus bailloni","","","",NA,NA,NA,NA,NA,NA
 "Persian Shearwater","Puffinus persicus","","","",NA,NA,NA,NA,NA,NA
@@ -693,6 +694,7 @@
 "White-bellied Treepie","Dendrocitta leucogastra","","","",NA,NA,NA,NA,NA,NA
 "Collared Treepie","Dendrocitta frontalis","","","",NA,NA,NA,NA,NA,NA
 "Andaman Treepie","Dendrocitta bayleii","","","",NA,NA,NA,NA,NA,NA
+"Black-rumped Magpie","Pica bottanensis","","","",NA,NA,NA,NA,NA,NA
 "Eurasian Magpie","Pica pica","","","",NA,NA,NA,NA,NA,NA
 "Eurasian Nutcracker","Nucifraga caryocatactes","","","",NA,NA,NA,NA,NA,NA
 "Kashmir Nutcracker","Nucifraga multipunctata","","X","X",26,0.230769230769231,0.221153846153846,0.615384615384615,8.42307692307692,2.27321804586002
@@ -779,7 +781,7 @@
 "Pallas's Grasshopper Warbler","Helopsaltes certhiola","","","",NA,NA,NA,NA,NA,NA
 "Lanceolated Warbler","Locustella lanceolata","","","",NA,NA,NA,NA,NA,NA
 "Brown Bush Warbler","Locustella luteoventris","","","",NA,NA,NA,NA,NA,NA
-"Common Grasshopper-Warbler","Locustella naevia","","","",NA,NA,NA,NA,NA,NA
+"Common Grasshopper Warbler","Locustella naevia","","","",1,1,NA,NA,11,NA
 "Long-billed Bush Warbler","Locustella major","","","",NA,NA,NA,NA,NA,NA
 "Chinese Bush Warbler","Locustella tacsanowskia","","","",NA,NA,NA,NA,NA,NA
 "Baikal Bush Warbler","Locustella davidi","","","",NA,NA,NA,NA,NA,NA
@@ -837,6 +839,7 @@
 "Hume's Warbler","Phylloscopus humei","","","",48,0.125,0.299479166666667,0.5,8.875,1.65229332352048
 "Brooks's Leaf Warbler","Phylloscopus subviridis","","","",NA,NA,NA,NA,NA,NA
 "Chinese Leaf Warbler","Phylloscopus yunnanensis","","","",NA,NA,NA,NA,NA,NA
+"Pallas's Leaf Warbler","Phylloscopus proregulus","","","",NA,NA,NA,NA,NA,NA
 "Lemon-rumped Warbler","Phylloscopus chloronotus","","","",52,0.153846153846154,0.353365384615385,0.576923076923077,8.71153846153846,1.57233282175832
 "Sichuan Leaf Warbler","Phylloscopus forresti","","","",NA,NA,NA,NA,NA,NA
 "Tytler's Leaf Warbler","Phylloscopus tytleri","","","X",13,0.307692307692308,0.259615384615385,0.769230769230769,11.8461538461538,3.30548143166302

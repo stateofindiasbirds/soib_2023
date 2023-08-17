@@ -98,11 +98,11 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_relMay-2023.txt",
   nms1[nms1 %in% preimp] = NA
   
 
+  # read sensitive species data
+
   sesp = read.delim(sensitivepath, colClasses = nms1, sep = "\t", header = T, quote = "", 
                     stringsAsFactors = F, na.strings = c(""," ",NA))
 
-  # read sensitive species data
-  
   
   # merge both data frames
   data = rbind(data, sesp) %>%
@@ -113,7 +113,7 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_relMay-2023.txt",
 
   ## choosing important columns required for further analyses
   
-  imp = c("CATEGORY","COMMON.NAME","OBSERVATION.COUNT",
+  imp = c("CATEGORY","COMMON.NAME","SCIENTIFIC.NAME","OBSERVATION.COUNT",
           "LOCALITY.ID", "REVIEWED","APPROVED","EXOTIC.CODE",
           "LOCALITY.TYPE","STATE","COUNTY",
           "LATITUDE","LONGITUDE","OBSERVATION.DATE","TIME.OBSERVATIONS.STARTED",
@@ -160,14 +160,15 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_relMay-2023.txt",
   write.csv(temp,"00_data/indiaspecieslist.csv", row.names=FALSE)
   
   # create location file for LULC
-  locdat = data %>% distinct(LOCALITY.ID,LATITUDE,LONGITUDE)
+  locdat = data %>% distinct(LOCALITY.ID, LATITUDE, LONGITUDE)
   write.csv(locdat,"00_data/eBird_location_data.csv", row.names=FALSE)
 
   
   # need to combine several closely related species and slashes/spuhs
   # so, first changing their category to species since they will be combined next
   data = data %>%
-    mutate(CATEGORY = case_when(COMMON.NAME %in% c(
+    mutate(SCIENTIFIC.NAME = NULL, # needed it for printing indiaspecieslists
+           CATEGORY = case_when(COMMON.NAME %in% c(
       "Green/Greenish Warbler", "Siberian/Amur Stonechat", "Red-necked/Little Stint",
       "Western/Eastern Yellow Wagtail", "Common/Himalayan Buzzard",
       "Eurasian/Eastern Marsh-Harrier", "Lesser/Greater Sand-Plover", "Baikal/Spotted Bush Warbler",
