@@ -458,23 +458,23 @@ gen_range_maps <- function(mask_type = "country", which_mask = NULL, which_spec 
     # setting up data for range maps 
     # (this only runs when the output CSVs don't already exist!)
     
+    which_metadata <- analyses_metadata %>% filter(MASK == .x)
+    
+    # input paths
+    path_speclists <- which_metadata$SPECLISTDATA.PATH
+    path_main <- which_metadata$SOIBMAIN.PATH
+    path_toplot <- which_metadata$MAP.DATA.OCC.PATH
+    path_vagrants <- which_metadata$MAP.DATA.VAG.PATH
+    path_occu_pres <- which_metadata$OCCU.PRES.PATHONLY
+    path_occu_mod <- which_metadata$OCCU.MOD.PATHONLY
+    
+    
     if (!(!file.exists(path_toplot) | !file.exists(path_vagrants))) {
       
       print(glue("[Mask: {which_mask}] Data required to plot range maps already exists. Skipping setup steps."))
       
     } else {
       # load data -------------------------------------------------------------------------
-      
-      which_metadata <- analyses_metadata %>% filter(MASK == which_mask)
-      
-      # input paths
-      path_speclists <- which_metadata$SPECLISTDATA.PATH
-      path_main <- which_metadata$SOIBMAIN.PATH
-      path_toplot <- which_metadata$MAP.DATA.OCC.PATH
-      path_vagrants <- which_metadata$MAP.DATA.VAG.PATH
-      path_occu_pres <- which_metadata$OCCU.PRES.PATHONLY
-      path_occu_mod <- which_metadata$OCCU.MOD.PATHONLY
-      
       
       load(path_speclists)
       load("00_data/vagrantdata.RData")
@@ -495,10 +495,15 @@ gen_range_maps <- function(mask_type = "country", which_mask = NULL, which_spec 
       
       # setup -----------------------------------------------------------------------------
 
-      # subset for state when required
-      if (which_metadata$MASK.TYPE == "state") {
-        data0 = data0 %>% filter(ST_NM == which_mask)
-      }
+      # later for plotting state-level range maps, we need info on which grids each species 
+      # has been reported from. saving that information here, to be read in in plotting.
+      info_state_spec_grid <- data0 %>% 
+        distinct(ST_NM, COMMON.NAME, gridg1) %>% 
+        arrange(ST_NM, COMMON.NAME, gridg1)
+      
+      save(info_state_spec_grid, file = "01_analyses_full/data_rangemap_info4state.RData")
+      
+      
       
       data0 = data0 %>% 
         filter(COMMON.NAME %in% list_mig, 
@@ -529,12 +534,7 @@ gen_range_maps <- function(mask_type = "country", which_mask = NULL, which_spec 
       
       
       # vagrants
-      
-      # subset for state when required
-      if (which_metadata$MASK.TYPE == "state") {
-        d = d %>% filter(ST_NM == which_mask)
-      }
-      
+
       d = d %>% 
         filter(COMMON.NAME %in% list_mig, 
                year > 2017) %>% 
