@@ -1593,8 +1593,9 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
   # select relevant DEM for current mask (country or state)
   map_dem <- get(glue("map_dem_{cur_metadata$MASK.CODE}"))
   # remove all others
-  rm(list = setdiff(ls(), c("analyses_metadata", "cur_metadata", "cur_mask", "which_spec", 
-                            "map_dem", "geom_rangemap_legend", "geom_rangemap_occ", "ggtheme_soibrangemap")))
+  rm(list = setdiff(ls(), 
+                    c("analyses_metadata", "cur_metadata", "cur_mask", "which_spec", 
+                      "map_dem", "geom_rangemap_legend", "geom_rangemap_occ", "ggtheme_soibrangemap")))
   
   
   source("00_scripts/00_functions.R")
@@ -1620,8 +1621,42 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
   occ_final = read.csv(path_toplot) %>% 
     mutate(gridg1 = as.character(gridg1))
   
-  vagrant_presence = read.csv(path_vagrants)
+  vagrant_presence = read.csv(path_vagrants) %>% 
+    # for spatial join later
+    rownames_to_column("ID")
+  
   main = read.csv(path_main)
+
+    
+  # for states, we want to filter this data appropriately
+  if (cur_metadata$MASK.TYPE == "state") {
+    
+    load("00_data/grids_st_sf.RData")
+    g1_st_sf <- g1_st_sf %>% 
+      st_drop_geometry() %>% 
+      filter(STATE.NAME == cur_mask) %>% 
+      distinct(GRID.G1)
+    rm(g2_st_sf, g3_st_sf, g4_st_sf)
+    
+    # 1. filter "to plot" data for valid grids in current state
+    occ_final <- occ_final %>% filter(gridg1 %in% g1_st_sf$GRID.G1)
+    
+    # 2. spatial filter for vagrant data
+    vagrant_filt <- vagrant_presence %>% 
+      st_as_sf(coords = c("LONGITUDE", "LATITUDE")) %>% 
+      st_set_crs(st_crs(states_sf))
+
+    vagrant_filt <- vagrant_filt[unlist(st_intersects(states_sf %>% filter(STATE.NAME == cur_mask), 
+                                                      vagrant_filt)),] %>% 
+      st_drop_geometry() %>% 
+      distinct(ID)
+    
+    vagrant_presence <- vagrant_presence %>% 
+      filter(ID %in% vagrant_filt$ID) %>% 
+      mutate(ID = NULL)
+    
+  }
+  
   
   load(path_speclists)
   
