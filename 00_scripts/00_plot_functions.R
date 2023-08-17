@@ -1566,7 +1566,6 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
   # setup -----------------------------------------------------------------------------
   
   require(tidyverse)
-  require(raster)
   require(sf)
   require(tictoc)
   require(glue)
@@ -1575,9 +1574,7 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
   tic(glue("[Mask: {cur_mask}] Finished creating range map for [species: {str_flatten_comma(which_spec)}]"))
   
   
-  source("00_scripts/00_functions.R")
   source("00_scripts/20_functions.R")
-  
   load("00_data/analyses_metadata.RData")
   
   cur_metadata <- analyses_metadata %>% 
@@ -1588,6 +1585,17 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
     return("Select either a country or a state!")
   }
   
+  # load DEM
+  load("00_data/map_DEM.RData")
+  # select relevant DEM for current mask (country or state)
+  map_dem <- get(glue("map_dem_{cur_metadata$MASK.CODE}"))
+  # remove all others
+  rm(list = setdiff(ls(), c("analyses_metadata", "cur_metadata", "cur_mask", "which_spec", "map_dem")))
+  
+  
+  source("00_scripts/00_functions.R")
+  load("00_data/maps_sf.RData")
+
   
   # input paths
   path_main <- cur_metadata$SOIBMAIN.PATH
@@ -1597,26 +1605,6 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
   
   
   # load data -------------------------------------------------------------------------
-  
-  load("00_data/maps_sf.RData")
-  
-  
-  tic("Processed TIF basemap")
-  # import DEM TIF (our basemap)
-  indiatif <- brick("00_data/IndiaDEM-Colour.tif")
-  # making sure same CRS
-  st_crs(indiatif) == st_crs(india_sf)
-  # further processing
-  indiatif <- indiatif %>% 
-    raster::mask(india_sf) %>%
-    as.data.frame(xy = TRUE) %>% 
-    mutate(across(starts_with("IndiaDEM.Colour"), ~ . / 255)) %>% 
-    magrittr::set_colnames(c("x", "y", "r", "g", "b")) %>% 
-    replace_na(replace = list(r = 0, g = 0, b = 0)) %>% 
-    # getting hexcodes based on RGB values, and changing blacks (zeroes) to NA
-    mutate(codes = rgb(r, g, b) %>% replace(., . == "#000000", NA))
-  toc()
-  
   
   # data
   occ_final = read.csv(path_toplot) %>% 
@@ -1673,7 +1661,7 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
 
   tic("Created base plot")
   plot_base <- ggplot() +
-    geom_raster(data = indiatif , aes(x = x, y = y, fill = codes), 
+    geom_raster(data = map_dem , aes(x = x, y = y, fill = codes), 
                 alpha = 0.3) +
     scale_fill_grey(na.value = "transparent") +
     scale_x_continuous(expand = c(0,0)) +
@@ -1694,7 +1682,7 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
     
   } else {
     
-    cur_spec <- specieslists %>% 
+    cur_spec <- specieslist %>% 
       distinct(COMMON.NAME) %>% 
       pull(COMMON.NAME)
     
