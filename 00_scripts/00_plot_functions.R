@@ -100,57 +100,6 @@ geom_axisbracket <- function(bracket_type = "time", bracket_trend = cur_trend) {
 }
 
 
-# rangemap: manual legend --------------------------------------------------------------
-
-# we have to manually create the legend
-
-geom_rangemap_legend <- function() {
-
-  # outer translucent colour block
-  block1 <- annotate("rect", fill = palette_range_groups$COLOUR, # constant
-                     alpha = 0.6, 
-                     xmin = c(82.2, 82.2, 82.2, 82.2), xmax = c(83.7, 83.7, 83.7, 83.7),
-                     ymin = c(13, 11, 9, 7), ymax = c(14.5, 12.5, 10.5, 8.5))
-  
-  # inner opaque colour block
-  block2 <- annotate("rect", fill = palette_range_groups$COLOUR, # constant
-                     alpha = 1, 
-                     xmin = c(82.4, 82.4, 82.4, 82.4), xmax = c(83.5, 83.5, 83.5, 83.5),
-                     ymin = c(13.2, 11.2, 9.2, 7.2), ymax = c(14.3, 12.3, 10.3, 8.3))
-
-  block_labels <- annotate("text", colour = palette_plot_elem, family = plot_fontfamily,
-                           size = 4.5, label = palette_range_groups$LABEL, hjust = 0,
-                           x = c(84.5, 84.5, 84.5, 84.5), y = c(13.75, 11.75, 9.75, 7.75))
-  # output:
-  list(block1, block2, block_labels)
-  
-}
-
-
-# rangemap: manually filling occupancy  -------------------------------
-
-# we have to manually add the four migratory types (since scale_fill already used for DEM basemap)
-
-geom_rangemap_occ <- function(data_grids, data_occ, data_admin, data_vag) {
-
-  # colour block for proper occurrence
-  occ_block <- geom_sf(data = data_occ %>% right_join(data_grids, by = c("gridg1" = "GRID.G1")), 
-                       aes(alpha = occupancy, geometry = GEOM.G1, fill = COLOUR), 
-                       col = NA)
-  
-  # admin outlines (above occupancy grid fill)
-  outline_admin <- geom_sf(data = data_admin, colour = "white", fill = NA, size = 0.2)
-  
-  # x-points for vagrant records
-  occ_vag <- geom_point(data = data_vag, aes(x = LONGITUDE, y = LATITUDE, colour = COLOUR), 
-                        shape = 4, size = 1, alpha = 1)
-  
-  # output:
-  list(occ_block, outline_admin, occ_vag)
-  
-}
-
-
 # rangemap: remove false presences (states) ----------------------------------------
 
 # due to edge cases: reported from same cell but point is outside current state
@@ -182,6 +131,86 @@ rangemap_rm_falsepres <- function(data_occ, state, specieslist_for_state) {
 }
 
 
+# rangemap: custom key_glyph for occupancy fill legend ------------------------------
+
+# creating our own key_glyph to be used for ggplot legend in rangemaps
+# (ht https://www.emilhvitfeldt.com/post/changing-glyph-in-ggplot2/, 
+#     https://stackoverflow.com/a/69958849/13000254)
+
+draw_key_occupancy <- function(data, params, size) {
+  
+  grobTree(
+    
+    rectGrob(width = 0.67, height = 0.67,
+             gp = gpar(col = NA, fill = alpha(data$fill, data$alpha))),
+    rectGrob(gp = gpar(col = NA, fill = alpha(data$fill, data$alpha), 
+                       # this grob gets repeated because we have fill for grids and the x-points
+                       # hence, using slightly lower alpha to balance out
+                       alpha = 0.3))
+    
+  )
+  
+}
+
+# # testing
+# ggplot(iris, aes(x = Species, y = Sepal.Length, fill = Species, alpha = Sepal.Length)) +
+#   geom_point(shape = 21, key_glyph = draw_key_occupancy) +
+#   scale_fill_manual(values = levels(palette_range_groups$COLOUR)) +
+#   guides(alpha = "none")
+
+
+# rangemap: manual legend --------------------------------------------------------------
+
+# # we have to manually create the legend
+# 
+# geom_rangemap_legend <- function() {
+# 
+#   # outer translucent colour block
+#   block1 <- annotate("rect", fill = palette_range_groups$COLOUR, # constant
+#                      alpha = 0.6,
+#                      xmin = c(82.2, 82.2, 82.2, 82.2), xmax = c(83.7, 83.7, 83.7, 83.7),
+#                      ymin = c(13, 11, 9, 7), ymax = c(14.5, 12.5, 10.5, 8.5))
+# 
+#   # inner opaque colour block
+#   block2 <- annotate("rect", fill = palette_range_groups$COLOUR, # constant
+#                      alpha = 1,
+#                      xmin = c(82.4, 82.4, 82.4, 82.4), xmax = c(83.5, 83.5, 83.5, 83.5),
+#                      ymin = c(13.2, 11.2, 9.2, 7.2), ymax = c(14.3, 12.3, 10.3, 8.3))
+# 
+#   block_labels <- annotate("text", colour = palette_plot_elem, family = plot_fontfamily,
+#                            size = 4.5, label = palette_range_groups$LABEL, hjust = 0,
+#                            x = c(84.5, 84.5, 84.5, 84.5), y = c(13.75, 11.75, 9.75, 7.75))
+#   # output:
+#   list(block1, block2, block_labels)
+# 
+# }
+
+
+# rangemap: manually filling occupancy  -------------------------------
+
+# we have to manually add the four migratory types (since scale_fill already used for DEM basemap)
+
+geom_rangemap_occ <- function(data_grids, data_occ, data_admin, data_vag) {
+  
+  # colour block for proper occurrence
+  occ_block <- geom_sf(data = data_occ %>% right_join(data_grids, by = c("gridg1" = "GRID.G1")), 
+                       aes(alpha = occupancy, geometry = GEOM.G1, fill = fct_inorder(COLOUR)), 
+                       col = NA, key_glyph = draw_key_occupancy)
+  
+  # admin outlines (above occupancy grid fill)
+  outline_admin <- geom_sf(data = data_admin, colour = "white", fill = NA, size = 0.2)
+  
+  # x-points for vagrant records
+  occ_vag <- geom_point(data = data_vag, aes(x = LONGITUDE, y = LATITUDE, 
+                                             colour = fct_inorder(COLOUR), fill = fct_inorder(COLOUR)), 
+                        shape = 4, size = 1, alpha = 1, key_glyph = draw_key_occupancy)
+  
+  # output:
+  list(occ_block, outline_admin, occ_vag)
+  
+}
+
+
 # SoIB trend plot theme -------------------------------------------------------------
 
 ggtheme_soibtrend <- function() {
@@ -209,10 +238,10 @@ ggtheme_soibrangemap <- function() {
                                     colour = palette_plot_title),
           text = element_text(family = plot_fontfamily),
           plot.background = element_rect(fill = "transparent", colour = NA),
-          panel.background = element_rect(fill = "transparent", colour = NA),
-          # we are creating separate legend using the colours; but omitting this specification
-          # also results in very high plotting time 
-          legend.position = "none")
+          panel.background = element_rect(fill = "transparent", colour = NA)) +
+    theme(legend.position = "bottom",
+          legend.text = element_text(colour = palette_plot_elem, size = 12),
+          legend.box.margin = margin(3, 0, 0, 0))
   
 }
 
@@ -1604,6 +1633,8 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
   require(tictoc)
   require(glue)
   require(ggnewscale) # to allow us to specify new scale_fill for filling occupancy grids
+  require(grid)
+  require(rlang)
   
   tic(glue("[Mask: {cur_mask}] Finished creating range map for [species: {str_flatten_comma(which_spec)}]"))
   
@@ -1627,7 +1658,7 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
   rm(list = setdiff(ls(), 
                     c("analyses_metadata", "cur_metadata", "cur_mask", "which_spec", "map_dem", 
                       "geom_rangemap_legend", "geom_rangemap_occ", "ggtheme_soibrangemap",
-                      "rangemap_rm_falsepres")))
+                      "rangemap_rm_falsepres", "draw_key_occupancy")))
   
   
   source("00_scripts/00_functions.R")
@@ -1745,13 +1776,9 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
   plot_base <- ggplot() +
     geom_raster(data = map_dem , aes(x = x, y = y, fill = codes), 
                 alpha = 0.3) +
-    scale_fill_grey(na.value = "transparent") +
+    scale_fill_grey(na.value = "transparent", guide = "none") +
     scale_x_continuous(expand = c(0,0)) +
-    scale_y_continuous(expand = c(0,0)) +
-    # legend
-    geom_rangemap_legend() +
-    # theme
-    ggtheme_soibrangemap()
+    scale_y_continuous(expand = c(0,0))
 
   
   # completing and writing the plot -----------------------------------------------------
@@ -1783,6 +1810,8 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
       filter(COMMON.NAME == .x) %>% 
       left_join(palette_range_groups, by = c("status" = "LABEL.CODE"))
     
+    all_statuses <- bind_rows(cur_data_occ, cur_data_vag) %>% 
+      distinct(LABEL, COLOUR)
     
     # output paths (only website folder, to save time)
     web_spec <- .x %>% 
@@ -1796,10 +1825,18 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
     # joining plot base with other constant aesthetic features of graph
     cur_plot <- plot_base +
       new_scale_fill() +
+      # geom_sf(data = cur_data_occ %>% right_join(cur_g1_sf, by = c("gridg1" = "GRID.G1")), 
+      #         aes(alpha = occupancy, geometry = GEOM.G1, fill = COLOUR), 
+      #         col = NA, key_glyph = draw_key_occupancy) +
       geom_rangemap_occ(cur_g1_sf, cur_data_occ, admin_sf, cur_data_vag) +
       # using identity scale since we have specified the column of hexcodes in aes of geom
-      scale_fill_identity() +
-      scale_colour_identity() 
+      scale_alpha_identity() +
+      scale_fill_identity(guide = guide_legend(title = NULL),
+                          labels = levels(all_statuses$LABEL),
+                          breaks = levels(all_statuses$COLOUR)) +
+      scale_colour_identity() +
+      # theme
+      ggtheme_soibrangemap()
     
     
     # writing maps
