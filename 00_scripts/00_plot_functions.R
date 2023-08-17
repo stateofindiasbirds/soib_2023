@@ -131,19 +131,22 @@ geom_rangemap_legend <- function() {
 
 # we have to manually add the four migratory types (since scale_fill already used for DEM basemap)
 
-geom_rangemap_occ <- function(data_occ, data_vag) {
+geom_rangemap_occ <- function(data_occ, data_admin, data_vag) {
 
   # colour block for proper occurrence
   occ_block <- geom_sf(data = data_occ %>% right_join(g1_in_sf, by = c("gridg1" = "GRID.G1")), 
                        aes(alpha = occupancy, geometry = GEOM.G1, fill = COLOUR), 
                        col = NA)
   
+  # admin outlines (above occupancy grid fill)
+  outline_admin <- geom_sf(data = data_admin, colour = "white", fill = NA, size = 0.2)
+  
   # x-points for vagrant records
   occ_vag <- geom_point(data = data_vag, aes(x = LONGITUDE, y = LATITUDE, colour = COLOUR), 
                         shape = 4, size = 1, alpha = 1)
   
   # output:
-  list(occ_block, occ_vag)
+  list(occ_block, outline_admin, occ_vag)
   
 }
 
@@ -1590,11 +1593,18 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
   # select relevant DEM for current mask (country or state)
   map_dem <- get(glue("map_dem_{cur_metadata$MASK.CODE}"))
   # remove all others
-  rm(list = setdiff(ls(), c("analyses_metadata", "cur_metadata", "cur_mask", "which_spec", "map_dem")))
+  rm(list = setdiff(ls(), c("analyses_metadata", "cur_metadata", "cur_mask", "which_spec", 
+                            "map_dem", "geom_rangemap_legend", "geom_rangemap_occ", "ggtheme_soibrangemap")))
   
   
   source("00_scripts/00_functions.R")
   load("00_data/maps_sf.RData")
+  
+  if (cur_metadata$MASK.TYPE == "country") {
+    admin_sf <- states_sf
+  } else if (cur_metadata$MASK.TYPE == "state") {
+    admin_sf <- dists_sf %>% filter(STATE.NAME == cur_mask)
+  }
 
   
   # input paths
@@ -1715,12 +1725,10 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
     # joining plot base with other constant aesthetic features of graph
     cur_plot <- plot_base +
       new_scale_fill() +
-      geom_rangemap_occ(cur_data_occ, cur_data_vag) +
+      geom_rangemap_occ(cur_data_occ, admin_sf, cur_data_vag) +
       # using identity scale since we have specified the column of hexcodes in aes of geom
       scale_fill_identity() +
-      scale_colour_identity() +
-      # state outlines (above occupancy grid fill)
-      geom_sf(data = states_sf, colour = "white", fill = NA, size = 0.2)
+      scale_colour_identity() 
     
     
     # writing maps
