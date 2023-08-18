@@ -87,6 +87,12 @@ walk2(analyses_metadata$WEB.PLOTS.FOLDER, analyses_metadata$PLOT.SINGLE.FOLDER, 
   
 })
 
+# subfolder for trends
+if (!dir.exists(glue("{unique(analyses_metadata$WEB.PLOTS.FOLDER)}trends/"))) {
+  dir.create(glue("{unique(analyses_metadata$WEB.PLOTS.FOLDER)}trends/"), recursive = TRUE)
+}
+
+
 walk2(analyses_metadata$PLOT.MULTI.FOLDER, analyses_metadata$PLOT.COMPOSITE.FOLDER, ~ {
   
   if (!dir.exists(.x)) {dir.create(.x, recursive = TRUE)}

@@ -87,8 +87,8 @@ web_db <- web_db %>%
   mutate(featured_image = glue("{URL_pre_uploads}{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
          map_filename = glue("{URL_pre_uploads}{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
          map_filename_originals = glue("{URL_pre_uploads}originals/{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
-         graph_filename = glue("{URL_pre_uploads}{URL_species}_{MASK.CODE}{URL_suf_trend}"),
-         graph_filename_originals = glue("{URL_pre_uploads}originals/{URL_species}_{MASK.CODE}{URL_suf_trend}")) %>% 
+         graph_filename = glue("{URL_pre_uploads}trends/{URL_species}_{MASK.CODE}{URL_suf_trend}"),
+         graph_filename_originals = glue("{URL_pre_uploads}originals/trends/{URL_species}_{MASK.CODE}{URL_suf_trend}")) %>% 
   mutate(full_url_2 = case_when(MASK.TYPE == "national" ~ glue("{custom_url}"),
                                   TRUE ~ glue("{MASK.CODE}-{custom_url}")),
          post_category = MASK.LABEL,

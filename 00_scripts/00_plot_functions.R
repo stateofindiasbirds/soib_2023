@@ -794,7 +794,7 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
       web_folder <- cur_plot_metadata$WEB.PLOTS.FOLDER
       web_spec <- str_replace_all(cur_spec, c(" " = "-", "'" = "_"))
       web_mask <- cur_plot_metadata$MASK.CODE
-      path_write_file_web <- glue("{web_folder}{web_spec}_{web_mask}_trend.jpg")
+      path_write_file_web <- glue("{web_folder}trends/{web_spec}_{web_mask}_trend.jpg")
     } else {
       print("Not generating CAT plots for website.")
     }
