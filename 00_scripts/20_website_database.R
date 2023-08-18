@@ -3,7 +3,6 @@ require(glue)
 
 load("00_data/analyses_metadata.RData")
 source("00_scripts/20_functions.R")
-load("00_data/spec_mask_selections.RData")
 
 # key states for each species
 keystates <- read.csv("01_analyses_full/results/key_state_species_full.csv") %>% 
@@ -13,19 +12,12 @@ keystates <- read.csv("01_analyses_full/results/key_state_species_full.csv") %>%
 
 # import ----------------------------------------------------------------------------
 
-# list of species-mask combos selected for LTT
-sel_metadata <- spec_mask_LTT_list %>% 
-  distinct(COMMON.NAME, MASK.ORDERED) %>% 
-  left_join(analyses_metadata)
-
 # importing all data and setting up
 web_db0 <- map2(analyses_metadata$SOIBMAIN.PATH, analyses_metadata$MASK, 
               ~ read_fn(.x) %>% bind_cols(tibble(MASK = .y))) %>% 
   list_rbind() %>% 
-  # # filtering for SoIB species
-  # filter(Selected.SOIB == "X") %>% 
-  # filtering for only species-mask combos selected for LTT
-  semi_join(sel_metadata, by = c("eBird.English.Name.2022" = "COMMON.NAME", "MASK")) %>% 
+  # filtering for SoIB species
+  filter(Selected.SOIB == "X") %>%
   dplyr::select(-c("eBird.English.Name.2022", "eBird.Scientific.Name.2022", "Order", "Family",
                    starts_with("SOIB."), contains("Breeding.Activity"), "Diet.Guild",
                    starts_with("BLI."), ends_with(".Appendix"), "Onepercent.Estimates", 
