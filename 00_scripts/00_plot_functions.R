@@ -1633,12 +1633,13 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
   require(tictoc)
   require(glue)
   require(ggnewscale) # to allow us to specify new scale_fill for filling occupancy grids
-  require(grid)
-  require(rlang)
+  require(grid) # for custom key_glyph (for  legend)
+  require(rlang) # for custom key_glyph (for legend)
   
   tic(glue("[Mask: {cur_mask}] Finished creating range map for [species: {str_flatten_comma(which_spec)}]"))
   
   
+  source("00_scripts/00_functions.R")
   source("00_scripts/20_functions.R")
   load("00_data/analyses_metadata.RData")
   
@@ -1650,25 +1651,17 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
     return("Select either a country or a state!")
   }
   
+  load("00_data/maps_sf.RData")
   # load DEM
   load("00_data/map_DEM.RData")
-  # select relevant DEM for current mask (country or state)
-  map_dem <- get(glue("map_dem_{cur_metadata$MASK.CODE}"))
-  # remove all others
-  rm(list = setdiff(ls(), 
-                    c("analyses_metadata", "cur_metadata", "cur_mask", "which_spec", "map_dem", 
-                      "geom_rangemap_legend", "geom_rangemap_occ", "ggtheme_soibrangemap",
-                      "rangemap_rm_falsepres", "draw_key_occupancy")))
   
-  
-  source("00_scripts/00_functions.R")
-  load("00_data/maps_sf.RData")
   
   if (cur_metadata$MASK.TYPE == "country") {
-    admin_sf <- states_sf
-    cur_g1_sf <- g1_in_sf
+    admin_sf <- states_sf # which admin outlines to plot over basemap
+    cur_g1_sf <- g1_in_sf # which grid polygon to use
   } else if (cur_metadata$MASK.TYPE == "state") {
     admin_sf <- dists_sf %>% filter(STATE.NAME == cur_mask)
+    cur_state_sf <- states_sf %>% filter(STATE.NAME == cur_mask)
     
     load("00_data/grids_st_sf.RData")
     rm(g2_st_sf, g3_st_sf, g4_st_sf)
@@ -1694,7 +1687,7 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
 
   occ_final = read.csv(path_toplot) %>% 
     mutate(gridg1 = as.character(gridg1)) %>% 
-    filter(COMMON.NAME %in% specieslist$COMMON.NAME)
+    filter(COMMON.NAME %in% specieslist$COMMON.NAME) # mostly needed for states
   
   vagrant_presence = read.csv(path_vagrants) %>% 
     # for spatial join later
@@ -1709,13 +1702,13 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
     # 1. filter "to plot" data for valid grids in current state
     occ_final <- occ_final %>% filter(gridg1 %in% cur_g1_filt)
     
+    
     # 2. spatial filter for vagrant data
     vagrant_filt <- vagrant_presence %>% 
       st_as_sf(coords = c("LONGITUDE", "LATITUDE")) %>% 
       st_set_crs(st_crs(states_sf))
 
-    vagrant_filt <- vagrant_filt[unlist(st_intersects(states_sf %>% filter(STATE.NAME == cur_mask), 
-                                                      vagrant_filt)),] %>% 
+    vagrant_filt <- vagrant_filt[unlist(st_intersects(cur_state_sf, vagrant_filt)),] %>% 
       st_drop_geometry() %>% 
       distinct(ID)
     
@@ -1725,6 +1718,7 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
     
     rm(vagrant_filt)
 
+    
     # 3. remove false presences (edge cases: reported from same cell but point is outside current state)
     occ_final <- occ_final %>% rangemap_rm_falsepres(cur_mask, specieslist)
     
@@ -1746,6 +1740,7 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
     rm(correct_specnames)
     
   }
+  
   
   # plot/theme settings -----------------------------------------------------
   
@@ -1775,10 +1770,24 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
   
   # creating the plot base ------------------------------------------
 
-  plot_base <- ggplot() +
-    geom_raster(data = map_dem , aes(x = x, y = y, fill = codes), 
-                alpha = 0.3) +
-    scale_fill_grey(na.value = "transparent", guide = "none") +
+  if (cur_metadata$MASK.TYPE == "country") {
+    
+    plot_base <- ggplot() +
+      geom_raster(data = map_dem_in, aes(x = x, y = y, fill = codes), 
+                  alpha = 0.3) +
+      scale_fill_grey(na.value = "transparent", guide = "none")
+    
+  } else if (cur_metadata$MASK.TYPE == "state") {
+    
+    # the DEM resolution is not high enough; becomes very pixelated for small states
+    # plus, doesn't give much insight. So, using uniform grey fill instead.
+    
+    plot_base <- ggplot() +
+      geom_sf(data = cur_state_sf, col = NA, fill = "grey80", alpha = 0.6)
+    
+  }
+  
+  plot_base <- plot_base +
     scale_x_continuous(expand = c(0,0)) +
     scale_y_continuous(expand = c(0,0))
 
@@ -1786,15 +1795,9 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
   # completing and writing the plot -----------------------------------------------------
   
   if (str_flatten_comma(which_spec) != "all") {
-    
     cur_spec <- which_spec
-
   } else {
-    
-    cur_spec <- specieslist %>% 
-      distinct(COMMON.NAME) %>% 
-      pull(COMMON.NAME)
-    
+    cur_spec <- specieslist %>% distinct(COMMON.NAME) %>% pull(COMMON.NAME)
   }
   
   # extra error catch step
@@ -1811,13 +1814,15 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
       
       # filtering data for species
       cur_data_occ = occ_final %>% 
-        left_join(palette_range_groups, by = c("status" = "LABEL.CODE")) %>% 
-        filter(COMMON.NAME == .x)
+        filter(COMMON.NAME == .x) %>% 
+        left_join(palette_range_groups, by = c("status" = "LABEL.CODE"))
       
       cur_data_vag = vagrant_presence %>% 
         filter(COMMON.NAME == .x) %>% 
         left_join(palette_range_groups, by = c("status" = "LABEL.CODE"))
       
+      # in some cases, one migratory status present in one of the two (occupied vs vagrant)
+      # we want legend to reflect all present
       all_statuses <- bind_rows(cur_data_occ, cur_data_vag) %>% 
         distinct(LABEL, COLOUR)
       
@@ -1833,9 +1838,6 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
       # joining plot base with other constant aesthetic features of graph
       cur_plot <- plot_base +
         new_scale_fill() +
-        # geom_sf(data = cur_data_occ %>% right_join(cur_g1_sf, by = c("gridg1" = "GRID.G1")), 
-        #         aes(alpha = occupancy, geometry = GEOM.G1, fill = COLOUR), 
-        #         col = NA, key_glyph = draw_key_occupancy) +
         geom_rangemap_occ(cur_g1_sf, cur_data_occ, admin_sf, cur_data_vag) +
         # using identity scale since we have specified the column of hexcodes in aes of geom
         scale_alpha_identity() +

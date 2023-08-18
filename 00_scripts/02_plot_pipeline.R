@@ -38,5 +38,5 @@ sysmon_metadata %>%
 # only for full country and states
 
 # soib_rangemap("Oriental Dwarf Kingfisher") # testing error check
-soib_rangemap("Black-backed Dwarf-Kingfisher")
+soib_rangemap("Bar-headed Goose", "Karnataka")
 soib_rangemap(c("Black-backed Dwarf-Kingfisher", "Black Eagle"))
