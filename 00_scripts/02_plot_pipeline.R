@@ -40,5 +40,5 @@ sysmon_metadata %>%
 # soib_rangemap("Oriental Dwarf Kingfisher") # testing error check
 # soib_rangemap("Hair-crested Drongo") # individual species
 
-gen_range_maps("country")
-gen_range_maps("state")
+gen_range_maps("country") # 38 min
+gen_range_maps("state") # 2.5 h

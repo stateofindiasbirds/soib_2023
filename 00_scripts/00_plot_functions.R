@@ -1638,6 +1638,8 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
   require(furrr)
   require(parallel)
   
+  sf_use_s2(FALSE) # not using spherical geometries
+  
   tic(glue("Finished creating range map [mask: {cur_mask}] for [species: {str_flatten_comma(which_spec)}]"))
   
   
