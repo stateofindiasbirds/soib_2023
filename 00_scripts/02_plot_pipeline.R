@@ -41,4 +41,4 @@ sysmon_metadata %>%
 # soib_rangemap("Hair-crested Drongo") # individual species
 
 gen_range_maps("country")
-gen_range_maps("state", "Karnataka")
+gen_range_maps("state")

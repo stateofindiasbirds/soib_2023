@@ -471,7 +471,7 @@ gen_range_maps <- function(mask_type = "country", which_mask = NULL, which_spec 
     
     if (!(!file.exists(path_toplot) | !file.exists(path_vagrants))) {
       
-      print(glue("[Mask: {which_mask}] Data required to plot range maps already exists. Skipping setup steps."))
+      print(glue("[Mask: {.x}] Data required to plot range maps already exists. Skipping setup steps."))
       
     } else {
       # load data -------------------------------------------------------------------------
