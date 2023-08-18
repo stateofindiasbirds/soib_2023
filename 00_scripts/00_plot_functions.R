@@ -121,10 +121,10 @@ rangemap_rm_falsepres <- function(data_occ, state, specieslist_for_state) {
   
   false_presence <- data_occ %>% 
     filter(occupancy == 1) %>% 
-    anti_join(true_presence) %>% 
+    anti_join(true_presence, by = c("COMMON.NAME", "gridg1")) %>% 
     distinct(COMMON.NAME, gridg1)
   
-  new_data_occ <- anti_join(data_occ, false_presence)
+  new_data_occ <- anti_join(data_occ, false_presence, by = c("COMMON.NAME", "gridg1"))
   
   return(new_data_occ)
   
@@ -190,11 +190,11 @@ draw_key_occupancy <- function(data, params, size) {
 
 # we have to manually add the four migratory types (since scale_fill already used for DEM basemap)
 
-geom_rangemap_occ <- function(data_grids, data_occ, data_admin, data_vag) {
+geom_rangemap_occ <- function(data_occ, data_admin, data_vag) {
   
   # colour block for proper occurrence
-  occ_block <- geom_sf(data = data_occ %>% right_join(data_grids, by = c("gridg1" = "GRID.G1")), 
-                       aes(alpha = occupancy, geometry = GEOM.G1, fill = fct_inorder(COLOUR)), 
+  occ_block <- geom_sf(data = data_occ, 
+                       aes(alpha = occupancy, fill = fct_inorder(COLOUR)), 
                        col = NA, key_glyph = draw_key_occupancy)
   
   # admin outlines (above occupancy grid fill)
@@ -1635,8 +1635,10 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
   require(ggnewscale) # to allow us to specify new scale_fill for filling occupancy grids
   require(grid) # for custom key_glyph (for  legend)
   require(rlang) # for custom key_glyph (for legend)
+  require(furrr)
+  require(parallel)
   
-  tic(glue("[Mask: {cur_mask}] Finished creating range map for [species: {str_flatten_comma(which_spec)}]"))
+  tic(glue("Finished creating range map [mask: {cur_mask}] for [species: {str_flatten_comma(which_spec)}]"))
   
   
   source("00_scripts/00_functions.R")
@@ -1670,7 +1672,7 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
     # for filtering data later
     cur_g1_filt <- cur_g1_sf %>% distinct(GRID.G1) %>% pull(GRID.G1)
   }
-
+  
   
   # input paths
   path_main <- cur_metadata$SOIBMAIN.PATH
@@ -1684,7 +1686,7 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
   # data
   
   load(path_speclists)
-
+  
   occ_final = read.csv(path_toplot) %>% 
     mutate(gridg1 = as.character(gridg1)) %>% 
     filter(COMMON.NAME %in% specieslist$COMMON.NAME) # mostly needed for states
@@ -1695,7 +1697,7 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
   
   main = read.csv(path_main)
   
-    
+  
   # for states, we want to filter this data appropriately
   if (cur_metadata$MASK.TYPE == "state") {
     
@@ -1707,7 +1709,7 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
     vagrant_filt <- vagrant_presence %>% 
       st_as_sf(coords = c("LONGITUDE", "LATITUDE")) %>% 
       st_set_crs(st_crs(states_sf))
-
+    
     vagrant_filt <- vagrant_filt[unlist(st_intersects(cur_state_sf, vagrant_filt)),] %>% 
       st_drop_geometry() %>% 
       distinct(ID)
@@ -1717,7 +1719,7 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
       mutate(ID = NULL)
     
     rm(vagrant_filt)
-
+    
     
     # 3. remove false presences (edge cases: reported from same cell but point is outside current state)
     occ_final <- occ_final %>% rangemap_rm_falsepres(cur_mask, specieslist)
@@ -1726,13 +1728,13 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
   
   
   # error check for species name
-  if (which_spec != "all") {
+  if (str_flatten_comma(which_spec) != "all") {
     
     correct_specnames <- specieslist %>% 
       distinct(COMMON.NAME) %>% 
       pull(COMMON.NAME)
     
-    if (!which_spec %in% correct_specnames) {
+    if (any(!which_spec %in% correct_specnames)) {
       return(c("Range map can only be plotted for valid species! (Check appropriate 'specieslist'.)",
                "Or, incorrect species name provided! Use the correct eBird taxonomy name."))
     }
@@ -1755,7 +1757,7 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
     LABEL.ALT = c("Year-round", "Summer", "Passage", "Winter")
   ) %>% 
     mutate(across(everything(), ~ fct_inorder(.)))
-
+  
   plot_fontfamily <- "Gandhi Sans"
   
   
@@ -1769,7 +1771,7 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
   list2env(obj_list, envir = .GlobalEnv)
   
   # creating the plot base ------------------------------------------
-
+  
   if (cur_metadata$MASK.TYPE == "country") {
     
     plot_base <- ggplot() +
@@ -1790,7 +1792,7 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
   plot_base <- plot_base +
     scale_x_continuous(expand = c(0,0)) +
     scale_y_continuous(expand = c(0,0))
-
+  
   
   # completing and writing the plot -----------------------------------------------------
   
@@ -1800,6 +1802,12 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
     cur_spec <- specieslist %>% distinct(COMMON.NAME) %>% pull(COMMON.NAME)
   }
   
+  # deciding whether to walk or future-walk (parallel) based on number of iterations required
+  # (name: https://onepiece.fandom.com/wiki/Haki/Kenbunshoku_Haki#Future_Vision)
+  # thresholds set based on testing done
+  min_tresh <- ifelse(cur_metadata$MASK.TYPE == "state", 25, 5)
+  advanced_kenbunshoku <- if (length(cur_spec) >= min_tresh) TRUE else FALSE
+  
   # extra error catch step
   if (any(!cur_spec %in% specieslist$COMMON.NAME)) {
     
@@ -1808,14 +1816,18 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
   } else {
     
     # walking creation of maps over all specified species
-    walk(cur_spec, ~ {
+    to_walk <- function(.x, haki = FALSE) {
       
-      tic("Walked over one species")
+      if (!haki) {
+        tic("Walked over one species")
+      }
       
       # filtering data for species
       cur_data_occ = occ_final %>% 
         filter(COMMON.NAME == .x) %>% 
-        left_join(palette_range_groups, by = c("status" = "LABEL.CODE"))
+        left_join(palette_range_groups, by = c("status" = "LABEL.CODE")) %>% 
+        right_join(cur_g1_sf, by = c("gridg1" = "GRID.G1")) %>% 
+        st_as_sf()
       
       cur_data_vag = vagrant_presence %>% 
         filter(COMMON.NAME == .x) %>% 
@@ -1823,13 +1835,13 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
       
       # in some cases, one migratory status present in one of the two (occupied vs vagrant)
       # we want legend to reflect all present
-      all_statuses <- bind_rows(cur_data_occ, cur_data_vag) %>% 
+      all_statuses <- bind_rows(st_drop_geometry(cur_data_occ), cur_data_vag) %>% 
         distinct(LABEL, COLOUR)
       
       # output paths (only website folder, to save time)
       web_spec <- .x %>% 
         # convert to India Checklist names 
-        specname_to_india_checklist() %>% 
+        specname_to_india_checklist(already_show = FALSE) %>% 
         str_replace_all(c(" " = "-", "'" = "_"))
       
       path_map_web <- glue("{cur_metadata$WEB.MAP.FOLDER}{web_spec}_{cur_metadata$MASK.CODE}_rangemap.jpg")
@@ -1838,7 +1850,7 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
       # joining plot base with other constant aesthetic features of graph
       cur_plot <- plot_base +
         new_scale_fill() +
-        geom_rangemap_occ(cur_g1_sf, cur_data_occ, admin_sf, cur_data_vag) +
+        geom_rangemap_occ(cur_data_occ, admin_sf, cur_data_vag) +
         # using identity scale since we have specified the column of hexcodes in aes of geom
         scale_alpha_identity() +
         scale_fill_identity(guide = guide_legend(title = NULL),
@@ -1854,12 +1866,37 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
              dpi = 1000, bg = "white",
              width = 7, height = 7, units = "in")
       
+      if (!haki) {
+        toc()
+      }
+      
+    }
+    
+    # deciding whether to walk or future-walk (parallel) based on number of iterations required
+    if (advanced_kenbunshoku) {
+      
+      print(glue("Activated future-walking using advanced Kenbunshoku Haki!"))
+      
+      tic(glue("Future-walked over {length(cur_spec)} species"))
+
+      # start multiworker parallel session
+      plan(multisession, workers = parallel::detectCores()/2)
+      
+      future_walk(cur_spec, .progress = TRUE, ~ to_walk(.x, advanced_kenbunshoku))
+      
+      # end multiworker parallel session
+      plan(sequential)
+      
       toc()
       
-    })
-    
+    } else {
+      
+      walk(cur_spec, ~ to_walk(.x))
+      
+    }
+      
   }
-
+  
   
   # removing objects from global environment ------------------------------------------
   
@@ -1868,4 +1905,3 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
   toc()
   
 }
-

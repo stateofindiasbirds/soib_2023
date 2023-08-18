@@ -1562,16 +1562,20 @@ scale_trends_to_bands <- function(data) {
 
 # convert eBird name to India Checklist name ----------------------------------------
 
-specname_to_india_checklist <- function(spec_names) {
+specname_to_india_checklist <- function(spec_names, already_show = TRUE) {
   
   names_map <- read.csv("00_data/SoIB_mapping_2022.csv") %>% 
     distinct(eBird.English.Name.2022, India.Checklist.Common.Name)
   
   df_names <- data.frame(OLD = spec_names)
   
-  # quit if already India Checklist name
+  # quit if already India Checklist name (and print if we want to see the message)
   if (all(df_names$OLD %in% names_map$India.Checklist.Common.Name)) {
-    print("Species name(s) already align with India Checklist.")
+    
+    if (already_show == TRUE){
+      print("Species name(s) already align with India Checklist.")
+    }
+    
     return(spec_names)
   }
   
