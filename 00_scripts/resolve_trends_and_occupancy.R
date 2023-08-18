@@ -64,11 +64,11 @@ if (!cur_metadata$MASK.TYPE %in% c("country", "state")) {
 
 ###
 
-# don't run if no species selected
+# don't run resolve_species_trends if no species selected
 to_run <- (1 %in% specieslist$ht) | (1 %in% specieslist$rt) |
   (1 %in% restrictedspecieslist$ht) | (1 %in% restrictedspecieslist$rt)
 
-if (to_run == TRUE) {
+if (to_run == FALSE) {
   
   # list of columns that need to be created since we have skipped steps
   na_columns <- c("longtermlci", "longtermmean", "longtermrci",     
