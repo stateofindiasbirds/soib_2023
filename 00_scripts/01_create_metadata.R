@@ -63,7 +63,11 @@ analyses_metadata <- data.frame(MASK = c("none",
          PLOT.SINGLE.FOLDER = glue("02_graphs/01_single/{MASK.ORDERED}/"),
          PLOT.MULTI.FOLDER = "02_graphs/02_multispecies/",
          PLOT.COMPOSITE.FOLDER = "02_graphs/03_composite/") %>% 
-  mutate(MAP.FOLDER = "02_graphs/10_rangemaps/",
+  mutate(MAP.FOLDER = case_when(
+    # range maps only produced for full country and states, so we don't want folder for masks
+    MASK.TYPE %in% c("country", "state") ~ glue("02_graphs/10_rangemaps/{MASK.ORDERED}/"),
+    TRUE ~ NA_character_
+  ), 
          WEB.MAP.FOLDER = "20_website/maps/",
          # for states, we take full-country and just filter appropriately
          MAP.DATA.OCC.PATH = glue("01_analyses_full/data_rangemap_toplot.csv"),
@@ -103,7 +107,10 @@ walk2(analyses_metadata$PLOT.MULTI.FOLDER, analyses_metadata$PLOT.COMPOSITE.FOLD
 
 walk2(analyses_metadata$MAP.FOLDER, analyses_metadata$WEB.MAP.FOLDER, ~ {
   
-  if (!dir.exists(.x)) {dir.create(.x, recursive = TRUE)}
+  # value is NA for hab/CA masks, so don't try to dir.___()
+  if (!is.na(.x)) {
+    if (!dir.exists(.x)) {dir.create(.x, recursive = TRUE)}
+  }
   
   if (!dir.exists(.y)) {dir.create(.y, recursive = TRUE)}
   

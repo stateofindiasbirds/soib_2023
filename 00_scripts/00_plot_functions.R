@@ -1838,12 +1838,17 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
       all_statuses <- bind_rows(st_drop_geometry(cur_data_occ), cur_data_vag) %>% 
         distinct(LABEL, COLOUR)
       
-      # output paths (only website folder, to save time)
-      web_spec <- .x %>% 
-        # convert to India Checklist names 
-        specname_to_india_checklist(already_show = FALSE) %>% 
-        str_replace_all(c(" " = "-", "'" = "_"))
       
+      # output paths (one structured into subfolders, one without structure for website)
+      
+      # convert to India Checklist names 
+      converted_spec <- specname_to_india_checklist(.x, already_show = FALSE)
+        
+      # for structured
+      path_map <- glue("{cur_metadata$MAP.FOLDER}{converted_spec}.png")
+      
+      # for website
+      web_spec <- str_replace_all(converted_spec, c(" " = "-", "'" = "_"))
       path_map_web <- glue("{cur_metadata$WEB.MAP.FOLDER}{web_spec}_{cur_metadata$MASK.CODE}_rangemap.jpg")
       
       
@@ -1862,6 +1867,10 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
       
       
       # writing maps
+      ggsave(filename = path_map, plot = cur_plot,
+             dpi = 1000, bg = "white",
+             width = 7, height = 7, units = "in")
+      
       ggsave(filename = path_map_web, plot = cur_plot,
              dpi = 1000, bg = "white",
              width = 7, height = 7, units = "in")
