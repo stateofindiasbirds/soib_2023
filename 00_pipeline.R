@@ -327,7 +327,8 @@ toc()
 
 # states
 tic.clearlog()
-tic("Ran species occupancy for all states")
+tic("Ran species occupancy for all states") # 5 h 25 min
+# Karnataka took ~13 min
 
 analyses_metadata %>% 
   filter(MASK.TYPE == "state") %>% 

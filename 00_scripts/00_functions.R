@@ -645,6 +645,18 @@ dataspeciesfilter = function(cur_mask = "none") {
     rm(specieslist, restrictedspecieslist)
   }
   
+  # to limit number of species in restricted species list for states
+  specieslist_rest = dataf %>%
+    filter(., 
+             (Essential == 1 | Endemic.Region != "None" | ht == 1 | rt == 1), 
+             (Breeding.Activity.Period != "Nocturnal" | 
+                Non.Breeding.Activity.Period != "Nocturnal" | 
+                COMMON.NAME == "Jerdon's Courser"),
+             (is.na(Discard))
+      ) %>%
+    # filter out species not recorded from current mask
+    filter(COMMON.NAME %in% cur_mask_spec) %>% 
+    dplyr::select(COMMON.NAME, ht, rt)
   
   specieslist = dataf %>%
     # for states, we want to include any species reported from the state & with trend for country
@@ -658,7 +670,7 @@ dataspeciesfilter = function(cur_mask = "none") {
       )
     } else {
       filter(.,
-             (COMMON.NAME %in% specieslist_nat | ht == 1 | rt == 1), 
+             (COMMON.NAME %in% specieslist_nat$COMMON.NAME | ht == 1 | rt == 1), 
              (Breeding.Activity.Period != "Nocturnal" | 
                 Non.Breeding.Activity.Period != "Nocturnal" | 
                 COMMON.NAME == "Jerdon's Courser"), 
@@ -688,7 +700,11 @@ dataspeciesfilter = function(cur_mask = "none") {
   
   # <annotation_pending_AV> 
   # why left_joining (then removing misIDd specs) separately again? 
-  restrictedspecieslist = data.frame(species = specieslist$COMMON.NAME) %>% 
+  restrictedspecieslist = {if (cur_metadata$MASK.TYPE != "state") {
+    data.frame(species = specieslist$COMMON.NAME)
+  } else {
+    data.frame(species = specieslist_rest$COMMON.NAME)
+  }} %>% 
     left_join(speciesresth) %>% 
     left_join(speciesrestr) %>%
     # valid for at least 1 of 2 analyses
