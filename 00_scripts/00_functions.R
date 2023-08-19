@@ -1388,7 +1388,7 @@ ltt_sens_sim <- function(my_seed, data = modtrends) {
     group_by(COMMON.NAME, timegroups) %>% 
     reframe(lci_std = 100*as.numeric(quantile(tp0, 0.025)),
             rci_std = 100*as.numeric(quantile(tp0, 0.975))) %>% 
-    right_join(modtrends, by = c("COMMON.NAME", "timegroups")) %>%
+    right_join(data, by = c("COMMON.NAME", "timegroups")) %>%
     filter(timegroups == 2022) %>%
     dplyr::select(COMMON.NAME, lci_std, mean_std, rci_std) %>%
     rename(longtermlci = lci_std,
