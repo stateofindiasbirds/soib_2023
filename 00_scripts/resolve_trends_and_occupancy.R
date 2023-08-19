@@ -907,6 +907,13 @@ if (skip_res_occu == TRUE) {
     
     l = length(cur_occu_summary$status)
     
+    # occu_full may sometimes include an isolated grid cell where occupancy of a species
+    # has been modelled, but where there are no eBird reports in either that cell or 
+    # any of its neighbours. This happens because of edge cases in states, where 
+    # one edge cell would have presence == 1 in the full country, but when looking at states, 
+    # the part of the cell in that state would have presence == 0.
+    if (l == 0) next
+    
     for (j in 1:l)
     {
       if (cur_occu_summary$status[j] %in% c("MP") & 
