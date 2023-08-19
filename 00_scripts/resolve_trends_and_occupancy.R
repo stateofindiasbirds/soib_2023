@@ -83,8 +83,7 @@ if (run_res_trends == FALSE) {
                   "proj2026.lci", "proj2026.mean", "proj2026.rci",    
                   "proj2027.lci", "proj2027.mean", "proj2027.rci",    
                   "proj2028.lci", "proj2028.mean", "proj2028.rci",    
-                  "proj2029.lci", "proj2029.mean", "proj2029.rci",    
-                  "rangelci", "rangemean", "rangerci")
+                  "proj2029.lci", "proj2029.mean", "proj2029.rci")
   
   base = read.csv(base_path) %>% dplyr::select(-SCIENTIFIC.NAME)
   
