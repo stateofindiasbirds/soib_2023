@@ -73,8 +73,8 @@ web_db <- web_db %>%
          # converting species name to enter in URLs
          URL_species = str_replace_all(India.Checklist.Common.Name, 
                                        c(" " = "-", "'" = "_")), 
-         URL_suf_rangemap = "_rangemap.png",
-         URL_suf_trend = "_trend.png") %>% 
+         URL_suf_rangemap = "_rangemap.jpg",
+         URL_suf_trend = "_trend.jpg") %>% 
   # some long strings
   mutate(featured_image = glue("{URL_pre_uploads}{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
          map_filename = glue("{URL_pre_uploads}{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
