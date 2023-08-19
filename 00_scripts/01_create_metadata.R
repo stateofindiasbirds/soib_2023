@@ -83,6 +83,10 @@ walk2(analyses_metadata$FOLDER, analyses_metadata$RESULTS, ~ {
   
 })
 
+walk(analyses_metadata$OCCU.OUTPATH, ~ {
+  if (!dir.exists(.x)) {dir.create(.x, recursive = TRUE)}
+})
+
 walk2(analyses_metadata$WEB.PLOTS.FOLDER, analyses_metadata$PLOT.SINGLE.FOLDER, ~ {
   
   if (!dir.exists(.x)) {dir.create(.x, recursive = TRUE)}
