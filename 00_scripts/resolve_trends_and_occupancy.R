@@ -846,7 +846,10 @@ if (skip_res_occu == TRUE) {
   # in state, filtering for relevant grids
   if (cur_metadata$MASK.TYPE == "state") {
     occu_model <- occu_model %>% 
-      filter(gridg1 %in% cur_grid_filt$gridg1)
+      filter(gridg1 %in% cur_grid_filt$gridg1,
+             # we don't want species that have been reported from the state but aren't 
+             # selected for the state
+             COMMON.NAME %in% specieslist$COMMON.NAME)
   }
   
   # occupancy-presence files
