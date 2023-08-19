@@ -63,7 +63,10 @@ web_db <- web_db0 %>%
   str_c_CI(., longtermlci, longtermrci, new_name = "long-term_trend_ci") %>% 
   str_c_CI(., currentslopelci, currentsloperci, new_name = "current_annual_change_ci") %>% 
   str_c_CI(., rangelci, rangerci, new_name = "distribution_range_size_ci_units_of_10000_sqkm") %>% 
-  join_mask_codes()
+  join_mask_codes() %>% 
+  # change "PAs" for website
+  mutate(MASK.LABEL = case_when(MASK.LABEL == "PAs" ~ "Protected Areas",
+                                TRUE ~ MASK.LABEL))
 
 
 # creation of fields within species (diff. masks) -----------------------------------
