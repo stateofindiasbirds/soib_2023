@@ -324,15 +324,19 @@ if (run_res_trends == TRUE) {
       eBird.English.Name.2022 %in% spec_ind7 ~ "Increase",
       TRUE ~ SOIBv2.Current.Status
       
-    )) %>%
-    mutate(across(c(SOIBv2.Long.Term.Status, SOIBv2.Current.Status, SOIB.Range.Status),
-                  ~ if_else(Selected.SOIB != "X", NA_character_, .)))
+    ))
   
 } else {
   
   print(glue("Skipping sensitivity-check-based adjustments to Status for {cur_mask}"))
   
 }
+
+# classification: converting all non-selected to NA -----------------------
+
+main <- main %>%
+  mutate(across(c(SOIBv2.Long.Term.Status, SOIBv2.Current.Status, SOIB.Range.Status),
+                ~ if_else(Selected.SOIB != "X", NA_character_, .)))
 
 # classification: assign SoIB Priority status (based on trends and occupancy) -----
 
