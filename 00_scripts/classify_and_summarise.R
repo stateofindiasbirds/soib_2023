@@ -44,7 +44,12 @@ source('00_scripts/00_functions.R')
 priorityrules = read.csv("00_data/priorityclassificationrules.csv") 
 load("00_data/vagrantdata.RData")
 
-main = read.csv(mainwocats_path)
+main = read.csv(mainwocats_path) %>%
+  # if full column has no X at all, gets read as NAs
+  mutate(across(c(Long.Term.Analysis, Current.Analysis, Selected.SOIB),
+                ~ as.character(.))) %>%
+  mutate(across(c(Long.Term.Analysis, Current.Analysis, Selected.SOIB),
+                ~ replace_na(., "")))
 
 # resolving occupancy for some masks --------------------------------------
 

@@ -85,7 +85,13 @@ if (run_res_trends == FALSE) {
                   "proj2028.lci", "proj2028.mean", "proj2028.rci",    
                   "proj2029.lci", "proj2029.mean", "proj2029.rci")
   
-  base = read.csv(base_path) %>% dplyr::select(-SCIENTIFIC.NAME)
+  base = read.csv(base_path) %>% 
+    # if full column has no X at all, gets read as NAs
+    mutate(across(c(Long.Term.Analysis, Current.Analysis, Selected.SOIB),
+                  ~ as.character(.))) %>%
+    mutate(across(c(Long.Term.Analysis, Current.Analysis, Selected.SOIB),
+                  ~ replace_na(., ""))) %>%
+    dplyr::select(-SCIENTIFIC.NAME)
   
   main = read.csv("00_data/SoIB_mapping_2022.csv") %>% 
     left_join(base, by = c("eBird.English.Name.2022" = "COMMON.NAME"))
@@ -100,7 +106,13 @@ if (run_res_trends == FALSE) {
   
   # data processing and prep ------------------------------------------------
   
-  base = read.csv(base_path) %>% dplyr::select(-SCIENTIFIC.NAME)
+  base = read.csv(base_path) %>% 
+    # if full column has no X at all, gets read as NAs
+    mutate(across(c(Long.Term.Analysis, Current.Analysis, Selected.SOIB),
+                  ~ as.character(.))) %>%
+    mutate(across(c(Long.Term.Analysis, Current.Analysis, Selected.SOIB),
+                  ~ replace_na(., ""))) %>%
+    dplyr::select(-SCIENTIFIC.NAME)
   
   main = read.csv("00_data/SoIB_mapping_2022.csv") %>% 
     left_join(base, by = c("eBird.English.Name.2022" = "COMMON.NAME"))
