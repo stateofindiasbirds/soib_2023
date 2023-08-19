@@ -123,12 +123,10 @@ if (to_run == FALSE) {
   
   spec_lt <- main %>% 
     filter(Long.Term.Analysis == "X") %>% 
-    dplyr::select(eBird.English.Name.2022) %>% 
-    as.vector() %>% list_c()
+    pull(eBird.English.Name.2022)
   spec_ct <- main %>% 
     filter(Current.Analysis == "X") %>% 
-    dplyr::select(eBird.English.Name.2022) %>% 
-    as.vector() %>% list_c()
+    pull(eBird.English.Name.2022)
   
   # long-term (problematic species) ###
   
@@ -152,13 +150,11 @@ if (to_run == FALSE) {
     
     specs_lt_remove <- tab_lt_rem %>% 
       filter(count >= round(totsims/2)) %>% 
-      dplyr::select(COMMON.NAME) %>% 
-      as.vector() %>% list_c()
+      pull(COMMON.NAME)
     
     specs_lt_remove_part = tab_lt_rem %>% 
       filter(count < round(totsims/2)) %>% 
-      dplyr::select(COMMON.NAME) %>% 
-      as.vector() %>% list_c()
+      pull(COMMON.NAME)
     
     
     trends = trends %>%
@@ -207,13 +203,11 @@ if (to_run == FALSE) {
     
     specs_ct_remove <- tab_ct_rem %>% 
       filter(count >= round(totsims/2)) %>% 
-      dplyr::select(COMMON.NAME) %>% 
-      as.vector() %>% list_c()
+      pull(COMMON.NAME)
     
     specs_ct_remove_part = tab_ct_rem %>% 
       filter(count < round(totsims/2)) %>% 
-      dplyr::select(COMMON.NAME) %>% 
-      as.vector() %>% list_c()
+      pull(COMMON.NAME)
     
     
     trends = trends %>%
@@ -253,16 +247,14 @@ if (to_run == FALSE) {
       filter(!is.na(mean5km) & mean5km < 8 &
                (Long.Term.Analysis == "X" | Current.Analysis == "X") &
                is.na(Restricted.Islands)) %>% 
-      dplyr::select(eBird.English.Name.2022) %>% 
-      as.vector() %>% list_c()
-    
+      pull(eBird.English.Name.2022)
+
     specsc2 = main %>%
       # <annotation_pending_AV> rationale for 0.25 (even if arbitrary, what does it mean?)
       filter(!is.na(ci5km) & (main$ci5km/main$mean5km) > 0.25 &
                (Long.Term.Analysis == "X" | Current.Analysis == "X") &
                is.na(Restricted.Islands)) %>% 
-      dplyr::select(eBird.English.Name.2022) %>% 
-      as.vector() %>% list_c()
+      pull(eBird.English.Name.2022)
     
     specsc = union(specsc1, specsc2)
     
@@ -287,8 +279,7 @@ if (to_run == FALSE) {
     filter(!is.na(proprange25km.current) & 
              (proprange25km.current/proprange25km2022) < 0.6 &
              (Current.Analysis == "X")) %>% 
-    dplyr::select(eBird.English.Name.2022) %>% 
-    as.vector() %>% list_c()
+    pull(eBird.English.Name.2022)
   
   # <annotation_pending_AV> should these lines be referencing specsd3?
   trends = trends %>%
@@ -307,13 +298,11 @@ if (to_run == FALSE) {
   # rewriting selected species for LTT and CAT
   spec_lt = main %>% 
     filter(Long.Term.Analysis == "X") %>% 
-    dplyr::select(eBird.English.Name.2022) %>% 
-    as.vector() %>% list_c()
+    pull(eBird.English.Name.2022)
   
   spec_ct = main %>% 
     filter(Current.Analysis == "X") %>% 
-    dplyr::select(eBird.English.Name.2022) %>% 
-    as.vector() %>% list_c()
+    pull(eBird.English.Name.2022)
   
   
   # checkpoint-object "main"
