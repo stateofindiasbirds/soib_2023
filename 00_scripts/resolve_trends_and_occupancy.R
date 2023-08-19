@@ -65,10 +65,12 @@ if (!cur_metadata$MASK.TYPE %in% c("country", "state")) {
 ###
 
 # don't run resolve_species_trends if no species selected
-to_run <- (1 %in% specieslist$ht) | (1 %in% specieslist$rt) |
-  (1 %in% restrictedspecieslist$ht) | (1 %in% restrictedspecieslist$rt)
+run_res_trends <- ((1 %in% specieslist$ht) | (1 %in% specieslist$rt) |
+                     (1 %in% restrictedspecieslist$ht) | (1 %in% restrictedspecieslist$rt)) &
+  # edge cases (Tripura, Nagaland, Puducherry) where species selected, but trends could not be generated
+  (length(list.files(trends_pathonly)) != 0)
 
-if (to_run == FALSE) {
+if (run_res_trends == FALSE) {
   
   # list of columns that need to be created since we have skipped steps
   na_columns <- c("longtermlci", "longtermmean", "longtermrci",     
@@ -1064,7 +1066,7 @@ if (cur_metadata$MASK.TYPE == "state") {
 # classification: adjust SoIB Status based on sensitivity for trends ----------------
 
 # sensitivity check for long-term trends ###
-if (to_run == TRUE) {
+if (run_res_trends == TRUE) {
   
   modtrends1 = ltt_sens_class(modtrends1)
   modtrends2 = ltt_sens_class(modtrends2)
