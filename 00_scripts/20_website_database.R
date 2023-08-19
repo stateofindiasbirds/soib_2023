@@ -87,8 +87,8 @@ web_db <- web_db %>%
          map_filename_originals = glue("{URL_pre_uploads}originals/{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
          graph_filename = glue("{URL_pre_uploads}trends/{URL_species}_{MASK.CODE}{URL_suf_trend}"),
          graph_filename_originals = glue("{URL_pre_uploads}originals/trends/{URL_species}_{MASK.CODE}{URL_suf_trend}")) %>% 
-  mutate(full_url_2 = case_when(MASK.TYPE == "national" ~ glue("{custom_url}"),
-                                  TRUE ~ glue("{MASK.CODE}-{custom_url}")),
+  mutate(post_name = case_when(MASK.TYPE == "national" ~ glue("{custom_url}"),
+                               TRUE ~ glue("{MASK.CODE}-{custom_url}")),
          post_category = MASK.LABEL,
          post_content = MASK.LABEL,
          all_trends = MASK.LABEL,
@@ -105,7 +105,7 @@ web_db <- web_db %>%
               names_glue = "{MASK.TYPE}_{.value}") %>% 
   ungroup() %>% 
   left_join(web_db) %>% 
-  mutate(post_name = if_else(MASK.TYPE == "national", national_trends_addn, full_url_2))
+  mutate(full_url_2 = if_else(MASK.TYPE == "national", national_trends_addn, post_name))
 
 # national trend values as separate columns
 web_db <- web_db %>% 
