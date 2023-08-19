@@ -16,6 +16,7 @@ keystates <- read.csv("01_analyses_full/results/key_state_species_full.csv") %>%
 web_db0 <- map2(analyses_metadata$SOIBMAIN.PATH, analyses_metadata$MASK, 
               ~ read_fn(.x) %>% bind_cols(tibble(MASK = .y))) %>% 
   list_rbind() %>% 
+  mutate(India.Checklist.Common.Name = fct_inorder(India.Checklist.Common.Name)) %>% 
   # filtering for SoIB species
   filter(Selected.SOIB == "X") %>%
   dplyr::select(-c("eBird.English.Name.2022", "eBird.Scientific.Name.2022", "Order", "Family",
@@ -37,6 +38,8 @@ web_db0 <- map2(analyses_metadata$SOIBMAIN.PATH, analyses_metadata$MASK,
          comment_status = "closed", ping_status = "closed",
          post_parent = 0, menu_order = 0)
 
+# taxonomic order to arrange species
+tax_order <- levels(web_db0$India.Checklist.Common.Name)
 
 # creation of fields ----------------------------------------------------------------
 
@@ -140,6 +143,10 @@ web_db <- web_db %>%
                 national_trends_addn, habitat_trends_addn, state_trends_addn, full_url_2, 
                 habitats, conservation_areas, conservation_area_trends_addn, key_states, all_trends, post_category) %>% 
   # converting all NAs to blanks
-  mutate(across(everything(), ~ ifelse(is.na(.), "", .)))
+  mutate(across(everything(), ~ ifelse(is.na(.), "", .))) %>% 
+  # sort taxonomically
+  mutate(post_title = factor(post_title, levels = tax_order)) %>% 
+  arrange(post_title)
+  
 
 write_csv(web_db, file = "20_website/website_database.csv")
