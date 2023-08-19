@@ -1397,72 +1397,6 @@ status_priority <- main %>%
   magrittr::set_colnames(c("Priority Status", "No. of species"))
 
 
-# comparing two SoIBs
-SoIB1_SoIB2 = main %>%
-  filter(!is.na(SOIB.Concern.Status) & SOIB.Concern.Status != "") %>%
-  group_by(SOIB.Concern.Status) %>% 
-  mutate(n = n()) %>%
-  group_by(SOIB.Concern.Status, SOIBv2.Priority.Status) %>%
-  reframe(NO.SPEC = n(),
-          PERC.SPEC = round(100 * (NO.SPEC / max(n)), 1)) %>%
-  magrittr::set_colnames(c("SOIB Concern Status", "SOIBv2 Priority Status", 
-                           "Species (no.)", "Species (perc.)")) 
-
-SoIB2_SoIB1 = main %>%
-  filter(!is.na(SOIBv2.Priority.Status) & SOIBv2.Priority.Status != "") %>%
-  group_by(SOIBv2.Priority.Status) %>% 
-  mutate(n = n()) %>%
-  group_by(SOIBv2.Priority.Status, SOIB.Concern.Status) %>%
-  reframe(NO.SPEC = n(),
-          PERC.SPEC = round(100 * (NO.SPEC / max(n)), 1)) %>%
-  magrittr::set_colnames(c("SOIBv2 Priority Status", "SOIB Concern Status", 
-                           "Species (no.)", "Species (perc.)")) 
-
-
-# cross-tab of SoIB and IUCN assessments
-SoIB_vs_IUCN_0 <- main %>% 
-  filter(Selected.SOIB == "X") %>% 
-  mutate(SOIBv2.Priority.Status = factor(SOIBv2.Priority.Status, 
-                                         levels = c("High", "Moderate", "Low")),
-         IUCN.Category = factor(IUCN.Category, levels = c(
-           "Critically Endangered", "Endangered", "Vulnerable", "Near Threatened", 
-           "Least Concern", "Not Recognised"
-         ))) %>% 
-  group_by(SOIBv2.Priority.Status, IUCN.Category) %>% 
-  tally() %>% 
-  pivot_wider(names_from = SOIBv2.Priority.Status, values_from = n) %>% 
-  replace(is.na(.), 0) %>% 
-  magrittr::set_colnames(c(" ", "High", "Moderate", "Low")) 
-
-temp <- SoIB_vs_IUCN_0 %>% 
-  reframe(across(c("High", "Moderate", "Low"), sum)) %>% 
-  mutate(new = "Sum") %>% 
-  relocate(new, High, Moderate, Low) %>% 
-  magrittr::set_colnames(c(" ", "High", "Moderate", "Low"))
-
-SoIB_vs_IUCN <- SoIB_vs_IUCN_0 %>% 
-  bind_rows(temp) %>% 
-  mutate(Sum = High + Low + Moderate)
-
-SoIB_vs_IUCN_percIUCN = SoIB_vs_IUCN_0 %>% 
-  mutate(Sum = High + Low + Moderate) %>%
-  mutate(across(c("High", "Moderate", "Low"), 
-                ~ round(100 * (. / Sum), 1))) %>% 
-  mutate(Sum = NULL)
-
-SoIB_vs_IUCN_percSoIB = SoIB_vs_IUCN_0 %>% 
-  column_to_rownames(" ") %>% 
-  t() %>% 
-  as.data.frame() %>% 
-  rownames_to_column("SoIB") %>% 
-  rowwise() %>% 
-  mutate(Sum = sum(c_across(c(everything(), - SoIB)))) %>%
-  mutate(across(c(everything(), - SoIB), 
-                ~ round(100 * (. / Sum), 1))) %>% 
-  mutate(Sum = NULL) %>% 
-  rename(` ` = SoIB)
-
-
 # break-up of how SoIB 2023 High Priority species which were not High in 2020 were attained
 high_priority_breakup_new = main %>%
   filter(SOIBv2.Priority.Status == "High",
@@ -1518,6 +1452,75 @@ high_priority_breakup = main %>%
   mutate(Perc = round(100 * (n / sum(n)), 1)) %>% 
   magrittr::set_colnames(c("Break-up", "High Species (no.)", "High Species (perc.)")) %>% 
   left_join(high_priority_breakup_new)
+
+
+
+if (cur_metadata$MASK.TYPE == "country") {
+  
+  # comparing two SoIBs
+  SoIB1_SoIB2 = main %>%
+    filter(!is.na(SOIB.Concern.Status) & SOIB.Concern.Status != "") %>%
+    group_by(SOIB.Concern.Status) %>% 
+    mutate(n = n()) %>%
+    group_by(SOIB.Concern.Status, SOIBv2.Priority.Status) %>%
+    reframe(NO.SPEC = n(),
+            PERC.SPEC = round(100 * (NO.SPEC / max(n)), 1)) %>%
+    magrittr::set_colnames(c("SOIB Concern Status", "SOIBv2 Priority Status", 
+                             "Species (no.)", "Species (perc.)")) 
+  
+  SoIB2_SoIB1 = main %>%
+    filter(!is.na(SOIBv2.Priority.Status) & SOIBv2.Priority.Status != "") %>%
+    group_by(SOIBv2.Priority.Status) %>% 
+    mutate(n = n()) %>%
+    group_by(SOIBv2.Priority.Status, SOIB.Concern.Status) %>%
+    reframe(NO.SPEC = n(),
+            PERC.SPEC = round(100 * (NO.SPEC / max(n)), 1)) %>%
+    magrittr::set_colnames(c("SOIBv2 Priority Status", "SOIB Concern Status", 
+                             "Species (no.)", "Species (perc.)")) 
+  
+  
+  # cross-tab of SoIB and IUCN assessments
+  SoIB_vs_IUCN_0 <- main %>% 
+    filter(Selected.SOIB == "X") %>% 
+    mutate(SOIBv2.Priority.Status = factor(SOIBv2.Priority.Status, 
+                                           levels = c("High", "Moderate", "Low")),
+           IUCN.Category = factor(IUCN.Category, levels = c(
+             "Critically Endangered", "Endangered", "Vulnerable", "Near Threatened", 
+             "Least Concern", "Not Recognised"
+           ))) %>% 
+    group_by(SOIBv2.Priority.Status, IUCN.Category) %>% 
+    tally() %>% 
+    pivot_wider(names_from = SOIBv2.Priority.Status, values_from = n) %>% 
+    replace(is.na(.), 0) %>% 
+    magrittr::set_colnames(c(" ", "High", "Moderate", "Low")) 
+  
+  temp <- SoIB_vs_IUCN_0 %>% 
+    reframe(across(c("High", "Moderate", "Low"), sum)) %>% 
+    mutate(new = "Sum") %>% 
+    relocate(new, High, Moderate, Low) %>% 
+    magrittr::set_colnames(c(" ", "High", "Moderate", "Low"))
+  
+  SoIB_vs_IUCN <- SoIB_vs_IUCN_0 %>% 
+    bind_rows(temp) %>% 
+    mutate(Sum = High + Low + Moderate)
+  
+  SoIB_vs_IUCN_percIUCN = SoIB_vs_IUCN_0 %>% 
+    mutate(Sum = High + Low + Moderate) %>%
+    mutate(across(c("High", "Moderate", "Low"), 
+                  ~ round(100 * (. / Sum), 1))) %>% 
+    mutate(Sum = NULL)
+  
+  SoIB_vs_IUCN_percSoIB = SoIB_vs_IUCN_0 %>% 
+    column_to_rownames(" ") %>% 
+    t() %>% 
+    as.data.frame() %>% 
+    rownames_to_column("SoIB") %>% 
+    rowwise() %>% 
+    mutate(Sum = sum(c_across(c(everything(), - SoIB)))) %>%
+    mutate(across(c(everything(), - SoIB), 
+                  ~ round(100 * (. / Sum), 1))) %>% 
+    mutate(Sum = NULL) %>% 
+    rename(` ` = SoIB)
 
 
 # reasons for uplisting or downlisting
@@ -1657,18 +1660,28 @@ reason.downlist.high = main %>%
   complete(Breakup, fill = list(n = 0, Perc = 0)) %>% 
   magrittr::set_colnames(c("Break-up", "Species (no.)", "Species (perc.)"))
 
+}
 
 
-write_xlsx(path = summaries_path,
-           list("Trends Status" = status_trends,
-                "Range Status" = status_range,
-                "Priority Status" = status_priority,
-                "Species qualification" = species_qual,
-                "SoIB 2020 vs 2023" = SoIB1_SoIB2,
-                "SoIB 2023 vs 2020" = SoIB2_SoIB1,
-                "SoIB vs IUCN (no.)" = SoIB_vs_IUCN,
-                "SoIB vs IUCN (IUCN %)" = SoIB_vs_IUCN_percIUCN,
-                "SoIB vs IUCN (SoIB %)" = SoIB_vs_IUCN_percSoIB,
-                "High Priority break-up" = high_priority_breakup,
-                "Reason for uplisting" = reason.uplist.high,
-                "Reason for downlisting" = reason.downlist.high))
+if (cur_metadata$MASK.TYPE == "country") {
+  write_xlsx(path = summaries_path,
+             list("Trends Status" = status_trends,
+                  "Range Status" = status_range,
+                  "Priority Status" = status_priority,
+                  "Species qualification" = species_qual,
+                  "High Priority break-up" = high_priority_breakup,
+                  "SoIB 2020 vs 2023" = SoIB1_SoIB2,
+                  "SoIB 2023 vs 2020" = SoIB2_SoIB1,
+                  "SoIB vs IUCN (no.)" = SoIB_vs_IUCN,
+                  "SoIB vs IUCN (IUCN %)" = SoIB_vs_IUCN_percIUCN,
+                  "SoIB vs IUCN (SoIB %)" = SoIB_vs_IUCN_percSoIB,
+                  "Reason for uplisting" = reason.uplist.high,
+                  "Reason for downlisting" = reason.downlist.high))
+} else {
+  write_xlsx(path = summaries_path,
+             list("Trends Status" = status_trends,
+                  "Range Status" = status_range,
+                  "Priority Status" = status_priority,
+                  "Species qualification" = species_qual,
+                  "High Priority break-up" = high_priority_breakup))
+}
