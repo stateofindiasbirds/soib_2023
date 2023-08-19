@@ -42,6 +42,8 @@ gen_trend_plots <- function(plot_type = "single",
   require(glue)
   require(ggrepel) # text repel
   require(tictoc)
+  require(furrr)
+  require(parallel)
   
   source('00_scripts/00_functions.R')
   source('00_scripts/00_plot_functions.R')
@@ -72,16 +74,36 @@ gen_trend_plots <- function(plot_type = "single",
     # generating plots if there are any qualified
     if (length(spec_qual) != 0) {
       
+      # deciding whether to walk or future-walk (parallel) based on number of iterations required
+      # (name: https://onepiece.fandom.com/wiki/Haki/Kenbunshoku_Haki#Future_Vision)
+      advanced_kenbunshoku <- if (length(spec_qual) >= 5) TRUE else FALSE
+      
       if (cur_spec == "all") {
-        tic(glue("Finished plotting {plot_type} for all species"))
-        walk(spec_qual, ~ soib_trend_plot(plot_type = plot_type, 
-                                          cur_trend = cur_trend, 
-                                          cur_spec = .x,
-                                          data_trends = data_trends,
-                                          data_main = data_main,
-                                          path_write = path_write,
-                                          cur_plot_metadata = web_metadata))
-        toc()
+        
+        to_walk <- function(.x, advanced_kenbunshoku) {
+          soib_trend_plot(plot_type = plot_type, 
+                          cur_trend = cur_trend, 
+                          cur_spec = .x,
+                          data_trends = data_trends,
+                          data_main = data_main,
+                          path_write = path_write,
+                          cur_plot_metadata = web_metadata, 
+                          haki = advanced_kenbunshoku)
+        }
+        
+        if (advanced_kenbunshoku) {
+          print(glue("Activated future-walking using advanced Kenbunshoku Haki!"))
+          tic(glue("Future-walked over {length(spec_qual)} species (plotted {plot_type} for all species)"))
+          plan(multisession, workers = parallel::detectCores()/2)
+          future_walk(spec_qual, .progress = TRUE, ~ to_walk(.x, advanced_kenbunshoku))
+          plan(sequential)
+          toc()
+        } else {
+          tic(glue("Walked over {length(spec_qual)} species (plotted {plot_type} for all species)"))
+          walk(spec_qual, ~ to_walk(.x, advanced_kenbunshoku))
+          toc()
+        }
+        
       } else {
         soib_trend_plot(plot_type = plot_type, 
                         cur_trend = cur_trend, 
@@ -111,16 +133,34 @@ gen_trend_plots <- function(plot_type = "single",
              # generating plots if there are any qualified
              if (length(spec_qual) != 0) {
                
+               advanced_kenbunshoku <- if (length(spec_qual) >= 5) TRUE else FALSE
+               
                if (cur_spec == "all") {
-                 tic(glue("Finished plotting {plot_type} for all species"))
-                 walk(spec_qual, ~ soib_trend_plot(plot_type = plot_type,
-                                                   cur_trend = cur_trend,
-                                                   cur_spec = .x,
-                                                   data_trends = data_trends,
-                                                   data_main = data_main,
-                                                   path_write = path_write,
-                                                   cur_plot_metadata = web_metadata))
-                 toc()
+                 
+                 to_walk <- function(.x, advanced_kenbunshoku) {
+                   soib_trend_plot(plot_type = plot_type,
+                                   cur_trend = cur_trend,
+                                   cur_spec = .x,
+                                   data_trends = data_trends,
+                                   data_main = data_main,
+                                   path_write = path_write,
+                                   cur_plot_metadata = web_metadata, 
+                                   haki = advanced_kenbunshoku)
+                 }
+
+                 if (advanced_kenbunshoku) {
+                   print(glue("Activated future-walking using advanced Kenbunshoku Haki!"))
+                   tic(glue("Future-walked over {length(spec_qual)} species (plotted {plot_type} for all species)"))
+                   plan(multisession, workers = parallel::detectCores()/2)
+                   future_walk(spec_qual, .progress = TRUE, ~ to_walk(.x, advanced_kenbunshoku))
+                   plan(sequential)
+                   toc()
+                 } else {
+                   tic(glue("Walked over {length(spec_qual)} species (plotted {plot_type} for all species)"))
+                   walk(spec_qual, ~ to_walk(.x, advanced_kenbunshoku))
+                   toc()
+                 }
+                 
                } else {
                  soib_trend_plot(plot_type = plot_type,
                                  cur_trend = cur_trend,

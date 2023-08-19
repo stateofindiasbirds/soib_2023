@@ -753,7 +753,7 @@ create_composite_summary <- function(metadata, init_obj) {
 
 soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
                             data_trends, data_main, path_write,
-                            cur_plot_metadata) {
+                            cur_plot_metadata, haki = FALSE) {
   
   analysis_type <- "ebird"
   
@@ -762,22 +762,24 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
   if (plot_type != "composite") { 
     # because composite doesn't have any species names at this stage
     data_trends <- data_trends %>% 
-      mutate(COMMON.NAME = specname_to_india_checklist(COMMON.NAME))
+      mutate(COMMON.NAME = specname_to_india_checklist(COMMON.NAME, already_show = FALSE))
     data_main <- data_main %>% 
       # species name changed in between
       mutate(eBird.English.Name.2022 = case_when(
         eBird.English.Name.2022 == "Common Grasshopper-Warbler" ~ "Common Grasshopper Warbler",
         TRUE ~ eBird.English.Name.2022
       )) %>% 
-      mutate(eBird.English.Name.2022 = specname_to_india_checklist(eBird.English.Name.2022))
+      mutate(eBird.English.Name.2022 = specname_to_india_checklist(eBird.English.Name.2022, already_show = FALSE))
     cur_spec <- cur_spec %>% 
-      specname_to_india_checklist()
+      specname_to_india_checklist(already_show = FALSE)
   }
   
-  if (!(plot_type %in% c("multi", "composite"))) {
-    tic(glue("Finished plotting {plot_type} ({cur_trend}) for {cur_spec}"))
-  } else {
-    tic(glue("Finished plotting {cur_plot_metadata$FILE.NAME}"))
+  if (!haki) {
+    if (!(plot_type %in% c("multi", "composite"))) {
+      tic(glue("Finished plotting {plot_type} ({cur_trend}) for {cur_spec}"))
+    } else {
+      tic(glue("Finished plotting {cur_plot_metadata$FILE.NAME}"))
+    }
   }
   
   # setup -----------------------------------------------------------------------------
@@ -1270,7 +1272,10 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
   
   rm(list = names(obj_list), envir = .GlobalEnv)
   
-  toc()
+  if (!haki) {
+    toc()
+  }
+  
 }
 
 
