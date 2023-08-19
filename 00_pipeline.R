@@ -1,6 +1,9 @@
 library(tidyverse)
 library(glue)
 library(tictoc)
+# for parallel iterations
+library(furrr)
+library(parallel)
 
 source("00_scripts/00_functions.R")
 
@@ -357,11 +360,11 @@ tic.log()
 
 # PART 4 (resolve) ------------------------------------------------------------------
 
-# STEP 1: Resolve trends for all selected species and generate necessary outputs
+# STEP 1: Resolve trends & occupancy for all selected species
 # Run:
 # - after above steps (P3, S1-2)
 # Requires:
-# - tidyverse, tictoc, VGAM, writexl
+# - tidyverse, tictoc, sf, VGAM, writexl
 # - data files:
 #   - fullspecieslist.csv
 #   - trends/trendsX.csv for whole country and individual mask versions
@@ -369,49 +372,64 @@ tic.log()
 
 load("00_data/analyses_metadata.RData")
 
-# not functionising because parallelisation doesn't work inside functions
-cur_mask <- "none"
-tic(glue("Resolved trends for full country"))
-source("00_scripts/resolve_trends_and_occupancy.R")
-toc() # 5h 11m
-
-cur_mask <- "woodland"
-tic(glue("Resolved trends & occupancy for {cur_mask}"))
-source("00_scripts/resolve_trends_and_occupancy.R")
-toc() 
-
-cur_mask <- "cropland"
-tic(glue("Resolved trends & occupancy for {cur_mask}"))
-source("00_scripts/resolve_trends_and_occupancy.R")
-toc() 
-
-cur_mask <- "ONEland"
-tic(glue("Resolved trends & occupancy for {cur_mask}"))
-source("00_scripts/resolve_trends_and_occupancy.R")
-toc() 
-
-cur_mask <- "PA"
-tic(glue("Resolved trends & occupancy for {cur_mask}"))
-source("00_scripts/resolve_trends_and_occupancy.R")
-toc() 
 
 tic.clearlog()
-tic("Resolved trends & occupancy for all states")
+tic("Resolved trends & occupancy for all 42 masks")
+# full-country takes 5 h 11 min
+
+print(glue("Activated future-walking using advanced Kenbunshoku Haki!"))
+
+# start multiworker parallel session
+plan(multisession, workers = parallel::detectCores()/2)
 
 analyses_metadata %>% 
-  filter(MASK.TYPE == "state") %>% 
-  distinct(MASK) %>% 
-  # slice(1) %>% 
+  slice(1:5) %>% 
   pull(MASK) %>% 
-  # walking over each state
-  walk(~ {
+  # future-walking over each mask
+  future_walk(.progress = TRUE, .options = furrr_options(seed = TRUE), ~ {
     
-    assign("cur_mask", .x, envir = .GlobalEnv)
-
-    tic(glue("Resolved trends & occupancy for {.x} state"))
-    source("00_scripts/resolve_trends_and_occupancy.R")
+    # new environment for each parallel iteration
+    cur_env <- new.env()
+    assign("cur_mask", .x, envir = cur_env)
+    
+    tic(glue("Resolved trends & occupancy for {.x}"))
+    source("00_scripts/resolve_trends_and_occupancy.R", local = cur_env)
     toc(log = TRUE)
+    
+  })
 
+# end multiworker parallel session
+plan(sequential)
+
+toc(log = TRUE, quiet = TRUE) 
+tic.log()
+
+
+# STEP 2: Classify using trends and range status, and generate necessary outputs
+# Run:
+# - after above steps (P4, S1)
+# Requires:
+# - tidyverse, tictoc, writexl
+# - data files:
+#   - specieslists.RData
+#   - trends/trendsX.csv for whole country and individual mask versions
+#   - X/SoIB_main_wocats.csv
+# Outputs: several
+
+tic.clearlog()
+tic("Finished classifying and summarising for all masks")
+
+analyses_metadata %>% 
+  pull(MASK) %>% 
+  # walking over each mask
+  walk(., ~ {
+    
+    assign("cur_mask", .x, envir = cur_env)
+    
+    tic(glue("Finished classifying and summarising for {.x}"))
+    source("00_scripts/classify_and_summarise.R")
+    toc(log = TRUE)
+    
   })
 
 toc(log = TRUE, quiet = TRUE) 
