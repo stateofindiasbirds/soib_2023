@@ -92,8 +92,8 @@ web_db <- web_db %>%
          post_category = MASK.LABEL,
          post_content = MASK.LABEL,
          all_trends = MASK.LABEL,
-         habitats = if_else(MASK.TYPE == "habitat", MASK.LABEL, NA_character_),
-         conservation_areas = if_else(MASK.TYPE == "conservation_area", MASK.LABEL, NA_character_))
+         habitats = if_else(MASK.TYPE == "habitat", MASK.LABEL, "X"),
+         conservation_areas = if_else(MASK.TYPE == "conservation_area", MASK.LABEL, "X"))
 
 # get list of all masks for each species
 web_db <- web_db %>% 
