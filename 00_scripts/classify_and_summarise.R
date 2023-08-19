@@ -155,8 +155,11 @@ if (cur_metadata$MASK.TYPE == "state") {
   
   main_update <- left_join(main_toupdate, main_nat)
   
-  main <- bind_rows(main_tokeep, main_update)
-  rm(main_tokeep, main_toupdate, main_nat, main_update)
+  main_order = main %>% select(eBird.English.Name.2022)
+  main <- main_order %>% 
+    left_join(bind_rows(main_tokeep, main_update))
+  
+  rm(main_tokeep, main_toupdate, main_nat, main_update, main_order)
   
 }
 
