@@ -93,7 +93,10 @@ web_db <- web_db %>%
          post_content = MASK.LABEL,
          all_trends = MASK.LABEL,
          habitats = if_else(MASK.TYPE == "habitat", MASK.LABEL, "X"),
-         conservation_areas = if_else(MASK.TYPE == "conservation_area", MASK.LABEL, "X"))
+         conservation_areas = if_else(MASK.TYPE == "conservation_area", MASK.LABEL, "X")) %>% 
+  # no maps for habitats/CAs
+  mutate(across(c(featured_image, starts_with("map_filename")), ~ case_when(!MASK.TYPE %in% c("habitat", "conservation_area") ~ .,
+                                                         TRUE ~ NA_character_)))
 
 # get list of all masks for each species
 web_db <- web_db %>% 
