@@ -6,7 +6,6 @@
 
 # raw data files
 *.txt
-*.xlsx
 *.zip
 *.rar
 
@@ -32,7 +31,8 @@ trends/
 occupancy-model/
 occupancy-presence/
 */results/occupancy/
-*/results/trends/
+*/*/results/occupancy/
+
 
 # image outputs
 *.gif
