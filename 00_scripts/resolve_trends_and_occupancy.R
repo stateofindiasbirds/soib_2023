@@ -1344,7 +1344,9 @@ nspec_trend_inconc <- data.frame(Category = cats_trend) %>%
   left_join(main %>% 
               count(SOIBv2.Current.Status) %>% 
               magrittr::set_colnames(c("Trend Status", "Current species (no.)"))) %>% 
-  filter(`Trend Status` == "Trend Inconclusive")
+  filter(`Trend Status` == "Trend Inconclusive") %>% 
+  mutate(across(everything(), ~ replace_na(., 0)))
+  
 nspec_trend_conc_ltt = species_qual0$Long.Term.Analysis - nspec_trend_inconc$`Long-term species (no.)`
 nspec_trend_conc_cat = species_qual0$Current.Analysis - nspec_trend_inconc$`Current species (no.)`
 
@@ -1369,13 +1371,16 @@ status_trends = data.frame(Category = cats_trend) %>%
   left_join(main %>% 
               count(SOIBv2.Current.Status) %>% 
               magrittr::set_colnames(c("Trend Status", "Current species (no.)"))) %>% 
+  mutate(across(everything(), ~ replace_na(., 0))) %>% 
   # percentages
   mutate(`Long-term species conclusive (perc.)` = case_when(
     `Trend Status` %in% cats_uncertain ~ NA_real_,
+    nspec_trend_conc_ltt == 0 ~ NA_real_,
     TRUE ~ round(100 * (`Long-term species (no.)` / nspec_trend_conc_ltt), 1)
     ),
     `Current species conclusive (perc.)` = case_when(
       `Trend Status` %in% cats_uncertain ~ NA_real_,
+      nspec_trend_conc_cat == 0 ~ NA_real_,
       TRUE ~ round(100 * (`Current species (no.)` / nspec_trend_conc_cat), 1)
     )) %>% 
   mutate(`Trend Status` = factor(`Trend Status`,
@@ -1389,13 +1394,16 @@ status_range <- data.frame(Category = cats_range) %>%
   left_join(main %>% 
               count(SOIBv2.Range.Status) %>% 
               magrittr::set_colnames(c("Range Status", "Species (no.)"))) %>% 
-  mutate(`Species (perc.)` = round(100 * (`Species (no.)` / sum(`Species (no.)`)), 1))
-
+  mutate(across(everything(), ~ replace_na(., 0))) %>% 
+  mutate(`Species (perc.)` = round(100 * (`Species (no.)` / sum(`Species (no.)`)), 1)) %>% 
+  mutate(across(everything(), ~ replace(., is.nan(.), NA_real_)))
+  
 status_priority <- main %>% 
   filter(!is.na(SOIBv2.Priority.Status)) %>% # count() counts NA also
   mutate(SOIBv2.Priority.Status = factor(SOIBv2.Priority.Status, 
                                          levels = c("High", "Moderate", "Low"))) %>% 
   count(SOIBv2.Priority.Status) %>% 
+  complete(SOIBv2.Priority.Status, fill = list(n = 0)) %>% 
   magrittr::set_colnames(c("Priority Status", "No. of species"))
 
 
