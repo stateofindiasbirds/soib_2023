@@ -966,7 +966,7 @@ toc()
 spec_vagrants <- d %>% 
   filter(year > 2017) %>% 
   distinct(COMMON.NAME) %>%
-  as.vector() %>% list_c()
+  pull(COMMON.NAME)
 
 # classifying into SoIB Status for long-term and current trends and range
 
