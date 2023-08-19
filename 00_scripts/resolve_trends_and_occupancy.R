@@ -967,7 +967,7 @@ if (skip_res_occu == TRUE) {
 toc()
 
 
-# classification: assign SoIB Status categories (w/ sensitivity analysis) ----
+# classification: assign SoIB Status categories ------------------------------
 
 # any vagrant reported recently
 spec_vagrants <- d %>% 
@@ -1036,110 +1036,135 @@ main = read.csv(mainwocats_path) %>%
   )
 
 
+# for states, due to obviously smaller ranges within states, Range Status categories
+# lose meaning. Only Historical is meaningful, and we want to capture this information.
+# so, for states we retain NA and Historical classifications, but others are reverted to 
+# full-country Range Status categories
+
+if (cur_metadata$MASK.TYPE == "state") {
+  
+  main_tokeep <- main %>% filter(is.na(SOIBv2.Range.Status) | SOIBv2.Range.Status == "Historical")
+  
+  main_toupdate <- anti_join(main, main_tokeep) %>% dplyr::select(-SOIBv2.Range.Status)
+  
+  main_nat <- analyses_metadata %>% 
+    filter(MASK == "none") %>% 
+    pull(SOIBMAIN.PATH) %>% 
+    read.csv() %>% 
+    distinct(eBird.English.Name.2022, SOIBv2.Range.Status)
+  
+  main_update <- left_join(main_toupdate, main_nat)
+  
+  main <- bind_rows(main_tokeep, main_update)
+  rm(main_tokeep, main_toupdate, main_nat, main_update)
+  
+}
+
+
+# classification: adjust SoIB Status based on sensitivity for trends ----------------
+
+# sensitivity check for long-term trends ###
 if (to_run == TRUE) {
   
-# sensitivity check for long-term trends ###
-
-modtrends1 = ltt_sens_class(modtrends1)
-modtrends2 = ltt_sens_class(modtrends2)
-modtrends3 = ltt_sens_class(modtrends3)
-modtrends4 = ltt_sens_class(modtrends4)
-modtrends5 = ltt_sens_class(modtrends5)
-
-sens_ltt <- main %>% 
-  dplyr::select(eBird.English.Name.2022, SOIBv2.Long.Term.Status) %>% 
-  # the modtrendsN files only have species for which we have run LTT
-  filter(!is.na(SOIBv2.Long.Term.Status),
-         SOIBv2.Long.Term.Status != "Insufficient Data") %>% 
-  rename(COMMON.NAME = eBird.English.Name.2022) %>% 
-  bind_rows(modtrends1, modtrends2, modtrends3, modtrends4, modtrends5) %>% 
-  group_by(COMMON.NAME) %>% 
-  # how many different status categories have been assigned?
-  reframe(NO.STATUS = n_distinct(SOIBv2.Long.Term.Status),
-          
-          CONSERVATIVE.STATUS = case_when(
+  modtrends1 = ltt_sens_class(modtrends1)
+  modtrends2 = ltt_sens_class(modtrends2)
+  modtrends3 = ltt_sens_class(modtrends3)
+  modtrends4 = ltt_sens_class(modtrends4)
+  modtrends5 = ltt_sens_class(modtrends5)
+  
+  sens_ltt <- main %>% 
+    dplyr::select(eBird.English.Name.2022, SOIBv2.Long.Term.Status) %>% 
+    # the modtrendsN files only have species for which we have run LTT
+    filter(!is.na(SOIBv2.Long.Term.Status),
+           SOIBv2.Long.Term.Status != "Insufficient Data") %>% 
+    rename(COMMON.NAME = eBird.English.Name.2022) %>% 
+    bind_rows(modtrends1, modtrends2, modtrends3, modtrends4, modtrends5) %>% 
+    group_by(COMMON.NAME) %>% 
+    # how many different status categories have been assigned?
+    reframe(NO.STATUS = n_distinct(SOIBv2.Long.Term.Status),
             
-            NO.STATUS > 2 ~ "Trend Inconclusive",
-            
-            "Trend Inconclusive" %in% SOIBv2.Long.Term.Status ~ "Trend Inconclusive",
-
-            NO.STATUS == 2 & 
-              # if all Status assignments are either of the two increases
-              ("Rapid Increase" %in% SOIBv2.Long.Term.Status &
-                 "Increase" %in% SOIBv2.Long.Term.Status) ~ "Increase",
-            NO.STATUS == 2 & 
-              # if all Status assignments are either of the two decreases
-              ("Rapid Decline" %in% SOIBv2.Long.Term.Status &
-                 "Decline" %in% SOIBv2.Long.Term.Status) ~ "Decline",
-            
-            NO.STATUS == 2 ~ "Trend Inconclusive",
-            TRUE ~ min(SOIBv2.Long.Term.Status)
-            
-  )) %>% 
-  mutate(ROBUST = if_else(NO.STATUS == 1, 1, 0)) %>% 
-  dplyr::select(-NO.STATUS)
+            CONSERVATIVE.STATUS = case_when(
+              
+              NO.STATUS > 2 ~ "Trend Inconclusive",
+              
+              "Trend Inconclusive" %in% SOIBv2.Long.Term.Status ~ "Trend Inconclusive",
+              
+              NO.STATUS == 2 & 
+                # if all Status assignments are either of the two increases
+                ("Rapid Increase" %in% SOIBv2.Long.Term.Status &
+                   "Increase" %in% SOIBv2.Long.Term.Status) ~ "Increase",
+              NO.STATUS == 2 & 
+                # if all Status assignments are either of the two decreases
+                ("Rapid Decline" %in% SOIBv2.Long.Term.Status &
+                   "Decline" %in% SOIBv2.Long.Term.Status) ~ "Decline",
+              
+              NO.STATUS == 2 ~ "Trend Inconclusive",
+              TRUE ~ min(SOIBv2.Long.Term.Status)
+              
+            )) %>% 
+    mutate(ROBUST = if_else(NO.STATUS == 1, 1, 0)) %>% 
+    dplyr::select(-NO.STATUS)
+  
+  
+  main <- main %>% 
+    left_join(sens_ltt, by = c("eBird.English.Name.2022" = "COMMON.NAME")) %>% 
+    # if Status assignment is not robust, take the most conservative one
+    mutate(SOIBv2.Long.Term.Status = case_when(ROBUST == 0 ~ CONSERVATIVE.STATUS, 
+                                               TRUE ~ SOIBv2.Long.Term.Status)) %>% 
+    dplyr::select(-CONSERVATIVE.STATUS, -ROBUST)
   
 
-main <- main %>% 
-  left_join(sens_ltt, by = c("eBird.English.Name.2022" = "COMMON.NAME")) %>% 
-  # if Status assignment is not robust, take the most conservative one
-  mutate(SOIBv2.Long.Term.Status = case_when(ROBUST == 0 ~ CONSERVATIVE.STATUS, 
-                                             TRUE ~ SOIBv2.Long.Term.Status)) %>% 
-  dplyr::select(-CONSERVATIVE.STATUS, -ROBUST)
-
-
-
-# sensitivity check for current trends ###
-
-# changes classifications based on sensitivity analyses
-
-sens <- read.csv(cursens_path)
-
-# classifying the sens values to SoIB categories
-sens_cat <- map(1:8, ~ {
+  # sensitivity check for current trends ###
   
-  sens %>%
-    # selecting the corresponding column each time
-    mutate(currentslopelci = .[[2 + (.x - 1) * 3]],
-           currentslopemean = .[[3 + (.x - 1) * 3]],
-           currentsloperci = .[[4 + (.x - 1) * 3]]) %>%
-    mutate(SOIBv2.Current.Status.Sens = case_when(
-      
-      is.na(currentslopemean) ~ "Insufficient Data",
-      (currentsloperci - currentslopelci) > 6 ~ "Trend Inconclusive",
-      currentsloperci <= -2.7 ~ "Rapid Decline",
-      currentsloperci <= -1.1 ~ "Decline",
-      currentslopelci >= 1.6 ~ "Rapid Increase",
-      currentslopelci >= 0.9 ~ "Increase",
-      currentsloperci < 0 ~ "Trend Inconclusive",
-      currentslopelci > 0 ~ "Trend Inconclusive",
-      TRUE ~ "Stable"
-      
-    )) %>%
-    dplyr::select(eBird.English.Name.2022, SOIBv2.Current.Status.Sens) %>% 
-    magrittr::set_colnames(c("eBird.English.Name.2022", glue("s{.x}")))
+  # changes classifications based on sensitivity analyses
   
-}) %>%
-  reduce(full_join) 
-
-sens_cat <- main %>% 
-  dplyr::select(eBird.English.Name.2022, SOIBv2.Current.Status) %>% 
-  left_join(sens_cat) %>%
-  filter(!SOIBv2.Current.Status %in% c("Insufficient Data", "Trend Inconclusive"))
-
-
-# creating empty vectors that will be filled with indices of species that fall
-# under 7 criteria
-
-ind1 = numeric(0)
-ind2 = numeric(0)
-ind3 = numeric(0)
-ind4 = numeric(0)
-ind5 = numeric(0)
-ind6 = numeric(0)
-ind7 = numeric(0)
-
-for (i in 1:length(sens_cat$eBird.English.Name.2022)) {
+  sens <- read.csv(cursens_path)
+  
+  # classifying the sens values to SoIB categories
+  sens_cat <- map(1:8, ~ {
+    
+    sens %>%
+      # selecting the corresponding column each time
+      mutate(currentslopelci = .[[2 + (.x - 1) * 3]],
+             currentslopemean = .[[3 + (.x - 1) * 3]],
+             currentsloperci = .[[4 + (.x - 1) * 3]]) %>%
+      mutate(SOIBv2.Current.Status.Sens = case_when(
+        
+        is.na(currentslopemean) ~ "Insufficient Data",
+        (currentsloperci - currentslopelci) > 6 ~ "Trend Inconclusive",
+        currentsloperci <= -2.7 ~ "Rapid Decline",
+        currentsloperci <= -1.1 ~ "Decline",
+        currentslopelci >= 1.6 ~ "Rapid Increase",
+        currentslopelci >= 0.9 ~ "Increase",
+        currentsloperci < 0 ~ "Trend Inconclusive",
+        currentslopelci > 0 ~ "Trend Inconclusive",
+        TRUE ~ "Stable"
+        
+      )) %>%
+      dplyr::select(eBird.English.Name.2022, SOIBv2.Current.Status.Sens) %>% 
+      magrittr::set_colnames(c("eBird.English.Name.2022", glue("s{.x}")))
+    
+  }) %>%
+    reduce(full_join) 
+  
+  sens_cat <- main %>% 
+    dplyr::select(eBird.English.Name.2022, SOIBv2.Current.Status) %>% 
+    left_join(sens_cat) %>%
+    filter(!SOIBv2.Current.Status %in% c("Insufficient Data", "Trend Inconclusive"))
+  
+  
+  # creating empty vectors that will be filled with indices of species that fall
+  # under 7 criteria
+  
+  ind1 = numeric(0)
+  ind2 = numeric(0)
+  ind3 = numeric(0)
+  ind4 = numeric(0)
+  ind5 = numeric(0)
+  ind6 = numeric(0)
+  ind7 = numeric(0)
+  
+  for (i in 1:length(sens_cat$eBird.English.Name.2022)) {
     
     categs = as.vector(sens_cat[i,-1])
     
@@ -1150,7 +1175,7 @@ for (i in 1:length(sens_cat$eBird.English.Name.2022)) {
     # species with any one category but also Inconclusive
     if (length(unique(categs)) == 2 & "Trend Inconclusive" %in% categs) 
       (ind2 = c(ind2, i))
-
+    
     # species classed as some decline, but elsewhere classed as some non-decline
     if (("Decline" %in% categs | "Rapid Decline" %in% categs) & 
         ("Stable" %in% categs | "Increase" %in% categs | "Rapid Increase" %in% categs)) 
@@ -1174,32 +1199,32 @@ for (i in 1:length(sens_cat$eBird.English.Name.2022)) {
       (ind7 = c(ind7, i))
     
   }
-
-ind.rem = ind3 %>% union(ind4) %>% union(ind5)# to be removed (Inconclusive)
-
-ind6 = ind6 %>% setdiff(ind.rem)
-ind7 = ind7 %>% setdiff(ind.rem)
-
-spec_ind.rem <- sens_cat$eBird.English.Name.2022[ind.rem]
-spec_ind6 <- sens_cat$eBird.English.Name.2022[ind6]
-spec_ind7 <- sens_cat$eBird.English.Name.2022[ind7]
-
-
-
-
-main <- main %>%
-  # changing classification where needed
-  mutate(SOIBv2.Current.Status = case_when(
-    
-    eBird.English.Name.2022 %in% spec_ind.rem ~ "Trend Inconclusive",
-    eBird.English.Name.2022 %in% spec_ind6 ~ "Decline",
-    eBird.English.Name.2022 %in% spec_ind7 ~ "Increase",
-    TRUE ~ SOIBv2.Current.Status
-    
-  )) %>% 
-  mutate(across(c(SOIBv2.Long.Term.Status, SOIBv2.Current.Status, SOIB.Range.Status),
-                ~ if_else(Selected.SOIB != "X", NA_character_, .)))
-
+  
+  ind.rem = ind3 %>% union(ind4) %>% union(ind5)# to be removed (Inconclusive)
+  
+  ind6 = ind6 %>% setdiff(ind.rem)
+  ind7 = ind7 %>% setdiff(ind.rem)
+  
+  spec_ind.rem <- sens_cat$eBird.English.Name.2022[ind.rem]
+  spec_ind6 <- sens_cat$eBird.English.Name.2022[ind6]
+  spec_ind7 <- sens_cat$eBird.English.Name.2022[ind7]
+  
+  
+  
+  
+  main <- main %>%
+    # changing classification where needed
+    mutate(SOIBv2.Current.Status = case_when(
+      
+      eBird.English.Name.2022 %in% spec_ind.rem ~ "Trend Inconclusive",
+      eBird.English.Name.2022 %in% spec_ind6 ~ "Decline",
+      eBird.English.Name.2022 %in% spec_ind7 ~ "Increase",
+      TRUE ~ SOIBv2.Current.Status
+      
+    )) %>% 
+    mutate(across(c(SOIBv2.Long.Term.Status, SOIBv2.Current.Status, SOIB.Range.Status),
+                  ~ if_else(Selected.SOIB != "X", NA_character_, .)))
+  
 } else {
 
   print(glue("Skipping sensitivity-check-based adjustments to Status for {cur_mask}"))
