@@ -1407,8 +1407,8 @@ ltt_sens_class <- function(data) {
     mutate(
       
       SOIBv2.Long.Term.Status = case_when(
-        is.na(longtermmean) ~ "eBird Data Deficient",
-        (longtermrci-longtermmean)/longtermmean > 0.5 ~ "eBird Data Inconclusive", # arbitrary
+        is.na(longtermmean) ~ "Insufficient Data",
+        (longtermrci-longtermmean)/longtermmean > 0.5 ~ "Trend Inconclusive", # arbitrary
         # else
         # for declines
         longtermrci <= 50 ~ "Rapid Decline", # -100% to -50%
@@ -1418,9 +1418,9 @@ ltt_sens_class <- function(data) {
         longtermlci < 150 & longtermlci >= 125 ~ "Increase", # +25% to +50%
         # stable vs inconclusive:
         # if CI is completely below or above the baseline, can't be stable
-        longtermlci > 100 | longtermrci < 100 ~ "eBird Data Inconclusive",
+        longtermlci > 100 | longtermrci < 100 ~ "Trend Inconclusive",
         # if one limit is in the Stable zone but other limit passes to Rapid X, can't be stable
-        longtermlci <= 50 | longtermrci >= 150 ~ "eBird Data Inconclusive",
+        longtermlci <= 50 | longtermrci >= 150 ~ "Trend Inconclusive",
         TRUE ~ "Stable"
       )
       
