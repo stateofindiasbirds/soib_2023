@@ -5,8 +5,9 @@ source("00_scripts/00_plot_functions.R")
 
 # single-species for full country ---------------------------------------------------
 
-gen_trend_plots("single", "LTT") # 25 mins
-gen_trend_plots("single", "CAT") # 20.5 mins
+# gen_trend_plots("single", "LTT", "Ashy Prinia") 
+gen_trend_plots("single", "LTT") # 25 mins (<10 min with advanced Kenbunshoku Haki)
+gen_trend_plots("single", "CAT") # 20.5 mins (11.3 min with advanced Kenbunshoku Haki)
 
 # single-species masks vs country ---------------------------------------------------
 
@@ -23,9 +24,6 @@ gen_trend_plots("composite") # 15 sec
 
 # systematic monitoring plots -------------------------------------------------------
 
-source("00_scripts/02_generate_plots.R")
-source("00_scripts/00_plot_functions.R")
-
 fetch_sysmon_metadata("full")
 
 # 2 mins
@@ -34,3 +32,14 @@ sysmon_metadata %>%
   # filter(CASE == "nannaj") %>% 
   pull(CASE) %>% 
   walk(., ~ gen_trend_plots_sysmon(.x))
+
+
+# range maps -------------------------------------------------------------------------
+
+# only for full country and states
+
+# soib_rangemap("Oriental Dwarf Kingfisher") # testing error check
+# soib_rangemap("Hair-crested Drongo") # individual species
+
+gen_range_maps("country") # 38 min
+gen_range_maps("state") # 2.5 h

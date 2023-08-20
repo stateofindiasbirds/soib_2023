@@ -6,11 +6,11 @@
 
 # raw data files
 *.txt
-*.xlsx
 *.zip
 *.rar
 
 20_website/website_database.csv
+*/data_rangemap_vagrants.csv
 
 # RData files
 00_data/rawdata.RData
@@ -31,7 +31,8 @@ trends/
 occupancy-model/
 occupancy-presence/
 */results/occupancy/
-*/results/trends/
+*/*/results/occupancy/
+
 
 # image outputs
 *.gif

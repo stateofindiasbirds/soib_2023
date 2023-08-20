@@ -98,11 +98,11 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_relMay-2023.txt",
   nms1[nms1 %in% preimp] = NA
   
 
+  # read sensitive species data
+
   sesp = read.delim(sensitivepath, colClasses = nms1, sep = "\t", header = T, quote = "", 
                     stringsAsFactors = F, na.strings = c(""," ",NA))
 
-  # read sensitive species data
-  
   
   # merge both data frames
   data = rbind(data, sesp) %>%
@@ -113,7 +113,7 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_relMay-2023.txt",
 
   ## choosing important columns required for further analyses
   
-  imp = c("CATEGORY","COMMON.NAME","OBSERVATION.COUNT",
+  imp = c("CATEGORY","COMMON.NAME","SCIENTIFIC.NAME","OBSERVATION.COUNT",
           "LOCALITY.ID", "REVIEWED","APPROVED","EXOTIC.CODE",
           "LOCALITY.TYPE","STATE","COUNTY",
           "LATITUDE","LONGITUDE","OBSERVATION.DATE","TIME.OBSERVATIONS.STARTED",
@@ -160,14 +160,15 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_relMay-2023.txt",
   write.csv(temp,"00_data/indiaspecieslist.csv", row.names=FALSE)
   
   # create location file for LULC
-  locdat = data %>% distinct(LOCALITY.ID,LATITUDE,LONGITUDE)
+  locdat = data %>% distinct(LOCALITY.ID, LATITUDE, LONGITUDE)
   write.csv(locdat,"00_data/eBird_location_data.csv", row.names=FALSE)
 
   
   # need to combine several closely related species and slashes/spuhs
   # so, first changing their category to species since they will be combined next
   data = data %>%
-    mutate(CATEGORY = case_when(COMMON.NAME %in% c(
+    mutate(SCIENTIFIC.NAME = NULL, # needed it for printing indiaspecieslists
+           CATEGORY = case_when(COMMON.NAME %in% c(
       "Green/Greenish Warbler", "Siberian/Amur Stonechat", "Red-necked/Little Stint",
       "Western/Eastern Yellow Wagtail", "Common/Himalayan Buzzard",
       "Eurasian/Eastern Marsh-Harrier", "Lesser/Greater Sand-Plover", "Baikal/Spotted Bush Warbler",
@@ -634,14 +635,48 @@ dataspeciesfilter = function(cur_mask = "none") {
     left_join(datah, by = c("COMMON.NAME")) %>% 
     left_join(datar, by = c("COMMON.NAME"))
   
-  specieslist = dataf %>%
-    # <annotation_pending_AV> what does each variable mean? (e.g., Essential)
-    # what are we finally filtering for?
-    filter((Essential == 1 | Endemic.Region != "None" | ht == 1 | rt == 1) & 
+  # we need country specieslist to derive specieslist for states
+  if (cur_metadata$MASK.TYPE == "state") {
+    load(file = analyses_metadata %>% 
+           filter(MASK == "none") %>% 
+           pull(SPECLISTDATA.PATH))
+    
+    specieslist_nat <- specieslist
+    rm(specieslist, restrictedspecieslist)
+  }
+  
+  # to limit number of species in restricted species list for states
+  specieslist_rest = dataf %>%
+    filter(., 
+             (Essential == 1 | Endemic.Region != "None" | ht == 1 | rt == 1), 
              (Breeding.Activity.Period != "Nocturnal" | 
                 Non.Breeding.Activity.Period != "Nocturnal" | 
-                COMMON.NAME == "Jerdon's Courser") & 
-             (is.na(Discard))) %>%
+                COMMON.NAME == "Jerdon's Courser"),
+             (is.na(Discard))
+      ) %>%
+    # filter out species not recorded from current mask
+    filter(COMMON.NAME %in% cur_mask_spec) %>% 
+    dplyr::select(COMMON.NAME, ht, rt)
+  
+  specieslist = dataf %>%
+    # for states, we want to include any species reported from the state & with trend for country
+    {if (cur_metadata$MASK.TYPE != "state") {
+      filter(., 
+             (Essential == 1 | Endemic.Region != "None" | ht == 1 | rt == 1), 
+             (Breeding.Activity.Period != "Nocturnal" | 
+                Non.Breeding.Activity.Period != "Nocturnal" | 
+                COMMON.NAME == "Jerdon's Courser"),
+             (is.na(Discard))
+      )
+    } else {
+      filter(.,
+             (COMMON.NAME %in% specieslist_nat$COMMON.NAME | ht == 1 | rt == 1), 
+             (Breeding.Activity.Period != "Nocturnal" | 
+                Non.Breeding.Activity.Period != "Nocturnal" | 
+                COMMON.NAME == "Jerdon's Courser"), 
+             (is.na(Discard))
+      )
+    }} %>%
     # filter out species not recorded from current mask
     filter(COMMON.NAME %in% cur_mask_spec) %>% 
     dplyr::select(COMMON.NAME, ht, rt)
@@ -665,7 +700,11 @@ dataspeciesfilter = function(cur_mask = "none") {
   
   # <annotation_pending_AV> 
   # why left_joining (then removing misIDd specs) separately again? 
-  restrictedspecieslist = data.frame(species = specieslist$COMMON.NAME) %>% 
+  restrictedspecieslist = {if (cur_metadata$MASK.TYPE != "state") {
+    data.frame(species = specieslist$COMMON.NAME)
+  } else {
+    data.frame(species = specieslist_rest$COMMON.NAME)
+  }} %>% 
     left_join(speciesresth) %>% 
     left_join(speciesrestr) %>%
     # valid for at least 1 of 2 analyses
@@ -1349,7 +1388,7 @@ ltt_sens_sim <- function(my_seed, data = modtrends) {
     group_by(COMMON.NAME, timegroups) %>% 
     reframe(lci_std = 100*as.numeric(quantile(tp0, 0.025)),
             rci_std = 100*as.numeric(quantile(tp0, 0.975))) %>% 
-    right_join(modtrends, by = c("COMMON.NAME", "timegroups")) %>%
+    right_join(data, by = c("COMMON.NAME", "timegroups")) %>%
     filter(timegroups == 2022) %>%
     dplyr::select(COMMON.NAME, lci_std, mean_std, rci_std) %>%
     rename(longtermlci = lci_std,
@@ -1539,16 +1578,20 @@ scale_trends_to_bands <- function(data) {
 
 # convert eBird name to India Checklist name ----------------------------------------
 
-specname_to_india_checklist <- function(spec_names) {
+specname_to_india_checklist <- function(spec_names, already_show = TRUE) {
   
   names_map <- read.csv("00_data/SoIB_mapping_2022.csv") %>% 
     distinct(eBird.English.Name.2022, India.Checklist.Common.Name)
   
   df_names <- data.frame(OLD = spec_names)
   
-  # quit if already India Checklist name
+  # quit if already India Checklist name (and print if we want to see the message)
   if (all(df_names$OLD %in% names_map$India.Checklist.Common.Name)) {
-    print("Species name(s) already align with India Checklist.")
+    
+    if (already_show == TRUE){
+      print("Species name(s) already align with India Checklist.")
+    }
+    
     return(spec_names)
   }
   

@@ -67,7 +67,7 @@ join_mask_codes <- function(data) {
   
   # return dataframe with codes joined
   data %>% 
-    left_join(codes) %>% 
+    left_join(codes, by = "MASK") %>% 
     # labels
     mutate(MASK.LABEL = case_when(
       MASK == "none" ~ "India",
