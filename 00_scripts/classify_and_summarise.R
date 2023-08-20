@@ -1,8 +1,12 @@
 library(tidyverse)
+library(glue)
+library(tictoc)
 library(writexl)
 
 load("00_data/analyses_metadata.RData")
 
+
+# setup -------------------------------------------------------------------
 
 # preparing data for specific mask (this is the only part that changes, but automatically)
 cur_metadata <- analyses_metadata %>% filter(MASK == cur_mask)
@@ -20,12 +24,34 @@ summaries_path <- cur_metadata$SUMMARY.PATH
 
 ###
 
+source('00_scripts/00_functions.R')
+
+# for classification
+priorityrules = read.csv("00_data/priorityclassificationrules.csv") 
+
 load(speclist_path)
+load("00_data/vagrantdata.RData")
+
+main = read.csv(mainwocats_path) %>%
+  # if full column has no X at all, gets read as NAs
+  mutate(across(c(Long.Term.Analysis, Current.Analysis, Selected.SOIB),
+                ~ as.character(.))) %>%
+  mutate(across(c(Long.Term.Analysis, Current.Analysis, Selected.SOIB),
+                ~ replace_na(., "")))
+
+
+### for conditionals ###
 
 # don't run resolve_species_trends (and its sens check) if no species selected
 run_res_trends <- ((1 %in% specieslist$ht) | (1 %in% specieslist$rt) |
                      (1 %in% restrictedspecieslist$ht) | (1 %in% restrictedspecieslist$rt)) &
   # edge cases (Tripura, Nagaland, Puducherry) where species selected, but trends could not be generated
+  (length(list.files(trends_pathonly)) != 0)
+
+run_res_trends_LTT <- ((1 %in% specieslist$ht) | (1 %in% restrictedspecieslist$ht)) &
+  (length(list.files(trends_pathonly)) != 0)
+
+run_res_trends_CAT <- ((1 %in% specieslist$rt) | (1 %in% restrictedspecieslist$rt)) &
   (length(list.files(trends_pathonly)) != 0)
 
 
@@ -38,20 +64,7 @@ if (!cur_metadata$MASK.TYPE %in% c("country", "state")) {
 
 ###
 
-source('00_scripts/00_functions.R')
-
-# for classification
-priorityrules = read.csv("00_data/priorityclassificationrules.csv") 
-load("00_data/vagrantdata.RData")
-
-main = read.csv(mainwocats_path) %>%
-  # if full column has no X at all, gets read as NAs
-  mutate(across(c(Long.Term.Analysis, Current.Analysis, Selected.SOIB),
-                ~ as.character(.))) %>%
-  mutate(across(c(Long.Term.Analysis, Current.Analysis, Selected.SOIB),
-                ~ replace_na(., "")))
-
-# resolving occupancy for some masks --------------------------------------
+# calculations: resolve occupancy for masks where skip_res_occu == TRUE --------------------------------------
 
 # for masks where resolve_occupancy not run (habitat/CA masks),
 # need to pull in range size info from full country (after it has been resolved, i.e.)
@@ -171,58 +184,67 @@ if (cur_metadata$MASK.TYPE == "state") {
 
 # classification: adjust SoIB Status based on sensitivity for trends ----------------
 
-# sensitivity check for long-term trends ###
 if (run_res_trends == TRUE) {
-  
-  modtrends1 = ltt_sens_class(modtrends1)
-  modtrends2 = ltt_sens_class(modtrends2)
-  modtrends3 = ltt_sens_class(modtrends3)
-  modtrends4 = ltt_sens_class(modtrends4)
-  modtrends5 = ltt_sens_class(modtrends5)
-  
-  sens_ltt <- main %>%
-    dplyr::select(eBird.English.Name.2022, SOIBv2.Long.Term.Status) %>%
-    # the modtrendsN files only have species for which we have run LTT
-    filter(!is.na(SOIBv2.Long.Term.Status),
-           SOIBv2.Long.Term.Status != "Insufficient Data") %>%
-    rename(COMMON.NAME = eBird.English.Name.2022) %>%
-    bind_rows(modtrends1, modtrends2, modtrends3, modtrends4, modtrends5) %>%
-    group_by(COMMON.NAME) %>%
-    # how many different status categories have been assigned?
-    reframe(NO.STATUS = n_distinct(SOIBv2.Long.Term.Status),
-            
-            CONSERVATIVE.STATUS = case_when(
+
+  if (run_res_trends_LTT == TRUE) {
+    
+    # sensitivity check for long-term trends ###
+    
+    modtrends1 = ltt_sens_class(modtrends1)
+    modtrends2 = ltt_sens_class(modtrends2)
+    modtrends3 = ltt_sens_class(modtrends3)
+    modtrends4 = ltt_sens_class(modtrends4)
+    modtrends5 = ltt_sens_class(modtrends5)
+    
+    sens_ltt <- main %>%
+      dplyr::select(eBird.English.Name.2022, SOIBv2.Long.Term.Status) %>%
+      # the modtrendsN files only have species for which we have run LTT
+      filter(!is.na(SOIBv2.Long.Term.Status),
+             SOIBv2.Long.Term.Status != "Insufficient Data") %>%
+      rename(COMMON.NAME = eBird.English.Name.2022) %>%
+      bind_rows(modtrends1, modtrends2, modtrends3, modtrends4, modtrends5) %>%
+      group_by(COMMON.NAME) %>%
+      # how many different status categories have been assigned?
+      reframe(NO.STATUS = n_distinct(SOIBv2.Long.Term.Status),
               
-              NO.STATUS > 2 ~ "Trend Inconclusive",
-              
-              "Trend Inconclusive" %in% SOIBv2.Long.Term.Status ~ "Trend Inconclusive",
-              
-              NO.STATUS == 2 &
-                # if all Status assignments are either of the two increases
-                ("Rapid Increase" %in% SOIBv2.Long.Term.Status &
-                   "Increase" %in% SOIBv2.Long.Term.Status) ~ "Increase",
-              NO.STATUS == 2 &
-                # if all Status assignments are either of the two decreases
-                ("Rapid Decline" %in% SOIBv2.Long.Term.Status &
-                   "Decline" %in% SOIBv2.Long.Term.Status) ~ "Decline",
-              
-              NO.STATUS == 2 ~ "Trend Inconclusive",
-              TRUE ~ min(SOIBv2.Long.Term.Status)
-              
-            )) %>%
-    mutate(ROBUST = if_else(NO.STATUS == 1, 1, 0)) %>%
-    dplyr::select(-NO.STATUS)
+              CONSERVATIVE.STATUS = case_when(
+                
+                NO.STATUS > 2 ~ "Trend Inconclusive",
+                
+                "Trend Inconclusive" %in% SOIBv2.Long.Term.Status ~ "Trend Inconclusive",
+                
+                NO.STATUS == 2 &
+                  # if all Status assignments are either of the two increases
+                  ("Rapid Increase" %in% SOIBv2.Long.Term.Status &
+                     "Increase" %in% SOIBv2.Long.Term.Status) ~ "Increase",
+                NO.STATUS == 2 &
+                  # if all Status assignments are either of the two decreases
+                  ("Rapid Decline" %in% SOIBv2.Long.Term.Status &
+                     "Decline" %in% SOIBv2.Long.Term.Status) ~ "Decline",
+                
+                NO.STATUS == 2 ~ "Trend Inconclusive",
+                TRUE ~ min(SOIBv2.Long.Term.Status)
+                
+              )) %>%
+      mutate(ROBUST = if_else(NO.STATUS == 1, 1, 0)) %>%
+      dplyr::select(-NO.STATUS)
+    
+    
+    main <- main %>%
+      left_join(sens_ltt, by = c("eBird.English.Name.2022" = "COMMON.NAME")) %>%
+      # if Status assignment is not robust, take the most conservative one
+      mutate(SOIBv2.Long.Term.Status = case_when(ROBUST == 0 ~ CONSERVATIVE.STATUS,
+                                                 TRUE ~ SOIBv2.Long.Term.Status)) %>%
+      dplyr::select(-CONSERVATIVE.STATUS, -ROBUST)
+    
+  } else {
+    print(glue("Skipping sensitivity-check-based adjustments to Trend Status (LTT) for {cur_mask} (LTT)"))
+  }
   
   
-  main <- main %>%
-    left_join(sens_ltt, by = c("eBird.English.Name.2022" = "COMMON.NAME")) %>%
-    # if Status assignment is not robust, take the most conservative one
-    mutate(SOIBv2.Long.Term.Status = case_when(ROBUST == 0 ~ CONSERVATIVE.STATUS,
-                                               TRUE ~ SOIBv2.Long.Term.Status)) %>%
-    dplyr::select(-CONSERVATIVE.STATUS, -ROBUST)
-  
-  
-  # sensitivity check for current trends ###
+  if (run_res_trends_CAT == TRUE) {
+    
+    # sensitivity check for current trends ###
   
   # changes classifications based on sensitivity analyses
   
@@ -331,9 +353,13 @@ if (run_res_trends == TRUE) {
       
     ))
   
+  } else {
+    print(glue("Skipping sensitivity-check-based adjustments to Trend Status (CAT) for {cur_mask}"))
+  }
+  
 } else {
   
-  print(glue("Skipping sensitivity-check-based adjustments to Status for {cur_mask}"))
+  print(glue("Skipping sensitivity-check-based adjustments to Trend Status for {cur_mask}"))
   
 }
 

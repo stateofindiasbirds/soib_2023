@@ -1,10 +1,14 @@
 library(tidyverse)
+library(glue)
+library(tictoc)
 library(VGAM)
 library(sf)
 library(writexl)
 
 load("00_data/analyses_metadata.RData")
 
+
+# setup -------------------------------------------------------------------
 
 # preparing data for specific mask (this is the only part that changes, but automatically)
 cur_metadata <- analyses_metadata %>% filter(MASK == cur_mask)
@@ -36,12 +40,18 @@ load("00_data/maps_sf.RData")
 load(speclist_path)
 
 
-###
+### for conditionals ###
 
 # don't run resolve_species_trends if no species selected
 run_res_trends <- ((1 %in% specieslist$ht) | (1 %in% specieslist$rt) |
                      (1 %in% restrictedspecieslist$ht) | (1 %in% restrictedspecieslist$rt)) &
   # edge cases (Tripura, Nagaland, Puducherry) where species selected, but trends could not be generated
+  (length(list.files(trends_pathonly)) != 0)
+
+run_res_trends_LTT <- ((1 %in% specieslist$ht) | (1 %in% restrictedspecieslist$ht)) &
+  (length(list.files(trends_pathonly)) != 0)
+
+run_res_trends_CAT <- ((1 %in% specieslist$rt) | (1 %in% restrictedspecieslist$rt)) &
   (length(list.files(trends_pathonly)) != 0)
 
 
@@ -70,7 +80,7 @@ if (!cur_metadata$MASK.TYPE %in% c("country", "state")) {
 }
 
 
-###
+# calculations: resolve trends ----------------------------------------------
 
 if (run_res_trends == FALSE) {
   
@@ -360,415 +370,461 @@ if (run_res_trends == FALSE) {
   
   # calculations: trends (long-term) ----------------------------------------
   
-  modtrends = na.omit(trends) %>% # NAs are all spp. not included in long-term
-    filter(COMMON.NAME %in% spec_lt) %>%
-    arrange(COMMON.NAME, timegroups) %>%
-    # getting trends values of first year (only for long-term, i.e., pre-2000)
-    group_by(COMMON.NAME) %>% 
-    # _trans are link-scale, "mean" is back-transformed
-    mutate(m1 = first(mean_trans),
-           mean_year1 = first(mean),
-           s1 = first(se_trans)) %>% 
-    ungroup() %>% 
-    # for calculating change in abundance index (as % change)
-    mutate(mean_std = 100*mean/mean_year1) # back-transformed so value is % of year1 value
-
-  # sensitivity check to ensure edge species are later converted to the conservative status
-  modtrends1 <- ltt_sens_sim(my_seed = 1, data = modtrends)
-  modtrends2 <- ltt_sens_sim(my_seed = 2, data = modtrends)
-  modtrends3 <- ltt_sens_sim(my_seed = 3, data = modtrends)
-  modtrends4 <- ltt_sens_sim(my_seed = 4, data = modtrends)
-  modtrends5 <- ltt_sens_sim(my_seed = 5, data = modtrends)
-
-  # "main" simulated CIs
-  set.seed(10) 
-  modtrends = modtrends %>% 
-    # calculating CIs
-    group_by(COMMON.NAME, timegroups) %>% 
-    # 1000 simulations of transformed ratio of present:original values
-    # quantiles*100 from these gives us our CI limits for mean_std
-    reframe(tp0 = simerrordiv(mean_trans, m1, se_trans, s1)$rat) %>% 
-    group_by(COMMON.NAME, timegroups) %>% 
-    reframe(lci_std = 100*as.numeric(quantile(tp0, 0.025)),
-            rci_std = 100*as.numeric(quantile(tp0, 0.975))) %>% 
-    right_join(modtrends, by = c("COMMON.NAME", "timegroups"))
-  
-  # saving the values for 2022 in "main" as well:
-  # temp object then left_join instead of right_join because species order in main
-  # needs to be preserved
-  temp <- modtrends %>%
-    filter(timegroups == 2022) %>%
-    dplyr::select(COMMON.NAME, lci_std, mean_std, rci_std) %>%
-    rename(longtermlci = lci_std,
-           longtermmean = mean_std,
-           longtermrci = rci_std)
-  
-  main <- main %>%
-    left_join(temp, by = c("eBird.English.Name.2022" = "COMMON.NAME"))
-
-  modtrends = modtrends %>%
-    group_by(COMMON.NAME) %>%
-    # making CI band zero for first year
-    mutate(lci_std = case_when(timegroups == first(timegroups) ~ mean_std,
-                               TRUE ~ lci_std),
-           rci_std = case_when(timegroups == first(timegroups) ~ mean_std,
-                               TRUE ~ rci_std)) %>%
-    ungroup() %>%
-    dplyr::select(timegroupsf, timegroups, COMMON.NAME, lci_std, mean_std, rci_std)
-  
-  
-  # checkpoint-object "main"
-  main2_postLTT <- main
+  if (run_res_trends_LTT == FALSE) {
+    
+    # list of columns that need to be created since we have skipped steps
+    na_columns <- c("longtermlci", "longtermmean", "longtermrci")
+    # creating NA columns to match structure of "normal" main data
+    main[, na_columns] <- NA_real_
+    
+    modtrends <- trends %>% 
+      dplyr::select(timegroupsf, timegroups, COMMON.NAME) %>% 
+      mutate(lci_std = NA_real_, mean_std = NA_real_, rci_std = NA_real_)
+    
+    # checkpoint-object "main"
+    main2_postLTT <- main
+    
+    print(glue("Skipping resolving species LTT for {cur_mask}"))
+    
+  } else {
+    
+    modtrends = na.omit(trends) %>% # NAs are all spp. not included in long-term
+      filter(COMMON.NAME %in% spec_lt) %>%
+      arrange(COMMON.NAME, timegroups) %>%
+      # getting trends values of first year (only for long-term, i.e., pre-2000)
+      group_by(COMMON.NAME) %>% 
+      # _trans are link-scale, "mean" is back-transformed
+      mutate(m1 = first(mean_trans),
+             mean_year1 = first(mean),
+             s1 = first(se_trans)) %>% 
+      ungroup() %>% 
+      # for calculating change in abundance index (as % change)
+      mutate(mean_std = 100*mean/mean_year1) # back-transformed so value is % of year1 value
+    
+    # sensitivity check to ensure edge species are later converted to the conservative status
+    modtrends1 <- ltt_sens_sim(my_seed = 1, data = modtrends)
+    modtrends2 <- ltt_sens_sim(my_seed = 2, data = modtrends)
+    modtrends3 <- ltt_sens_sim(my_seed = 3, data = modtrends)
+    modtrends4 <- ltt_sens_sim(my_seed = 4, data = modtrends)
+    modtrends5 <- ltt_sens_sim(my_seed = 5, data = modtrends)
+    
+    # "main" simulated CIs
+    set.seed(10) 
+    modtrends = modtrends %>% 
+      # calculating CIs
+      group_by(COMMON.NAME, timegroups) %>% 
+      # 1000 simulations of transformed ratio of present:original values
+      # quantiles*100 from these gives us our CI limits for mean_std
+      reframe(tp0 = simerrordiv(mean_trans, m1, se_trans, s1)$rat) %>% 
+      group_by(COMMON.NAME, timegroups) %>% 
+      reframe(lci_std = 100*as.numeric(quantile(tp0, 0.025)),
+              rci_std = 100*as.numeric(quantile(tp0, 0.975))) %>% 
+      right_join(modtrends, by = c("COMMON.NAME", "timegroups"))
+    
+    # saving the values for 2022 in "main" as well:
+    # temp object then left_join instead of right_join because species order in main
+    # needs to be preserved
+    temp <- modtrends %>%
+      filter(timegroups == 2022) %>%
+      dplyr::select(COMMON.NAME, lci_std, mean_std, rci_std) %>%
+      rename(longtermlci = lci_std,
+             longtermmean = mean_std,
+             longtermrci = rci_std)
+    
+    main <- main %>%
+      left_join(temp, by = c("eBird.English.Name.2022" = "COMMON.NAME"))
+    
+    modtrends = modtrends %>%
+      group_by(COMMON.NAME) %>%
+      # making CI band zero for first year
+      mutate(lci_std = case_when(timegroups == first(timegroups) ~ mean_std,
+                                 TRUE ~ lci_std),
+             rci_std = case_when(timegroups == first(timegroups) ~ mean_std,
+                                 TRUE ~ rci_std)) %>%
+      ungroup() %>%
+      dplyr::select(timegroupsf, timegroups, COMMON.NAME, lci_std, mean_std, rci_std)
+    
+    
+    # checkpoint-object "main"
+    main2_postLTT <- main
+    
+  }
 
   # calculations: trends (current) ------------------------------------------
-
-  # Unlike trends for long-term, this is not last year divided by first year, instead a slope.
-  # For each year, sim 1000 points within CI for each year. In each sim, line is fitted.
-  # In each case, three models fitted (main, exponential for projection, sensitivity).
-  # Exponential is for Praveen's IUCN estimation using annual change, not used here.
-
-  tic("Calculating current trends")
-
-  # First, getting mean + CI for each year
-  modtrends_recent = trends %>%
-    filter(COMMON.NAME %in% spec_ct &
-             timegroups >= recentcutoff) %>%
-    arrange(COMMON.NAME, timegroups) %>%
-    # getting trends values of first year (only for current)
-    group_by(COMMON.NAME) %>%
-    mutate(m1 = first(mean_trans),
-           mean_year1 = first(mean),
-           s1 = first(se_trans)) %>%
-    ungroup() %>%
-    # for calculating change in abundance index (as % change)
-    mutate(mean_std_recent = 100*mean/mean_year1)
-
-  # Getting CIs for each year
-  set.seed(10)
-  modtrends_recent = modtrends_recent %>%
-    # calculating CIs
-    group_by(COMMON.NAME, timegroups) %>%
-    # 1000 simulations of transformed ratio of present:original values
-    # quantiles*100 from these gives us our CI limits for mean_std
-    reframe(simerrordiv(mean_trans, m1, se_trans, s1)) %>%  # gives rat and val columns
-    group_by(COMMON.NAME, timegroups) %>%
-    reframe(lci_std_recent = 100*as.numeric(quantile(rat, 0.025)),
-            rci_std_recent = 100*as.numeric(quantile(rat, 0.975)),
-            rat = rat,
-            val = val) %>%
-    right_join(modtrends_recent, by = c("COMMON.NAME", "timegroups"))
-
-
-  # Now running simulations for:
-  #   - slope and SE of main trend
-  #   - 8x slopes and SEs for sensitivity analyses
-  #   - exponential model predictions into future years
-
-  set.seed(1)
-  temp_sims <- modtrends_recent %>%
-    group_by(COMMON.NAME) %>%
-    dplyr::select(timegroups, rat, val) %>%
-    group_by(COMMON.NAME, timegroups) %>%
-    mutate(sim = 1:n(),
-           # for each sim, sampling from 1000 val values within species-year group
-           val_sample = map_dbl(sim, ~ sample(val, 1)))
-
-
-  # IN NEXT SECTION:
-  # Take these simulated values of reporting frequency for each year,
-  # fit lm through them, then predict new values based on that lm.
-
-  # Numerator and denominator for slope calculation, along with error propagation
-  # Uncertainty between 2015 and 2016 is highest, hence indexing them, i.e.,
-  # using that uncertainty for entire slope (being cautious).
-
-  # errordiv calculates and returns slope and SE from predicted values.
-
-
-  # making CI band zero for first year
-  modtrends_recent = modtrends_recent %>%
-    # now we don't need rat and val
-    distinct(COMMON.NAME, timegroupsf, timegroups,
-             lci_std_recent, mean_std_recent, rci_std_recent) %>%
-    group_by(COMMON.NAME) %>%
-    mutate(lci_std_recent = case_when(timegroups == first(timegroups) ~ mean_std_recent,
-                                      TRUE ~ lci_std_recent)) %>%
-    mutate(rci_std_recent = case_when(timegroups == first(timegroups) ~ mean_std_recent,
-                                      TRUE ~ rci_std_recent)) %>%
-    ungroup() %>%
-    dplyr::select(timegroupsf, timegroups, COMMON.NAME,
-                  lci_std_recent, mean_std_recent, rci_std_recent)
-
-
-  # calculations: trends (current): MAIN ------------------------------------
-
-  sl_data_main <- temp_sims %>%
-    group_by(COMMON.NAME, sim) %>%
-    # group_modify() performs function per grouping, so sl and slse calculated for all sim
-    group_modify(~ {
-
-      datatopred <- .x %>% dplyr::select(timegroups)
-
-      modelfit <- lm(val_sample ~ timegroups, data = .x)
-      pred <- predict(modelfit, newdata = datatopred, se = TRUE)
-
-      num <- pred$fit[2] - pred$fit[1]
-      den <- abs(pred$fit[1])
-      numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
-      dense <- pred$se.fit[1]
-
-      # indexing for mean and se
-      sl <- 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
-      slse <- errordiv(num, den, numse, dense)[2] %>% as.numeric()
-
-      .x %>%
-        reframe(sl = sl,
-                slse = slse)
-
-    }) %>%
-    group_by(COMMON.NAME) %>%
-    reframe(mean.slope = mean(sl),
-            se.slope = sd(sl) + sqrt(sum(slse^2)/length(slse))) %>%
-    group_by(COMMON.NAME) %>%
-    reframe(currentslopelci = mean.slope - 1.96*se.slope,
-            currentslopemean = mean.slope,
-            currentsloperci = mean.slope + 1.96*se.slope)
-
-  # joining to main data
-  main <- main %>%
-    left_join(sl_data_main, by = c("eBird.English.Name.2022" = "COMMON.NAME"))
-
-
-  # checkpoint-object "main"
-  main3_postCATmain <- main
-
-  # calculations: trends (current): SENS ------------------------------------
-
-  # here, fitting the same linear model as for main trend, but for data in which
-  # one year is dropped each time.
-  # this is to see how much each year affects the estimate.
-  sl_data_sens <- temp_sims %>%
-    group_by(COMMON.NAME, sim) %>%
-    group_modify(~ {
-
-      modelfit <- lm(val_sample ~ timegroups,
-                     # one year dropped
-                     data = .x[.x$timegroups != 2015,])
-
-      pred <- predict(modelfit, se = TRUE,
-                      # one year dropped
-                      newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2015]))
-
-      num <- pred$fit[2] - pred$fit[1]
-      den <- abs(pred$fit[1])
-      numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
-      dense <- pred$se.fit[1]
-
-      sl1 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
-      slse1 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
-
-
-      modelfit <- lm(val_sample ~ timegroups,
-                     # one year dropped
-                     data = .x[.x$timegroups != 2016,])
-
-      pred <- predict(modelfit, se = TRUE,
-                      # one year dropped
-                      newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2016]))
-
-      num <- pred$fit[2] - pred$fit[1]
-      den <- abs(pred$fit[1])
-      numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
-      dense <- pred$se.fit[1]
-
-      sl2 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
-      slse2 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
-
-
-      modelfit <- lm(val_sample ~ timegroups,
-                     # one year dropped
-                     data = .x[.x$timegroups != 2017,])
-
-      pred <- predict(modelfit, se = TRUE,
-                      # one year dropped
-                      newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2017]))
-
-      num <- pred$fit[2] - pred$fit[1]
-      den <- abs(pred$fit[1])
-      numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
-      dense <- pred$se.fit[1]
-
-      sl3 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
-      slse3 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
-
-
-      modelfit <- lm(val_sample ~ timegroups,
-                     # one year dropped
-                     data = .x[.x$timegroups != 2018,])
-
-      pred <- predict(modelfit, se = TRUE,
-                      # one year dropped
-                      newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2018]))
-
-      num <- pred$fit[2] - pred$fit[1]
-      den <- abs(pred$fit[1])
-      numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
-      dense <- pred$se.fit[1]
-
-      sl4 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
-      slse4 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
-
-
-      modelfit <- lm(val_sample ~ timegroups,
-                     # one year dropped
-                     data = .x[.x$timegroups != 2019,])
-
-      pred <- predict(modelfit, se = TRUE,
-                      # one year dropped
-                      newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2019]))
-
-      num <- pred$fit[2] - pred$fit[1]
-      den <- abs(pred$fit[1])
-      numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
-      dense <- pred$se.fit[1]
-
-      sl5 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
-      slse5 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
-
-
-      modelfit <- lm(val_sample ~ timegroups,
-                     # one year dropped
-                     data = .x[.x$timegroups != 2020,])
-
-      pred <- predict(modelfit, se = TRUE,
-                      # one year dropped
-                      newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2020]))
-
-      num <- pred$fit[2] - pred$fit[1]
-      den <- abs(pred$fit[1])
-      numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
-      dense <- pred$se.fit[1]
-
-      sl6 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
-      slse6 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
-
-
-      modelfit <- lm(val_sample ~ timegroups,
-                     # one year dropped
-                     data = .x[.x$timegroups != 2021,])
-
-      pred <- predict(modelfit, se = TRUE,
-                      # one year dropped
-                      newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2021]))
-
-      num <- pred$fit[2] - pred$fit[1]
-      den <- abs(pred$fit[1])
-      numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
-      dense <- pred$se.fit[1]
-
-      sl7 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
-      slse7 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
-
-
-      modelfit <- lm(val_sample ~ timegroups,
-                     # one year dropped
-                     data = .x[.x$timegroups != 2022,])
-
-      pred <- predict(modelfit, se = TRUE,
-                      # one year dropped
-                      newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2022]))
-
-      num <- pred$fit[2] - pred$fit[1]
-      den <- abs(pred$fit[1])
-      numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
-      dense <- pred$se.fit[1]
-
-      sl8 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
-      slse8 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
-
-
-      .x %>%
-        reframe(sl1 = sl1, slse1 = slse1,
-                sl2 = sl2, slse2 = slse2,
-                sl3 = sl3, slse3 = slse3,
-                sl4 = sl4, slse4 = slse4,
-                sl5 = sl5, slse5 = slse5,
-                sl6 = sl6, slse6 = slse6,
-                sl7 = sl7, slse7 = slse7,
-                sl8 = sl8, slse8 = slse8)
-
-
-    }) %>%
-
-    # mean and SE of slope
-    group_by(COMMON.NAME) %>%
-    reframe(across(
-
-      .cols = matches("^sl\\d+$"), # sl1 to sl8 but not "slse"s
-      .fn = list(mean.slope = ~ mean(.),
-                 se.slope = ~ sd(.) + sqrt(sum(get(str_replace(cur_column(), "sl", "slse"))^2) /
-                                             length(.))),
-      .names = c("{.fn}_{.col}")
-
-    )) %>%
-    rename_with(~ str_remove(., "_sl")) %>%
-
-    # (mean + SE) to (LCI, mean, RCI)
-    group_by(COMMON.NAME) %>%
-    reframe(across(
-
-      .cols = starts_with("mean.slope"),
-      .fn = list(lci = ~ . - 1.96 * get(str_replace(cur_column(), "mean", "se")),
-                 mean = ~ .,
-                 rci = ~ . + 1.96 * get(str_replace(cur_column(), "mean", "se"))),
-      .names = c("currentslope{.fn}{.col}")
-
-    )) %>%
-    rename_with(~ str_remove(., "mean.slope"))
-
-  # joining to data object
-  sens <- sens %>%
-    left_join(sl_data_sens, by = c("eBird.English.Name.2022" = "COMMON.NAME"))
-
-  write.csv(sens, file = cursens_path, row.names = F)
-
-
-  # calculations: trends (current): PROJ ------------------------------------
-
-  ext_trends <- temp_sims %>%
-    group_by(COMMON.NAME, sim) %>%
-    group_modify(~ {
-
-      datatopred <- data.frame(timegroups = extra.years)
-
-      modelfit <- lm(log(val_sample) ~ timegroups, data = .x)
-      pred <- predict(modelfit, newdata = datatopred, se = TRUE)
-
-      # No need to calculate slope here.
-
-      first_year <- .x %>% filter(timegroups == recentcutoff)
-
-      .x %>%
-        reframe(timegroups = datatopred$timegroups,
-                mean = pred$fit,
-                se = pred$se.fit,
-                # value in first year
-                val = first_year$val)
-
-    }) %>%
-    # we want mean and SE of change in repfreq between years, so divide by first year value
-    mutate(lci_bt = 100*exp(mean - 1.96 * se)/val,
-           mean_bt = 100*exp(mean)/val,
-           rci_bt = 100*exp(mean + 1.96 * se)/val) %>%
-    group_by(COMMON.NAME, timegroups) %>%
-    reframe(lci_ext_std = mean(lci_bt),
-            mean_ext_std = mean(mean_bt),
-            rci_ext_std = mean(rci_bt))
-
-  # ext_trends = ext_trends %>% select(-c(lci_bt,mean_bt,rci_bt))
-
-  toc()
-
+  
+  if (run_res_trends_CAT == FALSE) {
+    
+    # list of columns that need to be created since we have skipped steps
+    na_columns <- c("currentslopelci", "currentslopemean", "currentsloperci")
+    # creating NA columns to match structure of "normal" main data
+    main[, na_columns] <- NA_real_
+    
+    modtrends_recent <- trends %>% 
+      filter(timegroups >= recentcutoff) %>% 
+      dplyr::select(timegroupsf, timegroups, COMMON.NAME) %>% 
+      mutate(lci_std_recent = NA_real_, mean_std_recent = NA_real_, rci_std_recent = NA_real_)
+    
+    ext_trends <- trends %>% 
+      filter(timegroups >= recentcutoff) %>% 
+      group_by(COMMON.NAME) %>%
+      reframe(timegroups = extra.years) %>% 
+      mutate(lci_ext_std = NA_real_, mean_ext_std = NA_real_, rci_ext_std = NA_real_)
+    
+    # checkpoint-object "main"
+    main3_postCATmain <- main
+    
+    print(glue("Skipping resolving species CAT for {cur_mask}"))
+    
+  } else {
+    
+    # Unlike trends for long-term, this is not last year divided by first year, instead a slope.
+    # For each year, sim 1000 points within CI for each year. In each sim, line is fitted.
+    # In each case, three models fitted (main, exponential for projection, sensitivity).
+    # Exponential is for Praveen's IUCN estimation using annual change, not used here.
+    
+    tic("Calculating current trends")
+    
+    # First, getting mean + CI for each year
+    modtrends_recent = trends %>%
+      filter(COMMON.NAME %in% spec_ct &
+               timegroups >= recentcutoff) %>%
+      arrange(COMMON.NAME, timegroups) %>%
+      # getting trends values of first year (only for current)
+      group_by(COMMON.NAME) %>%
+      mutate(m1 = first(mean_trans),
+             mean_year1 = first(mean),
+             s1 = first(se_trans)) %>%
+      ungroup() %>%
+      # for calculating change in abundance index (as % change)
+      mutate(mean_std_recent = 100*mean/mean_year1)
+    
+    # Getting CIs for each year
+    set.seed(10)
+    modtrends_recent = modtrends_recent %>%
+      # calculating CIs
+      group_by(COMMON.NAME, timegroups) %>%
+      # 1000 simulations of transformed ratio of present:original values
+      # quantiles*100 from these gives us our CI limits for mean_std
+      reframe(simerrordiv(mean_trans, m1, se_trans, s1)) %>%  # gives rat and val columns
+      group_by(COMMON.NAME, timegroups) %>%
+      reframe(lci_std_recent = 100*as.numeric(quantile(rat, 0.025)),
+              rci_std_recent = 100*as.numeric(quantile(rat, 0.975)),
+              rat = rat,
+              val = val) %>%
+      right_join(modtrends_recent, by = c("COMMON.NAME", "timegroups"))
+    
+    # Now running simulations for:
+    #   - slope and SE of main trend
+    #   - 8x slopes and SEs for sensitivity analyses
+    #   - exponential model predictions into future years
+    
+    set.seed(1)
+    temp_sims <- modtrends_recent %>%
+      group_by(COMMON.NAME) %>%
+      dplyr::select(timegroups, rat, val) %>%
+      group_by(COMMON.NAME, timegroups) %>%
+      mutate(sim = 1:n(),
+             # for each sim, sampling from 1000 val values within species-year group
+             val_sample = map_dbl(sim, ~ sample(val, 1)))
+    
+    
+    # IN NEXT SECTION:
+    # Take these simulated values of reporting frequency for each year,
+    # fit lm through them, then predict new values based on that lm.
+    
+    # Numerator and denominator for slope calculation, along with error propagation
+    # Uncertainty between 2015 and 2016 is highest, hence indexing them, i.e.,
+    # using that uncertainty for entire slope (being cautious).
+    
+    # errordiv calculates and returns slope and SE from predicted values.
+    
+    
+    # making CI band zero for first year
+    modtrends_recent = modtrends_recent %>%
+      # now we don't need rat and val
+      distinct(COMMON.NAME, timegroupsf, timegroups,
+               lci_std_recent, mean_std_recent, rci_std_recent) %>%
+      group_by(COMMON.NAME) %>%
+      mutate(lci_std_recent = case_when(timegroups == first(timegroups) ~ mean_std_recent,
+                                        TRUE ~ lci_std_recent)) %>%
+      mutate(rci_std_recent = case_when(timegroups == first(timegroups) ~ mean_std_recent,
+                                        TRUE ~ rci_std_recent)) %>%
+      ungroup() %>%
+      dplyr::select(timegroupsf, timegroups, COMMON.NAME,
+                    lci_std_recent, mean_std_recent, rci_std_recent)
+    
+    
+    # calculations: trends (current): MAIN ------------------------------------
+    
+    sl_data_main <- temp_sims %>%
+      group_by(COMMON.NAME, sim) %>%
+      # group_modify() performs function per grouping, so sl and slse calculated for all sim
+      group_modify(~ {
+        
+        datatopred <- .x %>% dplyr::select(timegroups)
+        
+        modelfit <- lm(val_sample ~ timegroups, data = .x)
+        pred <- predict(modelfit, newdata = datatopred, se = TRUE)
+        
+        num <- pred$fit[2] - pred$fit[1]
+        den <- abs(pred$fit[1])
+        numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
+        dense <- pred$se.fit[1]
+        
+        # indexing for mean and se
+        sl <- 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
+        slse <- errordiv(num, den, numse, dense)[2] %>% as.numeric()
+        
+        .x %>%
+          reframe(sl = sl,
+                  slse = slse)
+        
+      }) %>%
+      group_by(COMMON.NAME) %>%
+      reframe(mean.slope = mean(sl),
+              se.slope = sd(sl) + sqrt(sum(slse^2)/length(slse))) %>%
+      group_by(COMMON.NAME) %>%
+      reframe(currentslopelci = mean.slope - 1.96*se.slope,
+              currentslopemean = mean.slope,
+              currentsloperci = mean.slope + 1.96*se.slope)
+    
+    # joining to main data
+    main <- main %>%
+      left_join(sl_data_main, by = c("eBird.English.Name.2022" = "COMMON.NAME"))
+    
+    
+    # checkpoint-object "main"
+    main3_postCATmain <- main
+    
+    # calculations: trends (current): SENS ------------------------------------
+    
+    # here, fitting the same linear model as for main trend, but for data in which
+    # one year is dropped each time.
+    # this is to see how much each year affects the estimate.
+    sl_data_sens <- temp_sims %>%
+      group_by(COMMON.NAME, sim) %>%
+      group_modify(~ {
+        
+        modelfit <- lm(val_sample ~ timegroups,
+                       # one year dropped
+                       data = .x[.x$timegroups != 2015,])
+        
+        pred <- predict(modelfit, se = TRUE,
+                        # one year dropped
+                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2015]))
+        
+        num <- pred$fit[2] - pred$fit[1]
+        den <- abs(pred$fit[1])
+        numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
+        dense <- pred$se.fit[1]
+        
+        sl1 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
+        slse1 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
+        
+        
+        modelfit <- lm(val_sample ~ timegroups,
+                       # one year dropped
+                       data = .x[.x$timegroups != 2016,])
+        
+        pred <- predict(modelfit, se = TRUE,
+                        # one year dropped
+                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2016]))
+        
+        num <- pred$fit[2] - pred$fit[1]
+        den <- abs(pred$fit[1])
+        numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
+        dense <- pred$se.fit[1]
+        
+        sl2 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
+        slse2 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
+        
+        
+        modelfit <- lm(val_sample ~ timegroups,
+                       # one year dropped
+                       data = .x[.x$timegroups != 2017,])
+        
+        pred <- predict(modelfit, se = TRUE,
+                        # one year dropped
+                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2017]))
+        
+        num <- pred$fit[2] - pred$fit[1]
+        den <- abs(pred$fit[1])
+        numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
+        dense <- pred$se.fit[1]
+        
+        sl3 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
+        slse3 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
+        
+        
+        modelfit <- lm(val_sample ~ timegroups,
+                       # one year dropped
+                       data = .x[.x$timegroups != 2018,])
+        
+        pred <- predict(modelfit, se = TRUE,
+                        # one year dropped
+                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2018]))
+        
+        num <- pred$fit[2] - pred$fit[1]
+        den <- abs(pred$fit[1])
+        numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
+        dense <- pred$se.fit[1]
+        
+        sl4 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
+        slse4 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
+        
+        
+        modelfit <- lm(val_sample ~ timegroups,
+                       # one year dropped
+                       data = .x[.x$timegroups != 2019,])
+        
+        pred <- predict(modelfit, se = TRUE,
+                        # one year dropped
+                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2019]))
+        
+        num <- pred$fit[2] - pred$fit[1]
+        den <- abs(pred$fit[1])
+        numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
+        dense <- pred$se.fit[1]
+        
+        sl5 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
+        slse5 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
+        
+        
+        modelfit <- lm(val_sample ~ timegroups,
+                       # one year dropped
+                       data = .x[.x$timegroups != 2020,])
+        
+        pred <- predict(modelfit, se = TRUE,
+                        # one year dropped
+                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2020]))
+        
+        num <- pred$fit[2] - pred$fit[1]
+        den <- abs(pred$fit[1])
+        numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
+        dense <- pred$se.fit[1]
+        
+        sl6 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
+        slse6 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
+        
+        
+        modelfit <- lm(val_sample ~ timegroups,
+                       # one year dropped
+                       data = .x[.x$timegroups != 2021,])
+        
+        pred <- predict(modelfit, se = TRUE,
+                        # one year dropped
+                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2021]))
+        
+        num <- pred$fit[2] - pred$fit[1]
+        den <- abs(pred$fit[1])
+        numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
+        dense <- pred$se.fit[1]
+        
+        sl7 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
+        slse7 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
+        
+        
+        modelfit <- lm(val_sample ~ timegroups,
+                       # one year dropped
+                       data = .x[.x$timegroups != 2022,])
+        
+        pred <- predict(modelfit, se = TRUE,
+                        # one year dropped
+                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2022]))
+        
+        num <- pred$fit[2] - pred$fit[1]
+        den <- abs(pred$fit[1])
+        numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
+        dense <- pred$se.fit[1]
+        
+        sl8 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
+        slse8 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
+        
+        
+        .x %>%
+          reframe(sl1 = sl1, slse1 = slse1,
+                  sl2 = sl2, slse2 = slse2,
+                  sl3 = sl3, slse3 = slse3,
+                  sl4 = sl4, slse4 = slse4,
+                  sl5 = sl5, slse5 = slse5,
+                  sl6 = sl6, slse6 = slse6,
+                  sl7 = sl7, slse7 = slse7,
+                  sl8 = sl8, slse8 = slse8)
+        
+        
+      }) %>%
+      
+      # mean and SE of slope
+      group_by(COMMON.NAME) %>%
+      reframe(across(
+        
+        .cols = matches("^sl\\d+$"), # sl1 to sl8 but not "slse"s
+        .fn = list(mean.slope = ~ mean(.),
+                   se.slope = ~ sd(.) + sqrt(sum(get(str_replace(cur_column(), "sl", "slse"))^2) /
+                                               length(.))),
+        .names = c("{.fn}_{.col}")
+        
+      )) %>%
+      rename_with(~ str_remove(., "_sl")) %>%
+      
+      # (mean + SE) to (LCI, mean, RCI)
+      group_by(COMMON.NAME) %>%
+      reframe(across(
+        
+        .cols = starts_with("mean.slope"),
+        .fn = list(lci = ~ . - 1.96 * get(str_replace(cur_column(), "mean", "se")),
+                   mean = ~ .,
+                   rci = ~ . + 1.96 * get(str_replace(cur_column(), "mean", "se"))),
+        .names = c("currentslope{.fn}{.col}")
+        
+      )) %>%
+      rename_with(~ str_remove(., "mean.slope"))
+    
+    # joining to data object
+    sens <- sens %>%
+      left_join(sl_data_sens, by = c("eBird.English.Name.2022" = "COMMON.NAME"))
+    
+    write.csv(sens, file = cursens_path, row.names = F)
+    
+    
+    # calculations: trends (current): PROJ ------------------------------------
+    
+    ext_trends <- temp_sims %>%
+      group_by(COMMON.NAME, sim) %>%
+      group_modify(~ {
+        
+        datatopred <- data.frame(timegroups = extra.years)
+        
+        modelfit <- lm(log(val_sample) ~ timegroups, data = .x)
+        pred <- predict(modelfit, newdata = datatopred, se = TRUE)
+        
+        # No need to calculate slope here.
+        
+        first_year <- .x %>% filter(timegroups == recentcutoff)
+        
+        .x %>%
+          reframe(timegroups = datatopred$timegroups,
+                  mean = pred$fit,
+                  se = pred$se.fit,
+                  # value in first year
+                  val = first_year$val)
+        
+      }) %>%
+      # we want mean and SE of change in repfreq between years, so divide by first year value
+      mutate(lci_bt = 100*exp(mean - 1.96 * se)/val,
+             mean_bt = 100*exp(mean)/val,
+             rci_bt = 100*exp(mean + 1.96 * se)/val) %>%
+      group_by(COMMON.NAME, timegroups) %>%
+      reframe(lci_ext_std = mean(lci_bt),
+              mean_ext_std = mean(mean_bt),
+              rci_ext_std = mean(rci_bt))
+    
+    # ext_trends = ext_trends %>% select(-c(lci_bt,mean_bt,rci_bt))
+    
+    toc()
+    
+  }
+  
   # calculations: combining two trends --------------------------------------
 
   trends = trends %>%
@@ -833,9 +889,12 @@ if (run_res_trends == FALSE) {
 # saving info for trends columns
 write.csv(main, file = mainwocats_path, row.names = F)
 
-# calculations: occupancy -------------------------------------------------
+# calculations: resolve occupancy ----------------------------------------------
 
 tic("Calculating occupancy")
+
+# the if TRUE steps happen later, in classify_and_summarise.R, since that requires 
+# to pull in columns from already-resolved full-country file
 
 if (skip_res_occu == FALSE) {
   
