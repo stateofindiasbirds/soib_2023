@@ -16,6 +16,7 @@ keystates <- read.csv("01_analyses_full/results/key_state_species_full.csv") %>%
 web_db0 <- map2(analyses_metadata$SOIBMAIN.PATH, analyses_metadata$MASK, 
               ~ read_fn(.x) %>% bind_cols(tibble(MASK = .y))) %>% 
   list_rbind() %>% 
+  mutate(India.Checklist.Common.Name = fct_inorder(India.Checklist.Common.Name)) %>% 
   # filtering for SoIB species
   filter(Selected.SOIB == "X") %>%
   dplyr::select(-c("eBird.English.Name.2022", "eBird.Scientific.Name.2022", "Order", "Family",
@@ -37,6 +38,8 @@ web_db0 <- map2(analyses_metadata$SOIBMAIN.PATH, analyses_metadata$MASK,
          comment_status = "closed", ping_status = "closed",
          post_parent = 0, menu_order = 0)
 
+# taxonomic order to arrange species
+tax_order <- levels(web_db0$India.Checklist.Common.Name)
 
 # creation of fields ----------------------------------------------------------------
 
@@ -60,7 +63,10 @@ web_db <- web_db0 %>%
   str_c_CI(., longtermlci, longtermrci, new_name = "long-term_trend_ci") %>% 
   str_c_CI(., currentslopelci, currentsloperci, new_name = "current_annual_change_ci") %>% 
   str_c_CI(., rangelci, rangerci, new_name = "distribution_range_size_ci_units_of_10000_sqkm") %>% 
-  join_mask_codes()
+  join_mask_codes() %>% 
+  # change "PAs" for website
+  mutate(MASK.LABEL = case_when(MASK.LABEL == "PAs" ~ "Protected Areas",
+                                TRUE ~ MASK.LABEL))
 
 
 # creation of fields within species (diff. masks) -----------------------------------
@@ -73,21 +79,24 @@ web_db <- web_db %>%
          # converting species name to enter in URLs
          URL_species = str_replace_all(India.Checklist.Common.Name, 
                                        c(" " = "-", "'" = "_")), 
-         URL_suf_rangemap = "_rangemap.png",
-         URL_suf_trend = "_trend.png") %>% 
+         URL_suf_rangemap = "_rangemap.jpg",
+         URL_suf_trend = "_trend.jpg") %>% 
   # some long strings
   mutate(featured_image = glue("{URL_pre_uploads}{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
          map_filename = glue("{URL_pre_uploads}{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
          map_filename_originals = glue("{URL_pre_uploads}originals/{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
          graph_filename = glue("{URL_pre_uploads}trends/{URL_species}_{MASK.CODE}{URL_suf_trend}"),
          graph_filename_originals = glue("{URL_pre_uploads}originals/trends/{URL_species}_{MASK.CODE}{URL_suf_trend}")) %>% 
-  mutate(full_url_2 = case_when(MASK.TYPE == "national" ~ glue("{custom_url}"),
-                                  TRUE ~ glue("{MASK.CODE}-{custom_url}")),
+  mutate(post_name = case_when(MASK.TYPE == "national" ~ glue("{custom_url}"),
+                               TRUE ~ glue("{MASK.CODE}-{custom_url}")),
          post_category = MASK.LABEL,
          post_content = MASK.LABEL,
          all_trends = MASK.LABEL,
-         habitats = if_else(MASK.TYPE == "habitat", MASK.LABEL, NA_character_),
-         conservation_areas = if_else(MASK.TYPE == "conservation_area", MASK.LABEL, NA_character_))
+         habitats = if_else(MASK.TYPE == "habitat", MASK.LABEL, "X"),
+         conservation_areas = if_else(MASK.TYPE == "conservation_area", MASK.LABEL, "X")) %>% 
+  # no maps for habitats/CAs
+  mutate(across(c(featured_image, starts_with("map_filename")), ~ case_when(!MASK.TYPE %in% c("habitat", "conservation_area") ~ .,
+                                                         TRUE ~ NA_character_)))
 
 # get list of all masks for each species
 web_db <- web_db %>% 
@@ -99,7 +108,7 @@ web_db <- web_db %>%
               names_glue = "{MASK.TYPE}_{.value}") %>% 
   ungroup() %>% 
   left_join(web_db) %>% 
-  mutate(post_name = if_else(MASK.TYPE == "national", national_trends_addn, full_url_2))
+  mutate(full_url_2 = if_else(MASK.TYPE == "national", national_trends_addn, post_name))
 
 # national trend values as separate columns
 web_db <- web_db %>% 
@@ -140,6 +149,10 @@ web_db <- web_db %>%
                 national_trends_addn, habitat_trends_addn, state_trends_addn, full_url_2, 
                 habitats, conservation_areas, conservation_area_trends_addn, key_states, all_trends, post_category) %>% 
   # converting all NAs to blanks
-  mutate(across(everything(), ~ ifelse(is.na(.), "", .)))
+  mutate(across(everything(), ~ ifelse(is.na(.), "", .))) %>% 
+  # sort taxonomically
+  mutate(post_title = factor(post_title, levels = tax_order)) %>% 
+  arrange(post_title)
+  
 
 write_csv(web_db, file = "20_website/website_database.csv")
