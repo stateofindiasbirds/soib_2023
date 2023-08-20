@@ -22,6 +22,7 @@ occu_pres_pathonly <- cur_metadata$OCCU.PRES.PATHONLY
 occu_mod_pathonly <- cur_metadata$OCCU.MOD.PATHONLY
 
 # write paths
+lttsens_path <- cur_metadata$LTTSENS.PATH
 cursens_path <- cur_metadata$CURSENS.PATH 
 trends_outpath <- cur_metadata$TRENDS.OUTPATH
 occu_outpath <- cur_metadata$OCCU.OUTPATH
@@ -407,6 +408,7 @@ if (run_res_trends == FALSE) {
     modtrends3 <- ltt_sens_sim(my_seed = 3, data = modtrends)
     modtrends4 <- ltt_sens_sim(my_seed = 4, data = modtrends)
     modtrends5 <- ltt_sens_sim(my_seed = 5, data = modtrends)
+    save(modtrends1, modtrends2, modtrends3, modtrends4, modtrends5, file = lttsens_path)
     
     # "main" simulated CIs
     set.seed(10) 

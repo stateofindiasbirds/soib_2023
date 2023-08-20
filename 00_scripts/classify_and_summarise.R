@@ -16,6 +16,7 @@ speclist_path <- cur_metadata$SPECLISTDATA.PATH
 trends_pathonly <- cur_metadata$TRENDS.PATHONLY
 
 # write paths
+lttsens_path <- cur_metadata$LTTSENS.PATH
 cursens_path <- cur_metadata$CURSENS.PATH 
 
 mainwocats_path <- cur_metadata$SOIBMAIN.WOCATS.PATH
@@ -190,6 +191,8 @@ if (run_res_trends == TRUE) {
     
     # sensitivity check for long-term trends ###
     
+    load(lttsens_path)
+    
     modtrends1 = ltt_sens_class(modtrends1)
     modtrends2 = ltt_sens_class(modtrends2)
     modtrends3 = ltt_sens_class(modtrends3)
@@ -362,6 +365,26 @@ if (run_res_trends == TRUE) {
   print(glue("Skipping sensitivity-check-based adjustments to Trend Status for {cur_mask}"))
   
 }
+
+
+# # some species change Trend Status categories in each iteration, so we fix it to
+# # values at time of printing SoIB 2023
+# 
+# if (cur_mask == "none") {
+# 
+#   # csvs obtained by matching new output with old one
+#   ltt_rep = read.csv("01_analyses_full/ltt_fix.csv")
+#   ctt_rep = read.csv("01_analyses_full/ctt_fix.csv")
+#   
+#   rows_to_replace_ltt = main$eBird.English.Name.2022 %in% ltt_rep$eBird.English.Name.2022
+#   main$SOIBv2.Long.Term.Status[rows_to_replace_ltt] = ltt_rep$SOIBv2.Long.Term.Status[ltt_rep$eBird.English.Name.2022 %in% 
+#                                                                                         main$eBird.English.Name.2022]
+#   
+#   rows_to_replace_ctt = main$eBird.English.Name.2022 %in% ctt_rep$eBird.English.Name.2022
+#   main$SOIBv2.Current.Status[rows_to_replace_ctt] = ctt_rep$SOIBv2.Current.Status[ctt_rep$eBird.English.Name.2022 %in% 
+#                                                                                     main$eBird.English.Name.2022]
+#   
+# }
 
 # classification: converting all non-selected to NA -----------------------
 

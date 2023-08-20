@@ -48,6 +48,7 @@ analyses_metadata <- data.frame(MASK = c("none",
          OCCU.OUTPATH = glue("{RESULTS}occupancy/"),
          
          TRENDS.OUTPATH = glue("{RESULTS}trends.csv"),
+         LTTSENS.PATH = glue("{RESULTS}longterm_sensitivity.RData"),
          CURSENS.PATH = glue("{RESULTS}current_sensitivity.csv"),
          SOIBMAIN.WOCATS.PATH = glue("{RESULTS}SoIB_main_wocats.csv"),
          SOIBMAIN.PATH = glue("{RESULTS}SoIB_main.csv"),
