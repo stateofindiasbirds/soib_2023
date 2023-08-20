@@ -65,7 +65,7 @@ if (!cur_metadata$MASK.TYPE %in% c("country", "state")) {
 
 ###
 
-# calculations: resolve occupancy for masks where skip_res_occu == TRUE --------------------------------------
+# calculations: resolve occupancy for masks where skip_res_occu == TRUE -------
 
 # for masks where resolve_occupancy not run (habitat/CA masks),
 # need to pull in range size info from full country (after it has been resolved, i.e.)
