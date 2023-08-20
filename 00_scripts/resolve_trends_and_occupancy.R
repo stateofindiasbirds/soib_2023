@@ -216,7 +216,9 @@ if (run_res_trends == FALSE) {
            COMMON.NAME %in% spec_ct) %>%
     group_by(sl, COMMON.NAME) %>%  
     # is any simulation of any species problematic: unable to calc. SE or SE > |mean|
-    filter(any(is.na(se) | se > abs(freq))) %>%
+    filter(any(is.na(se) | se > abs(freq) | 
+                 # edge case of CWBB and Mangrove Pitta in PAs (freq very high, SE low)
+                 (freq < -100 | freq > 100))) %>%
     distinct(sl, COMMON.NAME)
   
   
