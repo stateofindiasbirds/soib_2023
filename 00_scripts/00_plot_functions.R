@@ -1187,11 +1187,23 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
   
   if (plot_type == "single_mask") {
     
+    # don't plot full country trend line, point, label if Inconclusive
     if (plot_full_country == "Trend Inconclusive") {
       cur_data_trends = cur_data_trends %>% 
         mutate(mean_std = case_when(MASK == "none" ~ NA_real_, TRUE ~ mean_std),
                MASK.TITLE = case_when(MASK == "none" ~ NA_character_, TRUE ~ MASK.TITLE))
     } 
+    
+    # align labels when first year mismatch
+    min_years <- cur_data_trends %>% 
+      distinct(COMMON.NAME, timegroups, MASK) %>% 
+      group_by(COMMON.NAME, MASK) %>% 
+      slice(2) %>% 
+      ungroup() %>% 
+      distinct(MASK, timegroups) %>% 
+      mutate(DIFF = max(timegroups) - min(timegroups),
+             MIN.YEAR = min(timegroups)) %>% 
+      filter(timegroups == MIN.YEAR)
     
     plot_base <- ggplot(cur_data_trends, 
                         aes(x = timegroups, y = mean_std, 
@@ -1203,13 +1215,14 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
                                   ~ if_else(MASK == "none", NA_real_, .))),
                   aes(ymin = lci_std, ymax = rci_std), 
                   colour = NA, linewidth = 0.7, alpha = 0.5) +
-      # don't plot full country trend line if Inconclusive
       geom_line(linewidth = 1, lineend = "round") +
       geom_point(size = 3) +
-      geom_text_repel(nudge_x = plot_repel_nudge, direction = "y", 
-                        hjust = 0.5, size = 4, force_pull = 0,
-                        xlim = c(plot_xlimits[1] - 0.1, plot_xmin - plot_xmin_minus),
-                        family = plot_fontfamily, min.segment.length = Inf) +
+      geom_text_repel(nudge_x = ifelse(cur_data_trends$MASK == min_years$MASK, 
+                                       plot_repel_nudge, plot_repel_nudge - min_years$DIFF), 
+                      direction = "y", 
+                      hjust = 0.5, size = 4, force_pull = 0,
+                      xlim = c(plot_xlimits[1] - 0.3, plot_xmin - plot_xmin_minus),
+                      family = plot_fontfamily, min.segment.length = Inf) +
       scale_colour_manual(values = palette_trend_groups) +
       scale_fill_manual(values = palette_trend_groups) 
     
