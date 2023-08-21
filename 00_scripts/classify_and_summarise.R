@@ -496,7 +496,10 @@ species_qual0 <- main %>%
   mutate(Range.Analysis = if_else(is.na(SOIBv2.Range.Status), "", "X")) %>%
   summarise(across(c(Selected.SOIB, Long.Term.Analysis, Current.Analysis, Range.Analysis),
                    # adds up cases where condition is true
-                   ~ sum(. == "X")))
+                   ~ sum(. == "X"))) %>% 
+  # we don't analyse range for any habitat/CA mask
+  mutate(Range.Analysis  = case_when(cur_metadata$MASK.TYPE %in% c("habitat", "conservation_area") ~ 0,
+                                     TRUE ~ Range.Analysis))
 
 # number of species with conclusive trends
 nspec_trend_inconc <- data.frame(Category = cats_trend) %>%

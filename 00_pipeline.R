@@ -375,7 +375,7 @@ load("00_data/analyses_metadata.RData")
 
 tic.clearlog()
 tic("Resolved trends & occupancy for all 42 masks")
-# full-country takes 5 h 11 min; woodland 2 h 10 min
+# full-country takes 5 h 11 min; woodland 2 h 10 min; PA 3 h 30 min
 
 print(glue("Activated future-walking using advanced Kenbunshoku Haki!"))
 
@@ -383,8 +383,6 @@ print(glue("Activated future-walking using advanced Kenbunshoku Haki!"))
 plan(multisession, workers = parallel::detectCores()/2)
 
 analyses_metadata %>% 
-  filter(MASK.TYPE == "state") %>% 
-  filter(MASK == "Meghalaya") %>% 
   pull(MASK) %>% 
   # future-walking over each mask
   future_walk(.progress = TRUE, .options = furrr_options(seed = TRUE), ~ {
@@ -419,7 +417,7 @@ tic.log()
 # Outputs: several
 
 tic.clearlog()
-tic("Finished classifying and summarising for all masks")
+tic("Finished classifying and summarising for all masks") # 2 min
 
 analyses_metadata %>% 
   pull(MASK) %>% 
