@@ -135,6 +135,8 @@ gen_trend_plots <- function(plot_type = "single",
                
                advanced_kenbunshoku <- if (length(spec_qual) >= 5) TRUE else FALSE
                
+               cur_mask <- .x
+               
                if (cur_spec == "all") {
                  
                  to_walk <- function(.x, advanced_kenbunshoku) {
@@ -150,13 +152,13 @@ gen_trend_plots <- function(plot_type = "single",
 
                  if (advanced_kenbunshoku) {
                    print(glue("Activated future-walking using advanced Kenbunshoku Haki!"))
-                   tic(glue("Future-walked over {length(spec_qual)} species (plotted {plot_type} for all species)"))
+                   tic(glue("Future-walked over {length(spec_qual)} species (plotted {plot_type} for all species in {cur_mask})"))
                    plan(multisession, workers = parallel::detectCores()/2)
                    future_walk(spec_qual, .progress = TRUE, ~ to_walk(.x, advanced_kenbunshoku))
                    plan(sequential)
                    toc()
                  } else {
-                   tic(glue("Walked over {length(spec_qual)} species (plotted {plot_type} for all species)"))
+                   tic(glue("Walked over {length(spec_qual)} species (plotted {plot_type} for all species in {cur_mask})"))
                    walk(spec_qual, ~ to_walk(.x, advanced_kenbunshoku))
                    toc()
                  }

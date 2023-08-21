@@ -934,20 +934,35 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
   
   # determining limits for current plot -----------------------------------------------
   
-  plot_xmin <- cur_data_trends %>%
-    {if (plot_type != "composite") {
-      distinct(., COMMON.NAME, timegroups) %>%
-        arrange(., COMMON.NAME, timegroups) %>%
-        group_by(., COMMON.NAME)
-    } else {
-      distinct(., GROUP, timegroups) %>%
-        arrange(., GROUP, timegroups) %>%
-        group_by(., GROUP)
-    }} %>% 
-    slice(2) %>% # because 1st is the baseline
-    ungroup() %>%
-    pull(timegroups) %>%
-    max() # when multi-species, we take the latest year ### ###
+  if (plot_type != "single_mask") {
+    
+    plot_xmin <- cur_data_trends %>%
+      {if (plot_type != "composite") {
+        distinct(., COMMON.NAME, timegroups) %>%
+          arrange(., COMMON.NAME, timegroups) %>%
+          group_by(., COMMON.NAME)
+      } else {
+        distinct(., GROUP, timegroups) %>%
+          arrange(., GROUP, timegroups) %>%
+          group_by(., GROUP)
+      }} %>% 
+      slice(2) %>% # because 1st is the baseline
+      ungroup() %>%
+      pull(timegroups) %>%
+      max() # when multi-species, we take the latest year ### ###
+    
+  } else {
+    
+    plot_xmin <- cur_data_trends %>%
+      distinct(., MASK, COMMON.NAME, timegroups) %>%
+      arrange(., MASK, COMMON.NAME, timegroups) %>%
+      group_by(., MASK, COMMON.NAME) %>% 
+      slice(2) %>% # because 1st is the baseline
+      ungroup() %>%
+      pull(timegroups) %>%
+      min() 
+    
+  }
   
   
   # saving non-rounded values for later use in plotting
@@ -1172,6 +1187,12 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
   
   if (plot_type == "single_mask") {
     
+    if (plot_full_country == "Trend Inconclusive") {
+      cur_data_trends = cur_data_trends %>% 
+        mutate(mean_std = case_when(MASK == "none" ~ NA_real_, TRUE ~ mean_std),
+               MASK.TITLE = case_when(MASK == "none" ~ NA_character_, TRUE ~ MASK.TITLE))
+    } 
+    
     plot_base <- ggplot(cur_data_trends, 
                         aes(x = timegroups, y = mean_std, 
                             col = fct_inorder(MASK), fill = fct_inorder(MASK), 
@@ -1183,17 +1204,12 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
                   aes(ymin = lci_std, ymax = rci_std), 
                   colour = NA, linewidth = 0.7, alpha = 0.5) +
       # don't plot full country trend line if Inconclusive
-      {if (plot_full_country == "Trend Inconclusive") {
-        geom_line(data = cur_data_trends %>% filter(MASK != "none"),
-                  linewidth = 1, lineend = "round")
-      } else {
-        geom_line(linewidth = 1, lineend = "round")
-      }} +
-      geom_text_repel(nudge_x = plot_repel_nudge, direction = "y", 
-                      hjust = 0.5, size = 4, force_pull = 0,
-                      xlim = c(plot_xlimits[1] - 0.1, plot_xmin - plot_xmin_minus),
-                      family = plot_fontfamily, min.segment.length = Inf) +
+      geom_line(linewidth = 1, lineend = "round") +
       geom_point(size = 3) +
+      geom_text_repel(nudge_x = plot_repel_nudge, direction = "y", 
+                        hjust = 0.5, size = 4, force_pull = 0,
+                        xlim = c(plot_xlimits[1] - 0.1, plot_xmin - plot_xmin_minus),
+                        family = plot_fontfamily, min.segment.length = Inf) +
       scale_colour_manual(values = palette_trend_groups) +
       scale_fill_manual(values = palette_trend_groups) 
     
