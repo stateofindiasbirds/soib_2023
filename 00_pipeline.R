@@ -375,7 +375,7 @@ load("00_data/analyses_metadata.RData")
 
 tic.clearlog()
 tic("Resolved trends & occupancy for all 42 masks")
-# full-country takes 5 h 11 min
+# full-country takes 5 h 11 min; woodland 2 h 10 min; PA 3 h 30 min
 
 print(glue("Activated future-walking using advanced Kenbunshoku Haki!"))
 
@@ -383,7 +383,6 @@ print(glue("Activated future-walking using advanced Kenbunshoku Haki!"))
 plan(multisession, workers = parallel::detectCores()/2)
 
 analyses_metadata %>% 
-  slice(1:5) %>% 
   pull(MASK) %>% 
   # future-walking over each mask
   future_walk(.progress = TRUE, .options = furrr_options(seed = TRUE), ~ {
@@ -394,7 +393,7 @@ analyses_metadata %>%
     
     tic(glue("Resolved trends & occupancy for {.x}"))
     source("00_scripts/resolve_trends_and_occupancy.R", local = cur_env)
-    toc(log = TRUE)
+    toc()
     
   })
 
@@ -403,6 +402,7 @@ plan(sequential)
 
 toc(log = TRUE, quiet = TRUE) 
 tic.log()
+
 
 
 # STEP 2: Classify using trends and range status, and generate necessary outputs
@@ -417,14 +417,14 @@ tic.log()
 # Outputs: several
 
 tic.clearlog()
-tic("Finished classifying and summarising for all masks")
+tic("Finished classifying and summarising for all masks") # 2 min
 
 analyses_metadata %>% 
   pull(MASK) %>% 
   # walking over each mask
   walk(., ~ {
     
-    assign("cur_mask", .x, envir = cur_env)
+    assign("cur_mask", .x, envir = .GlobalEnv)
     
     tic(glue("Finished classifying and summarising for {.x}"))
     source("00_scripts/classify_and_summarise.R")
