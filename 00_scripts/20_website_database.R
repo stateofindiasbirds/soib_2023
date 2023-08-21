@@ -96,8 +96,13 @@ web_db <- web_db %>%
          habitats = if_else(MASK.TYPE == "habitat", MASK.LABEL, "X"),
          conservation_areas = if_else(MASK.TYPE == "conservation_area", MASK.LABEL, "X")) %>% 
   # no maps for habitats/CAs
-  mutate(across(c(featured_image, starts_with("map_filename")), ~ case_when(!MASK.TYPE %in% c("habitat", "conservation_area") ~ .,
-                                                         TRUE ~ NA_character_)))
+  mutate(across(c(featured_image, starts_with("map_filename")), 
+                ~ case_when(!MASK.TYPE %in% c("habitat", "conservation_area") ~ .,
+                            TRUE ~ NA_character_))) %>% 
+  # no trend plot if LTT absent
+  mutate(across(starts_with("graph_filename"), 
+                ~ case_when(!is.na(`long-term_trend`) ~ .,
+                            TRUE ~ NA_character_)))
 
 # get list of all masks for each species
 web_db <- web_db %>% 
