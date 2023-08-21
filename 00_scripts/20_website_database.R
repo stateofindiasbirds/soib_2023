@@ -64,8 +64,9 @@ web_db <- web_db0 %>%
   str_c_CI(., currentslopelci, currentsloperci, new_name = "current_annual_change_ci") %>% 
   str_c_CI(., rangelci, rangerci, new_name = "distribution_range_size_ci_units_of_10000_sqkm") %>% 
   join_mask_codes() %>% 
-  # change "PAs" for website
+  # change mask labels from acronym for website
   mutate(MASK.LABEL = case_when(MASK.LABEL == "PAs" ~ "Protected Areas",
+                                MASK.LABEL == "ONEs" ~ "Open Natural Ecosystems",
                                 TRUE ~ MASK.LABEL))
 
 
