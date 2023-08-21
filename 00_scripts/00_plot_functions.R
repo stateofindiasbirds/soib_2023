@@ -962,6 +962,14 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
       pull(timegroups) %>%
       min() 
     
+    if (cur_trend == "LTT") {
+      # in some masks, minimum year is < 2003, which reduces the margin for labels
+      timegroups_bracket_min <- c(1999 - (2003 - plot_xmin), 
+                                  2006, 2010, 2012, seq(2013, 2021)) + 0.5
+      plot_xlimits <- c(1999.5 - (2003 - plot_xmin), 
+                        2024.5)
+    }
+    
   }
   
   
