@@ -162,3 +162,27 @@ web_db <- web_db %>%
   
 
 write_csv(web_db, file = "20_website/website_database.csv")
+
+
+# ad-hoc overwriting of rows with missing file paths ----------------------
+
+# we have a plotting rule that we create plots only for those species that are 
+# not data-deficient in the full country, but these still had trend plots listed
+# in database
+# manually overwriting those rows due to time crunch (instead of rewriting full database)
+
+missing <- read.delim("20_website/missing_graph_files.txt", 
+                      header = FALSE, col.names = "filename") %>% 
+  mutate(
+    filename_orig = glue("https://wordpress-1024190-3615983.cloudwaysapps.com/wp-content/uploads/originals/trends/{filename}"),
+    filename = glue("https://wordpress-1024190-3615983.cloudwaysapps.com/wp-content/uploads/trends/{filename}")
+  )
+
+web_db <- read.csv("20_website/website_database.csv")
+
+web_db_filt <- web_db %>% 
+  filter(graph_filename %in% missing$filename,
+         graph_filename_originals %in% missing$filename_orig) %>% 
+  mutate(across(starts_with("graph_filename"), ~ ""))
+
+write_csv(web_db_filt, file = "20_website/website_database_filt_missing.csv")
