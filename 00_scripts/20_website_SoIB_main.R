@@ -68,4 +68,11 @@ main_db <- main_db0 %>%
 main_db %>% 
   # get named list of dfs
   split(.$MASK.LABEL) %>% 
+  # removing the column of mask name
+  map(~ dplyr::select(.x, -MASK.LABEL)) %>% 
+  # ordering sheets by mask
+  purrr::set_names(nm = analyses_metadata %>% 
+                     join_mask_codes() %>% 
+                     arrange(MASK.ORDERED) %>%
+                     pull(MASK.LABEL)) %>% 
   write_xlsx(path = "20_website/SoIB_2023_main.xlsx")
