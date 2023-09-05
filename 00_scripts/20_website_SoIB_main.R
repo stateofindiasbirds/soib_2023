@@ -12,7 +12,7 @@ source("00_scripts/20_functions.R")
 
 # importing all data and setting up
 main_db0 <- map2(analyses_metadata$SOIBMAIN.PATH, analyses_metadata$MASK, 
-                ~ read_fn(.x) %>% bind_cols(tibble(MASK = .y))) %>% 
+                 ~ read_fn(.x) %>% bind_cols(tibble(MASK = .y))) %>% 
   list_rbind()
 
 
@@ -68,14 +68,19 @@ main_db <- main_db0 %>%
 
 # writing
 
-main_db %>% 
+# ordering sheets by mask
+main_db_split <- main_db %>% 
   # get named list of dfs
-  split(.$MASK.LABEL) %>% 
+  split(.$MASK.LABEL)
+
+split_order <- data.frame(MASK.LABEL = names(main_db_split)) %>% 
+  rownames_to_column("ID") %>% 
+  left_join(analyses_metadata %>% join_mask_codes()) %>% 
+  arrange(MASK.ORDERED) %>%
+  pull(ID) %>% 
+  as.numeric()
+
+main_db_split[split_order] %>% 
   # removing the column of mask name
   map(~ dplyr::select(.x, -MASK.LABEL)) %>% 
-  # ordering sheets by mask
-  purrr::set_names(nm = analyses_metadata %>% 
-                     join_mask_codes() %>% 
-                     arrange(MASK.ORDERED) %>%
-                     pull(MASK.LABEL)) %>% 
   write_xlsx(path = "20_website/SoIB_2023_main.xlsx")
