@@ -45,17 +45,19 @@ main_db <- main_db0 %>%
   # rename columns
   magrittr::set_colnames(c(
     "Common Name",
-    "Selected for SoIB 2023","Selected for LTT","Selected for CAT",
-    "SoIB 2023 Priority Status","SoIB 2023 LTT Status","SoIB 2023 CAT Status","SoIB 2023 Range Status",
-    "SoIB 2020 Concern Status","SoIB 2020 LTT Status","SoIB 2020 CAT Status","SoIB 2020 Range Status",
+    "Selected for SoIB 2023","Selected for Long-term Trend","Selected for Current Annual Trend",
+    "SoIB 2023 Priority Status","SoIB 2023 Long-term Trend Status","SoIB 2023 Current Annual Trend Status",
+    "SoIB 2023 Distribution Range Size Status",
+    "SoIB 2020 Concern Status","SoIB 2020 Long-term Trend Status","SoIB 2020 Current Annual Trend Status",
+    "SoIB 2020 Distribution Range Size Status",
     "Scientific Name","eBird English Name 2022","eBird Scientific Name 2022",
     "Order","Family","Breeding Activity Period","Non-breeding Activity Period","Diet Guild",
     "Endemic to India","Endemic to Subcontinent","Endemic to Himalaya","Endemic Region",
-    "Habitat Specialisation","Migratory Status within India","Restricted to Islands",
+    "Habitat Specialization","Migratory Status within India","Restricted to Islands",
     "IUCN Category","WPA Schedule","CITES Appendix","CMS Appendix",
     "Long-term Trend LCI","Long-term Trend Mean","Long-term Trend RCI",
     "Current Annual Trend LCI","Current Annual Trend Mean","Current Annual Trend RCI",
-    "Range Size LCI","Range Size Mean","Range Size RCI",
+    "Distribution Range Size LCI","Distribution Range Size Mean","Distribution Range Size RCI",
     "MASK"
     )) %>% 
   # joining mask label
