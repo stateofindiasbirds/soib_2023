@@ -7,6 +7,10 @@ require(writexl)
 load("00_data/analyses_metadata.RData")
 source("00_scripts/20_functions.R")
 
+# key states for each species
+keystates <- read.csv("01_analyses_full/results/key_state_species_full.csv") %>% 
+  arrange(ST_NM, India.Checklist.Common.Name) 
+
 
 # import ----------------------------------------------------------------------------
 
@@ -24,6 +28,17 @@ main_db <- main_db0 %>%
   # remove other unnecessary columns
   mutate(across(c("Essential", "Discard", "eBird.Code", contains("5km")), 
                 ~ as.null(.))) %>% 
+  # adding column whether current state is key for particular species
+  is_state_keyforspec() %>% 
+  # retain taxonomic order of species
+  left_join(main_db0 %>% 
+              distinct(India.Checklist.Common.Name) %>% 
+              rownames_to_column("SPEC.ORDER") %>% 
+              mutate(SPEC.ORDER = as.numeric(SPEC.ORDER))) %>% 
+  group_by(MASK) %>% 
+  arrange(MASK, SPEC.ORDER) %>% 
+  ungroup() %>% 
+  dplyr::select(-SPEC.ORDER) %>% 
   # move columns
   relocate(
     "India.Checklist.Common.Name","India.Checklist.Scientific.Name",
@@ -32,12 +47,12 @@ main_db <- main_db0 %>%
     "eBird.English.Name.2022","eBird.Scientific.Name.2022", 
     "BLI.Common.Name", "BLI.Scientific.Name","Order","Family",
     "Breeding.Activity.Period","Non.Breeding.Activity.Period","Diet.Guild",
-    "India.Endemic","Subcontinent.Endemic","Himalayas.Endemic","Endemic.Region",
+    "Endemic.Region","India.Endemic","Subcontinent.Endemic","Himalayas.Endemic",
     "Habitat.Specialization","Migratory.Status.Within.India","Restricted.Islands",
     "IUCN.Category","WPA.Schedule","CITES.Appendix","CMS.Appendix","Onepercent.Estimates",
     "Selected.SOIB","Long.Term.Analysis","Current.Analysis",
     "longtermlci","longtermmean","longtermrci","currentslopelci","currentslopemean",
-    "currentsloperci","rangelci","rangemean","rangerci"
+    "currentsloperci","rangelci","rangemean","rangerci", "KEY"
   ) %>% 
   # string encoding issue  
   mutate(across(c("eBird.Scientific.Name.2022", "BLI.Scientific.Name"),
@@ -52,14 +67,14 @@ main_db <- main_db0 %>%
     "eBird English Name 2022","eBird Scientific Name 2022",
     "BLI Common Name","BLI Scientific Name","Order","Family",
     "Breeding Activity Period","Non-breeding Activity Period","Diet Guild",
-    "Endemic to India","Endemic to Subcontinent","Endemic to Himalaya","Endemic Region",
+    "Endemicity","Endemic to India","Endemic to Subcontinent","Endemic to Himalaya",
     "Habitat Specialization","Migratory Status within India","Restricted to Islands",
     "IUCN Category","WPA Schedule","CITES Appendix","CMS Appendix","1% Estimate",
     "Selected for SoIB 2023","Selected for Long-term Trend","Selected for Current Annual Trend",
     "Long-term Trend LCI","Long-term Trend Mean","Long-term Trend RCI",
     "Current Annual Trend LCI","Current Annual Trend Mean","Current Annual Trend RCI",
     "Distribution Range Size LCI","Distribution Range Size Mean","Distribution Range Size RCI",
-    "MASK"
+    "Key State", "MASK"
     )) %>% 
   # joining mask label
   join_mask_codes() %>% 
