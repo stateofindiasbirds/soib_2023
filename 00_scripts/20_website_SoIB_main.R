@@ -39,6 +39,10 @@ main_db <- main_db0 %>%
   arrange(MASK, SPEC.ORDER) %>% 
   ungroup() %>% 
   dplyr::select(-SPEC.ORDER) %>% 
+  # SoIB 2020 comparisons not applicable for habs/masks
+  mutate(across(c("SOIB.Concern.Status",
+                  "SOIB.Long.Term.Status","SOIB.Current.Status","SOIB.Range.Status"),
+                ~ case_when(MASK != "none" ~ NA, TRUE ~ .))) %>% 
   # move columns
   relocate(
     "India.Checklist.Common.Name","India.Checklist.Scientific.Name",
