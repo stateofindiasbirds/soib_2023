@@ -26,7 +26,7 @@ main_db <- main_db0 %>%
   # remove proj columns
   mutate(across(starts_with("proj20"), ~ as.null(.))) %>% 
   # remove other unnecessary columns
-  mutate(across(c("Essential", "Discard", "eBird.Code", contains("5km")), 
+  mutate(across(c("Essential", "Discard", "eBird.Code"), 
                 ~ as.null(.))) %>% 
   # adding column whether current state is key for particular species
   is_state_keyforspec() %>% 
@@ -58,7 +58,9 @@ main_db <- main_db0 %>%
     "IUCN.Category","WPA.Schedule","CITES.Appendix","CMS.Appendix","Onepercent.Estimates",
     "Selected.SOIB","Long.Term.Analysis","Current.Analysis",
     "longtermlci","longtermmean","longtermrci","currentslopelci","currentslopemean",
-    "currentsloperci","rangelci","rangemean","rangerci", "KEY"
+    "currentsloperci","rangelci","rangemean","rangerci","KEY",
+    "totalrange25km","proprange25km2000","proprange25km.current","proprange25km2022",
+    "mean5km","ci5km",
   ) %>% 
   # string encoding issue  
   mutate(across(c("eBird.Scientific.Name.2022", "BLI.Scientific.Name"),
@@ -80,7 +82,9 @@ main_db <- main_db0 %>%
     "Long-term Trend LCI","Long-term Trend Mean","Long-term Trend RCI",
     "Current Annual Trend LCI","Current Annual Trend Mean","Current Annual Trend RCI",
     "Distribution Range Size LCI","Distribution Range Size Mean","Distribution Range Size RCI",
-    "Key Species for States", "MASK"
+    "Key Species for States","Total Range (25km)","Prop. Range in 2000 (25km)",
+    "Prop. Range Current (25km)","Prop. Range in 2022 (25km)","Range coverage (5km) Mean",
+    "Range coverage (5km) CI","MASK"
     )) %>% 
   # joining mask label
   join_mask_codes() %>% 
