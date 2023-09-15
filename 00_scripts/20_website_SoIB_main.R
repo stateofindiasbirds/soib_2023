@@ -78,7 +78,7 @@ main_db <- main_db0 %>%
     "Long-term Trend LCI","Long-term Trend Mean","Long-term Trend RCI",
     "Current Annual Trend LCI","Current Annual Trend Mean","Current Annual Trend RCI",
     "Distribution Range Size LCI","Distribution Range Size Mean","Distribution Range Size RCI",
-    "Key State", "MASK"
+    "Key Species for States", "MASK"
     )) %>% 
   # joining mask label
   join_mask_codes() %>% 
