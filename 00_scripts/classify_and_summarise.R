@@ -421,7 +421,7 @@ main = main %>%
     
     SOIBv2.Long.Term.Status == "Insufficient Data" &
       SOIBv2.Current.Status == "Insufficient Data" &
-      Endemic.Region != "None" &
+      Endemic.Region != "Non-endemic" &
       SOIBv2.Priority.Status == "Low" ~ "Moderate",
     
     TRUE ~ SOIBv2.Priority.Status

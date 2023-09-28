@@ -537,7 +537,7 @@ fetch_plot_metadata <- function(plot_type) {
       mutate(GROUP = case_when(
         Habitat.Specialization == "Grassland" ~ "Grassland & Scrub",
         Habitat.Specialization == "Alpine & Cold Desert" ~ "Open Habitat",
-        Habitat.Specialization == "None" ~ "No Specialisation",
+        Habitat.Specialization == "Non-specialized" ~ "No Specialisation",
         TRUE ~ Habitat.Specialization
       )) %>% 
       filter(!is.na(GROUP)) %>% 
@@ -551,7 +551,6 @@ fetch_plot_metadata <- function(plot_type) {
         # Endemic.Region %in% c("Eastern Himalayas", "Western Himalayas") ~ "Himalaya",
         Endemic.Region == "Western Ghats" ~ "Western Ghats & Sri Lanka",
         Endemic.Region == "Mainland India" ~ "Indian Subcontinent",
-        Endemic.Region == "None" ~ "Non-endemic",
         TRUE ~ Endemic.Region
       )) %>% 
       filter(!is.na(GROUP)) %>% # all islands removed
@@ -611,7 +610,7 @@ fetch_plot_metadata <- function(plot_type) {
         Habitat.Specialization %in% c("Grassland", "Wetland", 
                                       "Alpine & Cold Desert") ~ "Open Habitat",
         Habitat.Specialization == "Forest" ~ "Forest & Plantation",
-        Habitat.Specialization == "None" ~ "No Specialisation",
+        Habitat.Specialization == "Non-specialized" ~ "No Specialisation",
         TRUE ~ Habitat.Specialization
       )) %>% 
       filter(!is.na(GROUP)) %>% 

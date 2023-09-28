@@ -646,7 +646,7 @@ dataspeciesfilter = function(cur_mask = "none") {
   # to limit number of species in restricted species list for states
   specieslist_rest = dataf %>%
     filter(., 
-             (Essential == 1 | Endemic.Region != "None" | ht == 1 | rt == 1), 
+             (Essential == 1 | Endemic.Region != "Non-endemic" | ht == 1 | rt == 1), 
              (Breeding.Activity.Period != "Nocturnal" | 
                 Non.Breeding.Activity.Period != "Nocturnal" | 
                 COMMON.NAME == "Jerdon's Courser"),
@@ -660,7 +660,7 @@ dataspeciesfilter = function(cur_mask = "none") {
     # for states, we want to include any species reported from the state & with trend for country
     {if (cur_metadata$MASK.TYPE != "state") {
       filter(., 
-             (Essential == 1 | Endemic.Region != "None" | ht == 1 | rt == 1), 
+             (Essential == 1 | Endemic.Region != "Non-endemic" | ht == 1 | rt == 1), 
              (Breeding.Activity.Period != "Nocturnal" | 
                 Non.Breeding.Activity.Period != "Nocturnal" | 
                 COMMON.NAME == "Jerdon's Courser"),
@@ -790,11 +790,11 @@ dataspeciesfilter = function(cur_mask = "none") {
              (Breeding.Activity.Period != "Nocturnal" |
                 Non.Breeding.Activity.Period != "Nocturnal"))
   t2 = dataf %>%
-    filter((Endemic.Region != "None" | ht == 1 | rt == 1) & 
+    filter((Endemic.Region != "Non-endemic" | ht == 1 | rt == 1) & 
              (Breeding.Activity.Period != "Nocturnal" |
                 Non.Breeding.Activity.Period != "Nocturnal"))
   t3 = dataf %>%
-    filter((Essential == 1 | Endemic.Region != "None" | ht == 1 | rt == 1) &
+    filter((Essential == 1 | Endemic.Region != "Non-endemic" | ht == 1 | rt == 1) &
              (Breeding.Activity.Period != "Nocturnal" |
                 Non.Breeding.Activity.Period != "Nocturnal"))
   
