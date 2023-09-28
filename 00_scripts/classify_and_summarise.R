@@ -143,12 +143,12 @@ main = main %>%
       rangemean == 0 & !(eBird.English.Name.2022 %in% spec_vagrants) ~ "Historical",
       # above is to prevent species that are not historical but classified as vagrants
       # from being classified as Historical (instead, Very Restricted)
-      rangerci < 0.0625 ~ "Very Restricted",
+      rangerci < 625 ~ "Very Restricted",
       # larger threshold for species that are not island endemics
-      (is.na(Restricted.Islands) & rangerci < 0.75) ~ "Very Restricted",
-      rangerci < 4.25 ~ "Restricted",
-      rangelci > 100 ~ "Very Large",
-      rangelci > 25 ~ "Large",
+      (is.na(Restricted.Islands) & rangerci < 7500) ~ "Very Restricted",
+      rangerci < 42500 ~ "Restricted",
+      rangelci > 1000000 ~ "Very Large",
+      rangelci > 250000 ~ "Large",
       TRUE ~ "Moderate"
     )
     

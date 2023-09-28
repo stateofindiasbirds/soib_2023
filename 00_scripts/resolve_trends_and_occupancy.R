@@ -1009,8 +1009,8 @@ if (skip_res_occu == FALSE) {
 
 
   tojoin = data.frame(eBird.English.Name.2022 = rownames(est)) %>%
-    mutate(rangemean = round(as.numeric(est[, 1]) / 10000, 3),
-           rangeci = round(as.numeric(est[, 2]) / 10000, 3)) %>%
+    mutate(rangemean = round(as.numeric(est[, 1]), 0),
+           rangeci = round(as.numeric(est[, 2]), 0)) %>%
     mutate(rangelci = rangemean - rangeci,
            rangerci = rangemean + rangeci,
            rangeci = NULL) %>%
