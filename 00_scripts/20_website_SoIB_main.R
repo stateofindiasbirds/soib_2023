@@ -39,12 +39,6 @@ main_db <- main_db0 %>%
   arrange(MASK, SPEC.ORDER) %>% 
   ungroup() %>% 
   dplyr::select(-SPEC.ORDER) %>% 
-  # TEMP FIX: SoIB 2020 comparisons not applicable for habs/masks
-  # TEMP FIX: range status columns NA for habs/masks
-  mutate(across(c("SOIB.Concern.Status",
-                  "SOIB.Long.Term.Status","SOIB.Current.Status","SOIB.Range.Status",
-                  "SOIBv2.Range.Status"),
-                ~ case_when(MASK != "none" ~ "NA", TRUE ~ .))) %>% 
   # move columns
   relocate(
     "India.Checklist.Common.Name","India.Checklist.Scientific.Name",
@@ -62,9 +56,6 @@ main_db <- main_db0 %>%
     "totalrange25km","proprange25km2000","proprange25km.current","proprange25km2022",
     "mean5km","ci5km",
   ) %>% 
-  # string encoding issue  
-  mutate(across(c("eBird.Scientific.Name.2022", "BLI.Scientific.Name"),
-                ~ str_replace_all(., "�", " "))) %>% 
   # rename columns
   magrittr::set_colnames(c(
     "Common Name","Scientific Name",

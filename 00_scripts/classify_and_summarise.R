@@ -486,6 +486,16 @@ if (cur_mask == "none") {
 
 ###
 
+# removing Status assignments where not applicable
+
+main <- main %>% 
+  # SoIB 2020 statuses not available for habs/states
+  # SoIB 2023 range status not available for habs/states
+  mutate(across(c("SOIB.Concern.Status",
+                  "SOIB.Long.Term.Status","SOIB.Current.Status","SOIB.Range.Status",
+                  "SOIBv2.Range.Status"),
+                ~ case_when(cur_mask != "none" ~ NA, TRUE ~ .))) 
+
 write.csv(main, file = main_path, row.names = F)
 
 
