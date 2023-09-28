@@ -397,9 +397,7 @@ removevagrants = function(data)
                                                  "Resident & Localized Summer Migrant",
                                                  "Altitudinal Migrant",
                                                  "Resident (Extirpated)")) %>%
-    dplyr::select(eBird.English.Name.2022) %>% 
-    as.vector() %>% 
-    list_c()
+    pull(eBird.English.Name.2022)
   
   d = data %>%
     filter(COMMON.NAME %in% migspecies) %>%
