@@ -31,7 +31,7 @@ str_c_CI <- function(data, lower, upper, new_name) {
            upper_round = round({{upper}}, 2)) %>%
     mutate({{ new_name }} := case_when(
       
-      !is.na({{ lower }}) & !is.na({{ upper }}) ~ glue("({lower_round},{upper_round})"),
+      !is.na({{ lower }}) & !is.na({{ upper }}) ~ glue("({lower_round}, {upper_round})"),
       TRUE ~ NA
       
     )) %>% 

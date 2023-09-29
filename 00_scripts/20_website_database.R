@@ -1,5 +1,6 @@
 require(tidyverse)
 require(glue)
+require(scales)
 
 load("00_data/analyses_metadata.RData")
 source("00_scripts/20_functions.R")
@@ -60,6 +61,8 @@ web_db <- web_db0 %>%
          endemicity = Endemic.Region,
          custom_url = eBird.Code) %>% 
   mutate(across(c("long-term_trend", "current_annual_change"), ~ round(., 2))) %>% 
+  # adding commas to large values of range size
+  mutate(across(c("distribution_range_size", "rangelci", "rangerci"), ~ label_comma()(.))) %>% 
   str_c_CI(., longtermlci, longtermrci, new_name = "long-term_trend_ci") %>% 
   str_c_CI(., currentslopelci, currentsloperci, new_name = "current_annual_change_ci") %>% 
   str_c_CI(., rangelci, rangerci, new_name = "distribution_range_size_ci_units_of_10000_sqkm") %>% 
@@ -93,8 +96,8 @@ web_db <- web_db %>%
          post_category = MASK.LABEL,
          post_content = MASK.LABEL,
          all_trends = MASK.LABEL,
-         habitats = if_else(MASK.TYPE == "habitat", MASK.LABEL, "X"),
-         conservation_areas = if_else(MASK.TYPE == "conservation_area", MASK.LABEL, "X")) %>% 
+         habitats = if_else(MASK.TYPE == "habitat", MASK.LABEL, "None"),
+         conservation_areas = if_else(MASK.TYPE == "conservation_area", MASK.LABEL, "None")) %>% 
   # no maps for habitats/CAs, so show India map
   mutate(across(c(featured_image, starts_with("map_filename")), 
                 ~ case_when(!MASK.TYPE %in% c("habitat", "conservation_area") ~ .,
