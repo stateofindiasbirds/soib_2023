@@ -80,17 +80,19 @@ web_db <- web_db %>%
   mutate(URL_base = "https://wordpress-1024190-3615983.cloudwaysapps.com/",
          # prefix for uploads
          URL_pre_uploads = glue("{URL_base}wp-content/uploads/"),
+         # subfolder structure for SoIB 2023 original images
+         URL_orig_substr = "originals/2023/",
          # converting species name to enter in URLs
          URL_species = str_replace_all(India.Checklist.Common.Name, 
                                        c(" " = "-", "'" = "_")), 
-         URL_suf_rangemap = "_rangemap.jpg",
+         URL_suf_rangemap = "_map_2023.jpg",
          URL_suf_trend = "_trend.jpg") %>% 
   # some long strings
   mutate(featured_image = glue("{URL_pre_uploads}{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
-         map_filename = glue("{URL_pre_uploads}{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
-         map_filename_originals = glue("{URL_pre_uploads}originals/{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
+         map_filename = glue("{URL_pre_uploads}maps/{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
+         map_filename_originals = glue("{URL_pre_uploads}{URL_orig_substr}{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
          graph_filename = glue("{URL_pre_uploads}trends/{URL_species}_{MASK.CODE}{URL_suf_trend}"),
-         graph_filename_originals = glue("{URL_pre_uploads}originals/trends/{URL_species}_{MASK.CODE}{URL_suf_trend}")) %>% 
+         graph_filename_originals = glue("{URL_pre_uploads}{URL_orig_substr}trends/{URL_species}_{MASK.CODE}{URL_suf_trend}")) %>% 
   mutate(post_name = case_when(MASK.TYPE == "national" ~ glue("{custom_url}"),
                                TRUE ~ glue("{MASK.CODE}-{custom_url}")),
          post_category = MASK.LABEL,
