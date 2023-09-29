@@ -160,6 +160,11 @@ main = main %>%
 # so, for states we retain NA and Historical classifications, but others are reverted to
 # full-country Range Status categories
 
+###
+# we have decided to abandon this entirely: non-country levels are not going to
+# have Range Status assigned. So, this part needs to be removed later.
+###
+
 if (cur_metadata$MASK.TYPE == "state") {
   
   main_tokeep <- main %>% filter(is.na(SOIBv2.Range.Status) | SOIBv2.Range.Status == "Historical")
