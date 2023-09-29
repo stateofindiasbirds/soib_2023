@@ -43,6 +43,8 @@ occupancy-presence/
 *.png
 *.svg
 *.pdf
+02_graphs/statewise_pas/
+
 
 # all shapefile related files
 #/*.dbf
