@@ -92,7 +92,7 @@ web_db <- web_db %>%
          map_filename = glue("{URL_pre_uploads}maps/{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
          map_filename_originals = glue("{URL_pre_uploads}{URL_orig_substr}{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
          graph_filename = glue("{URL_pre_uploads}trends/{URL_species}_{MASK.CODE}{URL_suf_trend}"),
-         graph_filename_originals = glue("{URL_pre_uploads}{URL_orig_substr}trends/{URL_species}_{MASK.CODE}{URL_suf_trend}")) %>% 
+         graph_filename_originals = glue("{URL_pre_uploads}{URL_orig_substr}trends/{URL_species}_{MASK.CODE}{URL_suf_trend}")) %>%
   mutate(post_name = case_when(MASK.TYPE == "national" ~ glue("{custom_url}"),
                                TRUE ~ glue("{MASK.CODE}-{custom_url}")),
          post_category = MASK.LABEL,
@@ -109,8 +109,8 @@ web_db <- web_db %>%
                 ~ case_when(!is.na(`long-term_trend`) ~ .,
                             TRUE ~ NA_character_)))
 
-# get list of all masks for each species
 web_db <- web_db %>% 
+  # get list of all masks for each species
   group_by(India.Checklist.Common.Name, MASK.TYPE) %>% 
   # HTML string, mask codes and mask labels (for states) of all masks of current mask type
   summarise(trends_addn = str_flatten(glue("{MASK.CODE}-{custom_url}"), collapse = ",")) %>% 
@@ -136,7 +136,15 @@ web_db <- web_db %>%
           endemicity_in = endemicity) %>% 
   # some species have mask trends but not national, so right join not left
   right_join(web_db, relationship = "many-to-many") %>% 
-  mutate(across(ends_with("_in"), ~ ifelse(MASK.TYPE == "national", "", .)))
+  mutate(across(ends_with("_in"), ~ ifelse(MASK.TYPE == "national", "", .))) %>% 
+  # we have only plotted trends in cases where species selected for that trend and 
+  # status is not data deficient. so, remove those file paths
+  mutate(across(starts_with("graph_filename"), ~ case_when(
+    MASK != "none" & 
+      Long.Term.Analysis == "X" &
+      is.na(`long-term_trend_in`) ~ "",
+    TRUE ~ .
+  )))
 
 
 
@@ -168,26 +176,3 @@ web_db <- web_db %>%
 
 write_csv(web_db, file = "20_website/website_database.csv")
 
-
-# ad-hoc overwriting of rows with missing file paths ----------------------
-
-# we have a plotting rule that we create plots only for those species that are 
-# not data-deficient in the full country, but these still had trend plots listed
-# in database
-# manually overwriting those rows due to time crunch (instead of rewriting full database)
-
-missing <- read.delim("20_website/missing_graph_files.txt", 
-                      header = FALSE, col.names = "filename") %>% 
-  mutate(
-    filename_orig = glue("https://wordpress-1024190-3615983.cloudwaysapps.com/wp-content/uploads/originals/trends/{filename}"),
-    filename = glue("https://wordpress-1024190-3615983.cloudwaysapps.com/wp-content/uploads/trends/{filename}")
-  )
-
-web_db <- read.csv("20_website/website_database.csv")
-
-web_db_filt <- web_db %>% 
-  filter(graph_filename %in% missing$filename,
-         graph_filename_originals %in% missing$filename_orig) %>% 
-  mutate(across(starts_with("graph_filename"), ~ ""))
-
-write_csv(web_db_filt, file = "20_website/website_database_filt_missing.csv")
