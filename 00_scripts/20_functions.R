@@ -26,9 +26,21 @@ read_fn <- function(file_path) {
 
 str_c_CI <- function(data, lower, upper, new_name) {
   
+  dist_range <- if (
+    is.character(data %>% pull({{ lower }})) | is.character(data %>% pull({{ upper }}))
+    ) TRUE else FALSE
+
   data %>% 
-    mutate(lower_round = round({{lower}}, 2),
-           upper_round = round({{upper}}, 2)) %>%
+    # for range size, we have already made it character with commas
+    {if (dist_range == TRUE) {
+      mutate(., 
+             lower_round = {{ lower }},
+             upper_round = {{ upper }})
+    } else {
+      mutate(., 
+             lower_round = round({{ lower }}, 2),
+             upper_round = round({{ upper }}, 2))
+    }} %>% 
     mutate({{ new_name }} := case_when(
       
       !is.na({{ lower }}) & !is.na({{ upper }}) ~ glue("({lower_round}, {upper_round})"),
