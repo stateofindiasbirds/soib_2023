@@ -106,7 +106,7 @@ join_mask_codes <- function(data) {
 
 # keystates, analyses_metadata objects must exist in environment
 
-is_state_keyforspec <- function(data) {
+is_curspec_key4state <- function(data) {
   
   key_db <- keystates %>% 
     distinct(ST_NM, India.Checklist.Common.Name) %>% 
