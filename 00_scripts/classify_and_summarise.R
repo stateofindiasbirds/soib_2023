@@ -477,7 +477,9 @@ if (cur_mask == "none") {
   
   # 13 columns from main file written at time of printing SoIB 2023
   # no. of Status changes: 14 LTT, 20 CAT
-  main_repair = read.csv("01_analyses_full/results/print_fix.csv")
+  main_repair = read.csv("01_analyses_full/results/print_fix.csv") %>% 
+    # range sizes need to be brought back from units of 10,000 sq km
+    mutate(across(c("rangelci", "rangemean", "rangerci"), ~ . * 10000))
   
   main <- main %>% 
     dplyr::select(-c("longtermlci", "longtermmean", "longtermrci",
