@@ -2,6 +2,20 @@ require(tidyverse)
 require(glue)
 
 
+###
+temp_priority_correction <- function(db) {
+  
+  mapping <- db %>% 
+    filter(MASK == "none") %>% 
+    distinct(India.Checklist.Common.Name, SOIBv2.Priority.Status)
+  
+  db %>% 
+    dplyr::select(-SOIBv2.Priority.Status) %>% 
+    left_join(mapping)
+  
+}
+###
+
 
 # function to read in all CSVs if exist ---------------------------------------------
 
@@ -136,3 +150,19 @@ is_curspec_key4state <- function(data) {
   
 }
 
+
+# round our model estimate values to appropriate precision --------------------------
+
+round_model_estimates <- function(db) {
+  
+  # Estimate 10.12345, SE 5.9876 --> Round estimate to zero or at most one decimal place.
+  # Estimate 10.12345, SE 0.5432 --> Round estimate to one or at most two places.
+  
+  # We are going with one decimal place to be conservative.
+  
+  db %>% 
+    mutate(across(c("longtermlci","longtermmean","longtermrci","currentslopelci",
+                    "currentslopemean","currentsloperci","rangelci","rangemean","rangerci"),
+                  ~ round(., 1)))
+  
+}

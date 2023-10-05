@@ -3,6 +3,7 @@ require(glue)
 require(scales)
 
 load("00_data/analyses_metadata.RData")
+source("00_scripts/00_functions.R")
 source("00_scripts/20_functions.R")
 
 # key states for each species
@@ -45,6 +46,8 @@ tax_order <- levels(web_db0$India.Checklist.Common.Name)
 # creation of fields ----------------------------------------------------------------
 
 web_db <- web_db0 %>% 
+  # TEMPORARY FIX for subnational SoIB Priority Status (retain national Status)
+  temp_priority_correction() %>% 
   # join key states for each species
   left_join(keystates) %>% 
   rename(`long-term_trend` = longtermmean,
@@ -63,6 +66,14 @@ web_db <- web_db0 %>%
   mutate(across(c("long-term_trend", "current_annual_change"), ~ round(., 2))) %>% 
   # adding commas to large values of range size
   mutate(across(c("distribution_range_size", "rangelci", "rangerci"), ~ label_comma()(.))) %>% 
+  # on website, we want a filter to show only species which have trend graph
+  # trend graphs not plotted for Insufficient Data
+  # ### currently using LTT for this criterion, but when we start showing CAT graphs on web
+  # ### we should update this accordingly
+  mutate(only_conclusive_trend = case_when(
+    long_term_status == "Insufficient Data" ~ "No",
+    TRUE ~ "Yes"
+    )) %>% 
   str_c_CI(., longtermlci, longtermrci, new_name = "long-term_trend_ci") %>% 
   str_c_CI(., currentslopelci, currentsloperci, new_name = "current_annual_change_ci") %>% 
   str_c_CI(., rangelci, rangerci, new_name = "distribution_range_size_ci_units_of_10000_sqkm") %>% 
