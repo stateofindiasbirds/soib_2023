@@ -21,6 +21,9 @@ web_db0 <- map2(analyses_metadata$SOIBMAIN.PATH, analyses_metadata$MASK,
   mutate(India.Checklist.Common.Name = fct_inorder(India.Checklist.Common.Name)) %>% 
   # filtering for SoIB species
   filter(Selected.SOIB == "X") %>%
+  # whether species is new to latest SoIB
+  mutate(new_to_soib = case_when(is.na(SOIB.Concern.Status) & !is.na(SOIBv2.Priority.Status) ~ TRUE,
+                                 TRUE ~ FALSE)) %>% 
   dplyr::select(-c("eBird.English.Name.2022", "eBird.Scientific.Name.2022", "Order", "Family",
                    starts_with("SOIB."), contains("Breeding.Activity"), "Diet.Guild",
                    starts_with("BLI."), ends_with(".Appendix"), "Onepercent.Estimates", 
@@ -177,7 +180,8 @@ web_db <- web_db %>%
                 distribution_range_size_in, distribution_range_size_ci_units_of_10000_sqkm_in,
                 migratory_status_in, habitat_specialization_in, endemicity_in,
                 national_trends_addn, habitat_trends_addn, state_trends_addn, full_url_2, 
-                habitats, conservation_areas, conservation_area_trends_addn, key_states, all_trends, post_category) %>% 
+                habitats, conservation_areas, conservation_area_trends_addn, key_states, all_trends, 
+                post_category, only_conclusive_trend, new_to_soib) %>% 
   # converting all NAs to blanks
   mutate(across(everything(), ~ ifelse(is.na(.), "", .))) %>% 
   # sort taxonomically

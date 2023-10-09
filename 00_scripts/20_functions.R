@@ -136,14 +136,14 @@ is_curspec_key4state <- function(data) {
   
   key_db <- keystates %>% 
     distinct(ST_NM, India.Checklist.Common.Name) %>% 
-    mutate(KEY = "Yes")
+    mutate(KEY = TRUE)
   
   data <- data %>% 
     left_join(analyses_metadata %>% distinct(MASK, MASK.TYPE)) %>% 
     join_mask_codes() %>% 
     left_join(key_db, 
               by = c("MASK.LABEL" = "ST_NM", "India.Checklist.Common.Name")) %>% 
-    complete(KEY, fill = list(KEY = "No")) %>% 
+    complete(KEY, fill = list(KEY = FALSE)) %>% 
     mutate(KEY = case_when(MASK.TYPE == "state" ~ KEY,
                            TRUE ~ NA)) %>% 
     dplyr::select(-c(MASK.TYPE, MASK.CODE, MASK.LABEL))
