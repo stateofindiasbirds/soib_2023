@@ -44,6 +44,7 @@ occupancy-presence/
 *.svg
 *.pdf
 02_graphs/statewise_pas/
+02_graphs/statewise_prioritygrids/
 
 
 # all shapefile related files
