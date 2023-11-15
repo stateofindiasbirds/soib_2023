@@ -11,6 +11,9 @@
 
 20_website/website_database.csv
 */data_rangemap_vagrants.csv
+00_data/BOW_image_list.csv
+00_data/state_summary_image_list.csv
+01_analyses_states/SoIB_state_summary.docx
 
 # RData files
 00_data/rawdata.RData
@@ -44,6 +47,7 @@ occupancy-presence/
 *.svg
 *.pdf
 02_graphs/statewise_pas/
+02_graphs/statewise_prioritygrids/
 
 
 # all shapefile related files
