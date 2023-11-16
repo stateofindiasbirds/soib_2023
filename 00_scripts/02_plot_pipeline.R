@@ -45,3 +45,7 @@ sysmon_metadata %>%
 
 gen_range_maps("country") # 38 min
 gen_range_maps("state") # 2.5 h
+
+# insufficient data plot ------------------------------------------------------------
+
+soib_trend_plot("stamp")
