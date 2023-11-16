@@ -2,6 +2,7 @@ require(tidyverse)
 require(sf)
 require(officer)
 
+load("00_data/dataforanalyses_extra.RData")
 load("01_analyses_full/specieslists.RData")
 load("00_data/maps_sf.RData")
 load("00_data/analyses_metadata.RData")
@@ -9,7 +10,7 @@ analyses_metadata = analyses_metadata %>%
   filter(MASK.TYPE == "state")
 
 
-data0 <- read.delim("00_data/dataforMyna.txt", 
+dataM <- read.delim("00_data/dataforMyna.txt", 
                     sep = "\t", header = T, quote = "", stringsAsFactors = F,
                     na.strings = c(""," ",NA)) %>% 
   rename(ST_NM = STATE,
@@ -37,7 +38,7 @@ top4 = read.csv("01_analyses_full/results/key_state_species_top4.csv") %>%
 key_species = read.csv("01_analyses_full/results/key_state_species_full.csv")
 
 
-n_species = data0 %>%
+n_species = dataM %>%
   filter(CATEGORY %in% c("species","issf")) %>%
   group_by(ST_NM) %>%
   reframe(n = n_distinct(COMMON.NAME))
