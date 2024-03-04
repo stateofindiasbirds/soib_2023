@@ -41,7 +41,9 @@ web_db0 <- map2(analyses_metadata$SOIBMAIN.PATH, analyses_metadata$MASK,
          post_status = "publish",
          post_format = "standard", 
          comment_status = "closed", ping_status = "closed",
-         post_parent = 0, menu_order = 0)
+         post_parent = 0, menu_order = 0) %>% 
+  # updating with latest IUCN Status
+  get_latest_IUCN_status("India.Checklist.Common.Name", "IUCN.Category")
 
 # taxonomic order to arrange species
 tax_order <- levels(web_db0$India.Checklist.Common.Name)
@@ -73,7 +75,7 @@ web_db <- web_db0 %>%
   # trend graphs not plotted for Insufficient Data
   # ### currently using LTT for this criterion, but when we start showing CAT graphs on web
   # ### we should update this accordingly
-  mutate(only_conclusive_trend = case_when(
+  mutate(only_estimated_trend = case_when(
     long_term_status == "Insufficient Data" ~ "No",
     TRUE ~ "Yes"
     )) %>% 
@@ -181,7 +183,7 @@ web_db <- web_db %>%
                 migratory_status_in, habitat_specialization_in, endemicity_in,
                 national_trends_addn, habitat_trends_addn, state_trends_addn, full_url_2, 
                 habitats, conservation_areas, conservation_area_trends_addn, key_states, all_trends, 
-                post_category, only_conclusive_trend, new_to_soib) %>% 
+                post_category, only_estimated_trend, new_to_soib) %>% 
   # converting all NAs to blanks
   mutate(across(everything(), ~ ifelse(is.na(.), "", .))) %>% 
   # sort taxonomically

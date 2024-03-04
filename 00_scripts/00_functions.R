@@ -1606,6 +1606,53 @@ specname_to_india_checklist <- function(spec_names, already_show = TRUE) {
   
 }
 
+# update IUCN Status based on India Checklist ---------------------------------------
+
+# input dataframe can be any mapping/main type object with list of species along with IUCN status
+# mutates IUCN Status column based on latest Status according to India Checklist 7.3
+# preserves column order in input data
+
+# col_specname must be India Checklist species names; if not, convert before using above function
+# both col_specname and col_iucn should be strings
+
+get_latest_IUCN_status <- function(data, col_specname, col_iucn = NULL,
+                                     path_checklist = "00_data/India-Checklist_v7_3.xlsx") {
+  
+  if (!(is.character(col_specname) & 
+        (is.character(col_iucn)) | is.null(col_iucn))) {
+    stop("Arguments col_specname and col_iucn can only be character values.")
+  }
+  
+  require(readxl)
+  require(tidyverse)
+  
+  col_newnames <- if (is.null(col_iucn)) {
+    c(col_specname, "IUCN.Category")
+  } else {
+    c(col_specname, col_iucn)
+  }
+  
+  col_order <- names(data)
+  
+  checklist <- read_xlsx(path_checklist, sheet = 2) %>% 
+    dplyr::select("English Name", "IUCN Category") %>% 
+    magrittr::set_colnames(col_newnames)
+  
+  data_upd <- data %>% 
+    # if IUCN column already exists, remove it before join
+    {if (!is.null(col_iucn)) {
+      dplyr::select(., -all_of(col_iucn))
+    } else {
+      .
+    }} %>% 
+    left_join(checklist, by = col_specname) %>% 
+    # if IUCN col existed, preserves exact order; else, will be new col after same old cols
+    relocate(all_of(col_order))
+  
+  return(data_upd)
+  
+}
+
 # Status categories -----------------------------------------------------------------
 
 get_soib_status_cats <- function(which = NULL) {
