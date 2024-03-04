@@ -339,8 +339,8 @@ plot_import_data <- function(mask, import_trend = fn_cur_trend, import_plot_type
                timegroups >= 2015 & timegroups <= 2022)
       
     }
-
-
+    
+    
     # return ----------------------------------------------------------------------------
 
     return(list(spec_qual = spec_qual, data_trends = data_trends, data_main = data_main))
@@ -374,11 +374,11 @@ plot_load_filter_data <- function(fn_plot_type, fn_cur_trend, fn_cur_mask = "non
       filter(MASK %in% c("none", as.character(fn_cur_mask))) %>% 
       # path (folder) to write to
       {if (fn_plot_type == "single_mask") {
-        mutate(., CUR.OUT.PATH = PLOT.SINGLE.FOLDER) 
+        mutate(., CUR.OUT.PATH = PLOT.SINGLE.FOLDER)
       } else if (fn_plot_type == "composite") {
-        mutate(., CUR.OUT.PATH = PLOT.COMPOSITE.FOLDER) 
+        mutate(., CUR.OUT.PATH = PLOT.COMPOSITE.FOLDER)
       }}
-    
+
   }
   
   path_write <- cur_metadata %>% 
@@ -431,9 +431,14 @@ plot_load_filter_data <- function(fn_plot_type, fn_cur_trend, fn_cur_mask = "non
   # for mask comparison, even though we have filtered each mask's trends for its qual. spp.,
   # we want an additional filter so that comparisons are only made for those species in masks
   # that are also there in full-country data
+  #
+  # UPDATE (March 2024): removing this criterion for "single_mask", i.e., non-country masks
+  # (but retaining for composites), because we want to show the Inconclusive Trend graphs
+  # for subnational masks 
+  # Requirement arose from species that are Insufficient Data at national level but have
+  # data for some mask(s)
   
-  if (fn_plot_type == "single_mask" |
-      (fn_plot_type == "composite" & fn_cur_mask != "none")) {
+  if (fn_plot_type == "composite" & fn_cur_mask != "none") {
     
     spec_qual <- map(data_processed, pluck, "spec_qual") %>% bind_rows()
     
@@ -449,6 +454,11 @@ plot_load_filter_data <- function(fn_plot_type, fn_cur_trend, fn_cur_mask = "non
     
     spec_qual <- map(data_processed, pluck, "spec_qual") %>% 
       bind_rows() %>% 
+      {if (fn_plot_type == "single_mask") {
+        filter(., MASK != "none") 
+      } else {
+        .
+      }} %>% 
       pull(eBird.English.Name.2022)
     
   }
@@ -1072,7 +1082,7 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     plot_range_max <- plot_ymax - plot_ymin
     
   } else {
-    
+
     plot_ybreaks <- seq(plot_ymin, plot_ymax, length.out = 5)
     
     # if 100 not in the ybreaks, adjustment needed
@@ -1257,11 +1267,19 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
   } else if (plot_type == "single_mask") {
     
     # don't plot full country trend line, point, label if Inconclusive
+    # same if Insufficient Data, but there data_trends will not have MASK == "none" at all 
     if (plot_full_country == "Trend Inconclusive") {
-      cur_data_trends = cur_data_trends %>% 
+      cur_data_trends <- cur_data_trends %>% 
         mutate(mean_std = case_when(MASK == "none" ~ NA_real_, TRUE ~ mean_std),
                MASK.TITLE = case_when(MASK == "none" ~ NA_character_, TRUE ~ MASK.TITLE))
-    } 
+    } else if (plot_full_country == "Insufficient Data") {
+      cur_data_trends <- cur_data_trends %>% 
+        mutate(mean_std = NA_real_,
+               MASK = "none",
+               MASK.TITLE = NA_character_,
+               MASK.TITLE.WRAP = NA_character_) %>% 
+        bind_rows(cur_data_trends)
+    }
     
     # align labels when first year mismatch
     min_years <- cur_data_trends %>% 
