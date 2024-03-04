@@ -14,6 +14,7 @@
 00_data/BOW_image_list.csv
 00_data/state_summary_image_list.csv
 01_analyses_states/SoIB_state_summary.docx
+30_certificates/India_eBirders_20230815.csv
 
 # RData files
 00_data/rawdata.RData
@@ -81,7 +82,9 @@ snippets/
 #Division@Range6/
 
 # folders and specific files in Karthik's system
+hist_spread/
 hist_spread/*.RData
+hist_spread/*.csv
 hist_spread/figs/
 hist_spread/Ecoregions2017/
 hist_spread/ecoregions_reclass_viz_files/
