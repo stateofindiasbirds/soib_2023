@@ -768,6 +768,11 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
                             data_trends, data_main, path_write,
                             cur_plot_metadata, haki = FALSE) {
   
+  # don't try to plot if species is not qualified for current trend-mask combo
+  if (!(cur_spec %in% spec_qual)) {
+    stop("Selected species is not qualified for current trend analysis for current mask!")
+  }
+  
   require(tidyverse)
   require(ggpubr) # geom_bracket
   require(extrafont)

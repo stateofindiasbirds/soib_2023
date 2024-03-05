@@ -1,6 +1,10 @@
 
 # various trends plots --------------------------------------------------------------
 
+# this function has a heavy focus on plot_type, not much on cur_spec
+# (even Kenbunshoku Haki is based on number of species within plot_type & cur_trend)
+# plot_load_filter_data() does not offer species argument
+
 gen_trend_plots <- function(plot_type = "single", 
                             cur_trend = NULL, cur_spec = NULL) {
   
@@ -72,7 +76,13 @@ gen_trend_plots <- function(plot_type = "single",
     plot_load_filter_data(plot_type, cur_trend)
     
     # generating plots if there are any qualified
-    if (length(spec_qual) != 0) {
+    
+    # skip species-mask combo if species is specified but not qualified for trend
+    skip_spec_dq <- if (!is.null(cur_spec) & cur_spec != "all") {
+      !(cur_spec %in% spec_qual)
+    } else FALSE
+    
+    if (length(spec_qual) != 0 & skip_spec_dq == FALSE) {
       
       # deciding whether to walk or future-walk (parallel) based on number of iterations required
       # (name: https://onepiece.fandom.com/wiki/Haki/Kenbunshoku_Haki#Future_Vision)
@@ -131,7 +141,13 @@ gen_trend_plots <- function(plot_type = "single",
              plot_load_filter_data(plot_type, cur_trend, .x)
              
              # generating plots if there are any qualified
-             if (length(spec_qual) != 0) {
+             
+             # skip species-mask combo if species is specified but not qualified for trend
+             skip_spec_dq <- if (!is.null(cur_spec) & cur_spec != "all") {
+               !(cur_spec %in% spec_qual)
+             } else FALSE
+               
+             if (length(spec_qual) != 0 & skip_spec_dq == FALSE) {
                
                advanced_kenbunshoku <- if (length(spec_qual) >= 5) TRUE else FALSE
                
