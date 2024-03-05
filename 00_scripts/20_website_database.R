@@ -136,15 +136,20 @@ web_db <- web_db %>%
 
 web_db <- web_db %>% 
   # get list of all masks for each species
-  group_by(India.Checklist.Common.Name, MASK.TYPE) %>% 
   # HTML string, mask codes and mask labels (for states) of all masks of current mask type
-  summarise(trends_addn = str_flatten(glue("{MASK.CODE}-{custom_url}"), collapse = ",")) %>% 
+  # _addn columns need to contain info about whether or not that species-mask combo has trend 
+  mutate(custom_url_estnot = case_when(
+    !is.na(`long-term_trend`) | !is.na(current_annual_change) ~ glue("est-{custom_url}"),
+    TRUE ~ glue("not-{custom_url}")
+  )) %>% 
+  group_by(India.Checklist.Common.Name, MASK.TYPE) %>% 
+  summarise(trends_addn = str_flatten(glue("{MASK.CODE}-{custom_url_estnot}"), collapse = ",")) %>% 
   pivot_wider(names_from = MASK.TYPE, 
               values_from = trends_addn, 
               names_glue = "{MASK.TYPE}_{.value}") %>% 
   ungroup() %>% 
   left_join(web_db) %>% 
-  mutate(full_url_2 = if_else(MASK.TYPE == "national", national_trends_addn, post_name))
+  mutate(full_url_2 = if_else(MASK.TYPE == "national", national_trends_addn, post_name)) 
 
 # national trend values as separate columns
 web_db <- web_db %>% 
@@ -178,7 +183,7 @@ web_db <- web_db %>%
                 graph_filename_originals_LTT, graph_filename_originals_CAT,
                 current_status, distribution_status, iucn_status, long_term_status,
                 migratory_status, status_of_conservation_concern, wlpa_schedule,
-                primary_assessment, habitat_specialization, endemicity, custom_url, 
+                primary_assessment, habitat_specialization, endemicity, custom_url, custom_url_estnot, 
                 `long-term_trend_in`, `long-term_trend_ci_in`, current_annual_change_in, current_annual_change_ci_in, 
                 distribution_range_size_in, distribution_range_size_ci_units_of_10000_sqkm_in,
                 migratory_status_in, habitat_specialization_in, endemicity_in,
