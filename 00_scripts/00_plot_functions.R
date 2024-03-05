@@ -402,7 +402,7 @@ plot_load_filter_data <- function(fn_plot_type, fn_cur_trend, fn_cur_mask = "non
     if (!dir.exists(.x)) {dir.create(.x, recursive = TRUE)}
   })
   
-  if (fn_plot_type %in% c("single", "single_mask") & fn_cur_trend == "LTT") {
+  if (fn_plot_type %in% c("single", "single_mask")) {
     web_metadata <- cur_metadata %>% 
       {if (fn_plot_type == "single_mask") {
         filter(., MASK != "none")
@@ -821,21 +821,15 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     path_write_file <- "20_website/graphs/insufficient_data.png"
     
   } else if (!(plot_type %in% c("multi", "composite"))) {
-    
-    path_write_file <- glue("{path_write}{cur_spec}.png")
-    
-    if (cur_trend == "LTT") {
-      # for website
-      source("00_scripts/20_functions.R")
-      cur_plot_metadata <- join_mask_codes(cur_plot_metadata)
-      web_folder <- cur_plot_metadata$WEB.PLOTS.FOLDER
-      web_spec <- str_replace_all(cur_spec, c(" " = "-", "'" = "_"))
-      web_mask <- cur_plot_metadata$MASK.CODE
-      path_write_file_web <- glue("{web_folder}trends/{web_spec}_{web_mask}_trend.jpg")
-    } else {
-      print("Not generating CAT plots for website.")
-    }
-    
+
+    # for website (originated that way, but now PNG works for both)
+    source("00_scripts/20_functions.R")
+    cur_plot_metadata <- join_mask_codes(cur_plot_metadata)
+    web_folder <- cur_plot_metadata$WEB.PLOTS.FOLDER
+    web_spec <- str_replace_all(cur_spec, c(" " = "-", "'" = "_"))
+    web_mask <- cur_plot_metadata$MASK.CODE
+    path_write_file <- glue("{path_write}{web_spec}_{web_mask}_{cur_trend}_trend.png")
+
   } else {
     path_write_file <- glue("{path_write}{unique(cur_plot_metadata$FILE.NAME)}.png")
   }
@@ -1389,13 +1383,7 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     ggsave(filename = path_write_file, plot = cur_plot,
            dpi = 500, bg = "transparent",
            width = 11, height = 7.5, units = "in")
-    
-  if (plot_type %in% c("single", "single_mask") & cur_trend == "LTT") {
-    ggsave(filename = path_write_file_web, plot = cur_plot,
-           dpi = 500, bg = "transparent",
-           width = 11, height = 7.5, units = "in")
-  }
-  
+
   # removing objects from global environment ------------------------------------------
   
   rm(list = names(obj_list), envir = .GlobalEnv)
