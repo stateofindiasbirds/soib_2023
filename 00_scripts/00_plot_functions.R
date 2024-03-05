@@ -1967,12 +1967,14 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
       # convert to India Checklist names 
       converted_spec <- specname_to_india_checklist(.x, already_show = FALSE)
         
+      
+      web_spec <- str_replace_all(converted_spec, c(" " = "-", "'" = "_"))
+
       # for structured
-      path_map <- glue("{cur_metadata$MAP.FOLDER}{converted_spec}.png")
+      path_map <- glue("{cur_metadata$MAP.FOLDER}{web_spec}_{cur_metadata$MASK.CODE}_map_2023.png")
       
       # for website
-      web_spec <- str_replace_all(converted_spec, c(" " = "-", "'" = "_"))
-      path_map_web <- glue("{cur_metadata$WEB.MAP.FOLDER}{web_spec}_{cur_metadata$MASK.CODE}_rangemap.jpg")
+      path_map_web <- glue("{cur_metadata$WEB.MAP.FOLDER}{web_spec}_{cur_metadata$MASK.CODE}_map_2023.jpg")
       
       
       # joining plot base with other constant aesthetic features of graph
