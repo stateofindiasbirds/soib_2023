@@ -18,6 +18,8 @@ keystates <- read.csv("01_analyses_full/results/key_state_species_full.csv") %>%
 web_db0 <- map2(analyses_metadata$SOIBMAIN.PATH, analyses_metadata$MASK, 
               ~ read_fn(.x) %>% bind_cols(tibble(MASK = .y))) %>% 
   list_rbind() %>% 
+  # updating with latest IUCN Status
+  get_latest_IUCN_status("India.Checklist.Common.Name", "IUCN.Category") %>% 
   mutate(India.Checklist.Common.Name = fct_inorder(India.Checklist.Common.Name)) %>% 
   # filtering for SoIB species
   filter(Selected.SOIB == "X") %>%
@@ -41,9 +43,7 @@ web_db0 <- map2(analyses_metadata$SOIBMAIN.PATH, analyses_metadata$MASK,
          post_status = "publish",
          post_format = "standard", 
          comment_status = "closed", ping_status = "closed",
-         post_parent = 0, menu_order = 0) %>% 
-  # updating with latest IUCN Status
-  get_latest_IUCN_status("India.Checklist.Common.Name", "IUCN.Category")
+         post_parent = 0, menu_order = 0)
 
 # taxonomic order to arrange species
 tax_order <- levels(web_db0$India.Checklist.Common.Name)
@@ -71,12 +71,10 @@ web_db <- web_db0 %>%
   mutate(across(c("long-term_trend", "current_annual_change"), ~ round(., 2))) %>% 
   # adding commas to large values of range size
   mutate(across(c("distribution_range_size", "rangelci", "rangerci"), ~ label_comma()(.))) %>% 
-  # on website, we want a filter to show only species which have trend graph
+  # on website, we want a filter to show only species which have trend graph (LTT or CAT)
   # trend graphs not plotted for Insufficient Data
-  # ### currently using LTT for this criterion, but when we start showing CAT graphs on web
-  # ### we should update this accordingly
   mutate(only_estimated_trend = case_when(
-    long_term_status == "Insufficient Data" ~ "No",
+    long_term_status == "Insufficient Data" & current_status == "Insufficient Data" ~ "No",
     TRUE ~ "Yes"
     )) %>% 
   str_c_CI(., longtermlci, longtermrci, new_name = "long-term_trend_ci") %>% 
@@ -102,13 +100,28 @@ web_db <- web_db %>%
          URL_species = str_replace_all(India.Checklist.Common.Name, 
                                        c(" " = "-", "'" = "_")), 
          URL_suf_rangemap = "_map_2023.jpg",
-         URL_suf_trend = "_trend.jpg") %>% 
+         URL_suf_trend_LTT = "_LTT_trend.jpg",
+         URL_suf_trend_CAT = "_CAT_trend.jpg") %>% 
   # some long strings
   mutate(featured_image = glue("{URL_pre_uploads}{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
          map_filename = glue("{URL_pre_uploads}maps/{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
          map_filename_originals = glue("{URL_pre_uploads}{URL_orig_substr}{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
-         graph_filename = glue("{URL_pre_uploads}trends/{URL_species}_{MASK.CODE}{URL_suf_trend}"),
-         graph_filename_originals = glue("{URL_pre_uploads}{URL_orig_substr}trends/{URL_species}_{MASK.CODE}{URL_suf_trend}")) %>%
+         # no trend plot if both LTT and CAT absent
+         # graph in species card:
+         graph_filename = case_when(
+           !is.na(`long-term_trend`) ~ glue("{URL_pre_uploads}trends/{URL_species}_{MASK.CODE}{URL_suf_trend_LTT}"),
+           !is.na(current_annual_change) ~ glue("{URL_pre_uploads}trends/{URL_species}_{MASK.CODE}{URL_suf_trend_CAT}"),
+           TRUE ~ NA_character_
+         ),
+         # originals for download:
+         graph_filename_originals_LTT = case_when(
+           !is.na(`long-term_trend`) ~ glue("{URL_pre_uploads}{URL_orig_substr}trends/{URL_species}_{MASK.CODE}{URL_suf_trend_LTT}"),
+           TRUE ~ NA_character_
+         ),
+         graph_filename_originals_CAT = case_when(
+           !is.na(current_annual_change) ~ glue("{URL_pre_uploads}{URL_orig_substr}trends/{URL_species}_{MASK.CODE}{URL_suf_trend_CAT}"),
+           TRUE ~ NA_character_
+         )) %>%
   mutate(post_name = case_when(MASK.TYPE == "national" ~ glue("{custom_url}"),
                                TRUE ~ glue("{MASK.CODE}-{custom_url}")),
          post_category = MASK.LABEL,
@@ -119,11 +132,7 @@ web_db <- web_db %>%
   # no maps for habitats/CAs, so show India map
   mutate(across(c(featured_image, starts_with("map_filename")), 
                 ~ case_when(!MASK.TYPE %in% c("habitat", "conservation_area") ~ .,
-                            TRUE ~ str_replace(., glue("_{MASK.CODE}_"), "_in_")))) %>% 
-  # no trend plot if LTT absent
-  mutate(across(starts_with("graph_filename"), 
-                ~ case_when(!is.na(`long-term_trend`) ~ .,
-                            TRUE ~ NA_character_)))
+                            TRUE ~ str_replace(., glue("_{MASK.CODE}_"), "_in_"))))
 
 web_db <- web_db %>% 
   # get list of all masks for each species
@@ -165,7 +174,8 @@ web_db <- web_db %>%
                 ping_status, pinged, post_parent, menu_order, scientific_name, 
                 `long-term_trend`, `long-term_trend_ci`, current_annual_change, current_annual_change_ci,
                 distribution_range_size, distribution_range_size_ci_units_of_10000_sqkm,
-                downloadlink, map_filename, map_filename_originals, graph_filename, graph_filename_originals,
+                downloadlink, map_filename, map_filename_originals, graph_filename, 
+                graph_filename_originals_LTT, graph_filename_originals_CAT,
                 current_status, distribution_status, iucn_status, long_term_status,
                 migratory_status, status_of_conservation_concern, wlpa_schedule,
                 primary_assessment, habitat_specialization, endemicity, custom_url, 
