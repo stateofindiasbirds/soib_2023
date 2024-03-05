@@ -151,16 +151,7 @@ web_db <- web_db %>%
           habitat_specialization_in = habitat_specialization,
           endemicity_in = endemicity) %>% 
   # some species have mask trends but not national, so right join not left
-  right_join(web_db, relationship = "many-to-many") %>% 
-  mutate(across(ends_with("_in"), ~ ifelse(MASK.TYPE == "national", "", .))) %>% 
-  # we have only plotted trends in cases where species selected for that trend and 
-  # status is not data deficient. so, remove those file paths
-  mutate(across(starts_with("graph_filename"), ~ case_when(
-    MASK != "none" & 
-      Long.Term.Analysis == "X" &
-      is.na(`long-term_trend_in`) ~ "",
-    TRUE ~ .
-  )))
+  right_join(web_db, relationship = "many-to-many") 
 
 
 
