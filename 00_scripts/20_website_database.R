@@ -132,16 +132,16 @@ web_db <- web_db %>%
   # no maps for habitats/CAs, so show India map
   mutate(across(c(featured_image, starts_with("map_filename")), 
                 ~ case_when(!MASK.TYPE %in% c("habitat", "conservation_area") ~ .,
-                            TRUE ~ str_replace(., glue("_{MASK.CODE}_"), "_in_"))))
-
-web_db <- web_db %>% 
-  # get list of all masks for each species
-  # HTML string, mask codes and mask labels (for states) of all masks of current mask type
+                            TRUE ~ str_replace(., glue("_{MASK.CODE}_"), "_in_")))) %>%
   # _addn columns need to contain info about whether or not that species-mask combo has trend 
   mutate(custom_url_estnot = case_when(
     !is.na(`long-term_trend`) | !is.na(current_annual_change) ~ glue("est-{custom_url}"),
     TRUE ~ glue("not-{custom_url}")
-  )) %>% 
+  ))
+
+web_db <- web_db %>% 
+  # get list of all masks for each species
+  # HTML string, mask codes and mask labels (for states) of all masks of current mask type
   group_by(India.Checklist.Common.Name, MASK.TYPE) %>% 
   summarise(trends_addn = str_flatten(glue("{MASK.CODE}-{custom_url_estnot}"), collapse = ",")) %>% 
   pivot_wider(names_from = MASK.TYPE, 
