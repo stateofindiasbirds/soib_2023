@@ -23,7 +23,9 @@ read_fn <- function(file_path) {
   
   if (file.exists(file_path)) {
     
-    read_csv(file_path) 
+    read_csv(file_path, guess_max = Inf,
+             col_types = "ccccccccccccccccccdddccccccccdcccddddddddddddddddddddddddddddddddddddcccc") 
+    # if not specified, cols with many NAs read as logical
     
   } else {
     

@@ -54,7 +54,7 @@ web_db <- web_db0 %>%
   # TEMPORARY FIX for subnational SoIB Priority Status (retain national Status)
   temp_priority_correction() %>% 
   # join key states for each species
-  left_join(keystates) %>% 
+  left_join(keystates, by = "India.Checklist.Common.Name") %>% 
   rename(`long-term_trend` = longtermmean,
          current_annual_change = currentslopemean,
          distribution_range_size = rangemean,
@@ -100,8 +100,8 @@ web_db <- web_db %>%
          URL_species = str_replace_all(India.Checklist.Common.Name, 
                                        c(" " = "-", "'" = "_")), 
          URL_suf_rangemap = "_map_2023.jpg",
-         URL_suf_trend_LTT = "_LTT_trend.jpg",
-         URL_suf_trend_CAT = "_CAT_trend.jpg") %>% 
+         URL_suf_trend_LTT = "_LTT_trend.png",
+         URL_suf_trend_CAT = "_CAT_trend.png") %>% 
   # some long strings
   mutate(featured_image = glue("{URL_pre_uploads}{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
          map_filename = glue("{URL_pre_uploads}maps/{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
