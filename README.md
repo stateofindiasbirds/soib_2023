@@ -8,21 +8,21 @@ The broad-level structure and workflow for the main analysis is outlined below. 
 
 Quick links to jump to relevant section of this README.
 
-1. [Data](data)
-2. [Pipeline](pipeline)
-3. [Outputs](outputs)
+1. [Data](#data)
+2. [Pipeline](#pipeline)
+3. [Outputs](#outputs)
 
-## Data {#data}
+## Data
 
 - committed vs not committed
 - metadata for certain files
 
 
-## Pipeline {#pipeline}
+## Pipeline
 
 Setup, pipeline, outputs
 
-## Outputs {#outputs}
+## Outputs
 
 
 ## References
