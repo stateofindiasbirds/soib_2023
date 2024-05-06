@@ -42,10 +42,13 @@ redlist <- read_csv("01_analyses_full/results/redlist.csv") %>%
     TRUE ~ NA_character_
   )) %>% 
   magrittr::set_colnames(c("India.Checklist.Common.Name", 
-                           "Projected Decline in 3 Generations",
+                           "Projected % Decline in 3 Generations",
                            "Regional Red List Category")) %>% 
   # these values only for country-level, and not for subnational
-  mutate(MASK = "none")
+  mutate(MASK = "none") %>% 
+  mutate(`Projected % Decline in 3 Generations` = str_remove(`Projected % Decline in 3 Generations`,
+                                                             "%") %>% 
+           as.numeric())
 
 # process ---------------------------------------------------------------------------
 
@@ -104,7 +107,7 @@ main_db <- main_db0 %>%
     "KEY",
     "totalrange25km","proprange25km2000","proprange25km.current","proprange25km2022",
     "mean5km","ci5km",
-    "Projected Decline in 3 Generations","Regional Red List Category",
+    "Projected % Decline in 3 Generations","Regional Red List Category",
     "SOIB.Concern.Status","SOIB.Long.Term.Status","SOIB.Current.Status","SOIB.Range.Status"
   ) %>% 
   # rename columns
@@ -125,7 +128,7 @@ main_db <- main_db0 %>%
     "State Where Species Key",
     "Number of Grids","Range Coverage (Pre-2000)","Range Coverage (Current)","Range Coverage (2022)",
     "Grid Coverage Mean", "Grid Coverage CI",
-    "Projected Decline in 3 Generations","Regional Red List Category",
+    "Projected % Decline in 3 Generations","Regional Red List Category",
     "SoIB 2020 Concern Status","SoIB 2020 Long-term Trend Status",
     "SoIB 2020 Current Annual Trend Status","SoIB 2020 Distribution Range Size Status",
     "MASK"
@@ -182,29 +185,40 @@ main_db <- main_db %>%
     ),
     `IUCN Category` = factor(
       `IUCN Category`,
-      levels = c("Extinct", "Extinct in the Wild", 
-                 "Critically Endangered", "Endangered", 
-                 "Vulnerable", "Near Threatened", 
-                 "Least Concern", "Data Deficient", "Not Recognised")
+      levels = c(
+        # "Extinct", "Extinct in the Wild", 
+        "Critically Endangered", "Endangered", 
+        "Vulnerable", "Near Threatened", 
+        "Least Concern", "Data Deficient", "Not Recognised"
+      )
     ),
     `Regional Red List Category` = factor(
       `Regional Red List Category`,
-      levels = c("Extinct", "Extinct in the Wild", 
-                 "Critically Endangered", "Endangered", 
-                 "Vulnerable", "Near Threatened", 
-                 "Least Concern", "Data Deficient", "Not Recognised")
+      levels = c(
+        # "Extinct", "Extinct in the Wild", 
+        # "Critically Endangered", 
+        "Endangered", "Vulnerable", "Near Threatened"
+        # "Least Concern", "Data Deficient", "Not Recognised"
+      )
     ),
     `WPA Schedule` = factor(
       `WPA Schedule`,
       levels = c("Not protected", "Recent addition", 
-                 "Schedule-I", "Schedule-II")
+                 "Schedule-II", "Schedule-I")
+    ),
+    `CITES Appendix` = factor(
+      `CITES Appendix`,
+      levels = c("Appendix II", "Appendix I")
+    ),
+    `CMS Appendix` = factor(
+      `CMS Appendix`,
+      levels = c("Appendix II", "Appendix I")
     )
   ) %>% 
   mutate(across(c("Order", "Family", "Breeding Activity Period",
                   "Non-breeding Activity Period", "Diet Guild",
                   "Endemicity", "Habitat Specialization",
-                  "Migratory Status within India", "CITES Appendix",
-                  "CMS Appendix"),
+                  "Migratory Status within India"),
                 ~ as.factor(.)))
 
 
@@ -221,11 +235,15 @@ readme_datatype <- main_db %>%
 readme_range <- main_db %>% 
   mutate(`Range Coverage CI (Current)` = NA) %>% 
   dplyr::select(-MASK.LABEL) %>% 
-  reframe(across(everything(), 
-                 ~ range(na.omit(.)) %>% str_flatten_comma())) %>% 
+  reframe(across(!where(is.factor),
+                 ~ range(na.omit(.)) %>% str_flatten_comma()),
+          across(where(is.factor),
+                 ~ c(first(levels(.)), 
+                     last(levels(.))) %>% str_flatten_comma())) %>% 
+  distinct() %>% 
   pivot_longer(everything(), names_to = "Field", values_to = "Range (min, max)") %>% 
   mutate(`Range (min, max)` = case_when(Field == "Range Coverage CI (Current)" ~ NA, 
-                           TRUE ~ `Range (min, max)`))
+                                        TRUE ~ `Range (min, max)`))
 
 # which fields are only for national sheet?
 readme_nat_excl <- main_db %>% 
@@ -291,7 +309,7 @@ readme <- tribble(
   "Range Coverage (2022)", "Percentage of the 'Total Range' (see above) which was sampled in the year 2022",
   "Grid Coverage Mean", "Average across all 25 km x 25 km cells with the species, of percentage of sampled 5 km x 5 km subcells within each 25 km x 25 km cell (a maximum of 25)",
   "Grid Coverage CI", "95% confidence interval across all 25 km x 25 km cells with the species, of percentage of sampled 5 km x 5 km subcells within each 25 km x 25 km cell (a maximum of 25)",
-  "Projected Decline in 3 Generations", "Decline in three generations of species, projected from SoIB 2023 analysis",
+  "Projected % Decline in 3 Generations", "Decline in three generations of species, projected from SoIB 2023 analysis",
   "Regional Red List Category", "Regional Red List threat status category proposed from SoIB 2023 analysis based on IUCN criterion A (decline in three generations)",
   "SoIB 2020 Concern Status", "Conservation Concern Status of species from SoIB 2020 assessment",
   "SoIB 2020 Long-term Trend Status", "Long-term Trend Status of species from SoIB 2020 assessment",
