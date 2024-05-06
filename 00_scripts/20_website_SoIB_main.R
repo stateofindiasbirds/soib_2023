@@ -130,6 +130,79 @@ main_db <- main_db0 %>%
   dplyr::select(-c(MASK, MASK.CODE))
 
 
+# converting certain character columns to factor
+main_db <- main_db %>% 
+  mutate(
+    `SoIB 2023 Priority Status` = factor(
+      `SoIB 2023 Priority Status`,
+      levels = c("Low", "Moderate", "High")
+    ),
+    `SoIB 2023 Long-term Trend Status` = factor(
+      `SoIB 2023 Long-term Trend Status`,
+      levels = c("Rapid Decline", "Decline", "Insufficient Data", 
+                 "Trend Inconclusive", "Stable", 
+                 "Increase", "Rapid Increase")
+    ),
+    `SoIB 2023 Current Annual Trend Status` = factor(
+      `SoIB 2023 Current Annual Trend Status`,
+      levels = c("Rapid Decline", "Decline", "Insufficient Data", 
+                 "Trend Inconclusive", "Stable", 
+                 "Increase", "Rapid Increase")
+    ),
+    `SoIB 2023 Distribution Range Size Status` = factor(
+      `SoIB 2023 Distribution Range Size Status`,
+      levels = c("Very Restricted", "Restricted", "Historical", 
+                 "Moderate", "Large", "Very Large")
+    ),
+    `SoIB 2020 Concern Status` = factor(
+      `SoIB 2020 Concern Status`,
+      levels = c("Low", "Moderate", "High")
+    ),
+    `SoIB 2020 Long-term Trend Status` = factor(
+      `SoIB 2020 Long-term Trend Status`,
+      levels = c("Strong Decline", "Moderate Decline", "Data Deficient",
+                 "Uncertain", "Stable", 
+                 "Moderate Increase", "Strong Increase")
+    ),
+    `SoIB 2020 Current Annual Trend Status` = factor(
+      `SoIB 2020 Current Annual Trend Status`,
+      levels = c("Strong Decline", "Moderate Decline", "Data Deficient",
+                 "Uncertain", "Stable", 
+                 "Moderate Increase", "Strong Increase")
+    ),
+    `SoIB 2020 Distribution Range Size Status` = factor(
+      `SoIB 2020 Distribution Range Size Status`,
+      levels = c("Very Restricted", "Restricted", "Data Deficient", 
+                 "Moderate", "Large", "Very Large")
+    ),
+    `IUCN Category` = factor(
+      `IUCN Category`,
+      levels = c("Extinct", "Extinct in the Wild", 
+                 "Critically Endangered", "Endangered", 
+                 "Vulnerable", "Near Threatened", 
+                 "Least Concern", "Data Deficient", "Not Recognised")
+    ),
+    `Regional Red List Category` = factor(
+      `Regional Red List Category`,
+      levels = c("Extinct", "Extinct in the Wild", 
+                 "Critically Endangered", "Endangered", 
+                 "Vulnerable", "Near Threatened", 
+                 "Least Concern", "Data Deficient", "Not Recognised")
+    ),
+    `WPA Schedule` = factor(
+      `WPA Schedule`,
+      levels = c("Not protected", "Recent addition", 
+                 "Schedule-I", "Schedule-II")
+    )
+  ) %>% 
+  mutate(across(c("Order", "Family", "Breeding Activity Period",
+                  "Non-breeding Activity Period", "Diet Guild",
+                  "Endemicity", "Habitat Specialization",
+                  "Migratory Status within India", "CITES Appendix",
+                  "CMS Appendix"),
+                ~ as.factor(.)))
+
+
 # README ------------------------------------------------------------------
 
 # info about data types
