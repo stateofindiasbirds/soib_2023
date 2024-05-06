@@ -31,6 +31,11 @@ redlist_proposed_spec <- c(
 redlist <- read_csv("01_analyses_full/results/redlist.csv") %>% 
   filter(`3GEN` <= 14) %>% 
   dplyr::select("Species", "3GEN Decline", "Redlist Category Proposed") %>% 
+  ### TEMP: correcting Near-threatened (already corrected in source script)
+  mutate(`Redlist Category Proposed` = case_when(
+    `Redlist Category Proposed` == "Near-threatened" ~ "Near Threatened",
+    TRUE ~ `Redlist Category Proposed`
+  )) %>% 
   # only list final 15 proposed in report
   mutate(`Redlist Category Proposed` = case_when(
     Species %in% redlist_proposed_spec ~ `Redlist Category Proposed`, 
