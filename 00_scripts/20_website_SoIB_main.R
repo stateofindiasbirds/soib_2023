@@ -358,3 +358,14 @@ main_db_split <- main_db_split[split_order] %>%
 
 c(list(README = readme), main_db_split) %>% 
   write_xlsx(path = "20_website/SoIB_2023_main.xlsx")
+
+
+# writing individually for archive
+
+if (!dir.exists("20_website/archive/")) {
+  dir.create("20_website/archive/")
+}
+
+map2(main_db_split, names(main_db_split), ~ {
+  write_csv(.x, glue("20_website/archive/SoIB 2023 {.y}.csv"))
+})
