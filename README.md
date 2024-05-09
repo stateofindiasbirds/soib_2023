@@ -38,7 +38,9 @@ All the different SoIB results for all spatial levels were aggregated into a sin
 
 ### Plots (`02_graphs`)
 
-`02_graphs/00_methods/` contains figures related to the methods section, while all single-species trends graphs (both LTT and CAT) for all spatial levels are generated in `02_graphs/01_single/`. Trend graphs of multiple species with common groupings are located in `02_graphs/02_multispecies/`, whereas composite graphs showing trends averaged across entire groups are in `02_graphs/03_composite/`. Distribution range maps are in `02_graphs/10_rangemaps/`. Additional plots are located in appropriate folders. The actual plots (image files) themselves are not committed.
+`02_graphs/00_methods/` contains figures related to the methods section, while all single-species trends graphs (both LTT and CAT) for all spatial levels are generated in `02_graphs/01_single/`. Trend graphs of multiple species with common groupings are located in `02_graphs/02_multispecies/`, whereas composite graphs showing trends averaged across entire groups are in `02_graphs/03_composite/`. Distribution range maps are in `02_graphs/10_rangemaps/`. Additional plots are located in appropriate folders. 
+
+*Note that the actual plots (image files) themselves are not committed, so these aforementioned subfolders are technically empty on the repo and therefore do not appear.*
 
 ## Auxiliary outputs
 
