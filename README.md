@@ -1,5 +1,9 @@
 # State of India's Birds 2023 
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.11124589.svg)](https://doi.org/10.5281/zenodo.11124589)
+[![Website](https://img.shields.io/website?label=Website&up_color=teal&up_message=Online&url=https%3A%2F%2Fstateofindiasbirds.in%2F)](https://stateofindiasbirds.in/)
+[![Twitter](https://img.shields.io/twitter/follow/SoIB_India?style=social)](https://twitter.com/SoIB_India)
+
 This repository contains the source code associated with the SoIB 2023 analysis, as well as all outputs that fed into the SoIB 2023 report[^1]. All analyses were performed in the R environment in RStudio, and with the addition of a couple of large (publicly available) data files that need to be procured externally, the source code and files in this repo were designed to make SoIB 2023 fully reproducible.
 
 The broad-level structure and workflow for the analysis is outlined below. However, full details about the entire methodology/workflow and the SoIB framework can be found in Viswanathan et al. 2024[^2], which we recommend examining.
