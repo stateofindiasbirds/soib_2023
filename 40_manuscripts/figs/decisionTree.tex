@@ -1,116 +1,125 @@
-\documentclass[border=0.2cm]{standalone}
+\documentclass[border=2cm]{standalone}
 
 % Required packages
 \usepackage{tikz}
+\usepackage[dvipsnames]{xcolor} % for colours
 \usetikzlibrary{shapes,positioning}
 
 \begin{document}
 
-\begin{tikzpicture}[font=\small,thick]
+% define colours
+\definecolor{soibAccent}{HTML}{952C12}
+
+\begin{tikzpicture}[
+	font=\small,thick,
+	node distance=2cm,
+	% styles
+	BLOCK/.style={rectangle, minimum width=5.5cm, minimum height=2cm, align=center},
+	LABEL/.style={rounded rectangle, minimum width=3.5cm, minimum height=1cm, align=center,
+				draw=soibAccent!75, ultra thick, fill=soibAccent!10},
+	STARTEND/.style={circle, dashed, minimum width=1.75cm, align=center, fill=gray!15, draw=gray},
+	YES/.style={pos=0.5, fill=white, inner sep=2pt},
+	NO/.style={pos=0.5, fill=white, inner sep=2pt},
+	ARROW/.style={-stealth, thick},
+	HALF.LTT/.style={BLOCK, minimum width=5.48cm, minimum height=0.97cm, fill=yellow!20, anchor=south, inner sep=0.3cm},
+	HALF.CAT/.style={BLOCK, minimum width=5.48cm, minimum height=0.97cm, fill=cyan!20, anchor=north, inner sep=0.3cm},
+	% horizontal LTT/CAT fills
+	TREND.FILL/.style={BLOCK, fill=red!50, 
+				path picture={\fill[blue!50, sharp corners] 
+							(path picture bounding box.west) -- (path picture bounding box.east) -- cycle;}},
+]
 
     % Start block
-    \node[draw,
-        rounded rectangle,
-        minimum width=2.5cm,
-        minimum height=1cm] (blkStart) {START};
+    \node[STARTEND] [draw] 
+    	(blkStart)	{START};
+        
     % Decision blocks
     % Conditions test
-    \node[draw,
-        below=of blkStart,
-        minimum width=3cm,
-        minimum height=1cm] (blkInsuffData) {Insufficient data?};
+    \node[BLOCK]	[draw, right=of blkStart, fill=green!10]	
+    	(blkInsuffData)	{Too few reports?};
     % Same block but without surrounding box - remove draw
-    % \node[
-    %     below=of blkStart,
-    %     minimum width=3cm,
-    %     minimum height=1cm] (blkInsuffData) {Insufficient data?};
-    \node[draw,
-        below right=of blkInsuffData,
-        minimum width=3cm,
-        minimum height=1cm] (blkTrIncon) {$95\%$ confidence interval $> 25\%$?};
-    \node[draw,
-        below right=of blkTrIncon,
-        minimum width=3cm,
-        minimum height=1cm] (blkRapDecl) {Decline $> 50\%$?};
-    \node[draw,
-        below right=of blkRapDecl,
-        minimum width=3cm,
-        minimum height=1cm] (blkDecl) {Decline $> 25\%$?};
-    \node[draw,
-        below right=of blkDecl,
-        minimum width=3cm,
-        minimum height=1cm] (blkRapInc) {Increase $> 50\%$?};
-    \node[draw,
-        below right=of blkRapInc,
-        minimum width=3cm,
-        minimum height=1cm] (blkInc) {Increase $> 25\%$?};
-    \node[draw,
-        below right=of blkInc,
-        minimum width=3cm,
-        minimum height=1cm,
-        align=center] (blkOth) { Others, but no overlap\\of decline or increase thresholds};
-    % End block
-    \node[draw,
-        rounded rectangle,
-        below=of blkOth,
-        minimum width=2.5cm,
-        minimum height=1cm,] (blkStbl) {Stable};
+    %   \node[BLOCK]	[right=of blkStart]	
+    %		(blkInsuffData)	{Insufficient data?};
+    \node[BLOCK]	[draw, right=of blkInsuffData]	
+    	(blkTrIncon)	{};
+	\draw[draw, thick] 	
+		(blkTrIncon.west)	to 	
+			node[HALF.LTT] {$95\%$ confidence interval $> 25\%$?} 	 
+			node[HALF.CAT] {$95\%$ confidence interval $> 2\%$?} 
+		(blkTrIncon.east);
+    \node[BLOCK]	[draw, right=of blkTrIncon]	
+    	(blkRapDecl)	{};
+	\draw[draw, thick] 	
+		(blkRapDecl.west)	to 	
+			node[HALF.LTT] {Decline $> 50\%$?} 	 
+			node[HALF.CAT] {Decline $> 2.7\%$?} 
+		(blkRapDecl.east);
+    \node[BLOCK]	[draw, right=of blkRapDecl] 
+    	(blkDecl)	{};
+	\draw[draw, thick]
+		(blkDecl.west)	to 	
+			node[HALF.LTT] {Decline $> 25\%$?} 	 
+			node[HALF.CAT] {Decline $> 1.1\%$?} 
+		(blkDecl.east);
+    \node[BLOCK]	[draw, right=of blkDecl] 
+    	(blkRapInc)	{};
+	\draw[draw, thick]
+		(blkRapInc.west)	to 	
+			node[HALF.LTT] {Increase $> 50\%$?} 	 
+			node[HALF.CAT] {Increase $> 1.6\%$?} 
+		(blkRapInc.east);
+    \node[BLOCK]	[draw, right=of blkRapInc] 
+    	(blkInc)	{};
+	\draw[draw, thick]
+		(blkInc.west)	to 	
+			node[HALF.LTT] {Increase $> 25\%$?} 	 
+			node[HALF.CAT] {Increase $> 0.9\%$?} 
+		(blkInc.east);
+    \node[BLOCK]	[draw, right=of blkInc, fill=green!10] 
+    	(blkOth)	{Others, but no overlap\\of decline/increase thresholds};
+
     
     % Category blocks
-    \node[draw,
-        rounded rectangle,
-        below=of blkInsuffData,
-        minimum width=3.5cm,
-        minimum height=1cm,] (lblInsuffData) {Insufficient Data};
-    \node[draw,
-        rounded rectangle,
-        below=of blkTrIncon,
-        minimum width=3.5cm,
-        minimum height=1cm,] (lblTrIncon) {Trend Inconclusive};
-    \node[draw,
-        rounded rectangle,
-        below=of blkRapDecl,
-        minimum width=3.5cm,
-        minimum height=1cm,] (lblRapDecl) {Rapid Decline};
-    \node[draw,
-        rounded rectangle,
-        below=of blkDecl,
-        minimum width=3.5cm,
-        minimum height=1cm,] (lblDecl) {Decline};
-    \node[draw,
-        rounded rectangle,
-        below=of blkRapInc,
-        minimum width=3.5cm,
-        minimum height=1cm,] (lblRapInc) {Rapid Increase};
-    \node[draw,
-        rounded rectangle,
-        below=of blkInc,
-        minimum width=3.5cm,
-        minimum height=1cm,] (lblInc) {Increase};
-
-    % Arrows
-    \draw[-latex] (blkStart) edge (blkInsuffData)
-        (blkOth) edge (blkStbl);
-
-    \draw[-latex] (blkInsuffData) edge node[pos=0.4,fill=white,inner sep=2pt]{Yes}(lblInsuffData)
-    (blkInsuffData) -| (blkTrIncon)
-        node[pos=0.25,fill=white,inner sep=2pt]{No};
-    \draw[-latex] (blkTrIncon) edge node[pos=0.4,fill=white,inner sep=2pt]{Yes}(lblTrIncon)
-    (blkTrIncon) -| (blkRapDecl)
-        node[pos=0.25,fill=white,inner sep=2pt]{No};
-    \draw[-latex] (blkRapDecl) edge node[pos=0.4,fill=white,inner sep=2pt]{Yes}(lblRapDecl)
-    (blkRapDecl) -| (blkDecl)
-        node[pos=0.25,fill=white,inner sep=2pt]{No};
-    \draw[-latex] (blkDecl) edge node[pos=0.4,fill=white,inner sep=2pt]{Yes}(lblDecl)
-    (blkDecl) -| (blkRapInc)
-        node[pos=0.25,fill=white,inner sep=2pt]{No};
-    \draw[-latex] (blkRapInc) edge node[pos=0.4,fill=white,inner sep=2pt]{Yes}(lblRapInc)
-    (blkRapInc) -| (blkInc)
-        node[pos=0.25,fill=white,inner sep=2pt]{No};
-    \draw[-latex] (blkInc) edge node[pos=0.4,fill=white,inner sep=2pt]{Yes}(lblInc)
-    (blkInc) -| (blkOth)
-        node[pos=0.25,fill=white,inner sep=2pt]{No};
+    \node[LABEL] [draw, below=of blkInsuffData] 
+    	(lblInsuffData)	{Insufficient Data};
+    \node[LABEL] [draw, below=of blkTrIncon] 
+    	(lblTrIncon)		{Trend Inconclusive};
+    \node[LABEL] [draw, below=of blkRapDecl] 
+    	(lblRapDecl)		{Rapid Decline};
+    \node[LABEL] [draw, below=of blkDecl] 
+    	(lblDecl)		{Decline};
+    \node[LABEL] [draw, below=of blkRapInc] 
+    	(lblRapInc) 		{Rapid Increase};
+    \node[LABEL] [draw, below=of blkInc] 
+    	(lblInc)		{Increase};
+    \node[LABEL] [draw, below=of blkOth] 
+    	(lblStbl) 		{Stable};
         
+    % Arrows
+    \draw[ARROW] 
+    	(blkStart) 		edge 				(blkInsuffData);
+    \draw[ARROW] 
+    	(blkInsuffData) 	edge node[YES]{Yes}	(lblInsuffData)
+    	(blkInsuffData) 	edge  node[NO]{No}	(blkTrIncon);
+    \draw[ARROW] 
+    	(blkTrIncon) 		edge node[YES]{Yes}	(lblTrIncon)
+    	(blkTrIncon) 		edge node[NO]{No} 	(blkRapDecl);
+    \draw[ARROW] 
+    	(blkRapDecl) 	edge node[YES]{Yes}	(lblRapDecl)
+    	(blkRapDecl) 	edge node[NO]{No} 	(blkDecl);
+    \draw[ARROW] 
+    	(blkDecl) 		edge node[YES]{Yes}	(lblDecl)
+    	(blkDecl) 		edge node[NO]{No} 	(blkRapInc);
+    \draw[ARROW] 
+    	(blkRapInc) 		edge node[YES]{Yes}	(lblRapInc)
+   	(blkRapInc) 		edge node[NO]{No} 	(blkInc);
+    \draw[ARROW] 
+    	(blkInc) 		edge node[YES]{Yes}	(lblInc)
+    	(blkInc)		edge node[NO]{No} 	(blkOth);
+    \draw[ARROW] 
+    	(blkOth) 		edge node[YES]{Yes}	(lblStbl)
+    	(blkOth.east)		-| ++(1cm, -5cm) 		node[NO]{No} 
+    				-| 				(lblTrIncon.south);       
     
 
 
