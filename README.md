@@ -1,5 +1,9 @@
 # State of India's Birds 2023 
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.11124589.svg)](https://doi.org/10.5281/zenodo.11124589)
+[![Website](https://img.shields.io/website?label=Website&up_color=teal&up_message=Online&url=https%3A%2F%2Fstateofindiasbirds.in%2F)](https://stateofindiasbirds.in/)
+[![Twitter](https://img.shields.io/twitter/follow/SoIB_India?style=social)](https://twitter.com/SoIB_India)
+
 This repository contains the source code associated with the SoIB 2023 analysis, as well as all outputs that fed into the SoIB 2023 report[^1]. All analyses were performed in the R environment in RStudio, and with the addition of a couple of large (publicly available) data files that need to be procured externally, the source code and files in this repo were designed to make SoIB 2023 fully reproducible.
 
 The broad-level structure and workflow for the analysis is outlined below. However, full details about the entire methodology/workflow and the SoIB framework can be found in Viswanathan et al. 2024[^2], which we recommend examining.
@@ -34,7 +38,9 @@ All the different SoIB results for all spatial levels were aggregated into a sin
 
 ### Plots (`02_graphs`)
 
-`02_graphs/00_methods/` contains figures related to the methods section, while all single-species trends graphs (both LTT and CAT) for all spatial levels are generated in `02_graphs/01_single/`. Trend graphs of multiple species with common groupings are located in `02_graphs/02_multispecies/`, whereas composite graphs showing trends averaged across entire groups are in `02_graphs/03_composite/`. Distribution range maps are in `02_graphs/10_rangemaps/`. Additional plots are located in appropriate folders. The actual plots (image files) themselves are not committed.
+`02_graphs/00_methods/` contains figures related to the methods section, while all single-species trends graphs (both LTT and CAT) for all spatial levels are generated in `02_graphs/01_single/`. Trend graphs of multiple species with common groupings are located in `02_graphs/02_multispecies/`, whereas composite graphs showing trends averaged across entire groups are in `02_graphs/03_composite/`. Distribution range maps are in `02_graphs/10_rangemaps/`. Additional plots are located in appropriate folders. 
+
+*Note that the actual plots (image files) themselves are not committed, so these aforementioned subfolders are technically empty on the repo and therefore do not appear.*
 
 ## Auxiliary outputs
 
