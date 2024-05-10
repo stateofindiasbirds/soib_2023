@@ -1,0 +1,123 @@
+\documentclass[border=0.2cm]{standalone}
+
+% Required packages
+\usepackage{tikz}
+\usetikzlibrary{shapes,positioning}
+
+\begin{document}
+
+\begin{tikzpicture}[font=\small,thick]
+
+    % Start block
+    \node[draw,
+        rounded rectangle,
+        minimum width=2.5cm,
+        minimum height=1cm] (blkStart) {START};
+    % Decision blocks
+    % Conditions test
+    \node[draw,
+        below=of blkStart,
+        minimum width=3cm,
+        minimum height=1cm] (blkInsuffData) {Insufficient data?};
+    % Same block but without surrounding box - remove draw
+    % \node[
+    %     below=of blkStart,
+    %     minimum width=3cm,
+    %     minimum height=1cm] (blkInsuffData) {Insufficient data?};
+    \node[draw,
+        below right=of blkInsuffData,
+        minimum width=3cm,
+        minimum height=1cm] (blkTrIncon) {$95\%$ confidence interval $> 25\%$?};
+    \node[draw,
+        below right=of blkTrIncon,
+        minimum width=3cm,
+        minimum height=1cm] (blkRapDecl) {Decline $> 50\%$?};
+    \node[draw,
+        below right=of blkRapDecl,
+        minimum width=3cm,
+        minimum height=1cm] (blkDecl) {Decline $> 25\%$?};
+    \node[draw,
+        below right=of blkDecl,
+        minimum width=3cm,
+        minimum height=1cm] (blkRapInc) {Increase $> 50\%$?};
+    \node[draw,
+        below right=of blkRapInc,
+        minimum width=3cm,
+        minimum height=1cm] (blkInc) {Increase $> 25\%$?};
+    \node[draw,
+        below right=of blkInc,
+        minimum width=3cm,
+        minimum height=1cm,
+        align=center] (blkOth) { Others, but no overlap\\of decline or increase thresholds};
+    % End block
+    \node[draw,
+        rounded rectangle,
+        below=of blkOth,
+        minimum width=2.5cm,
+        minimum height=1cm,] (blkStbl) {Stable};
+    
+    % Category blocks
+    \node[draw,
+        rounded rectangle,
+        below=of blkInsuffData,
+        minimum width=3.5cm,
+        minimum height=1cm,] (lblInsuffData) {Insufficient Data};
+    \node[draw,
+        rounded rectangle,
+        below=of blkTrIncon,
+        minimum width=3.5cm,
+        minimum height=1cm,] (lblTrIncon) {Trend Inconclusive};
+    \node[draw,
+        rounded rectangle,
+        below=of blkRapDecl,
+        minimum width=3.5cm,
+        minimum height=1cm,] (lblRapDecl) {Rapid Decline};
+    \node[draw,
+        rounded rectangle,
+        below=of blkDecl,
+        minimum width=3.5cm,
+        minimum height=1cm,] (lblDecl) {Decline};
+    \node[draw,
+        rounded rectangle,
+        below=of blkRapInc,
+        minimum width=3.5cm,
+        minimum height=1cm,] (lblRapInc) {Rapid Increase};
+    \node[draw,
+        rounded rectangle,
+        below=of blkInc,
+        minimum width=3.5cm,
+        minimum height=1cm,] (lblInc) {Increase};
+
+    % Arrows
+    \draw[-latex] (blkStart) edge (blkInsuffData)
+        (blkOth) edge (blkStbl);
+
+    \draw[-latex] (blkInsuffData) edge node[pos=0.4,fill=white,inner sep=2pt]{Yes}(lblInsuffData)
+    (blkInsuffData) -| (blkTrIncon)
+        node[pos=0.25,fill=white,inner sep=2pt]{No};
+    \draw[-latex] (blkTrIncon) edge node[pos=0.4,fill=white,inner sep=2pt]{Yes}(lblTrIncon)
+    (blkTrIncon) -| (blkRapDecl)
+        node[pos=0.25,fill=white,inner sep=2pt]{No};
+    \draw[-latex] (blkRapDecl) edge node[pos=0.4,fill=white,inner sep=2pt]{Yes}(lblRapDecl)
+    (blkRapDecl) -| (blkDecl)
+        node[pos=0.25,fill=white,inner sep=2pt]{No};
+    \draw[-latex] (blkDecl) edge node[pos=0.4,fill=white,inner sep=2pt]{Yes}(lblDecl)
+    (blkDecl) -| (blkRapInc)
+        node[pos=0.25,fill=white,inner sep=2pt]{No};
+    \draw[-latex] (blkRapInc) edge node[pos=0.4,fill=white,inner sep=2pt]{Yes}(lblRapInc)
+    (blkRapInc) -| (blkInc)
+        node[pos=0.25,fill=white,inner sep=2pt]{No};
+    \draw[-latex] (blkInc) edge node[pos=0.4,fill=white,inner sep=2pt]{Yes}(lblInc)
+    (blkInc) -| (blkOth)
+        node[pos=0.25,fill=white,inner sep=2pt]{No};
+        
+    
+
+
+
+
+
+
+\end{tikzpicture}
+
+\end{document}
