@@ -10,14 +10,16 @@
 % define colours
 \definecolor{soibAccent}{HTML}{952C12}
 
-\begin{tikzpicture}[
+\tikzset{
 	font=\small,thick,
 	node distance=2cm,
 	% styles
 	BLOCK/.style={rectangle, minimum width=5.5cm, minimum height=2cm, align=center},
+	BLOCK.RANGE/.style={BLOCK, fill=green!10},
 	LABEL/.style={rounded rectangle, minimum width=3.5cm, minimum height=1cm, align=center,
 				draw=soibAccent!75, ultra thick, fill=soibAccent!10},
 	STARTEND/.style={circle, dashed, minimum width=1.75cm, align=center, fill=gray!15, draw=gray},
+	STARTEND.RANGE/.style={STARTEND, yshift=-10cm},
 	YES/.style={pos=0.5, fill=white, inner sep=2pt},
 	NO/.style={pos=0.5, fill=white, inner sep=2pt},
 	ARROW/.style={-stealth, thick},
@@ -27,7 +29,12 @@
 	TREND.FILL/.style={BLOCK, fill=red!50, 
 				path picture={\fill[blue!50, sharp corners] 
 							(path picture bounding box.west) -- (path picture bounding box.east) -- cycle;}},
-]
+}
+
+
+% trends
+
+\begin{tikzpicture}
 
     % Start block
     \node[STARTEND] [draw] 
@@ -124,9 +131,69 @@
 
 
 
+% Range
 
 
+   % Start block
+    \node[STARTEND.RANGE] [draw] 
+    	(blkStartRange)	{START};
+        
+    % Decision blocks
+    \node[BLOCK.RANGE]	[draw, right=of blkStartRange]	
+    	(blkHist)	{Historical range\\described in literature?};
+    \node[BLOCK.RANGE]	[draw, right=of blkHist]	
+    	(blkRecent)	{Recent records?};
+    \node[BLOCK.RANGE]	[draw, right=of blkRecent]	
+    	(blkVeryRest)	{Range $< 625 km^2$ for island species?\\Range $< 7,500 km^2$ for others?};
+    \node[BLOCK.RANGE]	[draw, right=of blkVeryRest] 
+    	(blkRest)	{Range $7,500\textendash42,500 km^2$?};
+    \node[BLOCK.RANGE]	[draw, right=of blkRest] 
+    	(blkMod)	{Range $42,500\textendash250,000 km^2$?};
+    \node[BLOCK.RANGE]	[draw, right=of blkMod] 
+    	(blkLarge)	{Range $250,000\textendash1,000,000 km^2$?};
+    \node[BLOCK.RANGE]	[draw, right=of blkLarge] 
+    	(blkVeryLarge)	{Range $> 1,000,000 km^2$?};
+
+    
+    % Category blocks
+    \node[LABEL] [draw, below=of blkRecent] 
+    	(lblHist)		{Historical};
+    \node[LABEL] [draw, below=of blkVeryRest] 
+    	(lblVeryRest)		{Very Restricted};
+    \node[LABEL] [draw, below=of blkRest] 
+    	(lblRest)		{Restricted};
+    \node[LABEL] [draw, below=of blkMod] 
+    	(lblMod) 		{Moderate};
+    \node[LABEL] [draw, below=of blkLarge] 
+    	(lblLarge)		{Large};
+    \node[LABEL] [draw, below=of blkVeryLarge] 
+    	(lblVeryLarge) 	{Very Large};
+        
+    % Arrows
+    \draw[ARROW] 
+    	(blkStartRange) 		edge 				(blkHist);
+    \draw[ARROW] 
+    	(blkHist) 		edge node[YES]{Yes}	(blkRecent);
+    \draw[ARROW] 
+    	(blkRecent) 		edge node[YES]{Yes}	(blkVeryRest)
+    	(blkRecent) 		edge node[NO]{No} 	(lblHist);
+    \draw[ARROW] 
+    	(blkVeryRest) 	edge node[YES]{Yes}	(lblVeryRest)
+    	(blkVeryRest) 	edge node[NO]{No} 	(blkRest);
+    \draw[ARROW] 
+    	(blkRest) 		edge node[YES]{Yes}	(lblRest)
+    	(blkRest) 		edge node[NO]{No} 	(blkMod);
+    \draw[ARROW] 
+    	(blkMod) 		edge node[YES]{Yes}	(lblMod)
+   	(blkMod) 		edge node[NO]{No} 	(blkLarge);
+    \draw[ARROW] 
+    	(blkLarge) 		edge node[YES]{Yes}	(lblLarge)
+    	(blkLarge)		edge node[NO]{No} 	(blkVeryLarge);
+    \draw[ARROW] 
+    	(blkVeryLarge) 	edge node[YES]{Yes} 	(lblVeryLarge);      
 
 \end{tikzpicture}
+
+
 
 \end{document}
