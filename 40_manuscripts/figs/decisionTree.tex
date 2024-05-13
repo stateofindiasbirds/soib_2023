@@ -1,8 +1,8 @@
-\documentclass[border=2cm]{standalone}
+\documentclass[border=3.5cm]{standalone}
 
 % Required packages
 \usepackage{tikz}
-\usetikzlibrary{arrows, shapes, positioning, decorations.markings}
+\usetikzlibrary{arrows.meta, shapes, positioning, decorations.markings}
 
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.18} % compatible version
@@ -20,24 +20,28 @@
 \definecolor{soibAccent}{HTML}{952C12}
 
 \tikzset{
-	font=\large, thick,
-	node distance=2cm,
+	font=\huge, thick,
+	node distance=4cm,
 	% styles
-	BLOCK/.style={rectangle, minimum width=5.5cm, minimum height=2cm, align=center},
+	BLOCK/.style={rectangle, very thick, minimum width=12cm, minimum height=4cm, align=center},
 	BLOCK.RANGE/.style={BLOCK, fill=green!10},
-	LABEL/.style={rounded rectangle, minimum width=3.5cm, minimum height=1cm, align=center,
+	LABEL/.style={rounded rectangle, minimum width=8cm, minimum height=2.5cm, align=center,
 				draw=soibAccent!75, ultra thick, fill=soibAccent!10},
-	STARTEND/.style={circle, dashed, minimum width=1.75cm, align=center, fill=gray!15, draw=gray},
-	STARTEND.RANGE/.style={STARTEND, yshift=-20cm},
+	STARTEND/.style={circle, dashed, ultra thick, dash pattern=on 15pt off 15pt,
+				minimum width=4cm, align=center, fill=gray!15, draw=gray},
+	STARTEND.RANGE/.style={STARTEND, xshift=45cm},
 	YES/.style={pos=0.5, fill=white, inner sep=2pt},
 	NO/.style={pos=0.5, fill=white, inner sep=2pt},
-	ARROW/.style={-stealth, thick},
-	HALF.LTT/.style={BLOCK, minimum width=5.48cm, minimum height=0.97cm, fill=yellow!20, anchor=south, inner sep=0.3cm},
-	HALF.CAT/.style={BLOCK, minimum width=5.48cm, minimum height=0.97cm, fill=cyan!20, anchor=north, inner sep=0.3cm},
+	ARROW/.style={-{Stealth[length=0.6cm]}, ultra thick},
+	HALF.LTT/.style={BLOCK, minimum width=11.96cm, minimum height=1.97cm, fill=yellow!20, anchor=south, inner sep=0cm},
+	HALF.CAT/.style={BLOCK, minimum width=11.96cm, minimum height=1.97cm, fill=cyan!20, anchor=north, inner sep=0cm},
+	HALF.LTT.TEXT/.style={rotate=90, inner sep=0.3cm},
+	HALF.CAT.TEXT/.style={rotate=90, inner sep=0.3cm},
 	% horizontal LTT/CAT fills
 	TREND.FILL/.style={BLOCK, fill=red!50, 
 				path picture={\fill[blue!50, sharp corners] 
 							(path picture bounding box.west) -- (path picture bounding box.east) -- cycle;}},
+	TITLE/.style={scale=2.5, fill=white},
 }
 
 
@@ -51,102 +55,113 @@
         
     % Decision blocks
     % Conditions test
-    \node[BLOCK]	[draw, below right=of blkStart, fill=green!10]	
+    \node[BLOCK]	[draw, below=of blkStart, fill=green!10]	
     	(blkInsuffData)	{Too few reports?};
     % Same block but without surrounding box - remove draw
     %   \node[BLOCK]	[right=of blkStart]	
     %		(blkInsuffData)	{Insufficient data?};
-    \node[BLOCK]	[draw, below right=of blkInsuffData]	
+    \node[BLOCK]	[draw, below=of blkInsuffData]	
     	(blkTrIncon)	{};
 	\draw[draw, thick] 	
 		(blkTrIncon.west)	to 	
-			node[HALF.LTT] {$95\%$ confidence interval $> 25\%$?} 	 
-			node[HALF.CAT] {$95\%$ confidence interval $> 2\%$?} 
+			node[HALF.LTT] {$95\%$ CI $> 25\%$?} 	 
+			node[HALF.CAT] {$95\%$ CI $> 2\%$?} 
+			node[HALF.LTT.TEXT, anchor=west, pos=0, yshift=0.5cm] {LTC} 	 
+			node[HALF.CAT.TEXT, anchor=east, pos=0, yshift=0.5cm] {CAT}  
 		(blkTrIncon.east);
-    \node[BLOCK]	[draw, below right=of blkTrIncon]	
+    \node[BLOCK]	[draw, below=of blkTrIncon]	
     	(blkRapDecl)	{};
 	\draw[draw, thick] 	
 		(blkRapDecl.west)	to 	
 			node[HALF.LTT] {Decline $> 50\%$?} 	 
 			node[HALF.CAT] {Decline $> 2.7\%$?} 
+			node[HALF.LTT.TEXT, anchor=west, pos=0, yshift=0.5cm] {LTC} 	 
+			node[HALF.CAT.TEXT, anchor=east, pos=0, yshift=0.5cm] {CAT}  
 		(blkRapDecl.east);
-    \node[BLOCK]	[draw, below right=of blkRapDecl] 
+    \node[BLOCK]	[draw, below=of blkRapDecl] 
     	(blkDecl)	{};
 	\draw[draw, thick]
 		(blkDecl.west)	to 	
 			node[HALF.LTT] {Decline $> 25\%$?} 	 
 			node[HALF.CAT] {Decline $> 1.1\%$?} 
+			node[HALF.LTT.TEXT, anchor=west, pos=0, yshift=0.5cm] {LTC} 	 
+			node[HALF.CAT.TEXT, anchor=east, pos=0, yshift=0.5cm] {CAT}  
 		(blkDecl.east);
-    \node[BLOCK]	[draw, below right=of blkDecl] 
+    \node[BLOCK]	[draw, below=of blkDecl] 
     	(blkRapInc)	{};
 	\draw[draw, thick]
 		(blkRapInc.west)	to 	
 			node[HALF.LTT] {Increase $> 50\%$?} 	 
 			node[HALF.CAT] {Increase $> 1.6\%$?} 
+			node[HALF.LTT.TEXT, anchor=west, pos=0, yshift=0.5cm] {LTC} 	 
+			node[HALF.CAT.TEXT, anchor=east, pos=0, yshift=0.5cm] {CAT}  
 		(blkRapInc.east);
-    \node[BLOCK]	[draw, below right=of blkRapInc] 
+    \node[BLOCK]	[draw, below=of blkRapInc] 
     	(blkInc)	{};
 	\draw[draw, thick]
 		(blkInc.west)	to 	
 			node[HALF.LTT] {Increase $> 25\%$?} 	 
-			node[HALF.CAT] {Increase $> 0.9\%$?} 
+			node[HALF.CAT] {Increase $> 0.9\%$?}
+			node[HALF.LTT.TEXT, anchor=west, pos=0, yshift=0.5cm] {LTC} 	 
+			node[HALF.CAT.TEXT, anchor=east, pos=0, yshift=0.5cm] {CAT}  
 		(blkInc.east);
-    \node[BLOCK]	[draw, below right=of blkInc, fill=green!10] 
+    \node[BLOCK]	[draw, below=of blkInc, fill=green!10] 
     	(blkOth)	{No overlap of\\decline/increase thresholds};
 
     
     % Category blocks
-    \node[LABEL] [draw, below=of blkInsuffData] 
+    \node[LABEL] [draw, right=of blkInsuffData] 
     	(lblInsuffData)	{Insufficient Data};
-    \node[LABEL] [draw, below=of blkTrIncon] 
+    \node[LABEL] [draw, right=of blkTrIncon] 
     	(lblTrIncon)		{Trend Inconclusive};
-    \node[LABEL] [draw, below=of blkRapDecl] 
+    \node[LABEL] [draw, right=of blkRapDecl] 
     	(lblRapDecl)		{Rapid Decline};
-    \node[LABEL] [draw, below=of blkDecl] 
+    \node[LABEL] [draw, right=of blkDecl] 
     	(lblDecl)		{Decline};
-    \node[LABEL] [draw, below=of blkRapInc] 
+    \node[LABEL] [draw, right=of blkRapInc] 
     	(lblRapInc) 		{Rapid Increase};
-    \node[LABEL] [draw, below=of blkInc] 
+    \node[LABEL] [draw, right=of blkInc] 
     	(lblInc)		{Increase};
-    \node[LABEL] [draw, below=of blkOth] 
+    \node[LABEL] [draw, right=of blkOth] 
     	(lblStbl) 		{Stable};
 % final NO for loop-back
-    \node[right=of blkOth, fill=white, inner sep=2pt] 
-    	(lblFinalNo) 		{No};
-\node[below=of lblTrIncon, yshift=-1cm]
-	(lblFinalShift)		{};
+%   \node[below=of blkOth, fill=white, inner sep=2pt] 
+% 	(lblFinalNo) 		{No};
+%\node[right=of lblTrIncon]
+%	(lblFinalShift)		{};
         
     % Arrows
     \draw[ARROW] 
-    	(blkStart) 		-| 				(blkInsuffData);
+    	(blkStart) 		edge 				(blkInsuffData);
     \draw[ARROW] 
     	(blkInsuffData) 	edge node[YES]{Yes}	(lblInsuffData)
-    	(blkInsuffData) 	-|  node[NO]{No}	(blkTrIncon);
+    	(blkInsuffData) 	edge  node[NO]{No}	(blkTrIncon);
     \draw[ARROW] 
-    	(blkTrIncon) 		edge node[YES]{Yes}	(lblTrIncon)
-    	(blkTrIncon) 		-| node[NO]{No} 	(blkRapDecl);
+    	(blkTrIncon) 	edge node[YES]{Yes}	(lblTrIncon)
+    	(blkTrIncon) 	edge node[NO]{No} 	(blkRapDecl);
     \draw[ARROW] 
     	(blkRapDecl) 	edge node[YES]{Yes}	(lblRapDecl)
-    	(blkRapDecl) 	-| node[NO]{No} 	(blkDecl);
+    	(blkRapDecl) 	edge node[NO]{No} 	(blkDecl);
     \draw[ARROW] 
     	(blkDecl) 		edge node[YES]{Yes}	(lblDecl)
-    	(blkDecl) 		-| node[NO]{No} 	(blkRapInc);
+    	(blkDecl) 		edge node[NO]{No} 	(blkRapInc);
     \draw[ARROW] 
     	(blkRapInc) 		edge node[YES]{Yes}	(lblRapInc)
-   	(blkRapInc) 		-| node[NO]{No} 	(blkInc);
+   	(blkRapInc) 		edge node[NO]{No} 	(blkInc);
     \draw[ARROW] 
     	(blkInc) 		edge node[YES]{Yes}	(lblInc)
-    	(blkInc)		-| node[NO]{No} 	(blkOth);
+    	(blkInc)		edge node[NO]{No} 	(blkOth);
     \draw[ARROW] 
     	(blkOth) 		edge node[YES]{Yes}	(lblStbl)
-    	(blkOth)		edge		(lblFinalNo);
-	%			edge [bend left] 	(lblTrIncon.south);       
-    \draw[thick, decoration={markings, mark=at position 0.5 with {\arrow{stealth}}}]
-    	%(lblFinalNo.south)	edge [out=150, in=-20]	 	(lblTrIncon.south);       
-    	(lblFinalNo.south)		edge [postaction={decorate}] ++(0cm, -9cm) 	node{}
-    	(lblFinalNo.south) [yshift=-9cm] 	edge [postaction={decorate}] 		(lblFinalShift.north);
-    \draw[stealth-, thick]
-    	(lblTrIncon.south)			edge		(lblFinalShift.north);       
+    	(blkOth.south)		|- ++(19cm,-3cm)	node[NO]{No}	
+    					|- 			(lblTrIncon.east);
+    	%(lblFinalNo.north); 
+    %\draw[thick, decoration={markings, mark=at position 0.5 with {\arrow{stealth}}}]
+  	% (lblFinalNo.north)	edge [out=150, in=-20]	 	(lblTrIncon.south);       
+	%(lblFinalNo.east)				edge [postaction={decorate}] ++(15cm, 0cm) 	node{}
+ 	%(lblFinalNo.east) [xshift=15cm] 	edge [postaction={decorate}] 		(lblFinalShift.west);
+    %\draw[stealth-, thick]
+	%(lblTrIncon.east)			edge		(lblFinalShift.west);       
     
 
 
@@ -159,54 +174,66 @@
     	(blkStartRange)	{START};
         
     % Decision blocks
-    \node[BLOCK.RANGE]	[draw, below right=of blkStartRange]	
+    \node[BLOCK.RANGE]	[draw, below=of blkStartRange]	
     	(blkHist)	{Historical range\\described in literature?};
-    \node[BLOCK.RANGE]	[draw, below right=of blkHist]	
+    \node[BLOCK.RANGE]	[draw, below=of blkHist]	
     	(blkRecent)	{Recent records?};
-    \node[BLOCK.RANGE]	[draw, below right=of blkRecent]	
-    	(blkVeryRest)	{Range $< 625 km^2$ for island species?\\ \\Range $< 7,500 km^2$ for others?};
-    \node[BLOCK.RANGE]	[draw, below right=of blkVeryRest] 
+    \node[BLOCK.RANGE]	[draw, below=of blkRecent]	
+    	(blkVeryRest)	{Range $< 625 km^2$ (island spp.)\\or $< 7,500 km^2$ (others)?};
+    \node[BLOCK.RANGE]	[draw, below=of blkVeryRest] 
     	(blkRest)	{Range $< 42,500 km^2$?};
-    \node[BLOCK.RANGE]	[draw, below right=of blkRest] 
+    \node[BLOCK.RANGE]	[draw, below=of blkRest] 
     	(blkMod)	{Range $< 250,000 km^2$?};
-    \node[BLOCK.RANGE]	[draw, below right=of blkMod] 
-    	(blkLarge)	{Range $<$ 1,000,000 km$^2$?};
+    \node[BLOCK.RANGE]	[draw, below=of blkMod] 
+    	(blkLarge)	{Range $< 1,000,000 km^2$?};
 
     
     % Category blocks
-    \node[LABEL] [draw, below=of blkRecent] 
+    \node[LABEL] [draw, left=of blkRecent] 
     	(lblHist)		{Historical};
-    \node[LABEL] [draw, below=of blkVeryRest] 
+    \node[LABEL] [draw, left=of blkVeryRest] 
     	(lblVeryRest)		{Very Restricted};
-    \node[LABEL] [draw, below=of blkRest] 
+    \node[LABEL] [draw, left=of blkRest] 
     	(lblRest)		{Restricted};
-    \node[LABEL] [draw, below=of blkMod] 
+    \node[LABEL] [draw, left=of blkMod] 
     	(lblMod) 		{Moderate};
-    \node[LABEL] [draw, below=of blkLarge] 
+    \node[LABEL] [draw, left=of blkLarge] 
     	(lblLarge)		{Large};
-    \node[LABEL] [draw, right=of lblLarge] 
+    \node[LABEL] [draw, below=of blkLarge, yshift=-1cm] 
     	(lblVeryLarge) 	{Very Large};
         
     % Arrows
     \draw[ARROW] 
-    	(blkStartRange) 		-| 				(blkHist);
+    	(blkStartRange) 		edge 				(blkHist);
     \draw[ARROW] 
-    	(blkHist) 		-| node[YES]{Yes}	(blkRecent);
+    	(blkHist) 		edge node[YES]{Yes}	(blkRecent);
     \draw[ARROW] 
-    	(blkRecent) 		-| node[YES]{Yes}	(blkVeryRest)
+    	(blkRecent) 		edge node[YES]{Yes}	(blkVeryRest)
     	(blkRecent) 		edge node[NO]{No} 	(lblHist);
     \draw[ARROW] 
     	(blkVeryRest) 	edge node[YES]{Yes}	(lblVeryRest)
-    	(blkVeryRest) 	-| node[NO]{No} 	(blkRest);
+    	(blkVeryRest) 	edge node[NO]{No} 	(blkRest);
     \draw[ARROW] 
     	(blkRest) 		edge node[YES]{Yes}	(lblRest)
-    	(blkRest) 		-| node[NO]{No} 	(blkMod);
+    	(blkRest) 		edge node[NO]{No} 	(blkMod);
     \draw[ARROW] 
     	(blkMod) 		edge node[YES]{Yes}	(lblMod)
-   	(blkMod) 		-| node[NO]{No} 	(blkLarge);
+   	(blkMod) 		edge node[NO]{No} 	(blkLarge);
     \draw[ARROW] 
     	(blkLarge) 		edge node[YES]{Yes}	(lblLarge)
-    	(blkLarge)		-| node[NO]{No} 	(lblVeryLarge);
+    	(blkLarge)		edge node[NO]{No} 	(lblVeryLarge);
+    	
+
+    	
+% other figure elements
+
+% titles
+
+\node[TITLE, above=of blkStart, xshift=2.5cm]
+	(titleltt) {Categorization of LTC and CAT};
+\node[TITLE, above=of blkStartRange, xshift=-2.5cm]
+	(titleltt) {Categorization of DRS};	
+
 
 \end{tikzpicture}
 

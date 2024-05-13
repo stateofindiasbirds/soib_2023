@@ -1,4 +1,4 @@
-This is LuaHBTeX, Version 1.17.1 (MiKTeX 24.1) (format=lualatex 2024.5.13)  13 MAY 2024 15:59
+This is LuaHBTeX, Version 1.17.1 (MiKTeX 24.1) (format=lualatex 2024.5.13)  13 MAY 2024 18:44
  restricted system commands enabled.
 **decisionTree.tex
 (./decisionTree.tex
@@ -479,15 +479,14 @@ File: pgfmodulematrix.code.tex 2023-01-15 v3.1.10 (3.1.10)
 rontendlayer/tikz/libraries/tikzlibrarytopaths.code.tex"
 File: tikzlibrarytopaths.code.tex 2023-01-15 v3.1.10 (3.1.10)
 )))
-("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/f
-rontendlayer/tikz/libraries/tikzlibraryarrows.code.tex"
-File: tikzlibraryarrows.code.tex 2023-01-15 v3.1.10 (3.1.10)
-
 ("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/l
-ibraries/pgflibraryarrows.code.tex"
-File: pgflibraryarrows.code.tex 2023-01-15 v3.1.10 (3.1.10)
-\arrowsize=\dimen192
-))
+ibraries/pgflibraryarrows.meta.code.tex"
+File: pgflibraryarrows.meta.code.tex 2023-01-15 v3.1.10 (3.1.10)
+\pgfarrowinset=\dimen192
+\pgfarrowlength=\dimen193
+\pgfarrowwidth=\dimen194
+\pgfarrowlinewidth=\dimen195
+)
 ("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/f
 rontendlayer/tikz/libraries/tikzlibraryshapes.code.tex"
 File: tikzlibraryshapes.code.tex 2023-01-15 v3.1.10 (3.1.10)
@@ -566,14 +565,14 @@ rontendlayer/tikz/libraries/tikzlibrarydecorations.markings.code.tex"
 rontendlayer/tikz/libraries/tikzlibrarydecorations.code.tex"
 ("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/m
 odules/pgfmoduledecorations.code.tex"
-\pgfdecoratedcompleteddistance=\dimen193
-\pgfdecoratedremainingdistance=\dimen194
-\pgfdecoratedinputsegmentcompleteddistance=\dimen195
-\pgfdecoratedinputsegmentremainingdistance=\dimen196
-\pgf@decorate@distancetomove=\dimen197
+\pgfdecoratedcompleteddistance=\dimen196
+\pgfdecoratedremainingdistance=\dimen197
+\pgfdecoratedinputsegmentcompleteddistance=\dimen198
+\pgfdecoratedinputsegmentremainingdistance=\dimen199
+\pgf@decorate@distancetomove=\dimen256
 \pgf@decorate@repeatstate=\count283
-\pgfdecorationsegmentamplitude=\dimen198
-\pgfdecorationsegmentlength=\dimen199
+\pgfdecorationsegmentamplitude=\dimen257
+\pgfdecorationsegmentlength=\dimen258
 )
 \tikz@lib@dec@box=\box83
 )
@@ -594,7 +593,7 @@ Package pgfplots info on input line 124: Initializing with LUA version Lua 5.3
 \t@pgfplots@toka=\toks32
 \t@pgfplots@tokb=\toks33
 \t@pgfplots@tokc=\toks34
-\pgfplots@tmpa=\dimen256
+\pgfplots@tmpa=\dimen259
 \c@pgfplots@coordindex=\count284
 \c@pgfplots@scanlineindex=\count285
 
@@ -687,12 +686,12 @@ ibraries/decorations/pgflibrarydecorations.pathreplacing.code.tex"))
 ("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgfpl
 ots/libs/tikzlibrarypgfplots.contourlua.code.tex")
 \pgfplots@numplots=\count289
-\pgfplots@xmin@reg=\dimen257
-\pgfplots@xmax@reg=\dimen258
-\pgfplots@ymin@reg=\dimen259
-\pgfplots@ymax@reg=\dimen260
-\pgfplots@zmin@reg=\dimen261
-\pgfplots@zmax@reg=\dimen262
+\pgfplots@xmin@reg=\dimen260
+\pgfplots@xmax@reg=\dimen261
+\pgfplots@ymin@reg=\dimen262
+\pgfplots@ymax@reg=\dimen263
+\pgfplots@zmin@reg=\dimen264
+\pgfplots@zmax@reg=\dimen265
 )
 ("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/f
 rontendlayer/tikz/libraries/tikzlibraryplotmarks.code.tex"
@@ -740,9 +739,9 @@ eX
 \l__fontspec_emdef_int=\count299
 \l__fontspec_strong_int=\count300
 \l__fontspec_strongdef_int=\count301
-\l__fontspec_tmpa_dim=\dimen263
-\l__fontspec_tmpb_dim=\dimen264
-\l__fontspec_tmpc_dim=\dimen265
+\l__fontspec_tmpa_dim=\dimen266
+\l__fontspec_tmpb_dim=\dimen267
+\l__fontspec_tmpc_dim=\dimen268
 
 ("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/base/fo
 ntenc.sty"
@@ -895,13 +894,13 @@ LaTeX Font Info:    ... okay on input line 17.
 mkii/supp-pdf.mkii"
 [Loading MPS to PDF converter (version 2006.09.02).]
 \scratchcounter=\count302
-\scratchdimen=\dimen266
+\scratchdimen=\dimen269
 \scratchbox=\box85
 \nofMPsegments=\count303
 \nofMParguments=\count304
 \everyMPshowfont=\toks43
 \MPscratchCnt=\count305
-\MPscratchDim=\dimen267
+\MPscratchDim=\dimen270
 \MPnumerator=\count306
 \makeMPintoPDFobject=\count307
 \everyMPtoPDFconversion=\toks44
@@ -941,11 +940,11 @@ Package pgfplots notification 'compat/show suggested version=true': document ha
 s been generated with the most recent feature set (\pgfplotsset{compat=1.18}).
 
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <12> on input line 65.
+(Font)              <20.74> on input line 71.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <8> on input line 65.
+(Font)              <14.4> on input line 71.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <6> on input line 65.
+(Font)              <12> on input line 71.
 [1
 
 {C:/Users/Karthik Thrikkadeeri/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}
@@ -957,20 +956,20 @@ L3 programming layer <2024-01-04>
 )
 
 Here is how much of LuaTeX's memory you used:
- 29612 strings out of 476497
+ 29384 strings out of 476497
  100000,1977958 words of node,token memory allocated
- 31533 words of node memory still in use:
-   544 hlist, 5 vlist, 1 rule, 49 disc, 36 math, 948 glue, 94 kern, 620 glyph, 2
-396 attribute, 51 glue_spec, 2396 attribute_list, 2 write, 1473 pdf_literal, 4 p
-df_colorstack nodes
-   avail lists: 2:30,3:2949,4:18,5:200,6:2,7:3228,8:12,9:1114,11:98
- 50862 multiletter control sequences out of 65536+600000
- 41 fonts using 7669471 bytes
- 102i,9n,101p,753b,1149s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 34258 words of node memory still in use:
+   623 hlist, 4 vlist, 1 rule, 49 disc, 34 math, 1009 glue, 107 kern, 653 glyph,
+ 2612 attribute, 51 glue_spec, 2612 attribute_list, 2 write, 1623 pdf_literal, 4
+ pdf_colorstack nodes
+   avail lists: 2:30,3:3249,4:18,5:226,6:2,7:3412,8:14,9:1270,11:98
+ 50637 multiletter control sequences out of 65536+600000
+ 41 fonts using 7667551 bytes
+ 102i,9n,101p,753b,940s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <C:/Users/Karthik Thrikkadeeri/AppData/Local/Microsoft/Windows/Fonts/inter-regul
 ar.ttf><C:/Users/Karthik Thrikkadeeri/AppData/Local/Microsoft/Windows/Fonts/inte
 r-regular.ttf>
-Output written on decisionTree.pdf (1 page, 45903 bytes).
+Output written on decisionTree.pdf (1 page, 44962 bytes).
 
 PDF statistics: 23 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 131072)
