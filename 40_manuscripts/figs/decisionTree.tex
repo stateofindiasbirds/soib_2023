@@ -106,7 +106,7 @@
 			node[HALF.CAT.TEXT, anchor=east, pos=0, yshift=0.5cm] {CAT}  
 		(blkInc.east);
     \node[BLOCK]	[draw, below=of blkInc, fill=green!10] 
-    	(blkOth)	{No overlap of\\decline/increase thresholds};
+    	(blkOth)	{Overlapping thresholds\\of decline/increase?};
 
     
     % Category blocks
@@ -152,8 +152,8 @@
     	(blkInc) 		edge node[YES]{Yes}	(lblInc)
     	(blkInc)		edge node[NO]{No} 	(blkOth);
     \draw[ARROW] 
-    	(blkOth) 		edge node[YES]{Yes}	(lblStbl)
-    	(blkOth.south)		|- ++(19cm,-3cm)	node[NO]{No}	
+    	(blkOth) 		edge node[NO]{No}	(lblStbl)
+    	(blkOth.south)		|- ++(19cm,-3cm)	node[YES]{Yes}	
     					|- 			(lblTrIncon.east);
     	%(lblFinalNo.north); 
     %\draw[thick, decoration={markings, mark=at position 0.5 with {\arrow{stealth}}}]
