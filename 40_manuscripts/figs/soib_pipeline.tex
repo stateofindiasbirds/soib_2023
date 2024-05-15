@@ -1,0 +1,214 @@
+\documentclass[border=3.5cm]{standalone}
+
+% Required packages
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, shapes, positioning, fit, backgrounds}
+
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+
+\usepackage[dvipsnames]{xcolor} % for colours
+
+% set main font and disable separate font for math/symbols
+\usepackage[no-math]{fontspec}
+\setmainfont[Ligatures=TeX]{Inter}
+\usepackage[defaultmathsizes]{mathastext}
+
+\begin{document}
+
+% define colours
+\definecolor{soibAccent}{HTML}{952C12}
+\definecolor{soibYellow}{HTML}{d4c64a}
+\definecolor{soibGreen}{HTML}{a2bd5b}
+
+\tikzset{
+	thick,
+	node distance=2cm,
+	% styles
+	TITLE/.style={font=\Huge, scale=3, fill=white, font=\bfseries},
+	BLOCK.TITLE/.style={font=\Large, rectangle, ultra thick, align=center, inner sep=0.3cm},
+	BLOCK/.style={BLOCK.TITLE, minimum width=15cm, draw=soibGreen, fill=soibGreen!40},
+	STEP/.style={font=\large, rectangle, very thick, minimum width=7cm, minimum height=2cm, align=center, 
+				draw=soibYellow, fill=soibYellow!40},
+	INPUT.DATA/.style={font=\normalsize, align=right, inner sep=0.3cm},
+	SUBSTEP/.style={font=\normalsize, align=left, anchor=west, rectangle, draw=black, 
+				minimum width=7cm, minimum height=3cm, text width=6.5cm},
+	SUBSTEP.MINI/.style={font=\normalsize, align=left, anchor=west, rectangle, draw=black, 
+				minimum width=4.5cm, text width=4.3cm, inner sep=0.3cm},
+	% arrows
+	ARROW/.style={-{Stealth[length=0.6cm]}, ultra thick},	
+	ARROW.MINI/.style={-{Stealth[length=0.3cm]}},	
+	SUBSTEP.LINE/.style={draw=black!75, dashed, dash pattern=on 10pt off 3pt},
+}
+
+
+% trends
+
+\begin{tikzpicture}
+
+% titles
+
+\node[TITLE, xshift=10cm]
+	(title) {The SoIB Pipeline};
+
+
+% BLOCK 1
+ \node[BLOCK.TITLE] [anchor=north, below=of title, yshift=-4cm] 
+    	(b1)	{1. Setting up data for analyses};
+  
+% Step 1
+\node[STEP] [draw, below=of b1]
+	(b1s1) 	{Readying raw data};
+	% input data
+	\node[INPUT.DATA, left=of b1s1, yshift=2cm, xshift=-4cm]
+		(data1)	{eBird data};
+	\node[INPUT.DATA, left=of b1s1, yshift=0cm, xshift=-4cm]
+		(data2)	{Species attributes};
+	\node[INPUT.DATA, left=of b1s1, yshift=-2cm, xshift=-4cm]
+		(data3)	{Spatial polgyons\\and grids};
+% Step 2
+\node[STEP] [draw, below=of b1s1]
+	(b1s2) 	{Reshaping eBird data};
+% Step 3
+\node[STEP] [draw, below=of b1s2]
+	(b1s3) 	{Curating eBird data};
+% Step 4
+\node[STEP] [draw, below=of b1s3]
+	(b1s4) 	{Selecting species and checklists};
+	
+% substeps
+\node[SUBSTEP, draw, right=of b1s2.east, xshift=3cm]
+	(b1ss2)	{Converting calendar year to migratory\\year\\
+				\ \\
+				Creating variables for analyses\\
+				\ \\
+				Removal of vagrant records};
+\node[SUBSTEP, draw, right=of b1s3.east, xshift=3cm]
+	(b1ss3)	{Removing observations unsuitable for public output\\
+				\ \\
+				Reviewing checklist completeness};
+\node[SUBSTEP, draw, right=of b1s4.east, xshift=3cm]
+	(b1ss4)	{Selecting species\\
+				\ \\
+				Constraining data for a species\\
+				\ \\
+				Reducing spatial non-independence of checklists};
+				
+% lines to substeps
+\draw[SUBSTEP.LINE]
+	(b1s2.north east)		edge		(b1ss2.north west)
+	(b1s2.south east)		edge		(b1ss2.south west)
+	(b1s3.north east)		edge		(b1ss3.north west)
+	(b1s3.south east)		edge		(b1ss3.south west)
+	(b1s4.north east)		edge		(b1ss4.north west)
+	(b1s4.south east)		edge		(b1ss4.south west);
+    	  	
+\begin{pgfonlayer}{background}
+\node[BLOCK][fit={(b1) (b1s1) (b1s2) (b1s3) (b1s4)}, inner sep=1cm]
+	(b1box)	{};
+\end{pgfonlayer}
+
+
+% BLOCK 2
+ \node[BLOCK.TITLE] [anchor=north, below=of b1box.south, yshift=-2cm, xshift=-10cm] 
+    	(b2)	{2. Estimating Long-term Change (LTC)\\and Current Annual Trend (CAT)};
+  
+% Step 1
+\node[STEP] [draw, below=of b2]
+	(b2s1) 	{Model frequency of reporting};
+% Step 2
+\node[STEP] [draw, below=of b2s1]
+	(b2s2) 	{Categorize LTC and CAT};
+    	  	
+\begin{pgfonlayer}{background}
+\node[BLOCK][fit={(b2) (b2s1) (b2s2)}, inner sep=1cm] 
+	(b2box)	{};
+\end{pgfonlayer}
+
+
+% substeps
+\node[SUBSTEP.MINI, draw, left=of b2s1.west, xshift=-3cm]
+	(b2ss1)	{Model confidence check\\
+				\ \\
+				Calculating LTC and CAT from predicted values\\
+				\ \\
+				Sensitivity check};
+				
+% lines to substeps
+\draw[SUBSTEP.LINE]
+	(b2s1.north west)		edge		(b2ss1.north east)
+	(b2s1.south west)		edge		(b2ss1.south east);
+
+
+% BLOCK 3
+ \node[BLOCK.TITLE] [anchor=north, below=of b1box.south, yshift=-2cm, xshift=10cm] 
+    	(b3)	{3. Estimating Distribution\\Range Size (DRS)};
+  
+% Step 1
+\node[STEP] [draw, below=of b3]
+	(b3s1) 	{Model occupancy};
+% Step 2
+\node[STEP] [draw, below=of b3s1]
+	(b3s2) 	{Categorize DRS};
+    	  	
+\begin{pgfonlayer}{background}
+\node[BLOCK][fit={(b3) (b3s1) (b3s2)}, inner sep=1cm] 
+	(b3box)	{};
+\end{pgfonlayer}
+
+
+% substeps
+\node[SUBSTEP.MINI, draw, right=of b3s1.east, xshift=3cm]
+	(b3ss1)	{Calculating DRS from predicted values};
+				
+% lines to substeps
+\draw[SUBSTEP.LINE]
+	(b3s1.north east)		edge		(b3ss1.north west)
+	(b3s1.south east)		edge		(b3ss1.south west);
+
+% BLOCK 4
+
+\node[BLOCK.TITLE][anchor=north, below=of b2box.south, yshift=-2cm, xshift=10cm] 
+	(b4)	{4. SoIB Priority Status};
+	
+%\node[BLOCK][anchor=north, below left=of b3box, yshift=-2cm, inner sep=1cm] 
+%	(b4box)	{4. SoIB Priority Status};
+\begin{pgfonlayer}{background}
+\node[BLOCK][fit={(b4)}, inner sep=1cm] 
+	(b4box)	{};
+\end{pgfonlayer}
+
+
+
+
+% arrows
+
+\draw[ARROW.MINI] 
+	(data1) 	edge 	[out=-10, in=180]		(b1s1.west);
+\draw[ARROW.MINI] 
+	(data2) 	edge 					(b1s1.west);
+\draw[ARROW.MINI] 
+	(data3) 	edge 	[out=10, in=180]		(b1s1.west);
+	
+\draw[ARROW]
+	(b1s1.south)	edge		(b1s2.north)
+	(b1s2.south)	edge 		(b1s3.north)
+	(b1s3.south)	to		(b1s4.north);
+	
+\draw[ARROW]
+	(b1s4.south)	-- ++(0cm, -2cm) 	 	-|			(b2box.north);
+\draw[ARROW]
+	(b1s4.south)	-- ++(0cm, -2cm) 	 	-|			(b3box.north);	
+	
+\draw[ARROW]
+	(b2s1.south)	to		(b2s2.north);
+\draw[ARROW]
+	(b2s2.south)	-- ++(0cm, -2cm) 	 	-|			(b4box.north);
+\draw[ARROW]
+	(b3s1.south)	to		(b3s2.north);
+\draw[ARROW]
+	(b3s2.south)	-- ++(0cm, -2cm) 	 	-|			(b4box.north);
+	
+\end{tikzpicture}
+
+\end{document}
