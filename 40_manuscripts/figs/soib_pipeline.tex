@@ -14,31 +14,40 @@
 \setmainfont[Ligatures=TeX]{Inter}
 \usepackage[defaultmathsizes]{mathastext}
 
+% empty list
+\usepackage{enumitem}
+
 \begin{document}
 
 % define colours
 \definecolor{soibAccent}{HTML}{952C12}
 \definecolor{soibYellow}{HTML}{d4c64a}
-\definecolor{soibGreen}{HTML}{a2bd5b}
+%\definecolor{soibGreen}{HTML}{a2bd5b}
+\definecolor{soibBlue}{HTML}{2D7AD9}
 
 \tikzset{
 	thick,
-	node distance=2cm,
+	node distance=1.25cm,
 	% styles
-	TITLE/.style={font=\Huge, scale=3, fill=white, font=\bfseries},
-	BLOCK.TITLE/.style={font=\Large, rectangle, ultra thick, align=center, inner sep=0.3cm},
-	BLOCK/.style={BLOCK.TITLE, minimum width=15cm, draw=soibGreen, fill=soibGreen!40},
-	STEP/.style={font=\large, rectangle, very thick, minimum width=7cm, minimum height=2cm, align=center, 
-				draw=soibYellow, fill=soibYellow!40},
-	INPUT.DATA/.style={font=\normalsize, align=right, inner sep=0.3cm},
-	SUBSTEP/.style={font=\normalsize, align=left, anchor=west, rectangle, draw=black, 
-				minimum width=7cm, minimum height=3cm, text width=6.5cm},
-	SUBSTEP.MINI/.style={font=\normalsize, align=left, anchor=west, rectangle, draw=black, 
-				minimum width=4.5cm, text width=4.3cm, inner sep=0.3cm},
+	TITLE/.style={font=\Huge, scale=5, fill=white, font=\bfseries},
+	BLOCK.TITLE/.style={font=\LARGE, rectangle, align=center, 
+					minimum width=0.90*\columnwidth, text width=0.95*\columnwidth},
+	BLOCK/.style={BLOCK.TITLE, ultra thick, draw=soibBlue, fill=soibBlue!20},
+	STEP/.style={font=\Large, rectangle, ultra thick, minimum width=0.7*\columnwidth, minimum height=1.5cm, align=center, 
+				text width=0.7*\columnwidth, draw=soibYellow, fill=soibYellow!20},
+	INPUT.DATA/.style={font=\large, align=right, inner sep=0.3cm},
+	SUBSTEP/.style={font=\large, align=left, anchor=west, rectangle, rounded corners,
+				draw=black!50, fill=black!5, text=black!85, inner sep=0.3cm, anchor=center,
+				minimum width=0.7*\columnwidth, minimum height=2cm, text width=0.7*\columnwidth},
+	SUBSTEP.MINI/.style={font=\large, align=left, anchor=west, rectangle, rounded corners,
+				draw=black!50, fill=black!5, text=black!85, inner sep=0.3cm,
+				minimum width=0.4*\columnwidth, text width=0.4*\columnwidth},
+	END/.style={font=\Huge, rounded rectangle, ultra thick, inner sep=0.75cm,
+				minimum width=11cm, align=center, fill=soibAccent!10, draw=soibAccent, text=soibAccent},
 	% arrows
-	ARROW/.style={-{Stealth[length=0.6cm]}, ultra thick},	
-	ARROW.MINI/.style={-{Stealth[length=0.3cm]}},	
-	SUBSTEP.LINE/.style={draw=black!75, dashed, dash pattern=on 10pt off 3pt},
+	ARROW/.style={-{Stealth[length=0.5cm]}, ultra thick},	
+	ARROW.MINI/.style={-{Stealth[length=0.25cm]}},	
+	SUBSTEP.LINE/.style={draw=black!50, dashed, dash pattern=on 8pt off 3pt},
 }
 
 
@@ -53,18 +62,18 @@
 
 
 % BLOCK 1
- \node[BLOCK.TITLE] [anchor=north, below=of title, yshift=-4cm] 
+ \node[BLOCK.TITLE] [anchor=north, below=of title, yshift=-2cm] 
     	(b1)	{1. Setting up data for analyses};
   
 % Step 1
 \node[STEP] [draw, below=of b1]
 	(b1s1) 	{Readying raw data};
 	% input data
-	\node[INPUT.DATA, left=of b1s1, yshift=2cm, xshift=-4cm]
+	\node[INPUT.DATA, left=of b1s1, yshift=2cm, xshift=-2.5cm]
 		(data1)	{eBird data};
-	\node[INPUT.DATA, left=of b1s1, yshift=0cm, xshift=-4cm]
+	\node[INPUT.DATA, left=of b1s1, yshift=0cm, xshift=-2.5cm]
 		(data2)	{Species attributes};
-	\node[INPUT.DATA, left=of b1s1, yshift=-2cm, xshift=-4cm]
+	\node[INPUT.DATA, left=of b1s1, yshift=-2cm, xshift=-2.5cm]
 		(data3)	{Spatial polgyons\\and grids};
 % Step 2
 \node[STEP] [draw, below=of b1s1]
@@ -77,22 +86,23 @@
 	(b1s4) 	{Selecting species and checklists};
 	
 % substeps
-\node[SUBSTEP, draw, right=of b1s2.east, xshift=3cm]
-	(b1ss2)	{Converting calendar year to migratory\\year\\
-				\ \\
-				Creating variables for analyses\\
-				\ \\
-				Removal of vagrant records};
+\node[SUBSTEP, draw, right=of b1s2.east, xshift=3cm, yshift=0.75cm]
+	(b1ss2)	{\begin{minipage}{\textwidth} \begin{itemize}[label={}, left=0pt]
+        			\item{Converting calendar year to migratory year}
+        			\item{Creating additional variables for analyses}
+        			\item{Removing vagrant records}
+    			\end{itemize} \end{minipage}};
 \node[SUBSTEP, draw, right=of b1s3.east, xshift=3cm]
-	(b1ss3)	{Removing observations unsuitable for public output\\
-				\ \\
-				Reviewing checklist completeness};
-\node[SUBSTEP, draw, right=of b1s4.east, xshift=3cm]
-	(b1ss4)	{Selecting species\\
-				\ \\
-				Constraining data for a species\\
-				\ \\
-				Reducing spatial non-independence of checklists};
+	(b1ss3)	{\begin{minipage}{\textwidth} \begin{itemize}[label={}, left=0pt]
+        			\item{Removing observations unsuitable for analyses}
+        			\item{Reviewing checklist completeness}
+    			\end{itemize} \end{minipage}};
+\node[SUBSTEP, draw, right=of b1s4.east, xshift=3cm, yshift=-0.75cm]
+	(b1ss4)	{\begin{minipage}{\textwidth} \begin{itemize}[label={}, left=0pt]
+        			\item{Selecting species}
+        			\item{Constraining data for a species}
+        			\item{Reducing spatial non-independence of checklists}
+    			\end{itemize} \end{minipage}};
 				
 % lines to substeps
 \draw[SUBSTEP.LINE]
@@ -110,15 +120,15 @@
 
 
 % BLOCK 2
- \node[BLOCK.TITLE] [anchor=north, below=of b1box.south, yshift=-2cm, xshift=-10cm] 
-    	(b2)	{2. Estimating Long-term Change (LTC)\\and Current Annual Trend (CAT)};
+ \node[BLOCK.TITLE] [anchor=north, below=of b1box.south, yshift=-4cm, xshift=-10cm] 
+    	(b2)	{2. Estimating Long-term Change (LTC) and Current Annual Trend (CAT)};
   
 % Step 1
 \node[STEP] [draw, below=of b2]
-	(b2s1) 	{Model frequency of reporting};
+	(b2s1) 	{Modelling frequency of reporting};
 % Step 2
 \node[STEP] [draw, below=of b2s1]
-	(b2s2) 	{Categorize LTC and CAT};
+	(b2s2) 	{Estimating LTC and CAT};
     	  	
 \begin{pgfonlayer}{background}
 \node[BLOCK][fit={(b2) (b2s1) (b2s2)}, inner sep=1cm] 
@@ -127,29 +137,38 @@
 
 
 % substeps
-\node[SUBSTEP.MINI, draw, left=of b2s1.west, xshift=-3cm]
-	(b2ss1)	{Model confidence check\\
-				\ \\
-				Calculating LTC and CAT from predicted values\\
-				\ \\
-				Sensitivity check};
-				
+\node[SUBSTEP.MINI, draw, left=of b2s1.west, xshift=-3cm, yshift=1cm]
+	(b2ss1)	{\begin{minipage}{\textwidth} \begin{itemize}[label={}, left=0pt]
+        			\item{Running single-species models}
+        			\item{Model confidence checks}
+        			\item{Predicting values}
+    			\end{itemize} \end{minipage}};
+\node[SUBSTEP.MINI, draw, left=of b2s2.west, xshift=-3cm, yshift=-1cm]
+	(b2ss2)	{\begin{minipage}{\textwidth} \begin{itemize}[label={}, left=0pt]
+        			\item{Calculating LTC and CAT from predicted values}
+        			\item{Categorizing LTC and CAT}
+        			\item{Sensitivity checks}
+    			\end{itemize} \end{minipage}};
+			
 % lines to substeps
 \draw[SUBSTEP.LINE]
 	(b2s1.north west)		edge		(b2ss1.north east)
 	(b2s1.south west)		edge		(b2ss1.south east);
+\draw[SUBSTEP.LINE]
+	(b2s2.north west)		edge		(b2ss2.north east)
+	(b2s2.south west)		edge		(b2ss2.south east);
 
 
 % BLOCK 3
- \node[BLOCK.TITLE] [anchor=north, below=of b1box.south, yshift=-2cm, xshift=10cm] 
-    	(b3)	{3. Estimating Distribution\\Range Size (DRS)};
+ \node[BLOCK.TITLE] [anchor=north, below=of b1box.south, yshift=-4cm, xshift=10cm] 
+    	(b3)	{3. Estimating Distribution Range\\Size (DRS)};
   
 % Step 1
 \node[STEP] [draw, below=of b3]
-	(b3s1) 	{Model occupancy};
+	(b3s1) 	{Modelling occupancy};
 % Step 2
 \node[STEP] [draw, below=of b3s1]
-	(b3s2) 	{Categorize DRS};
+	(b3s2) 	{Estimating DRS};
     	  	
 \begin{pgfonlayer}{background}
 \node[BLOCK][fit={(b3) (b3s1) (b3s2)}, inner sep=1cm] 
@@ -159,17 +178,29 @@
 
 % substeps
 \node[SUBSTEP.MINI, draw, right=of b3s1.east, xshift=3cm]
-	(b3ss1)	{Calculating DRS from predicted values};
-				
+	(b3ss1)	{\begin{minipage}{\textwidth} \begin{itemize}[label={}, left=0pt]
+        			\item{Running single-species models}
+        			\item{Predicting values}
+    			\end{itemize} \end{minipage}};
+\node[SUBSTEP.MINI, draw, right=of b3s2.east, xshift=3cm]
+	(b3ss2)	{\begin{minipage}{\textwidth} \begin{itemize}[label={}, left=0pt] 
+			\item{Calculating DRS from predicted values} 
+			\item{Categorizing DRS} 
+			\end{itemize} \end{minipage}};
+		
 % lines to substeps
 \draw[SUBSTEP.LINE]
 	(b3s1.north east)		edge		(b3ss1.north west)
 	(b3s1.south east)		edge		(b3ss1.south west);
+\draw[SUBSTEP.LINE]
+	(b3s2.north east)		edge		(b3ss2.north west)
+	(b3s2.south east)		edge		(b3ss2.south west);
+
 
 % BLOCK 4
 
-\node[BLOCK.TITLE][anchor=north, below=of b2box.south, yshift=-2cm, xshift=10cm] 
-	(b4)	{4. SoIB Priority Status};
+\node[BLOCK.TITLE][anchor=north, below=of b2box.south, yshift=-4cm, xshift=10cm] 
+	(b4)	{4. Assigning categories of conservation priority};
 	
 %\node[BLOCK][anchor=north, below left=of b3box, yshift=-2cm, inner sep=1cm] 
 %	(b4box)	{4. SoIB Priority Status};
@@ -177,6 +208,11 @@
 \node[BLOCK][fit={(b4)}, inner sep=1cm] 
 	(b4box)	{};
 \end{pgfonlayer}
+
+
+% END
+\node[END, below=of b4box.south, yshift=-2cm]
+	(end) {SoIB Priority Status};
 
 
 
@@ -196,18 +232,22 @@
 	(b1s3.south)	to		(b1s4.north);
 	
 \draw[ARROW]
-	(b1s4.south)	-- ++(0cm, -2cm) 	 	-|			(b2box.north);
+	(b1s4.south)	-- ++(0cm, -3cm) 	 	-|			(b2box.north);
 \draw[ARROW]
-	(b1s4.south)	-- ++(0cm, -2cm) 	 	-|			(b3box.north);	
+	(b1s4.south)	-- ++(0cm, -3cm) 	 	-|			(b3box.north);	
 	
 \draw[ARROW]
 	(b2s1.south)	to		(b2s2.north);
 \draw[ARROW]
-	(b2s2.south)	-- ++(0cm, -2cm) 	 	-|			(b4box.north);
+	(b2s2.south)	-- ++(0cm, -3cm) 	 	-|			(b4box.north);
 \draw[ARROW]
 	(b3s1.south)	to		(b3s2.north);
 \draw[ARROW]
-	(b3s2.south)	-- ++(0cm, -2cm) 	 	-|			(b4box.north);
+	(b3s2.south)	-- ++(0cm, -3cm) 	 	-|			(b4box.north);
+	
+\draw[ARROW]
+	(b4box.south) 	to 		(end.north);
+	
 	
 \end{tikzpicture}
 
