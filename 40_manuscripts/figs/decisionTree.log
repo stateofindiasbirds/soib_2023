@@ -1,4 +1,4 @@
-This is LuaHBTeX, Version 1.17.1 (MiKTeX 24.1) (format=lualatex 2024.5.13)  13 MAY 2024 18:44
+This is LuaHBTeX, Version 1.17.1 (MiKTeX 24.1) (format=lualatex 2024.5.13)  19 MAY 2024 21:01
  restricted system commands enabled.
 **decisionTree.tex
 (./decisionTree.tex
@@ -940,11 +940,11 @@ Package pgfplots notification 'compat/show suggested version=true': document ha
 s been generated with the most recent feature set (\pgfplotsset{compat=1.18}).
 
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <20.74> on input line 71.
+(Font)              <20.74> on input line 72.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <14.4> on input line 71.
+(Font)              <14.4> on input line 72.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <12> on input line 71.
+(Font)              <12> on input line 72.
 [1
 
 {C:/Users/Karthik Thrikkadeeri/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}
@@ -956,22 +956,23 @@ L3 programming layer <2024-01-04>
 )
 
 Here is how much of LuaTeX's memory you used:
- 29384 strings out of 476497
+ 29400 strings out of 476497
  100000,1977958 words of node,token memory allocated
- 34258 words of node memory still in use:
-   623 hlist, 4 vlist, 1 rule, 49 disc, 34 math, 1009 glue, 107 kern, 653 glyph,
- 2612 attribute, 51 glue_spec, 2612 attribute_list, 2 write, 1623 pdf_literal, 4
+ 37078 words of node memory still in use:
+   679 hlist, 6 vlist, 2 rule, 54 disc, 36 math, 1088 glue, 136 kern, 741 glyph,
+ 2774 attribute, 51 glue_spec, 2774 attribute_list, 2 write, 1709 pdf_literal, 4
  pdf_colorstack nodes
-   avail lists: 2:30,3:3249,4:18,5:226,6:2,7:3412,8:14,9:1270,11:98
- 50637 multiletter control sequences out of 65536+600000
- 41 fonts using 7667551 bytes
- 102i,9n,101p,753b,940s stack positions out of 10000i,1000n,20000p,200000b,200000s
-<C:/Users/Karthik Thrikkadeeri/AppData/Local/Microsoft/Windows/Fonts/inter-regul
-ar.ttf><C:/Users/Karthik Thrikkadeeri/AppData/Local/Microsoft/Windows/Fonts/inte
-r-regular.ttf>
-Output written on decisionTree.pdf (1 page, 44962 bytes).
+   avail lists: 2:30,3:3421,4:18,5:284,6:2,7:3750,8:41,9:1388,11:108
+ 50653 multiletter control sequences out of 65536+600000
+ 42 fonts using 8079879 bytes
+ 102i,9n,101p,753b,941s stack positions out of 10000i,1000n,20000p,200000b,200000s
+<C:/Users/Karthik Thrikkadeeri/AppData/Local/Microsoft/Windows/Fonts/inter-bold.
+ttf><C:/Users/Karthik Thrikkadeeri/AppData/Local/Microsoft/Windows/Fonts/inter-r
+egular.ttf><C:/Users/Karthik Thrikkadeeri/AppData/Local/Microsoft/Windows/Fonts/
+inter-regular.ttf>
+Output written on decisionTree.pdf (1 page, 64957 bytes).
 
-PDF statistics: 23 PDF objects out of 1000 (max. 8388607)
+PDF statistics: 30 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 131072)
  16 words of extra memory for PDF output out of 10000 (max. 100000000)
 

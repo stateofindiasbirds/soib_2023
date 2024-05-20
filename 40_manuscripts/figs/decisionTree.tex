@@ -18,6 +18,7 @@
 
 % define colours
 \definecolor{soibAccent}{HTML}{952C12}
+\definecolor{soibGreen}{HTML}{a2bd5b}
 
 \tikzset{
 	font=\huge, thick,
@@ -41,7 +42,7 @@
 	TREND.FILL/.style={BLOCK, fill=red!50, 
 				path picture={\fill[blue!50, sharp corners] 
 							(path picture bounding box.west) -- (path picture bounding box.east) -- cycle;}},
-	TITLE/.style={scale=2.5, fill=white},
+	TITLE/.style={scale=4, fill=white, font=\bfseries},
 }
 
 
@@ -60,16 +61,16 @@
     % Same block but without surrounding box - remove draw
     %   \node[BLOCK]	[right=of blkStart]	
     %		(blkInsuffData)	{Insufficient data?};
-    \node[BLOCK]	[draw, below=of blkInsuffData]	
+    \node[BLOCK]	[draw, below=of blkInsuffData, ultra thick]	
     	(blkTrIncon)	{};
 	\draw[draw, thick] 	
 		(blkTrIncon.west)	to 	
-			node[HALF.LTT] {$95\%$ CI $> 25\%$?} 	 
-			node[HALF.CAT] {$95\%$ CI $> 2\%$?} 
+			node[HALF.LTT] {$\frac{95\%\ CI\ upper\ limit}{mean} > 1.5$?} 	 
+			node[HALF.CAT] {$95\%$ CI width $> 6\%$?} 
 			node[HALF.LTT.TEXT, anchor=west, pos=0, yshift=0.5cm] {LTC} 	 
 			node[HALF.CAT.TEXT, anchor=east, pos=0, yshift=0.5cm] {CAT}  
 		(blkTrIncon.east);
-    \node[BLOCK]	[draw, below=of blkTrIncon]	
+    \node[BLOCK]	[draw, below=of blkTrIncon, ultra thick]	
     	(blkRapDecl)	{};
 	\draw[draw, thick] 	
 		(blkRapDecl.west)	to 	
@@ -78,7 +79,7 @@
 			node[HALF.LTT.TEXT, anchor=west, pos=0, yshift=0.5cm] {LTC} 	 
 			node[HALF.CAT.TEXT, anchor=east, pos=0, yshift=0.5cm] {CAT}  
 		(blkRapDecl.east);
-    \node[BLOCK]	[draw, below=of blkRapDecl] 
+    \node[BLOCK]	[draw, below=of blkRapDecl, ultra thick] 
     	(blkDecl)	{};
 	\draw[draw, thick]
 		(blkDecl.west)	to 	
@@ -87,7 +88,7 @@
 			node[HALF.LTT.TEXT, anchor=west, pos=0, yshift=0.5cm] {LTC} 	 
 			node[HALF.CAT.TEXT, anchor=east, pos=0, yshift=0.5cm] {CAT}  
 		(blkDecl.east);
-    \node[BLOCK]	[draw, below=of blkDecl] 
+    \node[BLOCK]	[draw, below=of blkDecl, ultra thick] 
     	(blkRapInc)	{};
 	\draw[draw, thick]
 		(blkRapInc.west)	to 	
@@ -96,7 +97,7 @@
 			node[HALF.LTT.TEXT, anchor=west, pos=0, yshift=0.5cm] {LTC} 	 
 			node[HALF.CAT.TEXT, anchor=east, pos=0, yshift=0.5cm] {CAT}  
 		(blkRapInc.east);
-    \node[BLOCK]	[draw, below=of blkRapInc] 
+    \node[BLOCK]	[draw, below=of blkRapInc, ultra thick] 
     	(blkInc)	{};
 	\draw[draw, thick]
 		(blkInc.west)	to 	
@@ -106,7 +107,11 @@
 			node[HALF.CAT.TEXT, anchor=east, pos=0, yshift=0.5cm] {CAT}  
 		(blkInc.east);
     \node[BLOCK]	[draw, below=of blkInc, fill=green!10] 
-    	(blkOth)	{Overlapping thresholds\\of decline/increase?};
+    	(blkOth1)	{$95\%$ CI spans both positive\\and negative values?};
+    \node[BLOCK]	[draw, below=of blkOth1, fill=yellow!20] 
+    	(blkOth2)	{$95\%$ CI overlaps thresholds of\\Rapid Increase or Rapid Decline?};
+    	\node[HALF.LTT.TEXT, below=of blkOth1, anchor=west, yshift=6.5cm, xshift=-2.9cm] 
+    		(ltctext) 	{LTC};
 
     
     % Category blocks
@@ -122,10 +127,10 @@
     	(lblRapInc) 		{Rapid Increase};
     \node[LABEL] [draw, right=of blkInc] 
     	(lblInc)		{Increase};
-    \node[LABEL] [draw, right=of blkOth] 
+    \node[LABEL] [draw, below=of blkOth2] 
     	(lblStbl) 		{Stable};
 % final NO for loop-back
-%   \node[below=of blkOth, fill=white, inner sep=2pt] 
+%   \node[below=of blkOth1, fill=white, inner sep=2pt] 
 % 	(lblFinalNo) 		{No};
 %\node[right=of lblTrIncon]
 %	(lblFinalShift)		{};
@@ -150,10 +155,14 @@
    	(blkRapInc) 		edge node[NO]{No} 	(blkInc);
     \draw[ARROW] 
     	(blkInc) 		edge node[YES]{Yes}	(lblInc)
-    	(blkInc)		edge node[NO]{No} 	(blkOth);
+    	(blkInc)		edge node[NO]{No} 	(blkOth1);
     \draw[ARROW] 
-    	(blkOth) 		edge node[NO]{No}	(lblStbl)
-    	(blkOth.south)		|- ++(19cm,-3cm)	node[YES]{Yes}	
+    	(blkOth1) 		edge node[YES]{Yes}	(blkOth2)
+    	(blkOth1)		-- ++(19cm,0cm) node[NO, pos=0.15]{No}
+    				|- 	(lblTrIncon.east);
+    \draw[ARROW] 
+    	(blkOth2) 		edge	node[NO]{No}		(lblStbl)
+    	(blkOth2)		-- ++(19cm,0cm)		node[YES, pos=0.15]{Yes}
     					|- 			(lblTrIncon.east);
     	%(lblFinalNo.north); 
     %\draw[thick, decoration={markings, mark=at position 0.5 with {\arrow{stealth}}}]
@@ -189,15 +198,15 @@
 
     
     % Category blocks
-    \node[LABEL] [draw, left=of blkRecent] 
+    \node[LABEL] [draw, right=of blkRecent] 
     	(lblHist)		{Historical};
-    \node[LABEL] [draw, left=of blkVeryRest] 
+    \node[LABEL] [draw, right=of blkVeryRest] 
     	(lblVeryRest)		{Very Restricted};
-    \node[LABEL] [draw, left=of blkRest] 
+    \node[LABEL] [draw, right=of blkRest] 
     	(lblRest)		{Restricted};
-    \node[LABEL] [draw, left=of blkMod] 
+    \node[LABEL] [draw, right=of blkMod] 
     	(lblMod) 		{Moderate};
-    \node[LABEL] [draw, left=of blkLarge] 
+    \node[LABEL] [draw, right=of blkLarge] 
     	(lblLarge)		{Large};
     \node[LABEL] [draw, below=of blkLarge, yshift=-1cm] 
     	(lblVeryLarge) 	{Very Large};
@@ -229,9 +238,9 @@
 
 % titles
 
-\node[TITLE, above=of blkStart, xshift=2.5cm]
+\node[TITLE, above=of blkStart, xshift=1.5cm]
 	(titleltt) {Categorization of LTC and CAT};
-\node[TITLE, above=of blkStartRange, xshift=-2.5cm]
+\node[TITLE, above=of blkStartRange, xshift=1.5cm]
 	(titleltt) {Categorization of DRS};	
 
 

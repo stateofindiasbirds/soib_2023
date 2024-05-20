@@ -17,7 +17,12 @@
 % empty list
 \usepackage{enumitem}
 
+% font sizes
+\usepackage{anyfontsize}
+
+
 \begin{document}
+
 
 % define colours
 \definecolor{soibAccent}{HTML}{952C12}
@@ -25,28 +30,37 @@
 %\definecolor{soibGreen}{HTML}{a2bd5b}
 \definecolor{soibBlue}{HTML}{2D7AD9}
 
+
+\newcommand\fsMAX{\fontsize{28pt}{33.6pt}\selectfont}
+\newcommand\fsMID{\fontsize{24pt}{28.8pt}\selectfont}
+\newcommand\fsMIN{\fontsize{20pt}{24pt}\selectfont}
+
+
 \tikzset{
 	thick,
-	node distance=1.25cm,
+	node distance=2cm,
 	% styles
-	TITLE/.style={font=\Huge, scale=5, fill=white, font=\bfseries},
-	BLOCK.TITLE/.style={font=\LARGE, rectangle, align=center, 
-					minimum width=0.90*\columnwidth, text width=0.95*\columnwidth},
+	TITLE/.style={font=\Huge, scale=7, fill=white, font=\bfseries},
+	BLOCK.TITLE/.style={font=\fsMAX, rectangle, align=center, 
+					minimum width=0.9*\columnwidth, text width=1.2*\columnwidth},
 	BLOCK/.style={BLOCK.TITLE, ultra thick, draw=soibBlue, fill=soibBlue!20},
-	STEP/.style={font=\Large, rectangle, ultra thick, minimum width=0.7*\columnwidth, minimum height=1.5cm, align=center, 
+	STEP/.style={font=\fsMID, rectangle, ultra thick, minimum width=0.7*\columnwidth, minimum height=3cm, align=center, 
 				text width=0.7*\columnwidth, draw=soibYellow, fill=soibYellow!20},
-	INPUT.DATA/.style={font=\large, align=right, inner sep=0.3cm},
-	SUBSTEP/.style={font=\large, align=left, anchor=west, rectangle, rounded corners,
+	INPUT.DATA/.style={font=\fsMIN, align=right, inner sep=0.3cm},
+	SUBSTEP/.style={font=\fsMIN, align=left, anchor=west, rectangle, rounded corners,
 				draw=black!50, fill=black!5, text=black!85, inner sep=0.3cm, anchor=center,
-				minimum width=0.7*\columnwidth, minimum height=2cm, text width=0.7*\columnwidth},
-	SUBSTEP.MINI/.style={font=\large, align=left, anchor=west, rectangle, rounded corners,
+				minimum width=0.9*\columnwidth, minimum height=2cm, text width=0.9*\columnwidth},
+	SUBSTEP.MINI/.style={font=\fsMIN, align=left, anchor=west, rectangle, rounded corners,
 				draw=black!50, fill=black!5, text=black!85, inner sep=0.3cm,
-				minimum width=0.4*\columnwidth, text width=0.4*\columnwidth},
-	END/.style={font=\Huge, rounded rectangle, ultra thick, inner sep=0.75cm,
-				minimum width=11cm, align=center, fill=soibAccent!10, draw=soibAccent, text=soibAccent},
+				minimum width=0.7*\columnwidth, text width=0.7*\columnwidth},
+	END/.style={font=\fsMAX, rounded rectangle, ultra thick, inner sep=0.75cm,
+				minimum width=13cm, align=center, fill=soibAccent!10, draw=soibAccent, text=soibAccent},
+	START/.style={font=\fsMAX, rounded rectangle, ultra thick, inner sep=0.75cm, dashed, dash pattern=on 15pt off 10pt,
+				minimum width=13cm, align=center, draw=black},
+	FOOTNOTE/.style={font=\fsMIN, align=left, text=black},
 	% arrows
-	ARROW/.style={-{Stealth[length=0.5cm]}, ultra thick},	
-	ARROW.MINI/.style={-{Stealth[length=0.25cm]}},	
+	ARROW/.style={-{Stealth[length=0.75cm]}, ultra thick},	
+	ARROW.MINI/.style={-{Stealth[length=0.5cm]}},	
 	SUBSTEP.LINE/.style={draw=black!50, dashed, dash pattern=on 8pt off 3pt},
 }
 
@@ -61,20 +75,24 @@
 	(title) {The SoIB Pipeline};
 
 
+% start
+\node[START, below=of title, yshift=-4cm]
+	(start) 	{START}; 
+
 % BLOCK 1
- \node[BLOCK.TITLE] [anchor=north, below=of title, yshift=-2cm] 
+ \node[BLOCK.TITLE] [anchor=north, below=of start, yshift=-4cm] 
     	(b1)	{1. Setting up data for analyses};
   
 % Step 1
 \node[STEP] [draw, below=of b1]
 	(b1s1) 	{Readying raw data};
 	% input data
-	\node[INPUT.DATA, left=of b1s1, yshift=2cm, xshift=-2.5cm]
+	\node[INPUT.DATA, left=of b1s1, yshift=2cm, xshift=-5cm]
 		(data1)	{eBird data};
-	\node[INPUT.DATA, left=of b1s1, yshift=0cm, xshift=-2.5cm]
+	\node[INPUT.DATA, left=of b1s1, yshift=0cm, xshift=-5cm]
 		(data2)	{Species attributes};
-	\node[INPUT.DATA, left=of b1s1, yshift=-2cm, xshift=-2.5cm]
-		(data3)	{Spatial polgyons\\and grids};
+	\node[INPUT.DATA, left=of b1s1, yshift=-2cm, xshift=-5cm]
+		(data3)	{Spatial polygons\\and grids};
 % Step 2
 \node[STEP] [draw, below=of b1s1]
 	(b1s2) 	{Reshaping eBird data};
@@ -86,18 +104,18 @@
 	(b1s4) 	{Selecting species and checklists};
 	
 % substeps
-\node[SUBSTEP, draw, right=of b1s2.east, xshift=3cm, yshift=0.75cm]
+\node[SUBSTEP, draw, right=of b1s2.east, xshift=5cm, yshift=1cm]
 	(b1ss2)	{\begin{minipage}{\textwidth} \begin{itemize}[label={}, left=0pt]
         			\item{Converting calendar year to migratory year}
         			\item{Creating additional variables for analyses}
         			\item{Removing vagrant records}
     			\end{itemize} \end{minipage}};
-\node[SUBSTEP, draw, right=of b1s3.east, xshift=3cm]
+\node[SUBSTEP, draw, right=of b1s3.east, xshift=5cm]
 	(b1ss3)	{\begin{minipage}{\textwidth} \begin{itemize}[label={}, left=0pt]
         			\item{Removing observations unsuitable for analyses}
         			\item{Reviewing checklist completeness}
     			\end{itemize} \end{minipage}};
-\node[SUBSTEP, draw, right=of b1s4.east, xshift=3cm, yshift=-0.75cm]
+\node[SUBSTEP, draw, right=of b1s4.east, xshift=5cm, yshift=-1cm]
 	(b1ss4)	{\begin{minipage}{\textwidth} \begin{itemize}[label={}, left=0pt]
         			\item{Selecting species}
         			\item{Constraining data for a species}
@@ -114,36 +132,36 @@
 	(b1s4.south east)		edge		(b1ss4.south west);
     	  	
 \begin{pgfonlayer}{background}
-\node[BLOCK][fit={(b1) (b1s1) (b1s2) (b1s3) (b1s4)}, inner sep=1cm]
+\node[BLOCK][fit={(b1) (b1s1) (b1s2) (b1s3) (b1s4)}, inner sep=1.5cm]
 	(b1box)	{};
 \end{pgfonlayer}
 
 
 % BLOCK 2
  \node[BLOCK.TITLE] [anchor=north, below=of b1box.south, yshift=-4cm, xshift=-10cm] 
-    	(b2)	{2. Estimating Long-term Change (LTC) and Current Annual Trend (CAT)};
+    	(b2)	{2. Estimating Long-term\\Change* (LTC) and Current\\Annual Trend (CAT)};
   
 % Step 1
 \node[STEP] [draw, below=of b2]
-	(b2s1) 	{Modelling frequency of reporting};
+	(b2s1) 	{Modelling frequency\\of reporting};
 % Step 2
 \node[STEP] [draw, below=of b2s1]
 	(b2s2) 	{Estimating LTC and CAT};
     	  	
 \begin{pgfonlayer}{background}
-\node[BLOCK][fit={(b2) (b2s1) (b2s2)}, inner sep=1cm] 
+\node[BLOCK][fit={(b2) (b2s1) (b2s2)}, inner sep=1.5cm] 
 	(b2box)	{};
 \end{pgfonlayer}
 
 
 % substeps
-\node[SUBSTEP.MINI, draw, left=of b2s1.west, xshift=-3cm, yshift=1cm]
+\node[SUBSTEP.MINI, draw, left=of b2s1.west, xshift=-5cm, yshift=1cm]
 	(b2ss1)	{\begin{minipage}{\textwidth} \begin{itemize}[label={}, left=0pt]
         			\item{Running single-species models}
         			\item{Model confidence checks}
         			\item{Predicting values}
     			\end{itemize} \end{minipage}};
-\node[SUBSTEP.MINI, draw, left=of b2s2.west, xshift=-3cm, yshift=-1cm]
+\node[SUBSTEP.MINI, draw, left=of b2s2.west, xshift=-5cm, yshift=-1cm]
 	(b2ss2)	{\begin{minipage}{\textwidth} \begin{itemize}[label={}, left=0pt]
         			\item{Calculating LTC and CAT from predicted values}
         			\item{Categorizing LTC and CAT}
@@ -161,7 +179,7 @@
 
 % BLOCK 3
  \node[BLOCK.TITLE] [anchor=north, below=of b1box.south, yshift=-4cm, xshift=10cm] 
-    	(b3)	{3. Estimating Distribution Range\\Size (DRS)};
+    	(b3)	{3. Estimating\\Distribution Range\\Size (DRS)};
   
 % Step 1
 \node[STEP] [draw, below=of b3]
@@ -171,18 +189,18 @@
 	(b3s2) 	{Estimating DRS};
     	  	
 \begin{pgfonlayer}{background}
-\node[BLOCK][fit={(b3) (b3s1) (b3s2)}, inner sep=1cm] 
+\node[BLOCK][fit={(b3) (b3s1) (b3s2)}, inner sep=1.5cm] 
 	(b3box)	{};
 \end{pgfonlayer}
 
 
 % substeps
-\node[SUBSTEP.MINI, draw, right=of b3s1.east, xshift=3cm]
+\node[SUBSTEP.MINI, draw, right=of b3s1.east, xshift=5cm]
 	(b3ss1)	{\begin{minipage}{\textwidth} \begin{itemize}[label={}, left=0pt]
         			\item{Running single-species models}
         			\item{Predicting values}
     			\end{itemize} \end{minipage}};
-\node[SUBSTEP.MINI, draw, right=of b3s2.east, xshift=3cm]
+\node[SUBSTEP.MINI, draw, right=of b3s2.east, xshift=5cm]
 	(b3ss2)	{\begin{minipage}{\textwidth} \begin{itemize}[label={}, left=0pt] 
 			\item{Calculating DRS from predicted values} 
 			\item{Categorizing DRS} 
@@ -214,10 +232,15 @@
 \node[END, below=of b4box.south, yshift=-2cm]
 	(end) {SoIB Priority Status};
 
-
+% footnote
+\node[FOOTNOTE, below=of end, yshift=-4cm]
+	(footnote) {* Long-term Change (LTC) is the same metric referred to as Long-term Trend (LTT) in the SoIB 2023 report and associated outputs.};
 
 
 % arrows
+
+\draw[ARROW]
+	(start) 	-- 		(b1box.north);
 
 \draw[ARROW.MINI] 
 	(data1) 	edge 	[out=-10, in=180]		(b1s1.west);
@@ -232,18 +255,18 @@
 	(b1s3.south)	to		(b1s4.north);
 	
 \draw[ARROW]
-	(b1s4.south)	-- ++(0cm, -3cm) 	 	-|			(b2box.north);
+	(b1s4.south)	-- ++(0cm, -4cm) 	 	-|			(b2box.north);
 \draw[ARROW]
-	(b1s4.south)	-- ++(0cm, -3cm) 	 	-|			(b3box.north);	
+	(b1s4.south)	-- ++(0cm, -4cm) 	 	-|			(b3box.north);	
 	
 \draw[ARROW]
 	(b2s1.south)	to		(b2s2.north);
 \draw[ARROW]
-	(b2s2.south)	-- ++(0cm, -3cm) 	 	-|			(b4box.north);
+	(b2s2.south)	-- ++(0cm, -4cm) 	 	-|			(b4box.north);
 \draw[ARROW]
 	(b3s1.south)	to		(b3s2.north);
 \draw[ARROW]
-	(b3s2.south)	-- ++(0cm, -3cm) 	 	-|			(b4box.north);
+	(b3s2.south)	-- ++(0cm, -4cm) 	 	-|			(b4box.north);
 	
 \draw[ARROW]
 	(b4box.south) 	to 		(end.north);
