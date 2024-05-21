@@ -20,11 +20,11 @@ Certain steps were required to be run on multiple machines. For this, the code p
 
 ## Data (`00_data/`)
 
-All input and many intermediary data are located in `00_data/`. Aside from the main eBird dataset (not committed, can be downloaded from [here](https://ebird.org/data/download/ebd)) and other eBird data inputs, this folder also contains various spatial data (shapefiles and rasters), intermediary data, and other data produced for auxiliary outputs such as the Systematic Monitoring chapter in the report, SoIB State Posters, SoIB website, etc. The font files used for most outputs in the report are in `Gandhi Sans/`, while Citation Style Language (CSL) used in the report lies in the main level of the repo (`soib.csl`). `SoIB_mapping_2022.csv` is a crucial species-level dataset that forms the backbone for much of the analysis, and `analyses_metadata.RData` forms the backbone for the pipeline.
+All input and many intermediary data are located in `00_data/`. Aside from the main eBird dataset (not committed, can be downloaded from [here](https://ebird.org/data/download/ebd)) and other eBird data inputs, this folder also contains various spatial data (shapefiles and rasters), intermediary data, and other data produced for auxiliary outputs such as the Systematic Monitoring chapter in the report[^1], SoIB State Posters, SoIB website, etc. The font files used for most outputs in the report[^1] are in `Gandhi Sans/`, while Citation Style Language (CSL) used in the report[^1] lies in the main level of the repo (`soib.csl`). `SoIB_mapping_2022.csv` is a crucial species-level dataset that forms the backbone for much of the analysis, and `analyses_metadata.RData` forms the backbone for the pipeline.
 
 ## Scripts (`00_scripts/`)
 
-Individual scripts, some of which are collections of functions, are located in `00_scripts/`. Numerical prefixes indicate where in the pipeline the scripts fall: `00_` refers to setup scripts, `01_` refers to the main analyses, `02_` to various plotting steps, `10_` to analyses from the Systematic Monitoring chapter of the report, `20_` to website-specific steps and outputs, `30_` to mass communication like acknowledgement certificates; scripts without prefixes also fall in various steps, from the main analyses steps to auxiliary outputs. The primary scripts for the main analysis are the ones referred to in order in `00_pipeline.R`.
+Individual scripts, some of which are collections of functions, are located in `00_scripts/`. Numerical prefixes indicate where in the pipeline the scripts fall: `00_` refers to setup scripts, `01_` refers to the main analyses, `02_` to various plotting steps, `10_` to analyses from the Systematic Monitoring chapter of the report[^1], `20_` to website-specific steps and outputs, `30_` to mass communication like acknowledgement certificates; scripts without prefixes also fall in various steps, from the main analyses steps to auxiliary outputs. The primary scripts for the main analysis are the ones referred to in order in `00_pipeline.R`.
 
 ## Main outputs
 
@@ -32,7 +32,7 @@ Individual scripts, some of which are collections of functions, are located in `
 
 SoIB 2023 analysed abundance trends and range size of Indian bird species at multiple spatial levels. The analysis first looked at nationwide patterns (`01_analyses_full/`), then explored patterns using four habitat masks (`01_analyses_mask-ABC/`), and finally analysed each state/UT individually (`01_analyses_states/`). Throughout these, the analytical framework remained the same. Each of these folders contains intermediary data files as well as a `results/` folder containing relevant outputs of the analysis. 
 
-`SoIB_main.csv` is the primary result of interest for each spatial level, which is a species-level data sheet with SoIB 2023 results appended as columns (model-predicted trends are generated in `trends.csv`). `SoIB_summaries.xlsx` contains tabular summaries of the SoIB classification and prioritisation effort. `redlist.csv` is related to the IUCN Red List comparison that is part of the report, and `key_state_species_` files relate to the "Highest Priority Species" analysis also done in the report (p. 23)---both were done only at the nationwide level. 
+`SoIB_main.csv` is the primary result of interest for each spatial level, which is a species-level data sheet with SoIB 2023 results appended as columns (model-predicted trends are generated in `trends.csv`). `SoIB_summaries.xlsx` contains tabular summaries of the SoIB classification and prioritisation effort. `redlist.csv` is related to the IUCN Red List comparison that is part of the report[^1], and `key_state_species_` files relate to the "Highest Priority Species" analysis also done in the report[^1] (p. 23)---both were done only at the nationwide level. 
 
 All the different SoIB results for all spatial levels were aggregated into a single SoIB 2023 results file (`20_website/SoIB_2023_main.xlsx`), downloadable from the website. This `.xlsx` file contains a README in the first sheet, detailing metadata for the dataset. It is also available as a citable Zenodo archive record[^1] along with the report itself.
 
@@ -44,7 +44,7 @@ All the different SoIB results for all spatial levels were aggregated into a sin
 
 ## Auxiliary outputs
 
-Input data and outputs for the systematic monitoring chapter of the report are located in `10_sys-mon/`. The browsable results directory on the SoIB website is controlled by a core database, `20_website/website_database.csv`, and the folder also contains other website-specific outputs. 
+Input data and outputs for the systematic monitoring chapter of the report[^1] are located in `10_sys-mon/`. The browsable results directory on the SoIB website is controlled by a core database, `20_website/website_database.csv`, and the folder also contains other website-specific outputs. 
 
 ## References
 
