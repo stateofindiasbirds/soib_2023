@@ -1,4 +1,4 @@
-This is LuaHBTeX, Version 1.17.1 (MiKTeX 24.1) (format=lualatex 2024.5.13)  19 MAY 2024 21:01
+This is LuaHBTeX, Version 1.17.1 (MiKTeX 24.1) (format=lualatex 2024.5.13)  20 MAY 2024 15:37
  restricted system commands enabled.
 **decisionTree.tex
 (./decisionTree.tex
@@ -970,7 +970,7 @@ Here is how much of LuaTeX's memory you used:
 ttf><C:/Users/Karthik Thrikkadeeri/AppData/Local/Microsoft/Windows/Fonts/inter-r
 egular.ttf><C:/Users/Karthik Thrikkadeeri/AppData/Local/Microsoft/Windows/Fonts/
 inter-regular.ttf>
-Output written on decisionTree.pdf (1 page, 64957 bytes).
+Output written on decisionTree.pdf (1 page, 64967 bytes).
 
 PDF statistics: 30 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 131072)
