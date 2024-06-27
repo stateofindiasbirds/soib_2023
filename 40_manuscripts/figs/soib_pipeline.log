@@ -1,4 +1,4 @@
-This is LuaHBTeX, Version 1.17.1 (MiKTeX 24.1) (format=lualatex 2024.5.13)  20 MAY 2024 15:35
+This is LuaHBTeX, Version 1.17.1 (MiKTeX 24.1) (format=lualatex 2024.5.13)  25 MAY 2024 15:00
  restricted system commands enabled.
 **soib_pipeline.tex
 (./soib_pipeline.tex
@@ -945,57 +945,57 @@ Underfull \hbox (badness 10000) in paragraph at lines 109--110
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 110--111
-[]\TU/Inter(0)/m/n/20 Cre-at-ing ad-di-tional vari-ables for
+Underfull \hbox (badness 10000) in paragraph at lines 111--112
+[]\TU/Inter(0)/m/n/20 As-sign-ing data to tem-po-ral and
  []
 
-LaTeX Font Info:    Calculating math sizes for size <20> on input line 112.
+LaTeX Font Info:    Calculating math sizes for size <20> on input line 113.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <20> on input line 112.
+(Font)              <20> on input line 113.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <13.99994> on input line 112.
+(Font)              <13.99994> on input line 113.
 
-Underfull \hbox (badness 10000) in paragraph at lines 115--116
+Underfull \hbox (badness 10000) in paragraph at lines 116--117
 []\TU/Inter(0)/m/n/20 Re-mov-ing ob-ser-va-tions un-suit-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 116--117
+Underfull \hbox (badness 10000) in paragraph at lines 117--118
 []\TU/Inter(0)/m/n/20 Re-view-ing check-list com-plete-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 122--123
+Underfull \hbox (badness 10000) in paragraph at lines 123--124
 []\TU/Inter(0)/m/n/20 Re-duc-ing spa-tial non-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 160--161
+Underfull \hbox (badness 10000) in paragraph at lines 161--162
 []\TU/Inter(0)/m/n/20 Run-ning single-species
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 161--162
+Underfull \hbox (badness 10000) in paragraph at lines 162--163
 []\TU/Inter(0)/m/n/20 Model con-fi-dence
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 166--167
+Underfull \hbox (badness 10000) in paragraph at lines 167--168
 []\TU/Inter(0)/m/n/20 Cal-cu-lat-ing LTC and CAT
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 167--168
+Underfull \hbox (badness 10000) in paragraph at lines 168--169
 []\TU/Inter(0)/m/n/20 Cat-e-go-riz-ing LTC and
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 200--201
+Underfull \hbox (badness 10000) in paragraph at lines 201--202
 []\TU/Inter(0)/m/n/20 Run-ning single-species
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 205--206
+Underfull \hbox (badness 10000) in paragraph at lines 206--207
 []\TU/Inter(0)/m/n/20 Cal-cu-lat-ing DRS from
  []
 
@@ -1012,18 +1012,18 @@ L3 programming layer <2024-01-04>
 Here is how much of LuaTeX's memory you used:
  29554 strings out of 476497
  100000,1977958 words of node,token memory allocated
- 31428 words of node memory still in use:
-   427 hlist, 32 vlist, 1 rule, 134 disc, 46 local_par, 14 math, 973 glue, 127 k
-ern, 116 penalty, 1138 glyph, 1651 attribute, 51 glue_spec, 1651 attribute_list,
- 2 write, 839 pdf_literal, 58 pdf_colorstack nodes
-   avail lists: 2:30,3:1913,4:126,5:266,6:94,7:4270,8:1,9:934,10:9,11:268
+ 31885 words of node memory still in use:
+   431 hlist, 32 vlist, 1 rule, 137 disc, 47 local_par, 14 math, 989 glue, 130 k
+ern, 120 penalty, 1167 glyph, 1659 attribute, 51 glue_spec, 1659 attribute_list,
+ 2 write, 839 pdf_literal, 60 pdf_colorstack nodes
+   avail lists: 2:30,3:1921,4:130,5:272,6:96,7:4360,8:1,9:942,10:9,11:274
  50817 multiletter control sequences out of 65536+600000
  43 fonts using 8470767 bytes
  102i,8n,101p,733b,958s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <C:/Users/Karthik Thrikkadeeri/AppData/Local/Microsoft/Windows/Fonts/inter-regul
 ar.ttf><C:/Users/Karthik Thrikkadeeri/AppData/Local/Microsoft/Windows/Fonts/inte
 r-bold.ttf>
-Output written on soib_pipeline.pdf (1 page, 44181 bytes).
+Output written on soib_pipeline.pdf (1 page, 44343 bytes).
 
 PDF statistics: 23 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 131072)
