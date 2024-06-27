@@ -1,4 +1,4 @@
-# <annotation_pending_AV> !
+# determine sets of 4 and then 20 (if possible) key species for each state
 
 library(tidyverse)
 
@@ -11,6 +11,7 @@ india.checklist.map = main %>% select(eBird.English.Name.2022, India.Checklist.C
 
 ###
 
+# limiting the set of species to a set of criteria
 specs.states = main %>%
   filter(Selected.SOIB == "X",
          SOIBv2.Range.Status != "Historical",
@@ -20,12 +21,14 @@ specs.states = main %>%
   distinct(eBird.English.Name.2022) %>% 
   pull(eBird.English.Name.2022)
 
+# set of endangered IUCN species, to use separately in further decision making
 IUCN.end.species = main %>%
   filter(eBird.English.Name.2022 %in% specs.states, 
          IUCN.Category %in% c("Critically Endangered","Endangered")) %>%
   distinct(eBird.English.Name.2022) %>% 
   pull(eBird.English.Name.2022)
 
+# calculate proportional range within each state for each of the selected species
 key.state.species0 = data0 %>%
   filter(year > 2017) %>%
   filter(COMMON.NAME %in% specs.states) %>%
@@ -48,16 +51,22 @@ key.state.species0 = data0 %>%
 
 key.state.species = key.state.species0
 
+# IUCN endangered species with porortional ranges
 IUCN.end.state.species = key.state.species %>%
   filter(COMMON.NAME %in% IUCN.end.species)
 
+# find out which states already do not have an IUCN endangered species included
 IUCN.end.st = unique(IUCN.end.state.species$ST_NM)
 st.list = setdiff(unique(data0$ST_NM), IUCN.end.st)
+# set a flag that determines how many species from the 4 key species need to be 
+# determined for each state because having one IUCN endangered species is 
+# mandatory if possible (so only 3 from other means if one already exists)
 IUCN.flag = data.frame(ST_NM = c(IUCN.end.st,st.list),
                        flag = c(rep(3, length(IUCN.end.st)), rep(4, length(st.list))))
 
 
-
+# species with trend data available - these would be the base for determining the top 3-4
+# based on proportional range
 key.state.species.trends = key.state.species %>%
   filter(Long.Term.Sort == 0 | Current.Sort == 0) %>%
   group_by(ST_NM) %>% 
@@ -67,16 +76,20 @@ key.state.species.trends = key.state.species %>%
 key.state.species.range = key.state.species %>%
   filter(Long.Term.Sort == 1 & Current.Sort == 1)
 
+# select 3-4 top species based on proportional range
 key.state.species.report = key.state.species.trends %>%
   bind_rows(key.state.species.range) %>%
-  left_join(IUCN.flag) %>% 
+  left_join(IUCN.flag) %>%
   arrange(desc(prop.range), .by_group=TRUE) %>%
   group_by(ST_NM) %>% 
   slice(1:max(flag)) %>% 
   ungroup() %>%
   select(-flag)
+
 to.rem = key.state.species.report %>%
   distinct(ST_NM,COMMON.NAME)
+
+# select the top IUCN species based on proportional range to add to the previous set
 IUCN.add = key.state.species %>%
   filter(ST_NM %in% IUCN.end.st,
          COMMON.NAME %in% IUCN.end.species) %>%
@@ -84,17 +97,20 @@ IUCN.add = key.state.species %>%
   group_by(ST_NM) %>% 
   arrange(desc(prop.range), .by_group=TRUE) %>%
   slice(1)
+
+# combine!
 key.state.species.report = key.state.species.report %>%
   bind_rows(IUCN.add) %>%
   group_by(ST_NM) %>% 
   arrange(desc(prop.range), .by_group=TRUE)
 
-
+# check how many states have less than 4 species
 check = key.state.species.report %>%
   group_by(ST_NM) %>% 
   reframe(n = n()) %>%
   filter(n < 4)
 
+# find out how many are remaining for each state and get the remaining species
 key.state.species.trends.extra = key.state.species %>%
   filter(ST_NM %in% check$ST_NM) %>%
   left_join(check) %>%
@@ -106,6 +122,7 @@ key.state.species.trends.extra = key.state.species %>%
   ungroup() %>%
   select(-n)
 
+# combine!
 key.state.species.report = key.state.species.report %>%
   bind_rows(key.state.species.trends.extra) %>%
   group_by(ST_NM) %>%
@@ -114,7 +131,7 @@ key.state.species.report = key.state.species.report %>%
   ungroup()
 
 
-## update IUCN flag
+## update IUCN flag to identify states that still do not have IUCN species
 
 IUCN.rem = key.state.species.report %>% distinct(ST_NM,COMMON.NAME)
 
@@ -130,9 +147,7 @@ IUCN.flag = data.frame(ST_NM = c(IUCN.end.st,st.list),
 ###
 
 
-
-
-
+# again filter to 3 or 4 as required from the previous set of 4
 key.state.species.report = key.state.species.report %>%
   left_join(IUCN.flag) %>%
   group_by(ST_NM) %>% 
@@ -140,8 +155,12 @@ key.state.species.report = key.state.species.report %>%
   slice(1:max(flag)) %>% 
   ungroup() %>%
   select(-flag)
+
+# set of state/species combinations to exclude from the IUCN set
 to.rem = key.state.species.report %>%
   distinct(ST_NM,COMMON.NAME)
+
+# get IUCN species to add
 IUCN.add = key.state.species %>%
   filter(ST_NM %in% IUCN.end.st,
          COMMON.NAME %in% IUCN.end.species) %>%
@@ -149,16 +168,23 @@ IUCN.add = key.state.species %>%
   group_by(ST_NM) %>% 
   arrange(desc(prop.range), .by_group=TRUE) %>%
   slice(1)
+
+# combine!
 key.state.species.report = key.state.species.report %>%
   bind_rows(IUCN.add) %>% 
   group_by(ST_NM) %>% 
   arrange(desc(prop.range), .by_group=TRUE)
 
+# this is now the starting set of 4 species that will be iteratively changed to
+# determine the best set of 4 species per state so that repetitions between states are minimized
 initial.report = key.state.species.report %>%
   select(-Current.Sort, -Long.Term.Sort, -rangemean) %>%
   left_join(range.status, by = c("COMMON.NAME" = "eBird.English.Name.2022"))
 
 flag = 0
+
+# get a set of species that have repeated across states and have a relatively
+# low proportional contribution to range
 check1 = key.state.species.report %>%
   filter(!COMMON.NAME %in% IUCN.end.species) %>%
   group_by(COMMON.NAME) %>% 
@@ -168,7 +194,8 @@ check1 = key.state.species.report %>%
   pull(COMMON.NAME)
 check0 = check1
 
-## remove repeated species
+# remove repeated species and repeat the algorithm 10 times to iteratively reduce
+# the number of repeated species that are not IUCN endangered
 
 for(i in 1:10)
 {
@@ -233,11 +260,13 @@ for(i in 1:10)
 combs.to.avoid = key.state.species.report %>%
   distinct(ST_NM,COMMON.NAME)
 
+# check to see which states have less than 4 species
 check = key.state.species.report %>%
   group_by(ST_NM) %>% 
   reframe(n = n()) %>%
   filter(n < 4)
 
+# add the remainder
 key.state.species.extra = key.state.species %>%
   anti_join(combs.to.avoid) %>%
   filter(ST_NM %in% check$ST_NM) %>%
@@ -265,12 +294,17 @@ key.state.species.report = key.state.species.report %>%
 state.species = key.state.species.report %>%
   distinct(ST_NM,COMMON.NAME)
 
+# get a list of state/species combinations from the initial list that have relatively 
+# high proportional contributions to range - only for species that don't figure in
+# the latest list
 initial.report.range = initial.report %>%
   filter(SOIBv2.Current.Status %in% c("Insufficient Data","Trend Inconclusive"),
          SOIBv2.Long.Term.Status %in% c("Insufficient Data","Trend Inconclusive")) %>%
   anti_join(state.species) %>%
   filter(prop.range > 0.05)
 
+# for those states alone, get a set of species that can be removed from the 
+# latest list because there may be good substitutes available
 key.state.species.report.temp = key.state.species.report %>%
   filter(prop.range < 0.08, 
          ST_NM %in% initial.report.range$ST_NM) %>%
@@ -279,11 +313,12 @@ key.state.species.report.temp = key.state.species.report %>%
   slice(1) %>%
   distinct(ST_NM, COMMON.NAME)
 
+# state/species combinations to remove
 count.rem = key.state.species.report.temp %>%
   group_by(ST_NM) %>% 
   reframe(n = n())
 
-
+# get combinations to substitute that with
 initial.report.range.temp = initial.report.range %>% 
   left_join(count.rem) %>%
   filter(ST_NM %in% key.state.species.report.temp$ST_NM) %>%
@@ -291,19 +326,21 @@ initial.report.range.temp = initial.report.range %>%
   slice(1:max(n)) %>%
   dplyr::select(-n)
 
+# remove and add
 key.state.species.report = key.state.species.report %>%
   anti_join(key.state.species.report.temp) %>%
   bind_rows(initial.report.range.temp) %>%
   group_by(ST_NM) %>% 
   arrange(desc(prop.range), .by_group=TRUE) %>% 
   ungroup()
-  
+
+# remove any state/species combination where the proportional range is too small
 low.prob.comb = key.state.species.report %>%
   filter(prop.range < 0.01) %>%
   distinct(ST_NM, COMMON.NAME)
   
 low.prob.check = low.prob.comb %>%
-  group_by(ST_NM) %>% 
+  group_by(ST_NM) %>%
   reframe(n = n())
 
 state.species = key.state.species.report %>%
@@ -318,6 +355,7 @@ initial.report.rem = initial.report %>%
   slice(1:max(n)) %>%
   select(-n)
 
+# get an updated set of 4 species
 key.state.species.report = key.state.species.report %>%
   bind_rows(initial.report.rem) %>%
   group_by(ST_NM) %>% 
@@ -325,6 +363,7 @@ key.state.species.report = key.state.species.report %>%
   slice(1:4) %>%
   rename(eBird.English.Name.2022 = COMMON.NAME)
 
+# add important species case by case that have not made it to the list of 4
 miss.spec = data.frame(
   ST_NM = c(
     "Manipur","Andhra Pradesh","Uttarakhand","Himachal Pradesh","Gujarat","Kerala",
@@ -374,6 +413,8 @@ key.state.species.report = key.state.species.report %>%
   group_by(ST_NM) %>% 
   arrange(desc(prop.range), .by_group=TRUE)
 
+
+# check to see if there are any states that are missing species
 check3 = key.state.species0 %>%
   select(-Current.Sort, -Long.Term.Sort, -rangemean) %>%
   left_join(range.status, by = c("COMMON.NAME" = "eBird.English.Name.2022")) %>%
@@ -393,13 +434,14 @@ key.state.species.report = key.state.species.report %>%
   arrange(desc(prop.range), .by_group=TRUE) %>% 
   slice(1:4)
 
+# get a final set of 4 species
 key.state.species.report.final = key.state.species.report %>%
   left_join(india.checklist.map) %>%
   mutate(India.Checklist.Common.Name = factor(India.Checklist.Common.Name, levels = unique(india.checklist.map$India.Checklist.Common.Name))) %>%
   select(ST_NM,India.Checklist.Common.Name,prop.range,SOIBv2.Long.Term.Status,SOIBv2.Current.Status,SOIBv2.Range.Status) %>%
   group_by(ST_NM) %>% arrange(India.Checklist.Common.Name, .by_group = T)
 
-
+# write
 write.csv(key.state.species.report.final, "01_analyses_full/results/key_state_species_top4.csv", row.names = F)
 
 
@@ -407,7 +449,8 @@ write.csv(key.state.species.report.final, "01_analyses_full/results/key_state_sp
 
 
 
-
+# creating the larger list that will include any wetland species that meet the
+# 1 % criterion in any state
 
 
 one.perc = main %>% 
@@ -459,7 +502,8 @@ num.spec = full.list.4 %>%
   group_by(ST_NM) %>%
   reframe(n = n())
 
-
+# in addition to the 4 and 1 % species, include any species in a state when the proportional
+# contribution to range > 0.35
 full.list.prop.rem = data0 %>%
   rename(eBird.English.Name.2022 = COMMON.NAME) %>%
   filter(year > 2017) %>%
@@ -484,19 +528,20 @@ full.list.prop.comb = full.list.prop.rem %>%
   arrange(desc(prop.range), .by_group = TRUE) %>%
   ungroup()
 
-
+# final full list
 key.state.species.full.list = full.list.prop.comb %>%
   left_join(india.checklist.map) %>%
   mutate(India.Checklist.Common.Name = factor(India.Checklist.Common.Name, levels = unique(india.checklist.map$India.Checklist.Common.Name))) %>%
   select(ST_NM,India.Checklist.Common.Name,prop.range) %>%
   group_by(ST_NM) %>% arrange(India.Checklist.Common.Name, .by_group = T)
  
+# write
 write.csv(key.state.species.full.list, "01_analyses_full/key_state_species_full_list.csv", row.names = F)
   select(ST_NM, India.Checklist.Common.Name, prop.range)
 
 write.csv(key.state.species.full.list, "01_analyses_full/results/key_state_species_full.csv", row.names = F)
 
-
+# making comma separated lists
 delim.state.list = key.state.species.full.list %>%
   group_by(ST_NM) %>%
   summarise(India.Checklist.Common.Name = toString(India.Checklist.Common.Name)) %>%

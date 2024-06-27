@@ -1,6 +1,7 @@
 ###   error operations ########################################
 
-# <annotation_pending_AV>
+# function to propagate standard errors while dividing or multiplying values
+# arguments are the two means and their SEs
 errordiv = function(x1,x2,se1,se2)
 {
   r = x1/x2
@@ -18,7 +19,7 @@ erroradd = function(vec)
   return(err)
 }
 
-# <annotation_pending_AV>
+# function to take in two means and SEs, simulate 1000 values from each and then get 1000 ratios
 simerrordiv = function(x1, x2, se1, se2)
 {
   # takes untransformed (link) mean and SE values, and generates normal dist. from 1000 sims,
@@ -35,7 +36,10 @@ simerrordiv = function(x1, x2, se1, se2)
 
 ###   create a set of locations ########################################
 
-# <annotation_pending_AV> why do we do this in the first place?
+# function to select a random GROUP.ID from each location in the dataset 
+# (spatial subsampling) so that each set of IDs can form the basis for a dataset to use for analysis
+# this is then repeated 1000 times in the script "create_random_groupids.R" 
+# to create 1000 datasets, each without pseudoreplication
 
 # locs is a data frame with location, group id info
 
@@ -419,9 +423,11 @@ removevagrants = function(data)
 
 ### dataspeciesfilter ########################################
 
-# <annotation_pending_AV> elaborate below
 # select species for State of India's Birds, and species for historical and recent trends
-# includes all diurnal endemics (endemicity) and essential species (SelectSpecies)
+# the hierarchical logic is as follows - first any species that meet 
+# the data criteria for LTC and CAT are selected
+# followed by all diurnal endemics (endemicity) and essential species (SelectSpecies)
+# followed by assigning some species from within the previous set for 'restricted' trend analyses
 
 dataspeciesfilter = function(cur_mask = "none") {
   
@@ -679,7 +685,9 @@ dataspeciesfilter = function(cur_mask = "none") {
     filter(COMMON.NAME %in% cur_mask_spec) %>% 
     dplyr::select(COMMON.NAME, ht, rt)
   
-  # <annotation_pending_AV> why filtering dataf also? (instead of specieslist above)
+  # although specieslist is already extracted previously, ht and rt in dataf need to be
+  # synced so that later calculations of stats (number of species that met certain criteria)
+  # can be done using this data frame
   dataf <- dataf %>% 
     mutate(ht = case_when(Breeding.Activity.Period == "Nocturnal" &
                             Non.Breeding.Activity.Period == "Nocturnal" ~ NA_real_,
@@ -696,8 +704,8 @@ dataspeciesfilter = function(cur_mask = "none") {
                           TRUE ~ rt))
   
   
-  # <annotation_pending_AV> 
-  # why left_joining (then removing misIDd specs) separately again? 
+  # creation of restrictedspecieslist that only includes species that did not qualify 
+  # for trend analysis through the primary logic (see specieslist assignment)
   restrictedspecieslist = {if (cur_metadata$MASK.TYPE != "state") {
     data.frame(species = specieslist$COMMON.NAME)
   } else {
@@ -746,7 +754,10 @@ dataspeciesfilter = function(cur_mask = "none") {
   }
   
   
-  # <annotation_pending_AV> what exactly are we checking?
+  # check1 and check2 are lists of  species that qualified for restricted analyses for
+  # long-term and current analyses
+  # these vectors are used to update the columns in dataf that mention whether a species
+  # has qualified for either of these analyses
   check1 = restrictedspecieslist %>% 
     filter(!is.na(ht)) %>% 
     dplyr::select(COMMON.NAME) %>% as.vector() %>% list_c()
@@ -755,7 +766,8 @@ dataspeciesfilter = function(cur_mask = "none") {
     dplyr::select(COMMON.NAME) %>% as.vector() %>% list_c()
   
   
-  # <annotation_pending_AV> 
+  # randomcheck a and b are to determine whether the models for these restricted species 
+  # will include random effects or not - "randomcheck_a" has those species that qualified
   randomcheck_a = data0 %>% 
     filter(ALL.SPECIES.REPORTED == 1, 
            COMMON.NAME %in% restrictedspecieslist$COMMON.NAME) %>%
@@ -773,7 +785,7 @@ dataspeciesfilter = function(cur_mask = "none") {
     filter(n <= 7)
   
   
-  # <annotation_pending_AV> 
+  # information from the randomchecks is stored on the restrictedspecieslist data frame
   restrictedspecieslist_a = restrictedspecieslist %>% 
     filter(COMMON.NAME %in% randomcheck_a$COMMON.NAME) %>% 
     mutate(mixed = 1)
@@ -784,7 +796,10 @@ dataspeciesfilter = function(cur_mask = "none") {
   restrictedspecieslist = rbind(restrictedspecieslist_a,restrictedspecieslist_b)
   
   
-  # <annotation_pending_AV> 
+  # t1, t2, and t3 are dataframes that are filtered to five information on
+  # 1) how many species qualified for SoIB through data availability for trends
+  # 2) how many species qualified through endemicity
+  # 3) how many qualified because they were noted to be essential for the Indian context
   t1 = dataf %>%
     filter((ht == 1 | rt == 1) &
              (Breeding.Activity.Period != "Nocturnal" |
@@ -803,7 +818,9 @@ dataspeciesfilter = function(cur_mask = "none") {
   stats12 = paste(length(t3$COMMON.NAME),"filter 3 number of species")
   
   
-  # <annotation_pending_AV> 
+  # creates the column "selected" that is used to provide information about which species
+  # have been selected for SoIB when the data frame is written on to the larger data frame
+  # with the full species list
   specieslist1 = specieslist %>% 
     mutate(selected = 1) %>% 
     dplyr::select(COMMON.NAME, selected)
@@ -914,15 +931,16 @@ dataspeciesfilter = function(cur_mask = "none") {
   
   # writing filtered data files ---------------------------------------------
   
-  # <annotation_pending_AV> short, about each file saved
+  # saving a set of CSVs and RData files to be used further down the pipeline
   
   
-  # <annotation_pending_AV>
+  # saving a full species list of the country with all associated metadata including
+  # whether they've been included for SoIB and whether they've qualified for any analyses
   write.csv(dataf, row.names = F, 
             file = cur_metadata$FULLSPECLIST.PATH)
   
   
-  # <annotation_pending_AV>
+  # saving a full list of location IDs to be used if required (currently unused)
   locs_write = data0 %>% 
     filter(ALL.SPECIES.REPORTED == 1) %>%
     distinct(LOCALITY.ID, group.id, month, timegroups)
@@ -931,10 +949,13 @@ dataspeciesfilter = function(cur_mask = "none") {
             file = cur_metadata$LOCS.PATH)
   
   
-  # <annotation_pending_AV>
+  # saving a data frame called "specieslist" that has both specieslist as well as restrictedspecieslist
+  # these is an essential dataframe that is called whenever information is required
+  # about which analysis to perfrom for a species
   save(specieslist, restrictedspecieslist, databins, 
        file = cur_metadata$SPECLISTDATA.PATH)
   
+  # saving the full filtered data
   save(data, sampledcells, databins, stats, 
        file = cur_metadata$DATA.PATH)
   
@@ -944,8 +965,9 @@ dataspeciesfilter = function(cur_mask = "none") {
 
 ### expandbyspecies ########################################
 
-# for occupancy
-# <annotation_pending_AV>
+# this function adds absences (in addition to presences) to subsets of the data that
+# need to be analyzed - for the analysis of a certain species, every complete list 
+# without the species is expanded to have 0s added against that species name
 
 # ensure that the working directory has list of India's birds with scientific names 
 # (just a safety mechanism for the function to work for small subsets, needs to be enabled if required)
@@ -1036,10 +1058,8 @@ singlespeciesrun = function(data, species, specieslist, restrictedspecieslist)
   
   data1 = data
   
-  # <annotation_pending_AV> why this intermediate specieslist1 object? 
-  # can't we do with just the second one?
-  specieslist1 = specieslist %>% filter(COMMON.NAME %in% species)
-  specieslist2 = specieslist1 %>% filter(COMMON.NAME == species)
+  # get information for the species of interest 
+  specieslist2 = specieslist %>% filter(COMMON.NAME == species)
   
   # three different flags for three different model types that will be run.
   # 0 is normal model, with full random effects. depending on restricted species,
@@ -1127,7 +1147,8 @@ singlespeciesrun = function(data, species, specieslist, restrictedspecieslist)
     group_by(month) %>% 
     reframe(timegroups = unique(tm$timegroups)) %>% 
     mutate(no.sp = medianlla,
-           # <annotation_pending_AV> why taking 1st value?
+           # taking the first value but any random value will do because we do not
+           # intend to prect random variation across grids
            gridg1 = data1$gridg1[1], 
            gridg3 = data1$gridg3[1])
 

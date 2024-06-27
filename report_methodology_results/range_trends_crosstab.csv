@@ -1,0 +1,13 @@
+" ","Insufficient Data","Trend Inconclusive","Rapid Decline","Decline","Stable","Increase","Rapid Increase"
+"Historical",100,0,0,0,0,0,0
+"Very Restricted",96,2,2,0,0,0,0
+"Restricted",94,5,0,1,0,0,0
+"Moderate",42,20,12,12,12,1,1
+"Large",5,30,23,23,16,2,1
+"Very Large",2,37,15,8,21,8,8
+"Historical",100,0,0,0,0,0,0
+"Very Restricted",91,9,0,0,0,0,0
+"Restricted",81,14,4,1,0,0,0
+"Moderate",18,44,6,9,21,1,0
+"Large",3,30,13,16,33,3,2
+"Very Large",2,27,8,11,40,6,5

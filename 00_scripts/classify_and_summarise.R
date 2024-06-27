@@ -126,7 +126,7 @@ main = main %>%
     SOIBv2.Current.Status = case_when(
       is.na(currentslopemean) ~ "Insufficient Data",
       (currentsloperci-currentslopelci) > 6 ~ "Trend Inconclusive", # arbitrary
-      # <annotation_pending_AV> decline and increase values?
+      # decline and increase threshold values
       # decreases
       currentsloperci <= -2.7 ~ "Rapid Decline",
       currentsloperci > -2.7 & currentsloperci <= -1.1 ~ "Decline",

@@ -1119,11 +1119,15 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
         
         # need to update upper plot limit
         plot_ymax = plyr::round_any(plot_ybreaks[5], 50, ceiling)
-        # adding 1% buffer <annotation_pending_AV>
+        # adding 1% buffer to ensure space near the margins
         plot_ymax = plot_ymax + round(0.01 * (plot_ymax - plot_ymin))
         
       }
       
+      # need to update upper plot limit
+      plot_ymax = plyr::round_any(plot_ybreaks[5], 50, ceiling)
+      # adding 1% buffer to create suffient margin space in the plot
+      plot_ymax = plot_ymax + round(0.01 * (plot_ymax - plot_ymin))
       plot_ybreaks = plyr::round_any(plot_ybreaks, 10, round)
       
     }

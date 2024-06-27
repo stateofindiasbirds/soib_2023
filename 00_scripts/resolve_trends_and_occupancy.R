@@ -271,14 +271,14 @@ if (run_res_trends == FALSE) {
   if (cur_mask %in% c("none", "woodland", "cropland", "ONEland")) {
     
     specsc1 = main %>%
-      # <annotation_pending_AV> rationale for 0.8 (even if arbitrary, what does it mean?)
+      # identifying species with less than 8/25 5 km cells with data within 25 km grids
       filter(!is.na(mean5km) & mean5km < 8 &
                (Long.Term.Analysis == "X" | Current.Analysis == "X") &
                is.na(Restricted.Islands)) %>% 
       pull(eBird.English.Name.2022)
 
     specsc2 = main %>%
-      # <annotation_pending_AV> rationale for 0.25 (even if arbitrary, what does it mean?)
+      # identifying species where the variation of within 25 km cell sampling is too high
       filter(!is.na(ci5km) & (main$ci5km/main$mean5km) > 0.25 &
                (Long.Term.Analysis == "X" | Current.Analysis == "X") &
                is.na(Restricted.Islands)) %>% 
@@ -301,15 +301,14 @@ if (run_res_trends == FALSE) {
   
   # 2. proportion of 25kmx25km cells sampled
   
-  # <annotation_pending_AV> this isn't used anywhere, can be removed?
   specsd3 = main %>%
-    # <annotation_pending_AV> rationale for 0.6 (even if arbitrary, what does it mean?)
+    # identifying cells where on an average, less than 60 % of the 2022 coverage
+    # was achieved during the last 8 years
     filter(!is.na(proprange25km.current) & 
              (proprange25km.current/proprange25km2022) < 0.6 &
              (Current.Analysis == "X")) %>% 
     pull(eBird.English.Name.2022)
   
-  # <annotation_pending_AV> should these lines be referencing specsd3?
   trends = trends %>%
     filter(!COMMON.NAME %in% specsd3)
   
@@ -353,7 +352,7 @@ if (run_res_trends == FALSE) {
   trends = trends %>%
     group_by(COMMON.NAME, timegroupsf, timegroups) %>% 
     reframe(mean_trans = mean(freq), 
-            # <annotation_pending_AV> SE calculation worth a small comment?
+            # adding se from variation between the means and propagated SE
             se_trans = sd(freq) + sqrt(sum(se^2))/n()) %>%
     group_by(COMMON.NAME, timegroupsf, timegroups) %>% 
     mutate(lci = clogloglink(mean_trans - 1.96*se_trans, inverse = T),
@@ -843,7 +842,7 @@ if (run_res_trends == FALSE) {
     # changing names to factor, so they maintain order
     mutate(COMMON.NAME = factor(COMMON.NAME, levels = base$COMMON.NAME)) %>%
     arrange(COMMON.NAME, timegroups) %>%
-    # <annotation_pending_AV>
+    # replacing NAs
     mutate(lci_comb_std = case_when(is.na(lci_ext_std) ~ lci_std_recent,
                                     !is.na(lci_ext_std) ~ lci_ext_std),
            mean_comb_std = case_when(is.na(mean_ext_std) ~ mean_std_recent,
@@ -948,7 +947,8 @@ if (skip_res_occu == FALSE) {
   occu_summary = occu_full %>%
     filter(presence != 0 | prop_nb != 0) %>%
     group_by(COMMON.NAME, status) %>%
-    # <annotation_pending_AV>
+    # calculating expected occupancy by multiplying the occupancy value by the
+    # area of the cell
     reframe(occ = sum(occupancy * area),
             occ.ci = round((erroradd(se * area)) * 1.96))
 
@@ -957,7 +957,8 @@ if (skip_res_occu == FALSE) {
               dimnames = list(main$eBird.English.Name.2022, c("occ", "occ.ci")))
 
 
-  # <annotation_pending_AV> full steps below
+  # determining which range size value to use for each species based on the range size
+  # estimated for each region
 
   for (i in main$eBird.English.Name.2022)
   {

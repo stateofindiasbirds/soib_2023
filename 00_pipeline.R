@@ -99,7 +99,8 @@ toc() # 51 min
 
 
 # STEP 1: Subsample data for locations (create set of randomly selected GROUP.IDs)
-# <annotation_pending_AV> why do we do this in the first place?
+# a file with random GROUP.IDs is first created so that the more time consuming step (creating the data files)
+# can be repeated without sampling a different set of GROUP.IDs each time
 # Run:
 # - every time "sub_samp_locs.csv" is updated
 # Requires:
