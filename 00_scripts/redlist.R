@@ -83,7 +83,7 @@ redlist <- soib %>%
                       projected_mean_decline > 80 ~ "Critically Endangered",
                       projected_mean_decline > 50 ~ "Endangered",
                       projected_mean_decline > 30 ~ "Vulnerable",
-                      projected_mean_decline > 20 ~ "Near-threatened",
+                      projected_mean_decline > 20 ~ "Near Threatened",
                       projected_mean_decline > 0 ~ "Least Concern"
                     ),    
                     projected_mean_decline = paste0(projected_mean_decline,"%"),
@@ -112,7 +112,7 @@ redlist <- soib %>%
                     projected_decline > 80 ~ "Critically Endangered",
                     projected_decline > 50 ~ "Endangered",
                     projected_decline > 30 ~ "Vulnerable",
-                    projected_decline > 20 ~ "Near-threatened",
+                    projected_decline > 20 ~ "Near Threatened",
                     projected_decline > 0  ~ "Least Concern",
                   ),
                   redlist_different = ifelse(redlist_category == IUCN.Category,"No","Yes"),

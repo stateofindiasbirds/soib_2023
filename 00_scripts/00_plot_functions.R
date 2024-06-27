@@ -83,14 +83,18 @@ geom_axisbracket <- function(bracket_type = "time", bracket_trend = cur_trend) {
   
   bracket_shorten <- 0.15
 
-  if (analysis_type == "sysmon" & plot_type == "bustards") {
-    bracket_lab <- timegroups_lab
-    bracket_shorten <- 0
+  if (analysis_type == "sysmon") {
+    
+    if (plot_type == "bustards") {
+      bracket_lab <- timegroups_lab
+      bracket_shorten <- 0
+    } 
+    
+    if (plot_type %in% c("spiti", "vembanad")) {
+      bracket_lab <- timegroups_lab
+    }  
+    
   } 
-  
-  if (analysis_type == "sysmon" & plot_type %in% c("spiti", "vembanad")) {
-    bracket_lab <- timegroups_lab
-  }
   
   geom_bracket(inherit.aes = FALSE, family = plot_fontfamily, col = palette_plot_elem, # constant
                xmin = bracket_min, xmax = bracket_max, y.position = bracket_ypos,
@@ -335,8 +339,8 @@ plot_import_data <- function(mask, import_trend = fn_cur_trend, import_plot_type
                timegroups >= 2015 & timegroups <= 2022)
       
     }
-
-
+    
+    
     # return ----------------------------------------------------------------------------
 
     return(list(spec_qual = spec_qual, data_trends = data_trends, data_main = data_main))
@@ -370,11 +374,11 @@ plot_load_filter_data <- function(fn_plot_type, fn_cur_trend, fn_cur_mask = "non
       filter(MASK %in% c("none", as.character(fn_cur_mask))) %>% 
       # path (folder) to write to
       {if (fn_plot_type == "single_mask") {
-        mutate(., CUR.OUT.PATH = PLOT.SINGLE.FOLDER) 
+        mutate(., CUR.OUT.PATH = PLOT.SINGLE.FOLDER)
       } else if (fn_plot_type == "composite") {
-        mutate(., CUR.OUT.PATH = PLOT.COMPOSITE.FOLDER) 
+        mutate(., CUR.OUT.PATH = PLOT.COMPOSITE.FOLDER)
       }}
-    
+
   }
   
   path_write <- cur_metadata %>% 
@@ -398,7 +402,7 @@ plot_load_filter_data <- function(fn_plot_type, fn_cur_trend, fn_cur_mask = "non
     if (!dir.exists(.x)) {dir.create(.x, recursive = TRUE)}
   })
   
-  if (fn_plot_type %in% c("single", "single_mask") & fn_cur_trend == "LTT") {
+  if (fn_plot_type %in% c("single", "single_mask")) {
     web_metadata <- cur_metadata %>% 
       {if (fn_plot_type == "single_mask") {
         filter(., MASK != "none")
@@ -427,9 +431,14 @@ plot_load_filter_data <- function(fn_plot_type, fn_cur_trend, fn_cur_mask = "non
   # for mask comparison, even though we have filtered each mask's trends for its qual. spp.,
   # we want an additional filter so that comparisons are only made for those species in masks
   # that are also there in full-country data
+  #
+  # UPDATE (March 2024): removing this criterion for "single_mask", i.e., non-country masks
+  # (but retaining for composites), because we want to show the Inconclusive Trend graphs
+  # for subnational masks 
+  # Requirement arose from species that are Insufficient Data at national level but have
+  # data for some mask(s)
   
-  if (fn_plot_type == "single_mask" |
-      (fn_plot_type == "composite" & fn_cur_mask != "none")) {
+  if (fn_plot_type == "composite" & fn_cur_mask != "none") {
     
     spec_qual <- map(data_processed, pluck, "spec_qual") %>% bind_rows()
     
@@ -445,6 +454,11 @@ plot_load_filter_data <- function(fn_plot_type, fn_cur_trend, fn_cur_mask = "non
     
     spec_qual <- map(data_processed, pluck, "spec_qual") %>% 
       bind_rows() %>% 
+      {if (fn_plot_type == "single_mask") {
+        filter(., MASK != "none") 
+      } else {
+        .
+      }} %>% 
       pull(eBird.English.Name.2022)
     
   }
@@ -537,7 +551,7 @@ fetch_plot_metadata <- function(plot_type) {
       mutate(GROUP = case_when(
         Habitat.Specialization == "Grassland" ~ "Grassland & Scrub",
         Habitat.Specialization == "Alpine & Cold Desert" ~ "Open Habitat",
-        Habitat.Specialization == "None" ~ "No Specialisation",
+        Habitat.Specialization == "Non-specialized" ~ "No Specialisation",
         TRUE ~ Habitat.Specialization
       )) %>% 
       filter(!is.na(GROUP)) %>% 
@@ -551,7 +565,6 @@ fetch_plot_metadata <- function(plot_type) {
         # Endemic.Region %in% c("Eastern Himalayas", "Western Himalayas") ~ "Himalaya",
         Endemic.Region == "Western Ghats" ~ "Western Ghats & Sri Lanka",
         Endemic.Region == "Mainland India" ~ "Indian Subcontinent",
-        Endemic.Region == "None" ~ "Non-endemic",
         TRUE ~ Endemic.Region
       )) %>% 
       filter(!is.na(GROUP)) %>% # all islands removed
@@ -611,7 +624,7 @@ fetch_plot_metadata <- function(plot_type) {
         Habitat.Specialization %in% c("Grassland", "Wetland", 
                                       "Alpine & Cold Desert") ~ "Open Habitat",
         Habitat.Specialization == "Forest" ~ "Forest & Plantation",
-        Habitat.Specialization == "None" ~ "No Specialisation",
+        Habitat.Specialization == "Non-specialized" ~ "No Specialisation",
         TRUE ~ Habitat.Specialization
       )) %>% 
       filter(!is.na(GROUP)) %>% 
@@ -755,11 +768,29 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
                             data_trends, data_main, path_write,
                             cur_plot_metadata, haki = FALSE) {
   
+  # don't try to plot if species is not qualified for current trend-mask combo
+  if (!(cur_spec %in% spec_qual)) {
+    stop("Selected species is not qualified for current trend analysis for current mask!")
+  }
+  
+  require(tidyverse)
+  require(ggpubr) # geom_bracket
+  require(extrafont)
+  require(glue)
+  require(ggrepel) # text repel
+  require(tictoc)
+  require(magick) # for stamp
+  
   analysis_type <- "ebird"
+  
+  if (plot_type == "stamp") {
+    cur_trend <- "LTT"
+    stamp <- image_convert(image_read("stamp_insufficient_data.png"), matte = T)
+  }
   
   # convert to India Checklist names --------------------------------------------------
   
-  if (plot_type != "composite") { 
+  if (!plot_type %in% c("composite", "stamp")) { 
     # because composite doesn't have any species names at this stage
     data_trends <- data_trends %>% 
       mutate(COMMON.NAME = specname_to_india_checklist(COMMON.NAME, already_show = FALSE))
@@ -774,7 +805,7 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
       specname_to_india_checklist(already_show = FALSE)
   }
   
-  if (!haki) {
+  if (!haki & plot_type != "stamp") {
     if (!(plot_type %in% c("multi", "composite"))) {
       tic(glue("Finished plotting {plot_type} ({cur_trend}) for {cur_spec}"))
     } else {
@@ -785,55 +816,60 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
   # setup -----------------------------------------------------------------------------
   
   # output file name
-  if (!(plot_type %in% c("multi", "composite"))) {
+  if (plot_type == "stamp") {
     
-    path_write_file <- glue("{path_write}{cur_spec}.png")
+    path_write_file <- "20_website/graphs/insufficient_data.png"
     
-    if (cur_trend == "LTT") {
-      # for website
-      source("00_scripts/20_functions.R")
-      cur_plot_metadata <- join_mask_codes(cur_plot_metadata)
-      web_folder <- cur_plot_metadata$WEB.PLOTS.FOLDER
-      web_spec <- str_replace_all(cur_spec, c(" " = "-", "'" = "_"))
-      web_mask <- cur_plot_metadata$MASK.CODE
-      path_write_file_web <- glue("{web_folder}trends/{web_spec}_{web_mask}_trend.jpg")
-    } else {
-      print("Not generating CAT plots for website.")
-    }
-    
+  } else if (!(plot_type %in% c("multi", "composite"))) {
+
+    # for website (originated that way, but now PNG works for both)
+    source("00_scripts/20_functions.R")
+    cur_plot_metadata <- join_mask_codes(cur_plot_metadata)
+    web_folder <- cur_plot_metadata$WEB.PLOTS.FOLDER
+    web_spec <- str_replace_all(cur_spec, c(" " = "-", "'" = "_"))
+    web_mask <- cur_plot_metadata$MASK.CODE
+    path_write_file <- glue("{path_write}{web_spec}_{web_mask}_{cur_trend}_trend.png")
+
   } else {
     path_write_file <- glue("{path_write}{unique(cur_plot_metadata$FILE.NAME)}.png")
   }
   
-  # filtering data for current case
   
-  if (plot_type != "composite") {
-    cur_data_trends <- data_trends %>%
-      mutate(lci_std = case_when(cur_trend == "CAT" ~ lci_std_recent, 
-                                 TRUE ~ lci_std),
-             mean_std = case_when(cur_trend == "CAT" ~ mean_std_recent, 
-                                  TRUE ~ mean_std),
-             rci_std = case_when(cur_trend == "CAT" ~ rci_std_recent, 
-                                 TRUE ~ rci_std))%>%
-      filter(COMMON.NAME %in% cur_spec)
+  if (plot_type != "stamp") {
+    
+    # filtering data for current case
+    
+    if (plot_type != "composite") {
+      cur_data_trends <- data_trends %>%
+        mutate(lci_std = case_when(cur_trend == "CAT" ~ lci_std_recent, 
+                                   TRUE ~ lci_std),
+               mean_std = case_when(cur_trend == "CAT" ~ mean_std_recent, 
+                                    TRUE ~ mean_std),
+               rci_std = case_when(cur_trend == "CAT" ~ rci_std_recent, 
+                                   TRUE ~ rci_std))%>%
+        filter(COMMON.NAME %in% cur_spec)
+    } else {
+      cur_data_trends <- data_trends
+    }
+    
+    # don't plot full-country trend line (which does not have CI band) if it is Inconclusive
+    # single-species will always plot Inconclusive
+    
+    if (plot_type == "single_mask") {
+      
+      plot_full_country <- data_main %>% 
+        filter(eBird.English.Name.2022 %in% cur_spec,
+               MASK == "none") %>% 
+        {if (cur_trend == "LTT") {
+          pull(., SOIBv2.Long.Term.Status)
+        } else if (cur_trend == "CAT") {
+          pull(., SOIBv2.Current.Status)
+        }}
+      
+    }
+    
   } else {
-    cur_data_trends <- data_trends
-  }
-  
-  
-  # don't plot full-country trend line (which does not have CI band) if it is Inconclusive
-  # single-species will always plot Inconclusive
-  if (plot_type == "single_mask") {
-    
-    plot_full_country <- data_main %>% 
-      filter(eBird.English.Name.2022 %in% cur_spec,
-             MASK == "none") %>% 
-      {if (cur_trend == "LTT") {
-        pull(., SOIBv2.Long.Term.Status)
-      } else if (cur_trend == "CAT") {
-        pull(., SOIBv2.Current.Status)
-      }}
-    
+    cur_data_trends <- NA
   }
   
   # plot/theme settings -----------------------------------------------------
@@ -934,197 +970,257 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
   
   # determining limits for current plot -----------------------------------------------
   
-  plot_xmin <- cur_data_trends %>%
-    {if (plot_type != "composite") {
-      distinct(., COMMON.NAME, timegroups) %>%
-        arrange(., COMMON.NAME, timegroups) %>%
-        group_by(., COMMON.NAME)
-    } else {
-      distinct(., GROUP, timegroups) %>%
-        arrange(., GROUP, timegroups) %>%
-        group_by(., GROUP)
-    }} %>% 
-    slice(2) %>% # because 1st is the baseline
-    ungroup() %>%
-    pull(timegroups) %>%
-    max() # when multi-species, we take the latest year ### ###
-  
-  
-  # saving non-rounded values for later use in plotting
-  if (plot_type == "single") {
-    plot_ymax0 <- cur_data_trends %>%
-      filter(!is.na(rci_std)) %>%
-      pull(rci_std) %>%
-      max()
+  if (plot_type == "stamp") {
     
-    plot_ymin0 <- cur_data_trends %>%
-      filter(!is.na(lci_std)) %>%
-      pull(lci_std) %>%
-      min()
-  } else if (plot_type == "single_mask") {
-    plot_ymax0 <- cur_data_trends %>%
-      mutate(max = case_when(MASK == "none" ~ mean_std,
-                             MASK != "none" ~ rci_std)) %>% # mask will have CI band
-      filter(!is.na(max)) %>%
-      pull(max) %>%
-      max()
+    plot_xmin <- 2003
+    timegroups_bracket_min <- c(1999 - (2003 - plot_xmin), 
+                                2006, 2010, 2012, seq(2013, 2021)) + 0.5
+    plot_xlimits <- c(1999.5 - (2003 - plot_xmin), 
+                      2024.5)
     
-    plot_ymin0 <- cur_data_trends %>%
-      mutate(min = case_when(MASK == "none" ~ mean_std,
-                             MASK != "none" ~ lci_std)) %>% # mask will have CI band
-      filter(!is.na(min)) %>%
-      pull(min) %>%
-      min()
+  } else if (plot_type != "single_mask") {
+    
+    plot_xmin <- cur_data_trends %>%
+      {if (plot_type != "composite") {
+        distinct(., COMMON.NAME, timegroups) %>%
+          arrange(., COMMON.NAME, timegroups) %>%
+          group_by(., COMMON.NAME)
+      } else {
+        distinct(., GROUP, timegroups) %>%
+          arrange(., GROUP, timegroups) %>%
+          group_by(., GROUP)
+      }} %>% 
+      slice(2) %>% # because 1st is the baseline
+      ungroup() %>%
+      pull(timegroups) %>%
+      max() # when multi-species, we take the latest year ### ###
+    
   } else {
-    plot_ymax0 <- cur_data_trends %>%
-      filter(!is.na(mean_std)) %>% # no CI band
-      pull(mean_std) %>%
-      max()
     
-    plot_ymin0 <- cur_data_trends %>%
-      filter(!is.na(mean_std)) %>% # no CI band
-      pull(mean_std) %>%
-      min()
+    plot_xmin <- cur_data_trends %>%
+      distinct(., MASK, COMMON.NAME, timegroups) %>%
+      arrange(., MASK, COMMON.NAME, timegroups) %>%
+      group_by(., MASK, COMMON.NAME) %>% 
+      slice(2) %>% # because 1st is the baseline
+      ungroup() %>%
+      pull(timegroups) %>%
+      min() 
+    
+    if (cur_trend == "LTT") {
+      # in some masks, minimum year is < 2003, which reduces the margin for labels
+      timegroups_bracket_min <- c(1999 - (2003 - plot_xmin), 
+                                  2006, 2010, 2012, seq(2013, 2021)) + 0.5
+      plot_xlimits <- c(1999.5 - (2003 - plot_xmin), 
+                        2024.5)
+    }
+    
   }
   
-  plot_ymax <- plot_ymax0 %>% plyr::round_any(accuracy = 50, f = ceiling)
-  plot_ymin <- plot_ymin0 %>% plyr::round_any(accuracy = 50, f = floor)
   
-  # ensuring range is not too small
-  if ((plot_ymax - plot_ymin) < 100 & plot_ymin < 0) {
-    plot_ymin <- plot_ymin - 50
-  }
-  if ((plot_ymax - plot_ymin) < 100 & plot_ymax > 0) {
-    plot_ymax <- plot_ymax + 50
-  }
+  if (plot_type != "stamp") {  
+    
+    # saving non-rounded values for later use in plotting
+    if (plot_type == "single") {
+      plot_ymax0 <- cur_data_trends %>%
+        filter(!is.na(rci_std)) %>%
+        pull(rci_std) %>%
+        max()
+      
+      plot_ymin0 <- cur_data_trends %>%
+        filter(!is.na(lci_std)) %>%
+        pull(lci_std) %>%
+        min()
+    } else if (plot_type == "single_mask") {
+      plot_ymax0 <- cur_data_trends %>%
+        mutate(max = case_when(MASK == "none" ~ mean_std,
+                               MASK != "none" ~ rci_std)) %>% # mask will have CI band
+        filter(!is.na(max)) %>%
+        pull(max) %>%
+        max()
+      
+      plot_ymin0 <- cur_data_trends %>%
+        mutate(min = case_when(MASK == "none" ~ mean_std,
+                               MASK != "none" ~ lci_std)) %>% # mask will have CI band
+        filter(!is.na(min)) %>%
+        pull(min) %>%
+        min()
+    } else {
+      plot_ymax0 <- cur_data_trends %>%
+        filter(!is.na(mean_std)) %>% # no CI band
+        pull(mean_std) %>%
+        max()
+      
+      plot_ymin0 <- cur_data_trends %>%
+        filter(!is.na(mean_std)) %>% # no CI band
+        pull(mean_std) %>%
+        min()
+    }
+    
+    plot_ymax <- plot_ymax0 %>% plyr::round_any(accuracy = 50, f = ceiling)
+    plot_ymin <- plot_ymin0 %>% plyr::round_any(accuracy = 50, f = floor)
+    
+    # ensuring range is not too small
+    if ((plot_ymax - plot_ymin) < 100 & plot_ymin < 0) {
+      plot_ymin <- plot_ymin - 50
+    }
+    if ((plot_ymax - plot_ymin) < 100 & plot_ymax > 0) {
+      plot_ymax <- plot_ymax + 50
+    }
   
-  
+}
+    
   # determining y-axis breaks for current plot ----------------------------------------
   
-  plot_ybreaks <- seq(plot_ymin, plot_ymax, length.out = 5)
-  
-  # if 100 not in the ybreaks, adjustment needed
-  if (any(plot_ybreaks != 100)) {
+  if (plot_type == "stamp") {
     
-    # how far from 100 is the absolute closest break
-    breaks_abs_distance = sort(abs(plot_ybreaks - 100))
+    plot_ybreaks <- c(0, 50, 100, 150, 200)
+    plot_ymin <- min(plot_ybreaks)
+    plot_ymin0 <- plot_ymin
+    plot_ymax <- max(plot_ybreaks)
+    plot_ymax0 <- plot_ymax
+    plot_range_max <- plot_ymax - plot_ymin
     
-    # what happens when closest distance is subtracted from original breaks?
-    breaks_subtract = plot_ybreaks - breaks_abs_distance[1]
-    # what happens when closest distance is added to original breaks?
-    breaks_add = plot_ybreaks + breaks_abs_distance[1]
+  } else {
+
+    plot_ybreaks <- seq(plot_ymin, plot_ymax, length.out = 5)
     
-    # we don't want to subtract if that results in negative breaks (lower limit is 0)
-    if (any(breaks_subtract == 100) & min(breaks_subtract) >= 0) {
+    # if 100 not in the ybreaks, adjustment needed
+    if (any(plot_ybreaks != 100)) {
       
-      plot_ybreaks = breaks_subtract
+      # how far from 100 is the absolute closest break
+      breaks_abs_distance = sort(abs(plot_ybreaks - 100))
       
-      # need to update lower plot limit
-      plot_ymin = plyr::round_any(plot_ybreaks[1], 50, floor)
+      # what happens when closest distance is subtracted from original breaks?
+      breaks_subtract = plot_ybreaks - breaks_abs_distance[1]
+      # what happens when closest distance is added to original breaks?
+      breaks_add = plot_ybreaks + breaks_abs_distance[1]
       
-    } else { # obvious that we can't subtract anything, so add
-      
-      if (any(breaks_subtract == 100) & min(breaks_subtract) < 0) {
+      # we don't want to subtract if that results in negative breaks (lower limit is 0)
+      if (any(breaks_subtract == 100) & min(breaks_subtract) >= 0) {
         
-        # min is negative because closest break can only be subtracted to get to 100
-        # hence, now we need to use second closest break; only add cos otherwise negative.
-        plot_ybreaks = plot_ybreaks + breaks_abs_distance[2]
+        plot_ybreaks = breaks_subtract
         
-      } else if (any(breaks_add == 100)) {
+        # need to update lower plot limit
+        plot_ymin = plyr::round_any(plot_ybreaks[1], 50, floor)
         
-        plot_ybreaks = breaks_add
+      } else { # obvious that we can't subtract anything, so add
+        
+        if (any(breaks_subtract == 100) & min(breaks_subtract) < 0) {
+          
+          # min is negative because closest break can only be subtracted to get to 100
+          # hence, now we need to use second closest break; only add cos otherwise negative.
+          plot_ybreaks = plot_ybreaks + breaks_abs_distance[2]
+          
+        } else if (any(breaks_add == 100)) {
+          
+          plot_ybreaks = breaks_add
+          
+        }
+        
+        # need to update upper plot limit
+        plot_ymax = plyr::round_any(plot_ybreaks[5], 50, ceiling)
+        # adding 1% buffer <annotation_pending_AV>
+        plot_ymax = plot_ymax + round(0.01 * (plot_ymax - plot_ymin))
         
       }
       
+<<<<<<< HEAD
       # need to update upper plot limit
       plot_ymax = plyr::round_any(plot_ybreaks[5], 50, ceiling)
       # adding 1% buffer to create suffient margin space in the plot
       plot_ymax = plot_ymax + round(0.01 * (plot_ymax - plot_ymin))
+=======
+      plot_ybreaks = plyr::round_any(plot_ybreaks, 10, round)
+>>>>>>> eb0c20f0c35558fbee1bab04a56b498b2fc39795
       
     }
     
-    plot_ybreaks = plyr::round_any(plot_ybreaks, 10, round)
+    plot_range_max <- plot_ymax - plot_ymin
+    
+    # to standardize the y-range
+    if (plot_range_max == 100)
+      plot_range_max = 125
+    if (plot_range_max == 200)
+      plot_range_max = 250
     
   }
-  
-  plot_range_max <- plot_ymax - plot_ymin
-
-  # to standardize the y-range
-  if (plot_range_max == 100)
-    plot_range_max = 125
-  if (plot_range_max == 200)
-    plot_range_max = 250
   
   
   # fixing the Status reference grid line -------------------------------------------------
   
-  # depending on the present-day trend value (and which Status), we want its nearest
-  # grid line to act as a reference for the Status threshold.
-  
-  ref_line <- cur_data_trends %>%
-    filter(timegroups == 2022) %>%
-    {if (plot_type == "single_mask") {
-      filter(., MASK != "none")
-    } else {
-      .
-    }} %>% 
-    {if (!(plot_type %in% c("multi", "composite"))) {
-      mutate(., ref = case_when(
-        
-        # stable/inconclusive
-        lci_std <= 100 & rci_std >= 100 ~ 100,
-        
-        # increases
-        lci_std > 100 & lci_std <= 125 ~ 125,
-        lci_std > 125 & lci_std <= 150 ~ 125, # I
-        lci_std > 150 & lci_std <= 200 ~ 150, # RI
-        lci_std > 200 ~ 200, # RI+
-        
-        # declines
-        rci_std < 100 & rci_std >= 75 ~ 75,
-        rci_std < 75 & rci_std >= 50 ~ 75, # D
-        rci_std < 50 ~ 50 # RD
-        
-      ))
-    } else {
-      mutate(., ref = case_when(
-        
-        # stable/inconclusive
-        mean_std <= 100 & mean_std >= 100 ~ 100,
-        
-        # increases
-        mean_std > 100 & mean_std <= 125 ~ 125,
-        mean_std > 125 & mean_std <= 150 ~ 125, # I
-        mean_std > 150 & mean_std <= 200 ~ 150, # RI
-        mean_std > 200 ~ 200, # RI+
-        
-        # declines
-        mean_std < 100 & mean_std >= 75 ~ 75,
-        mean_std < 75 & mean_std >= 50 ~ 75, # D
-        mean_std < 50 ~ 50 # RD
-        
-      )) 
-    }} %>%
-    pull(ref)
-  
-  # Define a function to update breaks based on ref_line
-  update_breaks <- function(breaks, ref_line) {
-    abs_diff <- abs(breaks - ref_line)
-    min_diff <- min(abs_diff)
-    index <- which(abs_diff == min_diff)[1] # if draw between two, we take just one
+  if (plot_type != "stamp") {
     
-    breaks[index] <- ref_line
-    return(breaks)
+    # depending on the present-day trend value (and which Status), we want its nearest
+    # grid line to act as a reference for the Status threshold.
+    
+    ref_line <- cur_data_trends %>%
+      filter(timegroups == 2022) %>%
+      {if (plot_type == "single_mask") {
+        filter(., MASK != "none")
+      } else {
+        .
+      }} %>% 
+      {if (!(plot_type %in% c("multi", "composite"))) {
+        mutate(., ref = case_when(
+          
+          # stable/inconclusive
+          lci_std <= 100 & rci_std >= 100 ~ 100,
+          
+          # increases
+          lci_std > 100 & lci_std <= 125 ~ 125,
+          lci_std > 125 & lci_std <= 150 ~ 125, # I
+          lci_std > 150 & lci_std <= 200 ~ 150, # RI
+          lci_std > 200 ~ 200, # RI+
+          
+          # declines
+          rci_std < 100 & rci_std >= 75 ~ 75,
+          rci_std < 75 & rci_std >= 50 ~ 75, # D
+          rci_std < 50 ~ 50 # RD
+          
+        ))
+      } else {
+        mutate(., ref = case_when(
+          
+          # stable/inconclusive
+          mean_std <= 100 & mean_std >= 100 ~ 100,
+          
+          # increases
+          mean_std > 100 & mean_std <= 125 ~ 125,
+          mean_std > 125 & mean_std <= 150 ~ 125, # I
+          mean_std > 150 & mean_std <= 200 ~ 150, # RI
+          mean_std > 200 ~ 200, # RI+
+          
+          # declines
+          mean_std < 100 & mean_std >= 75 ~ 75,
+          mean_std < 75 & mean_std >= 50 ~ 75, # D
+          mean_std < 50 ~ 50 # RD
+          
+        )) 
+      }} %>%
+      pull(ref)
+    
+    # Define a function to update breaks based on ref_line
+    update_breaks <- function(breaks, ref_line) {
+      abs_diff <- abs(breaks - ref_line)
+      min_diff <- min(abs_diff)
+      index <- which(abs_diff == min_diff)[1] # if draw between two, we take just one
+      
+      breaks[index] <- ref_line
+      return(breaks)
+    }
+    
+    # updating breaks based on each of 2022 trend values plotted (one in single, multiple in others)
+    plot_ybreaks <- reduce(ref_line, update_breaks, .init = plot_ybreaks)
+    
   }
   
-  # updating breaks based on each of 2022 trend values plotted (one in single, multiple in others)
-  plot_ybreaks <- reduce(ref_line, update_breaks, .init = plot_ybreaks)
   
   plot_ybreaks_df <- data.frame(breaks = plot_ybreaks) %>%
     # labels for each line/break
     mutate(breaks_eff = breaks - 100) %>% # convert to + and - values
     mutate(labs = case_when(breaks_eff > 0 ~ glue("+{breaks_eff}%"),
-                            breaks == 100 ~ glue(""), # baseline blank
+                            breaks == 100 & plot_type != "stamp" ~ glue(""), # baseline blank
+                            breaks == 100 & plot_type != "stamp" ~ glue("0%"), 
                             TRUE ~ glue("{breaks_eff}%")))
   
   plot_ybreaks <- plot_ybreaks_df$breaks
@@ -1170,7 +1266,37 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
   
   # creating the plot base based on plot type ------------------------------------------
   
-  if (plot_type == "single_mask") {
+  if (plot_type == "stamp") {
+    
+    plot_base <- ggplot(data = data.frame(X = cur_data_trends))
+    
+  } else if (plot_type == "single_mask") {
+    
+    # don't plot full country trend line, point, label if Inconclusive
+    # same if Insufficient Data, but there data_trends will not have MASK == "none" at all 
+    if (plot_full_country == "Trend Inconclusive") {
+      cur_data_trends <- cur_data_trends %>% 
+        mutate(mean_std = case_when(MASK == "none" ~ NA_real_, TRUE ~ mean_std),
+               MASK.TITLE = case_when(MASK == "none" ~ NA_character_, TRUE ~ MASK.TITLE))
+    } else if (plot_full_country == "Insufficient Data") {
+      cur_data_trends <- cur_data_trends %>% 
+        mutate(mean_std = NA_real_,
+               MASK = "none",
+               MASK.TITLE = NA_character_,
+               MASK.TITLE.WRAP = NA_character_) %>% 
+        bind_rows(cur_data_trends)
+    }
+    
+    # align labels when first year mismatch
+    min_years <- cur_data_trends %>% 
+      distinct(COMMON.NAME, timegroups, MASK) %>% 
+      group_by(COMMON.NAME, MASK) %>% 
+      slice(2) %>% 
+      ungroup() %>% 
+      distinct(MASK, timegroups) %>% 
+      mutate(DIFF = max(timegroups) - min(timegroups),
+             MIN.YEAR = min(timegroups)) %>% 
+      filter(timegroups == MIN.YEAR)
     
     plot_base <- ggplot(cur_data_trends, 
                         aes(x = timegroups, y = mean_std, 
@@ -1182,18 +1308,14 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
                                   ~ if_else(MASK == "none", NA_real_, .))),
                   aes(ymin = lci_std, ymax = rci_std), 
                   colour = NA, linewidth = 0.7, alpha = 0.5) +
-      # don't plot full country trend line if Inconclusive
-      {if (plot_full_country == "Trend Inconclusive") {
-        geom_line(data = cur_data_trends %>% filter(MASK != "none"),
-                  linewidth = 1, lineend = "round")
-      } else {
-        geom_line(linewidth = 1, lineend = "round")
-      }} +
-      geom_text_repel(nudge_x = plot_repel_nudge, direction = "y", 
-                      hjust = 0.5, size = 4, force_pull = 0,
-                      xlim = c(plot_xlimits[1] - 0.1, plot_xmin - plot_xmin_minus),
-                      family = plot_fontfamily, min.segment.length = Inf) +
+      geom_line(linewidth = 1, lineend = "round") +
       geom_point(size = 3) +
+      geom_text_repel(nudge_x = ifelse(cur_data_trends$MASK == min_years$MASK, 
+                                       plot_repel_nudge, plot_repel_nudge - min_years$DIFF), 
+                      direction = "y", 
+                      hjust = 0.5, size = 4, force_pull = 0,
+                      xlim = c(plot_xlimits[1] - 0.3, plot_xmin - plot_xmin_minus),
+                      family = plot_fontfamily, min.segment.length = Inf) +
       scale_colour_manual(values = palette_trend_groups) +
       scale_fill_manual(values = palette_trend_groups) 
     
@@ -1230,44 +1352,45 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
   }
   
   # completing and writing the plot -----------------------------------------------------
-  
-  # joining plot base with other constant aesthetic features of graph
-  
-  cur_plot <- plot_base +
-    # timegroup brackets
-    geom_axisbracket("time") + 
-    # "Current Trend" bracket
-    {if (cur_trend != "CAT") {
-      geom_axisbracket("trend", bracket_trend = cur_trend)
-    }} +
-    # manual grid lines with labels because we want empty space before the first timegroup
-    geom_gridline(1) +
-    geom_gridline(2) +
-    geom_gridline(3) +
-    geom_gridline(4) +
-    geom_gridline(5) +
-    geom_gridline(baseline = TRUE) +
-    coord_cartesian(ylim = c(plot_ymin0 - 0.1 * plot_range_max,
-                             plot_ymax0 + 0.1 * plot_range_max),
-                    clip = "off") +
-    scale_x_continuous(expand = c(0, 0), limits = plot_xlimits) +
-    scale_y_continuous(expand = c(0, 0)) +
-    # ggtitle(cur_spec) +
-    labs(x = "Time-steps", y = "Change in Abundance Index") +
-    guides(colour = "none", fill = "none") +
-    # theme
-    ggtheme_soibtrend()
-  
-  ggsave(filename = path_write_file, plot = cur_plot,
-         dpi = 500, bg = "transparent",
-         width = 11, height = 7.5, units = "in")
-  
-  if (plot_type %in% c("single", "single_mask") & cur_trend == "LTT") {
-    ggsave(filename = path_write_file_web, plot = cur_plot,
+    
+    # joining plot base with other constant aesthetic features of graph
+    
+    cur_plot <- plot_base +
+      # timegroup brackets
+      geom_axisbracket("time") +
+      # "Current Trend" bracket
+      {if (cur_trend != "CAT") {
+        geom_axisbracket("trend", bracket_trend = cur_trend)
+      }} +
+      # manual grid lines with labels because we want empty space before the first timegroup
+      geom_gridline(1) +
+      geom_gridline(2) +
+      geom_gridline(3) +
+      geom_gridline(4) +
+      geom_gridline(5) +
+      {if (plot_type != "stamp") {
+        geom_gridline(baseline = TRUE)
+      } else {
+        annotation_raster(stamp, 
+                          ymin = 40, ymax = 160,
+                          xmin = plot_xlimits[1] + 1.25*diff(plot_xlimits)/5, 
+                          xmax = plot_xlimits[2] - 0.75*diff(plot_xlimits)/5)
+      }} +
+      coord_cartesian(ylim = c(plot_ymin0 - 0.1 * plot_range_max,
+                               plot_ymax0 + 0.1 * plot_range_max),
+                      clip = "off") +
+      scale_x_continuous(expand = c(0, 0), limits = plot_xlimits) +
+      scale_y_continuous(expand = c(0, 0)) +
+      # ggtitle(cur_spec) +
+      labs(x = "Time-steps", y = "Change in Abundance Index") +
+      guides(colour = "none", fill = "none") +
+      # theme
+      ggtheme_soibtrend()
+    
+    ggsave(filename = path_write_file, plot = cur_plot,
            dpi = 500, bg = "transparent",
            width = 11, height = 7.5, units = "in")
-  }
-  
+
   # removing objects from global environment ------------------------------------------
   
   rm(list = names(obj_list), envir = .GlobalEnv)
@@ -1851,12 +1974,14 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
       # convert to India Checklist names 
       converted_spec <- specname_to_india_checklist(.x, already_show = FALSE)
         
+      
+      web_spec <- str_replace_all(converted_spec, c(" " = "-", "'" = "_"))
+
       # for structured
-      path_map <- glue("{cur_metadata$MAP.FOLDER}{converted_spec}.png")
+      path_map <- glue("{cur_metadata$MAP.FOLDER}{web_spec}_{cur_metadata$MASK.CODE}_map_2023.png")
       
       # for website
-      web_spec <- str_replace_all(converted_spec, c(" " = "-", "'" = "_"))
-      path_map_web <- glue("{cur_metadata$WEB.MAP.FOLDER}{web_spec}_{cur_metadata$MASK.CODE}_rangemap.jpg")
+      path_map_web <- glue("{cur_metadata$WEB.MAP.FOLDER}{web_spec}_{cur_metadata$MASK.CODE}_map_2023.jpg")
       
       
       # joining plot base with other constant aesthetic features of graph

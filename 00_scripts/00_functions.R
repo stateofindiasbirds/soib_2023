@@ -401,9 +401,7 @@ removevagrants = function(data)
                                                  "Resident & Localized Summer Migrant",
                                                  "Altitudinal Migrant",
                                                  "Resident (Extirpated)")) %>%
-    dplyr::select(eBird.English.Name.2022) %>% 
-    as.vector() %>% 
-    list_c()
+    pull(eBird.English.Name.2022)
   
   d = data %>%
     filter(COMMON.NAME %in% migspecies) %>%
@@ -654,7 +652,7 @@ dataspeciesfilter = function(cur_mask = "none") {
   # to limit number of species in restricted species list for states
   specieslist_rest = dataf %>%
     filter(., 
-             (Essential == 1 | Endemic.Region != "None" | ht == 1 | rt == 1), 
+             (Essential == 1 | Endemic.Region != "Non-endemic" | ht == 1 | rt == 1), 
              (Breeding.Activity.Period != "Nocturnal" | 
                 Non.Breeding.Activity.Period != "Nocturnal" | 
                 COMMON.NAME == "Jerdon's Courser"),
@@ -668,7 +666,7 @@ dataspeciesfilter = function(cur_mask = "none") {
     # for states, we want to include any species reported from the state & with trend for country
     {if (cur_metadata$MASK.TYPE != "state") {
       filter(., 
-             (Essential == 1 | Endemic.Region != "None" | ht == 1 | rt == 1), 
+             (Essential == 1 | Endemic.Region != "Non-endemic" | ht == 1 | rt == 1), 
              (Breeding.Activity.Period != "Nocturnal" | 
                 Non.Breeding.Activity.Period != "Nocturnal" | 
                 COMMON.NAME == "Jerdon's Courser"),
@@ -807,11 +805,11 @@ dataspeciesfilter = function(cur_mask = "none") {
              (Breeding.Activity.Period != "Nocturnal" |
                 Non.Breeding.Activity.Period != "Nocturnal"))
   t2 = dataf %>%
-    filter((Endemic.Region != "None" | ht == 1 | rt == 1) & 
+    filter((Endemic.Region != "Non-endemic" | ht == 1 | rt == 1) & 
              (Breeding.Activity.Period != "Nocturnal" |
                 Non.Breeding.Activity.Period != "Nocturnal"))
   t3 = dataf %>%
-    filter((Essential == 1 | Endemic.Region != "None" | ht == 1 | rt == 1) &
+    filter((Essential == 1 | Endemic.Region != "Non-endemic" | ht == 1 | rt == 1) &
              (Breeding.Activity.Period != "Nocturnal" |
                 Non.Breeding.Activity.Period != "Nocturnal"))
   
@@ -1628,3 +1626,87 @@ specname_to_india_checklist <- function(spec_names, already_show = TRUE) {
   return(df_names$NEW)
   
 }
+
+# update IUCN Status based on India Checklist ---------------------------------------
+
+# input dataframe can be any mapping/main type object with list of species along with IUCN status
+# mutates IUCN Status column based on latest Status according to India Checklist 7.3
+# preserves column order in input data
+
+# col_specname must be India Checklist species names; if not, convert before using above function
+# both col_specname and col_iucn should be strings
+
+get_latest_IUCN_status <- function(data, col_specname, col_iucn = NULL,
+                                     path_checklist = "00_data/India-Checklist_v7_3.xlsx") {
+  
+  if (!(is.character(col_specname) & 
+        (is.character(col_iucn)) | is.null(col_iucn))) {
+    stop("Arguments col_specname and col_iucn can only be character values.")
+  }
+  
+  require(readxl)
+  require(tidyverse)
+  
+  col_newnames <- if (is.null(col_iucn)) {
+    c(col_specname, "IUCN.Category")
+  } else {
+    c(col_specname, col_iucn)
+  }
+  
+  col_order <- names(data)
+  
+  checklist <- read_xlsx(path_checklist, sheet = 2) %>% 
+    dplyr::select("English Name", "IUCN Category") %>% 
+    magrittr::set_colnames(col_newnames)
+  
+  data_upd <- data %>% 
+    # if IUCN column already exists, remove it before join
+    {if (!is.null(col_iucn)) {
+      dplyr::select(., -all_of(col_iucn))
+    } else {
+      .
+    }} %>% 
+    left_join(checklist, by = col_specname) %>% 
+    # if IUCN col existed, preserves exact order; else, will be new col after same old cols
+    relocate(all_of(col_order))
+  
+  return(data_upd)
+  
+}
+
+# Status categories -----------------------------------------------------------------
+
+get_soib_status_cats <- function(which = NULL) {
+  
+  cats <- list(
+    trend = c("Rapid Decline", "Decline", "Insufficient Data",
+              "Trend Inconclusive", "Stable", "Increase", "Rapid Increase"),
+    range = c("Historical", "Very Restricted", "Restricted",
+              "Moderate", "Large", "Very Large"),
+    decline = c("Decline", "Rapid Decline"),
+    uncertain = c("Insufficient Data", "Trend Inconclusive"),
+    restricted = c("Historical", "Very Restricted", "Restricted"),
+    
+    # old categories
+    trend_soib1 = c("Strong Decline", "Moderate Decline", "Data Deficient",
+                    "Uncertain", "Stable", "Moderate Increase", "Strong Increase"),
+    decline_soib1 = c("Moderate Decline", "Strong Decline"),
+    uncertain_soib1 = c("Data Deficient", "Uncertain")
+  )
+  
+  if (is.null(which)) {
+    
+    return(cats)
+    
+  } else {
+
+    if (!which %in% names(cats)) {
+      return(glue("Please select one of the following: {names(cats) %>% str_flatten_comma()}"))
+    }
+    
+    return(cats %>% pluck(which))
+  }
+  
+}
+
+

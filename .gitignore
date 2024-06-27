@@ -11,6 +11,10 @@
 
 20_website/website_database.csv
 */data_rangemap_vagrants.csv
+00_data/BOW_image_list.csv
+00_data/state_summary_image_list.csv
+01_analyses_states/SoIB_state_summary.docx
+30_certificates/India_eBirders_20230815.csv
 
 # RData files
 00_data/rawdata.RData
@@ -32,6 +36,7 @@ occupancy-model/
 occupancy-presence/
 */results/occupancy/
 */*/results/occupancy/
+20_website/archive/
 
 
 # image outputs
@@ -43,6 +48,9 @@ occupancy-presence/
 *.png
 *.svg
 *.pdf
+02_graphs/statewise_pas/
+02_graphs/statewise_prioritygrids/
+
 
 # all shapefile related files
 #/*.dbf
@@ -75,7 +83,9 @@ snippets/
 #Division@Range6/
 
 # folders and specific files in Karthik's system
+hist_spread/
 hist_spread/*.RData
+hist_spread/*.csv
 hist_spread/figs/
 hist_spread/Ecoregions2017/
 hist_spread/ecoregions_reclass_viz_files/

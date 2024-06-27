@@ -143,12 +143,12 @@ main = main %>%
       rangemean == 0 & !(eBird.English.Name.2022 %in% spec_vagrants) ~ "Historical",
       # above is to prevent species that are not historical but classified as vagrants
       # from being classified as Historical (instead, Very Restricted)
-      rangerci < 0.0625 ~ "Very Restricted",
+      rangerci < 625 ~ "Very Restricted",
       # larger threshold for species that are not island endemics
-      (is.na(Restricted.Islands) & rangerci < 0.75) ~ "Very Restricted",
-      rangerci < 4.25 ~ "Restricted",
-      rangelci > 100 ~ "Very Large",
-      rangelci > 25 ~ "Large",
+      (is.na(Restricted.Islands) & rangerci < 7500) ~ "Very Restricted",
+      rangerci < 42500 ~ "Restricted",
+      rangelci > 1000000 ~ "Very Large",
+      rangelci > 250000 ~ "Large",
       TRUE ~ "Moderate"
     )
     
@@ -159,6 +159,11 @@ main = main %>%
 # lose meaning. Only Historical is meaningful, and we want to capture this information.
 # so, for states we retain NA and Historical classifications, but others are reverted to
 # full-country Range Status categories
+
+###
+# we have decided to abandon this entirely: non-country levels are not going to
+# have Range Status assigned. So, this part needs to be removed later.
+###
 
 if (cur_metadata$MASK.TYPE == "state") {
   
@@ -421,7 +426,7 @@ main = main %>%
     
     SOIBv2.Long.Term.Status == "Insufficient Data" &
       SOIBv2.Current.Status == "Insufficient Data" &
-      Endemic.Region != "None" &
+      Endemic.Region != "Non-endemic" &
       SOIBv2.Priority.Status == "Low" ~ "Moderate",
     
     TRUE ~ SOIBv2.Priority.Status
@@ -472,7 +477,9 @@ if (cur_mask == "none") {
   
   # 13 columns from main file written at time of printing SoIB 2023
   # no. of Status changes: 14 LTT, 20 CAT
-  main_repair = read.csv("01_analyses_full/results/print_fix.csv")
+  main_repair = read.csv("01_analyses_full/results/print_fix.csv") %>% 
+    # range sizes need to be brought back from units of 10,000 sq km
+    mutate(across(c("rangelci", "rangemean", "rangerci"), ~ . * 10000))
   
   main <- main %>% 
     dplyr::select(-c("longtermlci", "longtermmean", "longtermrci",
@@ -485,6 +492,16 @@ if (cur_mask == "none") {
 }
 
 ###
+
+# removing Status assignments where not applicable
+
+main <- main %>% 
+  # SoIB 2020 statuses not available for habs/states
+  # SoIB 2023 range status not available for habs/states
+  mutate(across(c("SOIB.Concern.Status",
+                  "SOIB.Long.Term.Status","SOIB.Current.Status","SOIB.Range.Status",
+                  "SOIBv2.Range.Status"),
+                ~ case_when(cur_mask != "none" ~ NA, TRUE ~ .))) 
 
 write.csv(main, file = main_path, row.names = F)
 

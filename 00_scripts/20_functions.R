@@ -2,6 +2,20 @@ require(tidyverse)
 require(glue)
 
 
+###
+temp_priority_correction <- function(db) {
+  
+  mapping <- db %>% 
+    filter(MASK == "none") %>% 
+    distinct(India.Checklist.Common.Name, SOIBv2.Priority.Status)
+  
+  db %>% 
+    dplyr::select(-SOIBv2.Priority.Status) %>% 
+    left_join(mapping)
+  
+}
+###
+
 
 # function to read in all CSVs if exist ---------------------------------------------
 
@@ -9,7 +23,9 @@ read_fn <- function(file_path) {
   
   if (file.exists(file_path)) {
     
-    read_csv(file_path) 
+    read_csv(file_path, guess_max = Inf,
+             col_types = "ccccccccccccccccccdddccccccccdcccddddddddddddddddddddddddddddddddddddcccc") 
+    # if not specified, cols with many NAs read as logical
     
   } else {
     
@@ -26,12 +42,24 @@ read_fn <- function(file_path) {
 
 str_c_CI <- function(data, lower, upper, new_name) {
   
+  dist_range <- if (
+    is.character(data %>% pull({{ lower }})) | is.character(data %>% pull({{ upper }}))
+    ) TRUE else FALSE
+
   data %>% 
-    mutate(lower_round = round({{lower}}, 2),
-           upper_round = round({{upper}}, 2)) %>%
+    # for range size, we have already made it character with commas
+    {if (dist_range == TRUE) {
+      mutate(., 
+             lower_round = {{ lower }},
+             upper_round = {{ upper }})
+    } else {
+      mutate(., 
+             lower_round = round({{ lower }}, 2),
+             upper_round = round({{ upper }}, 2))
+    }} %>% 
     mutate({{ new_name }} := case_when(
       
-      !is.na({{ lower }}) & !is.na({{ upper }}) ~ glue("({lower_round},{upper_round})"),
+      !is.na({{ lower }}) & !is.na({{ upper }}) ~ glue("({lower_round}, {upper_round})"),
       TRUE ~ NA
       
     )) %>% 
@@ -101,3 +129,42 @@ join_mask_codes <- function(data) {
 #   return(data_new$HTML_string)
 #   
 # }
+
+# function to identify if current state is key to the species
+
+# keystates, analyses_metadata objects must exist in environment
+
+is_curspec_key4state <- function(data) {
+  
+  key_db <- keystates %>% 
+    distinct(ST_NM, India.Checklist.Common.Name) %>% 
+    mutate(KEY = TRUE)
+  
+  data <- data %>% 
+    left_join(analyses_metadata %>% distinct(MASK, MASK.TYPE)) %>% 
+    join_mask_codes() %>% 
+    left_join(key_db, 
+              by = c("MASK.LABEL" = "ST_NM", "India.Checklist.Common.Name")) %>% 
+    complete(KEY, fill = list(KEY = FALSE)) %>% 
+    mutate(KEY = case_when(MASK.TYPE == "state" ~ KEY,
+                           TRUE ~ NA)) %>% 
+    dplyr::select(-c(MASK.TYPE, MASK.CODE, MASK.LABEL))
+  
+}
+
+
+# round our model estimate values to appropriate precision --------------------------
+
+round_model_estimates <- function(db) {
+  
+  # Estimate 10.12345, SE 5.9876 --> Round estimate to zero or at most one decimal place.
+  # Estimate 10.12345, SE 0.5432 --> Round estimate to one or at most two places.
+  
+  # We are going with one decimal place to be conservative.
+  
+  db %>% 
+    mutate(across(c("longtermlci","longtermmean","longtermrci","currentslopelci",
+                    "currentslopemean","currentsloperci","rangelci","rangemean","rangerci"),
+                  ~ round(., 1)))
+  
+}
