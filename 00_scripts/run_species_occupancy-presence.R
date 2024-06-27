@@ -12,7 +12,7 @@ if (!dir.exists(cur_metadata$OCCU.PRES.PATHONLY)) {
 
 # calculation -------------------------------------------------------------
 
-# <annotation_pending_AV> at several steps below
+# get the set of 25 km grids with confirmed presence for each species during each season
 
 speciesforocc %>% 
   {walk2(.$eBird.English.Name.2022, .$status, ~ {

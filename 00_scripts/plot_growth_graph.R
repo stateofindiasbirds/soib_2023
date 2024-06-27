@@ -97,7 +97,7 @@ if (any(plot_ybreaks != 100)) {
     
     # need to update upper plot limit
     plot_ymax = plyr::round_any(plot_ybreaks[5], 50, ceiling)
-    # adding 1% buffer <annotation_pending_AV>
+    # adding 1% buffer to ensure space near the margins
     plot_ymax = plot_ymax + round(0.01 * (plot_ymax - plot_ymin))
     
   }

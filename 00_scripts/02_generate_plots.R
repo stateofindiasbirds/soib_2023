@@ -597,7 +597,8 @@ gen_range_maps <- function(mask_type = "country", which_mask = NULL, which_spec 
       vagrant_presence = ds %>% bind_rows(dw, dp)
       
       
-      # <annotation_pending_AV>
+      # the following code is to create a file that provides the proportional occupancy
+      # for each cell in each relevant season for each species
       # occ.model files 
       occ.model <- list.files(path = path_occu_mod, full.names = T) %>% 
         map_df(read.csv)
@@ -626,7 +627,7 @@ gen_range_maps <- function(mask_type = "country", which_mask = NULL, which_spec 
         pull(COMMON.NAME)
       
       occ.presence.resident = occ.presence %>%
-        filter(!COMMON.NAME %in% list_mig) %>% # or "listM" here?
+        filter(!COMMON.NAME %in% list_mig) %>%
         dplyr::select(COMMON.NAME, status, gridg1) %>%
         mutate(prop_nb = NA, occupancy = 1)
       
@@ -635,7 +636,8 @@ gen_range_maps <- function(mask_type = "country", which_mask = NULL, which_spec 
       occ.resident = occ.model.resident %>% bind_rows(occ.presence.resident)
       
       # combining presence-based and modelled for migrants
-      # <annotation_pending_AV> !!
+      # this is to determine the migratory status of each cell without confirmed presence
+      # the most frequent neighbouring status will be the assigned status for that cell
       for (i in list_mig) {
         
         temp = occ.model.migrant %>% filter(COMMON.NAME == i)
