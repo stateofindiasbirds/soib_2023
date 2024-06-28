@@ -51,7 +51,7 @@ if (to_run == TRUE) {
   {
     # file names for individual files
     write_path <- cur_metadata %>% 
-      dplyr::summarise(SIMDATA.PATH = glue("{SIMDATA.PATHONLY}data{i}.csv"))
+      dplyr::summarise(SIMDATA.PATH = glue("{SIMDATA.PATHONLY}data{i}.RData"))
     
     
     tictoc::tic(glue("({i}/{max(cur_assignment)}) Filtering data"))
@@ -59,7 +59,7 @@ if (to_run == TRUE) {
     tictoc::toc()
     
     tictoc::tic(glue("({i}/{max(cur_assignment)}) Writing data"))
-    write.csv(data_filt, file = write_path$SIMDATA.PATH, row.names = F)
+    save(data_filt, file = write_path$SIMDATA.PATH)
     tictoc::toc()
     
     gc()

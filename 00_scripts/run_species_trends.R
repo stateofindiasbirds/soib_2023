@@ -64,14 +64,16 @@ if (to_run == TRUE) {
       as.character()
     
     data_path = cur_metadata %>% 
-      dplyr::summarise(SIMDATA.PATH = glue("{SIMDATA.PATHONLY}data{k}.csv")) %>% 
+      dplyr::summarise(SIMDATA.PATH = glue("{SIMDATA.PATHONLY}data{k}.RData")) %>% 
       as.character()
     
     
     tictoc::tic(glue("Species trends for {cur_mask}: {k}/{max(cur_assignment)}"))
     
     # read data files
-    data = read.csv(data_path) %>% 
+    load(data_path)
+    
+    data <- data_filt %>% 
       mutate(across(.cols = c(gridg1, gridg2, gridg3, gridg4, month, timegroups),
                     ~ as.factor(.))) %>% 
       mutate(gridg = gridg3)
