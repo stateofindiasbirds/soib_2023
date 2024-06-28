@@ -5,7 +5,7 @@ data0 = data0 %>%
   select(COMMON.NAME,ST_NM,DISTRICT,ALL.SPECIES.REPORTED,group.id,month,year,no.sp,timegroups,
          DURATION.MINUTES,EFFORT.DISTANCE.KM)
 
-regions = read.csv("eBird_district_region_mapping.csv") %>% select(ST_NM,DISTRICT,region)
+regions = read.csv("00_data/eBird_district_region_mapping.csv") %>% select(ST_NM,DISTRICT,region)
 
 data0 = data0 %>% left_join(regions)
 

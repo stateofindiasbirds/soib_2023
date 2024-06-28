@@ -28,6 +28,9 @@
 # for any mask
 dataforanalyses.RData 
 randomgroupids.RData
+# list length
+randomgroupids_di.RData
+randomgroupids_du.RData
 
 # large CSVs
 dataforsim/
@@ -37,6 +40,7 @@ occupancy-presence/
 */results/occupancy/
 */*/results/occupancy/
 20_website/archive/
+40_manuscripts/02_listlength/results/
 
 
 # image outputs
