@@ -13,12 +13,12 @@ source('00_scripts/00_plot_functions.R')
 data_trends = read.csv("01_analyses_full/results/trends.csv")
 data_main = read.csv("01_analyses_full/results/SoIB_main.csv")
 
-cur_spec = c("Indian Peafowl","House Sparrow","Glossy Ibis","Pallas's Fish-Eagle",
-             "Forest Wagtail")
+cur_spec = c("Indian Vulture","White-rumped Vulture","Egyptian Vulture",
+             "Red-headed Vulture","Bearded Vulture","Eurasian Griffon")
 plot_type = "multi"
-nm = "temp.png"
-path_write_file = paste("report_methodology_results/graphs/",nm,sep="")
-cur_trend = "LTT"
+nm = "Fig. 3.png"
+path_write_file = paste("40_manuscripts/01_blueprint/figs/",nm,sep="")
+cur_trend = "CAT"
 analysis_type <- "ebird"
 
 if (plot_type != "composite") {
@@ -158,6 +158,7 @@ plot_xmin <- cur_data_trends %>%
   ungroup() %>%
   pull(timegroups) %>%
   max() # when multi-species, we take the latest year ### ###
+plot_xmin = 2016
 
 
 # saving non-rounded values for later use in plotting

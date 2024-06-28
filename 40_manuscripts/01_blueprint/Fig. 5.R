@@ -13,11 +13,24 @@ source('00_scripts/00_plot_functions.R')
 data_trends = read.csv("01_analyses_full/results/trends.csv")
 data_main = read.csv("01_analyses_full/results/SoIB_main.csv")
 
-cur_spec = c("Greater Flamingo","Baillon's Crake","Sarus Crane","Spot-billed Pelican",
-             "Eurasian Spoonbill","Black-capped Kingfisher")
-plot_type = "multi"
-nm = "temp.png"
-path_write_file = paste("report_methodology_results/graphs/",nm,sep="")
+groups = data_main %>%
+  dplyr::select(eBird.English.Name.2022,Migratory.Status.Within.India,
+                SOIBv2.Long.Term.Status) %>%
+  rename(COMMON.NAME = eBird.English.Name.2022, GROUP = Migratory.Status.Within.India)
+data_trends = data_trends %>% left_join(groups) %>% 
+  filter(GROUP %in% c("Resident","Winter Migrant"),
+         !SOIBv2.Long.Term.Status %in% c("Trend Inconclusive","Insufficient Data"))
+
+data_trends <- data_trends %>%
+  dplyr::select(GROUP,timegroups, timegroupsf, lci_std, mean_std, rci_std) %>%
+  group_by(GROUP, timegroups, timegroupsf) %>%
+  reframe(across(ends_with("_std"), ~ mean(.)))
+
+
+cur_spec <- data_trends %>% distinct(GROUP) %>% pull(GROUP)
+plot_type = "composite"
+nm = "Fig. 5.png"
+path_write_file = paste("40_manuscripts/01_blueprint/figs/",nm,sep="")
 cur_trend = "LTT"
 analysis_type <- "ebird"
 

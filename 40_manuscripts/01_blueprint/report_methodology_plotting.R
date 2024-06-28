@@ -145,7 +145,7 @@ grid_arrange_shared_legend <- function(...) {
     heights = unit.c(unit(1, "npc") - lheight, lheight))
 }
 
-jpeg('manuscripts/report_methodology/Fig. S1.jpg', units="in", width=10, height=7, res=1000)
+jpeg('40_manuscripts/01_blueprint/figs/Fig. S1.jpg', units="in", width=10, height=7, res=1000)
 grid_arrange_shared_legend(ggp1,ggp2)
 dev.off()
 
@@ -195,7 +195,7 @@ ggp1 = ggp +
   )+
   theme(strip.text.y = element_text(size = 20, vjust = 1.7, angle = -90))
 
-jpeg('manuscripts/report_methodology/Fig. S2.jpg', units="in", width=10, height=7, res=1000)
+jpeg('40_manuscripts/01_blueprint/figs/Fig. S2.jpg', units="in", width=10, height=7, res=1000)
 grid::grid.draw(ggp1)
 dev.off()
 
@@ -257,4 +257,4 @@ range_cat_perc = range_cat %>%
 range_trends = range_ltt_perc %>%
   bind_rows(range_cat_perc)
 
-write.csv(range_trends,"report_methodology_results/range_trends_crosstab.csv",row.names = F)
+write.csv(range_trends,"40_manuscripts/01_blueprint/range_trends_crosstab.csv",row.names = F)

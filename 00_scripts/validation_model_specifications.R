@@ -1,3 +1,6 @@
+# demonstrate that model can be specified with interaction of two variables without
+# individual effects of each variable
+
 library(tidyverse)
 # simplifying to three instead of four seasons
 
