@@ -1010,6 +1010,65 @@ expandbyspecies = function(data, species)
   return(expanded)
 }
 
+# faster version of this function using data.table and dtplyr
+# optimising runtime
+# previous expandbyspecies() to be retired entirely in next annual update
+expand_dt = function(data, species) {
+
+  require(tidyverse)
+  require(dtplyr)
+  require(data.table)
+  
+
+  setDT(data)
+  data <- data %>% 
+    lazy_dt(immutable = FALSE) |> 
+    mutate(across(contains("gridg"), ~ as.factor(.))) %>% 
+    mutate(timegroups = as.factor(timegroups)) |> 
+    as.data.table()
+
+
+  # Get distinct rows and filter based on a condition
+  # (using base data.table because lazy_dt with immutable == FALSE would
+  # modify data even though we are assigning to checklistinfo.
+  # and immutable == TRUE copies the data and this is a huge bottleneck)
+  # considers only complete lists
+  checklistinfo <- unique(data[, 
+      .(gridg1, gridg2, gridg3, gridg4, ALL.SPECIES.REPORTED, OBSERVER.ID, 
+        group.id, month, year, no.sp, timegroups, timegroups1)
+      ])[
+        # filter
+      ALL.SPECIES.REPORTED == 1
+    ]
+  
+  checklistinfo <- checklistinfo[
+    , 
+    .SD[1], # subset of data
+    by = group.id
+]
+  
+    
+  # expand data frame to include the bird species in every list
+  data2 = checklistinfo %>% 
+    lazy_dt(immutable = FALSE) |> 
+    mutate(COMMON.NAME = species) %>% 
+    left_join(data |> lazy_dt(immutable = FALSE),
+              by = c("group.id", "gridg1", "gridg2", "gridg3", "gridg4",
+                      "ALL.SPECIES.REPORTED", "OBSERVER.ID", "month", "year", 
+                      "no.sp", "timegroups", "timegroups1", "COMMON.NAME")) %>%
+    dplyr::select(-c("COMMON.NAME","gridg2","gridg4","OBSERVER.ID",
+                     "ALL.SPECIES.REPORTED","group.id","year","timegroups1",
+                     "gridg0","DATETIME")) %>% 
+    # deal with NAs (column is character)
+    mutate(OBSERVATION.COUNT = case_when(is.na(OBSERVATION.COUNT) ~ 0,
+                                       OBSERVATION.COUNT != "0" ~ 1, 
+                                       TRUE ~ as.numeric(OBSERVATION.COUNT))) |> 
+    as_tibble()
+  
+  return(data2)
+
+}
+
 
 
 ### filter data based on migratory status ######################################
@@ -1107,7 +1166,7 @@ singlespeciesrun = function(data, species, specieslist, restrictedspecieslist)
   
   
   # expand dataframe to include absences as well
-  ed = expandbyspecies(data1, species) %>% 
+  ed = expand_dt(data1, species) %>% 
     # converting months to seasons
     mutate(month = as.numeric(month)) %>% 
     mutate(month = case_when(month %in% c(12,1,2) ~ "Win",
@@ -1223,7 +1282,7 @@ occupancyrun = function(data, i, speciesforocc, queen_neighbours)
     filt_data_for_mig(species, status)
   
   # expanding data for absences also
-  data_exp = expandbyspecies(data_filt_mig, species) %>% 
+  data_exp = expand_dt(data_filt_mig, species) %>% 
     filter(!is.na(gridg1)) %>%
     # converting months to seasons
     mutate(month = as.numeric(month)) %>%
