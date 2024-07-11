@@ -220,13 +220,10 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_relMay-2023.txt",
   
   ## setup eBird data ##
   
-  ## slice by single group ID, remove repetitions
   ## remove repeats by retaining only a single group.id + species combination
   
   data = data %>%
-    group_by(group.id, COMMON.NAME) %>% 
-    slice(1) %>% 
-    ungroup() %>% 
+    distinct(group.id, COMMON.NAME, .keep_all = TRUE) |> 
     filter(year < 2023) %>% 
     rename(ST_NM = STATE,
            DISTRICT = COUNTY) %>% 
@@ -279,9 +276,7 @@ addmapvars = function(datapath = "00_data/rawdata.RData",
   
   temp = data %>%
     distinct(group.id, LONGITUDE, LATITUDE) %>% 
-    group_by(group.id) %>% 
-    slice(1) %>% 
-    ungroup() %>% 
+    distinct(group.id, .keep_all = TRUE) |> 
     # joining map vars to EBD
     st_as_sf(coords = c("LONGITUDE", "LATITUDE"), remove = F) %>% 
     st_set_crs(st_crs(india_sf)) %>%
@@ -298,9 +293,7 @@ addmapvars = function(datapath = "00_data/rawdata.RData",
   
   temp = temp %>% 
     distinct(NAME, GRID.G0, GRID.G1, GRID.G2, GRID.G3, GRID.G4, group.id, INLAND) %>% 
-    group_by(group.id) %>% 
-    slice(1) %>% 
-    ungroup() %>% 
+    distinct(group.id, .keep_all = TRUE) |> 
     magrittr::set_colnames(c("pa.name","gridg0","gridg1","gridg2","gridg3",
                              "gridg4","group.id","INLAND"))
   
@@ -327,8 +320,8 @@ addmapvars = function(datapath = "00_data/rawdata.RData",
 ## type can be "trends" or "range"
 ## to use in dataspeciesfilter()
 
-completelistcheck = function(data)
-{
+completelistcheck = function(data) {
+
   require(tidyverse)
   require(lubridate)
 
@@ -351,16 +344,14 @@ completelistcheck = function(data)
   
   # exclude any list that may in fact be incomplete ###
   
-  # list of on-paper complete lists
-  temp = data %>%
+  grp = data %>%
+    # only need checklist metadata
+    distinct(group.id, .keep_all = TRUE) |> 
+    # list of on-paper complete lists
     filter(ALL.SPECIES.REPORTED == 1, PROTOCOL.TYPE != "Incidental") %>%
-    group_by(group.id) %>% slice(1)
-  
-  # choose checklists without info on duration with 3 or fewer species
-  grp = temp %>%
+    # choose checklists without info on duration with 3 or fewer species
     filter(no.sp <= 3, is.na(DURATION.MINUTES)) %>%
-    distinct(group.id)
-  grp = grp$group.id
+    pull(group.id)
   
   # exclude records based on various criteria 
   data = data %>%
@@ -380,7 +371,10 @@ completelistcheck = function(data)
       # true complete lists
       TRUE ~ 1
     )) %>% 
-    dplyr::select(-speed,-sut,-hr,-min,-end) 
+    dplyr::select(-speed,-sut,-hr,-min,-end,-DATETIME)
+
+  return(data)
+
 }
 
 ### removevagrants ########################################
@@ -991,9 +985,7 @@ expandbyspecies = function(data, species)
              #DURATION.MINUTES,EFFORT.DISTANCE.KM,
              group.id, month, year, no.sp, timegroups, timegroups1) %>%
     filter(ALL.SPECIES.REPORTED == 1) %>%
-    group_by(group.id) %>% 
-    slice(1) %>% 
-    ungroup()
+    distinct(group.id, .keep_all = TRUE)
   
   # expand data frame to include the bird species in every list
   expanded = checklistinfo %>% 
@@ -1001,7 +993,7 @@ expandbyspecies = function(data, species)
     left_join(data) %>%
     dplyr::select(-c("COMMON.NAME","gridg2","gridg4","OBSERVER.ID",
                      "ALL.SPECIES.REPORTED","group.id","year","timegroups1",
-                     "gridg0","DATETIME")) %>% 
+                     "gridg0")) %>% 
   # deal with NAs (column is character)
   mutate(OBSERVATION.COUNT = case_when(is.na(OBSERVATION.COUNT) ~ 0,
                                        OBSERVATION.COUNT != "0" ~ 1, 
@@ -1058,7 +1050,7 @@ expand_dt = function(data, species) {
                       "no.sp", "timegroups", "timegroups1", "COMMON.NAME")) %>%
     dplyr::select(-c("COMMON.NAME","gridg2","gridg4","OBSERVER.ID",
                      "ALL.SPECIES.REPORTED","group.id","year","timegroups1",
-                     "gridg0","DATETIME")) %>% 
+                     "gridg0")) %>% 
     # deal with NAs (column is character)
     mutate(OBSERVATION.COUNT = case_when(is.na(OBSERVATION.COUNT) ~ 0,
                                        OBSERVATION.COUNT != "0" ~ 1, 
@@ -1154,8 +1146,7 @@ singlespeciesrun = function(data, species, specieslist, restrictedspecieslist)
   #rm(data, pos = ".GlobalEnv")
   
   datay = data1 %>%
-    group_by(gridg3, gridg1, group.id) %>% 
-    slice(1) %>% 
+    distinct(gridg3, gridg1, group.id, .keep_all = TRUE) %>% 
     group_by(gridg3, gridg1) %>% 
     reframe(medianlla = median(no.sp)) %>%
     group_by(gridg3) %>% 
