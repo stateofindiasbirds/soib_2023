@@ -319,11 +319,11 @@ plot_import_data <- function(mask, import_trend = fn_cur_trend, import_plot_type
       spec_qual <- data_main %>% 
         filter(!(SOIBv2.Long.Term.Status %in% status_to_filter),
                Long.Term.Analysis == "X") %>% 
-        dplyr::select(eBird.English.Name.2022) %>% 
+        dplyr::select(eBird.English.Name.2023) %>% 
         add_mask_titles(mask)
       
       data_trends <- data_trends %>% 
-        filter(COMMON.NAME %in% spec_qual$eBird.English.Name.2022,
+        filter(COMMON.NAME %in% spec_qual$eBird.English.Name.2023,
                timegroups <= 2022)
       
     } else if (import_trend == "CAT") {
@@ -331,11 +331,11 @@ plot_import_data <- function(mask, import_trend = fn_cur_trend, import_plot_type
       spec_qual <- data_main %>% 
         filter(!(SOIBv2.Current.Status %in% status_to_filter),
                Current.Analysis == "X") %>% 
-        dplyr::select(eBird.English.Name.2022) %>% 
+        dplyr::select(eBird.English.Name.2023) %>% 
       add_mask_titles(mask)
       
       data_trends <- data_trends %>% 
-        filter(COMMON.NAME %in% spec_qual$eBird.English.Name.2022,
+        filter(COMMON.NAME %in% spec_qual$eBird.English.Name.2023,
                timegroups >= 2015 & timegroups <= 2022)
       
     }
@@ -442,13 +442,13 @@ plot_load_filter_data <- function(fn_plot_type, fn_cur_trend, fn_cur_mask = "non
     
     spec_qual <- map(data_processed, pluck, "spec_qual") %>% bind_rows()
     
-    spec_qual_country <- spec_qual %>% filter(MASK == "none") %>% pull(eBird.English.Name.2022)
-    spec_qual_masks <- spec_qual %>% filter(MASK != "none") %>% pull(eBird.English.Name.2022)
+    spec_qual_country <- spec_qual %>% filter(MASK == "none") %>% pull(eBird.English.Name.2023)
+    spec_qual_masks <- spec_qual %>% filter(MASK != "none") %>% pull(eBird.English.Name.2023)
     
     spec_qual <- intersect(spec_qual_country, spec_qual_masks)
     
     data_trends <- data_trends %>% filter(COMMON.NAME %in% spec_qual)
-    data_main <- data_main %>% filter(eBird.English.Name.2022 %in% spec_qual)
+    data_main <- data_main %>% filter(eBird.English.Name.2023 %in% spec_qual)
     
   } else {
     
@@ -459,7 +459,7 @@ plot_load_filter_data <- function(fn_plot_type, fn_cur_trend, fn_cur_mask = "non
       } else {
         .
       }} %>% 
-      pull(eBird.English.Name.2022)
+      pull(eBird.English.Name.2023)
     
   }
 
@@ -486,9 +486,9 @@ fetch_plot_metadata <- function(plot_type) {
         str_flatten_comma(c("Isabelline Wheatear","Great Gray Shrike","Rufous-tailed Lark",
                             "Yellow-billed Babbler","Eurasian Kestrel","Jerdon's Bushlark")),
         str_flatten_comma(c("Little Ringed Plover","Little Tern","Great Thick-knee","Small Pratincole")),
-        str_flatten_comma(c("Lesser Sand-Plover","Terek Sandpiper","Whimbrel","Curlew Sandpiper",
+        str_flatten_comma(c("Tibetan Sand-Plover","Terek Sandpiper","Whimbrel","Curlew Sandpiper",
                             "Eurasian Curlew")),
-        str_flatten_comma(c("Oriental Honey-buzzard","Black Kite","Eurasian Marsh-Harrier",
+        str_flatten_comma(c("Oriental Honey-buzzard","Black Kite","Western Marsh Harrier",
                             "Short-toed Snake-Eagle","Pallid Harrier","Greater Spotted Eagle")),
         str_flatten_comma(c("White-rumped Vulture","Indian Vulture","Red-headed Vulture",
                             "Egyptian Vulture","Eurasian Griffon")),
@@ -576,7 +576,7 @@ fetch_plot_metadata <- function(plot_type) {
     data4 <- data_main %>% 
       mutate(GROUP = fct_collapse(
         
-        eBird.English.Name.2022,
+        eBird.English.Name.2023,
         
         "Near Resident or Palearctic Migrant" = c(
           "Indian Thick-knee","Great Thick-knee","Beach Thick-knee","Black-winged Stilt",
@@ -588,7 +588,7 @@ fetch_plot_metadata <- function(plot_type) {
         "Near Resident or Palearctic Migrant" = c(
           "Pied Avocet","Ibisbill","Eurasian Oystercatcher","Northern Lapwing",
           "Gray-headed Lapwing","Sociable Lapwing","White-tailed Lapwing",
-          "Lesser Sand-Plover","Greater Sand-Plover","Caspian Plover",
+          "Tibetan Sand-Plover","Greater Sand-Plover","Caspian Plover",
           "Kentish Plover","Common Ringed Plover","Long-billed Plover",
           "Oriental Plover","Eurasian Curlew","Black-tailed Godwit","Ruff",
           "Jack Snipe","Eurasian Woodcock","Wood Snipe","Great Snipe","Common Snipe",
@@ -615,7 +615,7 @@ fetch_plot_metadata <- function(plot_type) {
                                              "Arctic Migrant") ~ NA_character_,
                                TRUE ~ GROUP)) %>% 
       filter(!is.na(GROUP)) %>% 
-      distinct(GROUP, eBird.English.Name.2022) %>% 
+      distinct(GROUP, eBird.English.Name.2023) %>% 
       mutate(PLOT.NAME = "Shorebird Migratory Behaviours")
     
     data5 <- data_main %>% 
@@ -639,7 +639,7 @@ fetch_plot_metadata <- function(plot_type) {
     data6 <- data_main %>% 
       rename(GROUP = MASK.TITLE) %>% 
       filter(!is.na(GROUP)) %>% 
-      distinct(GROUP, eBird.English.Name.2022) %>% 
+      distinct(GROUP, eBird.English.Name.2023) %>% 
       mutate(PLOT.NAME = "Woodland")
     
     
@@ -649,7 +649,7 @@ fetch_plot_metadata <- function(plot_type) {
     data7 <- data_main %>% 
       rename(GROUP = MASK.TITLE) %>% 
       filter(!is.na(GROUP)) %>% 
-      distinct(GROUP, eBird.English.Name.2022) %>% 
+      distinct(GROUP, eBird.English.Name.2023) %>% 
       mutate(PLOT.NAME = "Open Natural Ecosystems & Cropland")
 
     
@@ -658,7 +658,7 @@ fetch_plot_metadata <- function(plot_type) {
     data8 <- data_main %>% 
       rename(GROUP = MASK.TITLE) %>% 
       filter(!is.na(GROUP)) %>% 
-      distinct(GROUP, eBird.English.Name.2022) %>% 
+      distinct(GROUP, eBird.English.Name.2023) %>% 
       mutate(PLOT.NAME = "Protected Areas")
     
     
@@ -796,11 +796,11 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
       mutate(COMMON.NAME = specname_to_india_checklist(COMMON.NAME, already_show = FALSE))
     data_main <- data_main %>% 
       # species name changed in between
-      mutate(eBird.English.Name.2022 = case_when(
-        eBird.English.Name.2022 == "Common Grasshopper-Warbler" ~ "Common Grasshopper Warbler",
-        TRUE ~ eBird.English.Name.2022
+      mutate(eBird.English.Name.2023 = case_when(
+        eBird.English.Name.2023 == "Common Grasshopper-Warbler" ~ "Common Grasshopper Warbler",
+        TRUE ~ eBird.English.Name.2023
       )) %>% 
-      mutate(eBird.English.Name.2022 = specname_to_india_checklist(eBird.English.Name.2022, already_show = FALSE))
+      mutate(eBird.English.Name.2023 = specname_to_india_checklist(eBird.English.Name.2023, already_show = FALSE))
     cur_spec <- cur_spec %>% 
       specname_to_india_checklist(already_show = FALSE)
   }
@@ -858,7 +858,7 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     if (plot_type == "single_mask") {
       
       plot_full_country <- data_main %>% 
-        filter(eBird.English.Name.2022 %in% cur_spec,
+        filter(eBird.English.Name.2023 %in% cur_spec,
                MASK == "none") %>% 
         {if (cur_trend == "LTT") {
           pull(., SOIBv2.Long.Term.Status)

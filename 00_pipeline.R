@@ -75,7 +75,7 @@ toc() # 11 min
 # - data files (ALL in 00_data/):
 #   - "data.RData"
 #   - "indiaspecieslist.csv" (common and scientific names of all species)
-#   - "SoIB_mapping_2022.csv"
+#   - "SoIB_mapping_2023.csv"
 # Outputs:
 # - "dataforanalyses_extra.RData"
 # - "fullspecieslist.csv" for whole country and individual mask versions
@@ -307,7 +307,7 @@ tic.log()
 # - data files:
 #   - "dataforanalyses.RData" for whole country and individual states
 #   - "specieslists.RData" for whole country and individual states
-#   - "00_data/SoIB_mapping_2022.csv"
+#   - "00_data/SoIB_mapping_2023.csv"
 #   - "00_data/grids_sf_nb.RData"
 # Outputs: 
 # - csv files in occupancy-presence/ 

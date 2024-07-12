@@ -37,7 +37,7 @@ if (plot_type != "composite") {
 if (plot_type == "single_mask") {
   
   plot_full_country <- data_main %>% 
-    filter(eBird.English.Name.2022 %in% cur_spec,
+    filter(eBird.English.Name.2023 %in% cur_spec,
            MASK == "none") %>% 
     {if (cur_trend == "LTT") {
       pull(., SOIBv2.Long.Term.Status)

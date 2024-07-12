@@ -54,7 +54,7 @@ redlist <- read_csv("01_analyses_full/results/redlist.csv") %>%
 
 main_db <- main_db0 %>% 
   # only species which maps to two species in eBird checklist (but RBDK is vagrant/historical)
-  filter(eBird.English.Name.2022 != "Rufous-backed Dwarf-Kingfisher") %>% 
+  filter(eBird.English.Name.2023 != "Rufous-backed Dwarf-Kingfisher") %>% 
   # converting binary columns to logical
   mutate(across(c("India.Endemic", "Subcontinent.Endemic", "Himalayas.Endemic"),
                 ~ case_when(. == "Yes" ~ TRUE, TRUE ~ FALSE)),
@@ -95,7 +95,7 @@ main_db <- main_db0 %>%
     "India.Checklist.Common.Name","India.Checklist.Scientific.Name",
     "SOIBv2.Priority.Status","SOIBv2.Long.Term.Status",
     "SOIBv2.Current.Status","SOIBv2.Range.Status",
-    "eBird.English.Name.2022","eBird.Scientific.Name.2022", 
+    "eBird.English.Name.2023","eBird.Scientific.Name.2023", 
     "BLI.Common.Name", "BLI.Scientific.Name","Order","Family",
     "Breeding.Activity.Period","Non.Breeding.Activity.Period","Diet.Guild",
     "Endemic.Region","India.Endemic","Subcontinent.Endemic","Himalayas.Endemic",
@@ -115,7 +115,7 @@ main_db <- main_db0 %>%
     "English Name","Scientific Name",
     "SoIB 2023 Priority Status","SoIB 2023 Long-term Trend Status",
     "SoIB 2023 Current Annual Trend Status","SoIB 2023 Distribution Range Size Status",
-    "eBird English Name 2022","eBird Scientific Name 2022",
+    "eBird English Name 2023","eBird Scientific Name 2023",
     "BLI English Name 2022","BLI Scientific Name 2022","Order","Family",
     "Breeding Activity Period","Non-breeding Activity Period","Diet Guild",
     "Endemicity","Endemic to India","Endemic to Subcontinent","Endemic to Himalaya",
@@ -268,8 +268,8 @@ readme <- tribble(
   "SoIB 2023 Long-term Trend Status", "Long-term Trend Status of species from SoIB 2023 assessment",
   "SoIB 2023 Current Annual Trend Status", "Current Annual Trend Status of species from SoIB 2023 assessment",
   "SoIB 2023 Distribution Range Size Status", "Distribution Range Size Status of species assigned from SoIB 2023 assessment",
-  "eBird English Name 2022", "English name of species in eBird/Clements Checklist 2022",
-  "eBird Scientific Name 2022", "Scientific name of species in eBird/Clements Checklist 2022",
+  "eBird English Name 2023", "English name of species in eBird/Clements Checklist 2023",
+  "eBird Scientific Name 2023", "Scientific name of species in eBird/Clements Checklist 2023",
   "BLI English Name 2022", "English name of species in HBW/BLI Checklist 2022",
   "BLI Scientific Name 2022", "Scientific name of species in HBW/BLI Checklist 2022",
   "Order", "Taxonomic Order to which species belongs",

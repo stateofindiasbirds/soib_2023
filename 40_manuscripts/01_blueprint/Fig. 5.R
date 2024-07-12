@@ -14,9 +14,9 @@ data_trends = read.csv("01_analyses_full/results/trends.csv")
 data_main = read.csv("01_analyses_full/results/SoIB_main.csv")
 
 groups = data_main %>%
-  dplyr::select(eBird.English.Name.2022,Migratory.Status.Within.India,
+  dplyr::select(eBird.English.Name.2023,Migratory.Status.Within.India,
                 SOIBv2.Long.Term.Status) %>%
-  rename(COMMON.NAME = eBird.English.Name.2022, GROUP = Migratory.Status.Within.India)
+  rename(COMMON.NAME = eBird.English.Name.2023, GROUP = Migratory.Status.Within.India)
 data_trends = data_trends %>% left_join(groups) %>% 
   filter(GROUP %in% c("Resident","Winter Migrant"),
          !SOIBv2.Long.Term.Status %in% c("Trend Inconclusive","Insufficient Data"))
@@ -50,7 +50,7 @@ if (plot_type != "composite") {
 if (plot_type == "single_mask") {
   
   plot_full_country <- data_main %>% 
-    filter(eBird.English.Name.2022 %in% cur_spec,
+    filter(eBird.English.Name.2023 %in% cur_spec,
            MASK == "none") %>% 
     {if (cur_trend == "LTT") {
       pull(., SOIBv2.Long.Term.Status)

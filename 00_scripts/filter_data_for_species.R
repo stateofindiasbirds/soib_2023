@@ -10,11 +10,11 @@ source('00_scripts/00_functions.R')
 
 # mapping of SoIB-species-of-interest to a range of variables/classifications
 # (manually created)
-fullmap = read.csv("00_data/SoIB_mapping_2022.csv")
+fullmap = read.csv("00_data/SoIB_mapping_2023.csv")
 
 
 # species frequently misidentified and therefore ignored in analyses ###
-spec_misid <- c("Besra","Horsfield's Bushlark","Common Flameback",
+spec_misid <- c("Besra","Singing Bushlark","Common Flameback",
                 "Eastern Orphean Warbler","Richard's Pipit",
                 "Asian Palm Swift")
 # saving to read in resolve step
@@ -31,13 +31,13 @@ spec_resident = fullmap %>%
                                               "Resident & Localized Summer Migrant",
                                               "Resident & Within-India Migrant",
                                               "Resident (Extirpated)")) %>%
-  pull(eBird.English.Name.2022)
+  pull(eBird.English.Name.2023)
 
 # species filtered for certain habitat masks
 spec_woodland = fullmap %>%
   filter(Habitat.Specialization %in% c("Forest",
                                        "Forest & Plantation")) %>%
-  pull(eBird.English.Name.2022)
+  pull(eBird.English.Name.2023)
 
 # we are considering cropland and ONE habitats together to classify "openland species"
 spec_openland = fullmap %>%
@@ -45,7 +45,7 @@ spec_openland = fullmap %>%
                                        "Grassland",
                                        "Grassland & Scrub",
                                        "Open Habitat")) %>%
-  pull(eBird.English.Name.2022)
+  pull(eBird.English.Name.2023)
 
 
 # 0. main data filtering -----------------------------------------------------

@@ -11,7 +11,7 @@ source('00_scripts/00_functions.R')
 
 load(data_path)
 load(speclist_path)
-fullmap = read.csv("00_data/SoIB_mapping_2022.csv")
+fullmap = read.csv("00_data/SoIB_mapping_2023.csv")
 
 
 # classifying migratory status --------------------------------------------
@@ -24,7 +24,7 @@ doublespecies0 = fullmap %>%
     "Resident (Extirpated)",
     "Uncertain"
   )) %>%
-  pull(eBird.English.Name.2022)
+  pull(eBird.English.Name.2023)
 
 doublespecies1 = fullmap %>% 
   filter(Migratory.Status.Within.India %in% c(
@@ -43,47 +43,47 @@ doublespecies1 = fullmap %>%
     "Within-India Migrant",
     "Within-India Migrant & Winter Migrant"
   )) %>%
-  pull(eBird.English.Name.2022)
+  pull(eBird.English.Name.2023)
 
 doublespecies2 = fullmap %>% 
   filter(Migratory.Status.Within.India %in% c(
     "Passage Migrant & Localized Summer Migrant",
     "Summer Migrant & Passage Migrant"
   )) %>%
-  pull(eBird.English.Name.2022)
+  pull(eBird.English.Name.2023)
 
 doublespecies3 = fullmap %>% 
   filter(Migratory.Status.Within.India %in% c(
     "Passage Migrant & Localized Winter Migrant"
   )) %>%
-  pull(eBird.English.Name.2022)
+  pull(eBird.English.Name.2023)
 
 fullmap = fullmap %>%
   mutate(status = case_when(
-    eBird.English.Name.2022 %in% doublespecies0 ~ "R",
-    eBird.English.Name.2022 %in% doublespecies1 ~ "MS",
-    eBird.English.Name.2022 %in% doublespecies2 ~ "MP",
-    eBird.English.Name.2022 %in% doublespecies3 ~ "MP",
+    eBird.English.Name.2023 %in% doublespecies0 ~ "R",
+    eBird.English.Name.2023 %in% doublespecies1 ~ "MS",
+    eBird.English.Name.2023 %in% doublespecies2 ~ "MP",
+    eBird.English.Name.2023 %in% doublespecies3 ~ "MP",
     TRUE ~ "M"
   ))
 
 fullmap1 = fullmap %>% 
-  filter(eBird.English.Name.2022 %in% doublespecies1) %>%
+  filter(eBird.English.Name.2023 %in% doublespecies1) %>%
   mutate(status = "MW")
 fullmap2 = fullmap %>% 
-  filter(eBird.English.Name.2022 %in% doublespecies2) %>%
+  filter(eBird.English.Name.2023 %in% doublespecies2) %>%
   mutate(status = "MS")
 fullmap3 = fullmap %>% 
-  filter(eBird.English.Name.2022 %in% doublespecies3) %>%
+  filter(eBird.English.Name.2023 %in% doublespecies3) %>%
   mutate(status = "MW")
 
 fullmap <- fullmap %>% bind_rows(fullmap1, fullmap2, fullmap3)
 
 
 speciesforocc = fullmap %>%
-  dplyr::select(eBird.English.Name.2022, status) %>%
-  filter(eBird.English.Name.2022 %in% specieslist$COMMON.NAME)
-noofspecies = length(speciesforocc$eBird.English.Name.2022)
+  dplyr::select(eBird.English.Name.2023, status) %>%
+  filter(eBird.English.Name.2023 %in% specieslist$COMMON.NAME)
+noofspecies = length(speciesforocc$eBird.English.Name.2023)
 
 data = data %>% filter(year > 2017)
 

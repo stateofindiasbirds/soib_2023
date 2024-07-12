@@ -148,7 +148,7 @@ rm_prob_mistakes <- function(data) {
           "S32601523", "S28511840", "S25364525", "S28511850", "S25364524", 
           "S21535948", "S21504333", "S21503610"
         )) |
-        (COMMON.NAME == "White-rumped Needletail" & SAMPLING.EVENT.IDENTIFIER %in% c(
+        (COMMON.NAME == "White-rumped Spinetail" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S17625842", "S81990142", "S88790248", "S24265685", "S24265700", 
           "S24868786", "S59681703"
         )) |
@@ -189,7 +189,7 @@ rm_prob_mistakes <- function(data) {
           "S70115622", "S81855275", "S81815220", "S82728052"
         )) |
         (COMMON.NAME == "River Lapwing" & SAMPLING.EVENT.IDENTIFIER == "S37500970") |
-        (COMMON.NAME == "Lesser Sand-Plover" & SAMPLING.EVENT.IDENTIFIER %in% c(
+        (COMMON.NAME == "Tibetan Sand-Plover" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S122169372", "S41043890", "S41021293", "S41021217", "S33010135", "S32999682", 
           "S60810032", "S52467678", "S62946445", "S56307563", "S33712996", "S33712788", 
           "S81515840", "S33982984", "S27014963", "S26186397", "S127063577", "S77074722", 
@@ -446,7 +446,7 @@ rm_prob_mistakes <- function(data) {
         (COMMON.NAME == "Himalayan Woodpecker" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S93107065", "S98163060", "S104353995"
         )) |
-        (COMMON.NAME == "Crimson-breasted Woodpecker" & SAMPLING.EVENT.IDENTIFIER %in% c(
+        (COMMON.NAME == "Crimson-naped Woodpecker" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S69094558", "S111383639"
         )) |
         (COMMON.NAME == "Bay Woodpecker" & SAMPLING.EVENT.IDENTIFIER %in% c(
@@ -722,8 +722,8 @@ rm_prob_mistakes <- function(data) {
       OBSERVER.ID == "obsr1158032" & COMMON.NAME %in% c(
         "Fulvous Whistling-Duck", "Common Pochard", "Tufted Duck", "Red Spurfowl", 
         "Painted Spurfowl", "Grey Junglefowl", "Rain Quail", "Jungle Bush-Quail", 
-        "Lesser Flamingo", "White-rumped Needletail", "Alpine Swift", "Slaty-breasted Rail", 
-        "Watercock", "Great Thick-knee", "Black-bellied Plover", "Lesser Sand-Plover", 
+        "Lesser Flamingo", "White-rumped Spinetail", "Alpine Swift", "Slaty-breasted Rail", 
+        "Watercock", "Great Thick-knee", "Black-bellied Plover", "Tibetan Sand-Plover", 
         "Greater Sand-Plover", "Ruddy Turnstone", "Common Redshank", "Indian Courser",
         "Little Tern", "Common Tern", "Sandwich Tern", "Lesser Crested Tern", "White Stork",
         "Crested Serpent-Eagle", "Short-toed Snake-Eagle", "Changeable Hawk-Eagle",
@@ -794,7 +794,7 @@ rm_prob_mistakes <- function(data) {
         (COMMON.NAME == "Indian Cuckoo" & COUNTY %in% c(
           "Darbhanga", "Madhubani", "Patna", "Bhagalpur"
         )) |
-        (COMMON.NAME == "White-rumped Needletail" & COUNTY == "Chittoor") |
+        (COMMON.NAME == "White-rumped Spinetail" & COUNTY == "Chittoor") |
         (COMMON.NAME == "Indian Swiftlet" & COUNTY %in% c("Satara", "Thane", "Ratnagiri")) |
         (COMMON.NAME == "Crested Treeswift" & COUNTY %in% c("Kolhapur", "Nashik")) |
         (COMMON.NAME == "Slaty-breasted Rail" & COUNTY == "Madurai") |
@@ -803,7 +803,7 @@ rm_prob_mistakes <- function(data) {
         (COMMON.NAME == "Brown Crake" & STATE %in% c("Bihar", "Jharkhand")) |
         (COMMON.NAME == "Sarus Crane" & COUNTY %in% c("Jaisalmer", "Churu")) |
         (COMMON.NAME == "Great Thick-knee" & COUNTY == "Churu") |
-        (COMMON.NAME == "Lesser Sand-Plover" & COUNTY %in% c("Jalpaiguri", "Nashik")) |
+        (COMMON.NAME == "Tibetan Sand-Plover" & COUNTY %in% c("Jalpaiguri", "Nashik")) |
         (COMMON.NAME == "Bronze-winged Jacana" & (
           COUNTY %in% c(
             "Tiruchirappalli", "Ariyalur", "Karur", "Thiruvarur", "Thanjavur", "Nagapattinam", 
@@ -1119,7 +1119,7 @@ rm_prob_mistakes <- function(data) {
 
   mistake5 <- data %>% 
     filter(
-      (COMMON.NAME == "Lesser Sand-Plover" & (
+      (COMMON.NAME == "Tibetan Sand-Plover" & (
         COUNTY == "Malda" & !(month %in% c(3, 4, 10, 11))
       )) |
         (COMMON.NAME == "Ruddy Kingfisher" & (

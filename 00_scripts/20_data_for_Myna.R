@@ -49,11 +49,11 @@ data = data %>%
   mutate(CATEGORY = case_when(COMMON.NAME %in% c(
     "Green/Greenish Warbler", "Siberian/Amur Stonechat", "Red-necked/Little Stint",
     "Western/Eastern Yellow Wagtail", "Common/Himalayan Buzzard",
-    "Eurasian/Eastern Marsh-Harrier", "Lesser/Greater Sand-Plover", "Baikal/Spotted Bush Warbler",
+    "Western/Eastern Marsh Harrier", "Tibetan/Greater Sand-Plover", "Baikal/Spotted Bush Warbler",
     "Lemon-rumped/Sichuan Leaf Warbler", "Red-rumped/Striated Swallow",
-    "Bank Swallow/Pale Sand Martin", "Riparia sp.", "Greater/Mongolian Short-toed Lark",
+    "Bank Swallow/Pale Martin", "Riparia sp.", "Greater/Mongolian Short-toed Lark",
     "Taiga/Red-breasted Flycatcher", "Tricolored x Chestnut Munia (hybrid)", "Little/House Swift", 
-    "Pin-tailed/Swinhoe's Snipe", "Booted/Sykes's Warbler", "Iduna sp."
+    "Pin-tailed/Swinhoe's Snipe", "Booted/Sykes's Warbler", "Iduna sp.", "Greater/Malabar Flameback"
   ) ~ "species",
   TRUE ~ CATEGORY)) %>%
   # combining species, slashes and spuhs
@@ -65,17 +65,17 @@ data = data %>%
                        "Western/Eastern Yellow Wagtail") ~ "Western Yellow Wagtail",
     COMMON.NAME %in% c("Himalayan Buzzard", 
                        "Common/Himalayan Buzzard") ~ "Common Buzzard",
-    COMMON.NAME %in% c("Eastern Marsh-Harrier", 
-                       "Eurasian/Eastern Marsh-Harrier") ~ "Eurasian Marsh-Harrier",
+    COMMON.NAME %in% c("Eastern Marsh Harrier", 
+                       "Western/Eastern Marsh Harrier") ~ "Western Marsh Harrier",
     COMMON.NAME %in% c("Greater Sand-Plover", 
-                       "Lesser/Greater Sand-Plover") ~ "Lesser Sand-Plover",
+                       "Tibetan/Greater Sand-Plover") ~ "Tibetan Sand-Plover",
     COMMON.NAME %in% c("Baikal Bush Warbler", 
                        "Baikal/Spotted Bush Warbler") ~ "Spotted Bush Warbler",
     COMMON.NAME %in% c("Sichuan Leaf Warbler", 
                        "Lemon-rumped/Sichuan Leaf Warbler") ~ "Lemon-rumped Warbler",
     COMMON.NAME %in% c("Striated Swallow", 
                        "Red-rumped/Striated Swallow") ~ "Red-rumped Swallow",
-    COMMON.NAME %in% c("Pale Sand Martin", "Bank Swallow/Pale Sand Martin", 
+    COMMON.NAME %in% c("Pale Martin", "Bank Swallow/Pale Martin", 
                        "Riparia sp.") ~ "Gray-throated Martin",
     COMMON.NAME %in% c("Mongolian Short-toed Lark", 
                        "Greater/Mongolian Short-toed Lark") ~ "Greater Short-toed Lark",
@@ -88,6 +88,8 @@ data = data %>%
                        "Pin-tailed/Swinhoe's Snipe") ~ "Pin-tailed Snipe",
     COMMON.NAME %in% c("Sykes's Warbler", "Booted/Sykes's Warbler",
                        "Iduna sp.") ~ "Booted Warbler",
+    COMMON.NAME %in% c("Malabar Flameback", 
+                       "Greater/Malabar Flameback") ~ "Greater Flameback",
     TRUE ~ COMMON.NAME
   ))
 

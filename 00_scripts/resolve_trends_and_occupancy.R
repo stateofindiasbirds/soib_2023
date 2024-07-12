@@ -104,8 +104,8 @@ if (run_res_trends == FALSE) {
                   ~ replace_na(., ""))) %>%
     dplyr::select(-SCIENTIFIC.NAME)
   
-  main = read.csv("00_data/SoIB_mapping_2022.csv") %>% 
-    left_join(base, by = c("eBird.English.Name.2022" = "COMMON.NAME"))
+  main = read.csv("00_data/SoIB_mapping_2023.csv") %>% 
+    left_join(base, by = c("eBird.English.Name.2023" = "COMMON.NAME"))
   
   # creating NA columns to match structure of "normal" main data
   main[, na_columns] <- NA_real_
@@ -125,11 +125,11 @@ if (run_res_trends == FALSE) {
                   ~ replace_na(., ""))) %>%
     dplyr::select(-SCIENTIFIC.NAME)
   
-  main = read.csv("00_data/SoIB_mapping_2022.csv") %>% 
-    left_join(base, by = c("eBird.English.Name.2022" = "COMMON.NAME"))
+  main = read.csv("00_data/SoIB_mapping_2023.csv") %>% 
+    left_join(base, by = c("eBird.English.Name.2023" = "COMMON.NAME"))
   
   # separate object for sensitivity analysis
-  sens = main %>% dplyr::select(eBird.English.Name.2022)
+  sens = main %>% dplyr::select(eBird.English.Name.2023)
   
   
   # trends files
@@ -149,10 +149,10 @@ if (run_res_trends == FALSE) {
   
   spec_lt <- main %>% 
     filter(Long.Term.Analysis == "X") %>% 
-    pull(eBird.English.Name.2022)
+    pull(eBird.English.Name.2023)
   spec_ct <- main %>% 
     filter(Current.Analysis == "X") %>% 
-    pull(eBird.English.Name.2022)
+    pull(eBird.English.Name.2023)
   
   # long-term (problematic species) ###
   
@@ -191,7 +191,7 @@ if (run_res_trends == FALSE) {
                               COMMON.NAME %in% specs_lt_remove ~ NA,
                             TRUE ~ se))
     main <- main %>% 
-      mutate(Long.Term.Analysis = if_else(eBird.English.Name.2022 %in% specs_lt_remove,
+      mutate(Long.Term.Analysis = if_else(eBird.English.Name.2023 %in% specs_lt_remove,
                                           "",
                                           Long.Term.Analysis))
     
@@ -242,9 +242,9 @@ if (run_res_trends == FALSE) {
       filter(!COMMON.NAME %in% specs_ct_remove)
     
     main <- main %>% 
-      mutate(Long.Term.Analysis = if_else(eBird.English.Name.2022 %in% specs_ct_remove,
+      mutate(Long.Term.Analysis = if_else(eBird.English.Name.2023 %in% specs_ct_remove,
                                           "", Long.Term.Analysis),
-             Current.Analysis = if_else(eBird.English.Name.2022 %in% specs_ct_remove,
+             Current.Analysis = if_else(eBird.English.Name.2023 %in% specs_ct_remove,
                                         "", Current.Analysis))
     
     
@@ -275,14 +275,14 @@ if (run_res_trends == FALSE) {
       filter(!is.na(mean5km) & mean5km < 8 &
                (Long.Term.Analysis == "X" | Current.Analysis == "X") &
                is.na(Restricted.Islands)) %>% 
-      pull(eBird.English.Name.2022)
+      pull(eBird.English.Name.2023)
 
     specsc2 = main %>%
       # identifying species where the variation of within 25 km cell sampling is too high
       filter(!is.na(ci5km) & (main$ci5km/main$mean5km) > 0.25 &
                (Long.Term.Analysis == "X" | Current.Analysis == "X") &
                is.na(Restricted.Islands)) %>% 
-      pull(eBird.English.Name.2022)
+      pull(eBird.English.Name.2023)
     
     specsc = union(specsc1, specsc2)
     
@@ -291,9 +291,9 @@ if (run_res_trends == FALSE) {
       filter(!COMMON.NAME %in% specsc)
     
     main <- main %>% 
-      mutate(Long.Term.Analysis = if_else(eBird.English.Name.2022 %in% specsc,
+      mutate(Long.Term.Analysis = if_else(eBird.English.Name.2023 %in% specsc,
                                           "", Long.Term.Analysis),
-             Current.Analysis = if_else(eBird.English.Name.2022 %in% specsc,
+             Current.Analysis = if_else(eBird.English.Name.2023 %in% specsc,
                                         "", Current.Analysis))
     
   }
@@ -307,7 +307,7 @@ if (run_res_trends == FALSE) {
     filter(!is.na(proprange25km.current) & 
              (proprange25km.current/proprange25km2022) < 0.6 &
              (Current.Analysis == "X")) %>% 
-    pull(eBird.English.Name.2022)
+    pull(eBird.English.Name.2023)
   
   trends = trends %>%
     filter(!COMMON.NAME %in% specsd3)
@@ -316,20 +316,20 @@ if (run_res_trends == FALSE) {
   main <- main %>%
     # remove these species from both analyses, since unlikely that it qualifies for long-term
     # but not for current
-    mutate(Long.Term.Analysis = if_else(eBird.English.Name.2022 %in% specsd3,
+    mutate(Long.Term.Analysis = if_else(eBird.English.Name.2023 %in% specsd3,
                                         "", Long.Term.Analysis),
-           Current.Analysis = if_else(eBird.English.Name.2022 %in% specsd3,
+           Current.Analysis = if_else(eBird.English.Name.2023 %in% specsd3,
                                       "", Current.Analysis))
   
   
   # rewriting selected species for LTT and CAT
   spec_lt = main %>% 
     filter(Long.Term.Analysis == "X") %>% 
-    pull(eBird.English.Name.2022)
+    pull(eBird.English.Name.2023)
   
   spec_ct = main %>% 
     filter(Current.Analysis == "X") %>% 
-    pull(eBird.English.Name.2022)
+    pull(eBird.English.Name.2023)
   
   
   # checkpoint-object "main"
@@ -435,7 +435,7 @@ if (run_res_trends == FALSE) {
              longtermrci = rci_std)
     
     main <- main %>%
-      left_join(temp, by = c("eBird.English.Name.2022" = "COMMON.NAME"))
+      left_join(temp, by = c("eBird.English.Name.2023" = "COMMON.NAME"))
     
     modtrends = modtrends %>%
       group_by(COMMON.NAME) %>%
@@ -593,7 +593,7 @@ if (run_res_trends == FALSE) {
     
     # joining to main data
     main <- main %>%
-      left_join(sl_data_main, by = c("eBird.English.Name.2022" = "COMMON.NAME"))
+      left_join(sl_data_main, by = c("eBird.English.Name.2023" = "COMMON.NAME"))
     
     
     # checkpoint-object "main"
@@ -785,7 +785,7 @@ if (run_res_trends == FALSE) {
     
     # joining to data object
     sens <- sens %>%
-      left_join(sl_data_sens, by = c("eBird.English.Name.2022" = "COMMON.NAME"))
+      left_join(sl_data_sens, by = c("eBird.English.Name.2023" = "COMMON.NAME"))
     
     write.csv(sens, file = cursens_path, row.names = F)
     
@@ -868,18 +868,18 @@ if (run_res_trends == FALSE) {
   tojoin <- map(2023:2029, ~ trends %>%
                   filter(timegroups == .x) %>%
                   dplyr::select(COMMON.NAME, lci_comb_std, mean_comb_std, rci_comb_std) %>%
-                  magrittr::set_colnames(c("eBird.English.Name.2022",
+                  magrittr::set_colnames(c("eBird.English.Name.2023",
                                            glue("proj{.x}.lci"),
                                            glue("proj{.x}.mean"),
                                            glue("proj{.x}.rci")))) %>%
-    reduce(full_join, by = "eBird.English.Name.2022")
+    reduce(full_join, by = "eBird.English.Name.2023")
 
   main <- main %>%
     left_join(tojoin) %>%
     # removing misIDd species "selection" for long-term and current analyses
-    mutate(Long.Term.Analysis = ifelse(eBird.English.Name.2022 %in% spec_misid,
+    mutate(Long.Term.Analysis = ifelse(eBird.English.Name.2023 %in% spec_misid,
                                        "", Long.Term.Analysis),
-           Current.Analysis = ifelse(eBird.English.Name.2022 %in% spec_misid,
+           Current.Analysis = ifelse(eBird.English.Name.2023 %in% spec_misid,
                                      "", Current.Analysis))
 
 
@@ -953,14 +953,14 @@ if (skip_res_occu == FALSE) {
             occ.ci = round((erroradd(se * area)) * 1.96))
 
   est = array(data = NA,
-              dim = c(length(main$eBird.English.Name.2022), 2),
-              dimnames = list(main$eBird.English.Name.2022, c("occ", "occ.ci")))
+              dim = c(length(main$eBird.English.Name.2023), 2),
+              dimnames = list(main$eBird.English.Name.2023, c("occ", "occ.ci")))
 
 
   # determining which range size value to use for each species based on the range size
   # estimated for each region
 
-  for (i in main$eBird.English.Name.2022)
+  for (i in main$eBird.English.Name.2023)
   {
     write_path <- glue("{occu_outpath}{i}.csv")
     cur_occu_full = occu_full %>% filter(COMMON.NAME == i)
@@ -1009,14 +1009,14 @@ if (skip_res_occu == FALSE) {
   }
 
 
-  tojoin = data.frame(eBird.English.Name.2022 = rownames(est)) %>%
+  tojoin = data.frame(eBird.English.Name.2023 = rownames(est)) %>%
     mutate(rangemean = round(as.numeric(est[, 1]), 0),
            rangeci = round(as.numeric(est[, 2]), 0)) %>%
     mutate(rangelci = rangemean - rangeci,
            rangerci = rangemean + rangeci,
            rangeci = NULL) %>%
     mutate(rangemean = case_when(is.na(rangemean) &
-                                   eBird.English.Name.2022 %in% specieslist$COMMON.NAME ~ 0,
+                                   eBird.English.Name.2023 %in% specieslist$COMMON.NAME ~ 0,
                                  TRUE ~ rangemean)) %>%
     mutate(across(c("rangelci", "rangerci"), ~ case_when(rangemean == 0 ~ 0,
                                                          TRUE ~ .)))
