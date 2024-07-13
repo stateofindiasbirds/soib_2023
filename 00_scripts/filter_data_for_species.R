@@ -65,10 +65,10 @@ data = data %>%
   filter(!EXOTIC.CODE %in% c("X"))
 
 data = data %>%
-  mutate(timegroups = case_when(year <= 1999 ~ "before 2000",
-                                year > 1999 & year <= 2006 ~ "2000-2006",
-                                year > 2006 & year <= 2010 ~ "2007-2010",
-                                year > 2010 & year <= 2012 ~ "2011-2012",
+  mutate(timegroups = case_when(year <= 1999 ~ soib_year_info("timegroup_lab")[1],
+                                year > 1999 & year <= 2006 ~ soib_year_info("timegroup_lab")[2],
+                                year > 2006 & year <= 2010 ~ soib_year_info("timegroup_lab")[3],
+                                year > 2010 & year <= 2012 ~ soib_year_info("timegroup_lab")[4],
                                 year >= 2013 ~ as.character(year))) 
 
 

@@ -54,15 +54,51 @@ createrandomlocs = function(locs)
 }
 
 
-# what is the latest migratory year under consideration? -----------------
+# what are the latest migratory years under consideration? -----------------
 
-what_is_latest_my <- function() {
+soib_year_info <- function(what = "latest_year") {
 
+  # catch input errors
+  valid_inputs <- c("latest_year", "timegroup_lab", "cat_years", "cat_start")
+
+  if (!what %in% valid_inputs) {
+    stop(paste("Choose valid info to obtain regarding current SoIB years: {", 
+                stringr::str_flatten_comma(valid_inputs),
+              "}"))
+  }
+
+
+  # load latest year data
   load("00_data/current_soib_migyears.RData")
-  return(latest_soib_my)
+
+
+  # latest year
+  if (what == "latest_year") {
+    return(latest_soib_my)
+  }
+
+    
+  # timegroup labels (2013 as threshold here is somewhat arbitrary, not sure which years in full_soib_my)
+  if (what == "timegroup_lab") {
+    pre_labels <- c("before 2000","2000-2006","2007-2010","2011-2012","2013")
+    full_labels <- full_soib_my[full_soib_my > 2013] |> as.character()
+
+    all_labels <- c(pre_labels, full_labels)
+    return(all_labels)
+  }
+
+
+  # cutoff year for CAT
+  # 2015 was cutoff in SoIB 2023. So 8 years for CAT.
+  # We eventually want 10 years for CAT
+  cat_years <- full_soib_my[full_soib_my >= 2015] |> 
+    sort() |> 
+    tail(10)
+
+  if (what == "cat_years") return(cat_years)
+    else if (what == "cat_start") return(min(cat_years))
 
 }
-
 
 ### readcleanrawdata ########################################
 

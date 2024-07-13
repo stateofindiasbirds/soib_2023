@@ -33,7 +33,7 @@ mainwocats_path <- cur_metadata$SOIBMAIN.WOCATS.PATH
 
 source('00_scripts/00_functions.R')
 
-recentcutoff = 2015
+recentcutoff = soib_year_info("cat_start")
 
 load("00_data/spec_misid.RData") # to remove from LTT and CAT "selection" later
 # for occupancy
@@ -157,7 +157,7 @@ if (run_res_trends == FALSE) {
   # long-term (problematic species) ###
   
   trendsa = trends %>%
-    filter(timegroups < 2015,
+    filter(timegroups < soib_year_info("cat_start"),
            COMMON.NAME %in% spec_lt) %>%
     group_by(sl, COMMON.NAME) %>%  
     # is any simulation of any species problematic: unable to calc. SE or SE > |mean|
@@ -184,10 +184,10 @@ if (run_res_trends == FALSE) {
     
     
     trends = trends %>%
-      mutate(freq = case_when(timegroups < 2015 & 
+      mutate(freq = case_when(timegroups < soib_year_info("cat_start") & 
                                 COMMON.NAME %in% specs_lt_remove ~ NA,
                               TRUE ~ freq),
-             se = case_when(timegroups < 2015 & 
+             se = case_when(timegroups < soib_year_info("cat_start") & 
                               COMMON.NAME %in% specs_lt_remove ~ NA,
                             TRUE ~ se))
     main <- main %>% 
@@ -212,7 +212,7 @@ if (run_res_trends == FALSE) {
   # current (problematic species) ###
   
   trendsb = trends %>%
-    filter(timegroups >= 2015,
+    filter(timegroups >= soib_year_info("cat_start"),
            COMMON.NAME %in% spec_ct) %>%
     group_by(sl, COMMON.NAME) %>%  
     # is any simulation of any species problematic: unable to calc. SE or SE > |mean|
@@ -347,7 +347,7 @@ if (run_res_trends == FALSE) {
   
   
   # Years to project for PJ's IUCN comparison
-  extra.years = 2023:2029
+  extra.years = seq(soib_year_info("latest_year"), length.out = 7)
   
   trends = trends %>%
     group_by(COMMON.NAME, timegroupsf, timegroups) %>% 
@@ -424,11 +424,11 @@ if (run_res_trends == FALSE) {
               rci_std = 100*as.numeric(quantile(tp0, 0.975))) %>% 
       right_join(modtrends, by = c("COMMON.NAME", "timegroups"))
     
-    # saving the values for 2022 in "main" as well:
+    # saving the values for final year in "main" as well:
     # temp object then left_join instead of right_join because species order in main
     # needs to be preserved
     temp <- modtrends %>%
-      filter(timegroups == 2022) %>%
+      filter(timegroups == soib_year_info("latest_year")) %>%
       dplyr::select(COMMON.NAME, lci_std, mean_std, rci_std) %>%
       rename(longtermlci = lci_std,
              longtermmean = mean_std,
@@ -610,11 +610,11 @@ if (run_res_trends == FALSE) {
         
         modelfit <- lm(val_sample ~ timegroups,
                        # one year dropped
-                       data = .x[.x$timegroups != 2015,])
+                       data = .x[.x$timegroups != soib_year_info("cat_years")[1],])
         
         pred <- predict(modelfit, se = TRUE,
                         # one year dropped
-                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2015]))
+                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != soib_year_info("cat_years")[1]]))
         
         num <- pred$fit[2] - pred$fit[1]
         den <- abs(pred$fit[1])
@@ -627,11 +627,11 @@ if (run_res_trends == FALSE) {
         
         modelfit <- lm(val_sample ~ timegroups,
                        # one year dropped
-                       data = .x[.x$timegroups != 2016,])
+                       data = .x[.x$timegroups != soib_year_info("cat_years")[2],])
         
         pred <- predict(modelfit, se = TRUE,
                         # one year dropped
-                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2016]))
+                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != soib_year_info("cat_years")[2]]))
         
         num <- pred$fit[2] - pred$fit[1]
         den <- abs(pred$fit[1])
@@ -644,11 +644,11 @@ if (run_res_trends == FALSE) {
         
         modelfit <- lm(val_sample ~ timegroups,
                        # one year dropped
-                       data = .x[.x$timegroups != 2017,])
+                       data = .x[.x$timegroups != soib_year_info("cat_years")[3],])
         
         pred <- predict(modelfit, se = TRUE,
                         # one year dropped
-                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2017]))
+                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != soib_year_info("cat_years")[3]]))
         
         num <- pred$fit[2] - pred$fit[1]
         den <- abs(pred$fit[1])
@@ -661,11 +661,11 @@ if (run_res_trends == FALSE) {
         
         modelfit <- lm(val_sample ~ timegroups,
                        # one year dropped
-                       data = .x[.x$timegroups != 2018,])
+                       data = .x[.x$timegroups != soib_year_info("cat_years")[4],])
         
         pred <- predict(modelfit, se = TRUE,
                         # one year dropped
-                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2018]))
+                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != soib_year_info("cat_years")[4]]))
         
         num <- pred$fit[2] - pred$fit[1]
         den <- abs(pred$fit[1])
@@ -678,11 +678,11 @@ if (run_res_trends == FALSE) {
         
         modelfit <- lm(val_sample ~ timegroups,
                        # one year dropped
-                       data = .x[.x$timegroups != 2019,])
+                       data = .x[.x$timegroups != soib_year_info("cat_years")[5],])
         
         pred <- predict(modelfit, se = TRUE,
                         # one year dropped
-                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2019]))
+                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != soib_year_info("cat_years")[5]]))
         
         num <- pred$fit[2] - pred$fit[1]
         den <- abs(pred$fit[1])
@@ -695,11 +695,11 @@ if (run_res_trends == FALSE) {
         
         modelfit <- lm(val_sample ~ timegroups,
                        # one year dropped
-                       data = .x[.x$timegroups != 2020,])
+                       data = .x[.x$timegroups != soib_year_info("cat_years")[6],])
         
         pred <- predict(modelfit, se = TRUE,
                         # one year dropped
-                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2020]))
+                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != soib_year_info("cat_years")[6]]))
         
         num <- pred$fit[2] - pred$fit[1]
         den <- abs(pred$fit[1])
@@ -712,11 +712,11 @@ if (run_res_trends == FALSE) {
         
         modelfit <- lm(val_sample ~ timegroups,
                        # one year dropped
-                       data = .x[.x$timegroups != 2021,])
+                       data = .x[.x$timegroups != soib_year_info("cat_years")[7],])
         
         pred <- predict(modelfit, se = TRUE,
                         # one year dropped
-                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2021]))
+                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != soib_year_info("cat_years")[7]]))
         
         num <- pred$fit[2] - pred$fit[1]
         den <- abs(pred$fit[1])
@@ -729,11 +729,11 @@ if (run_res_trends == FALSE) {
         
         modelfit <- lm(val_sample ~ timegroups,
                        # one year dropped
-                       data = .x[.x$timegroups != 2022,])
+                       data = .x[.x$timegroups != soib_year_info("cat_years")[8],])
         
         pred <- predict(modelfit, se = TRUE,
                         # one year dropped
-                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != 2022]))
+                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != soib_year_info("cat_years")[8]]))
         
         num <- pred$fit[2] - pred$fit[1]
         den <- abs(pred$fit[1])
@@ -744,6 +744,23 @@ if (run_res_trends == FALSE) {
         slse8 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
         
         
+        modelfit <- lm(val_sample ~ timegroups,
+          # one year dropped
+          data = .x[.x$timegroups != soib_year_info("cat_years")[9],])
+
+        pred <- predict(modelfit, se = TRUE,
+                        # one year dropped
+                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != soib_year_info("cat_years")[9]]))
+
+        num <- pred$fit[2] - pred$fit[1]
+        den <- abs(pred$fit[1])
+        numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
+        dense <- pred$se.fit[1]
+        
+        sl9 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
+        slse9 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
+
+
         .x %>%
           reframe(sl1 = sl1, slse1 = slse1,
                   sl2 = sl2, slse2 = slse2,
@@ -752,7 +769,8 @@ if (run_res_trends == FALSE) {
                   sl5 = sl5, slse5 = slse5,
                   sl6 = sl6, slse6 = slse6,
                   sl7 = sl7, slse7 = slse7,
-                  sl8 = sl8, slse8 = slse8)
+                  sl8 = sl8, slse8 = slse8,
+                  sl9 = sl9, slse9 = slse9)
         
         
       }) %>%
@@ -761,7 +779,7 @@ if (run_res_trends == FALSE) {
       group_by(COMMON.NAME) %>%
       reframe(across(
         
-        .cols = matches("^sl\\d+$"), # sl1 to sl8 but not "slse"s
+        .cols = matches("^sl\\d+$"), # "sl"s but not "slse"s
         .fn = list(mean.slope = ~ mean(.),
                    se.slope = ~ sd(.) + sqrt(sum(get(str_replace(cur_column(), "sl", "slse"))^2) /
                                                length(.))),
@@ -865,7 +883,7 @@ if (run_res_trends == FALSE) {
 
   # joining future projected trends to main dataframe ###
 
-  tojoin <- map(2023:2029, ~ trends %>%
+  tojoin <- map(extra.years, ~ trends %>%
                   filter(timegroups == .x) %>%
                   dplyr::select(COMMON.NAME, lci_comb_std, mean_comb_std, rci_comb_std) %>%
                   magrittr::set_colnames(c("eBird.English.Name.2023",
