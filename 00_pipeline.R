@@ -32,8 +32,8 @@ source("00_scripts/01_create_metadata.R")
 # - "rawdata.RData"
 
 tic("Reading and cleaning raw data")
-readcleanrawdata(rawpath = "00_data/ebd_IN_relMay-2023.txt", 
-                 sensitivepath = "00_data/ebd_sensitive_relMay-2023_IN.txt")
+readcleanrawdata(rawpath = "00_data/ebd_IN_relJun-2024.txt", 
+                 sensitivepath = "00_data/ebd_sensitive_relJun-2024_IN.txt")
 toc() # 55 min
 
 

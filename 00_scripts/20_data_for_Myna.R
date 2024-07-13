@@ -3,7 +3,7 @@
 require(lubridate)
 require(tidyverse)
 
-rawpath = "00_data/ebd_IN_relMay-2023.txt"
+rawpath = "00_data/ebd_IN_relJun-2024.txt"
 
 # select only necessary columns
 preimp = c("TAXONOMIC.ORDER","CATEGORY","COMMON.NAME","SCIENTIFIC.NAME","EXOTIC.CODE",

@@ -60,8 +60,8 @@ createrandomlocs = function(locs)
 ## read and clean raw data and add important columns like group id, seasonality variables
 ## place raw txt file (India download) in working directory 
 
-readcleanrawdata = function(rawpath = "00_data/ebd_IN_relMay-2023.txt", 
-                            sensitivepath = "00_data/ebd_sensitive_relMay-2023_IN.txt")
+readcleanrawdata = function(rawpath = "00_data/ebd_IN_relJun-2024.txt", 
+                            sensitivepath = "00_data/ebd_sensitive_relJun-2024_IN.txt")
 {
   require(lubridate)
   require(tidyverse)
