@@ -54,6 +54,15 @@ createrandomlocs = function(locs)
 }
 
 
+# what is the latest migratory year under consideration? -----------------
+
+what_is_latest_my <- function() {
+
+  load("00_data/current_soib_migyears.RData")
+  return(latest_soib_my)
+
+}
+
 
 ### readcleanrawdata ########################################
 
@@ -222,11 +231,29 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_relJun-2024.txt",
   
   ## setup eBird data ##
   
+
+  # for automatically selecting the latest migratory year to use in 
+  # current SoIB run (done annually)
+  full_soib_my <- data |> 
+    distinct(year, month) |> 
+    group_by(year) |> 
+    reframe(n_month = n_distinct(month)) |> 
+    filter(n_month == 12) |> 
+    pull(year)
+
+  latest_soib_my <- max(full_soib_my)
+
+  save(full_soib_my, latest_soib_my, file = "00_data/current_soib_migyears.RData")
+  # this RData file gets updated each time readcleanrawdata() is run---
+  # which is usually only once in each annual or "major" update
+  # (intermediate changes usually don't run readcleanrawdata() so year won't change)
+
+
   ## remove repeats by retaining only a single group.id + species combination
   
   data = data %>%
     distinct(group.id, COMMON.NAME, .keep_all = TRUE) |> 
-    filter(year < 2023) %>% 
+    filter(year <= latest_soib_my) %>% 
     rename(ST_NM = STATE,
            DISTRICT = COUNTY) %>% 
     dplyr::select(-SAMPLING.EVENT.IDENTIFIER)
