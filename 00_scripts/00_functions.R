@@ -1689,7 +1689,7 @@ specname_to_india_checklist <- function(spec_names, already_show = TRUE) {
 # both col_specname and col_iucn should be strings
 
 get_latest_IUCN_status <- function(data, col_specname, col_iucn = NULL,
-                                     path_checklist = "00_data/India-Checklist_v7_3.xlsx") {
+                                     path_checklist = "00_data/India-Checklist_v8_0.xlsx") {
   
   if (!(is.character(col_specname) & 
         (is.character(col_iucn)) | is.null(col_iucn))) {
