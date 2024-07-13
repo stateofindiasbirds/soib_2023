@@ -69,11 +69,7 @@ data = data %>%
                                 year > 1999 & year <= 2006 ~ "2000-2006",
                                 year > 2006 & year <= 2010 ~ "2007-2010",
                                 year > 2010 & year <= 2012 ~ "2011-2012",
-                                year >= 2013 ~ as.character(year))) %>% 
-  mutate(timegroups1 = case_when(year <= 2006 ~ "before 2006",
-                                 year > 2006 & year <= 2014 ~ "2007-2014",
-                                 year > 2014 & year <= 2019 ~ "2015-2019",
-                                 year > 2019 ~ "2020-2022"))
+                                year >= 2013 ~ as.character(year))) 
 
 
 # removing vagrants

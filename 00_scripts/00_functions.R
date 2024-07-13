@@ -985,7 +985,7 @@ expandbyspecies = function(data, species)
              ALL.SPECIES.REPORTED, OBSERVER.ID, 
              #city,
              #DURATION.MINUTES,EFFORT.DISTANCE.KM,
-             group.id, month, year, no.sp, timegroups, timegroups1) %>%
+             group.id, month, year, no.sp, timegroups) %>%
     filter(ALL.SPECIES.REPORTED == 1) %>%
     distinct(group.id, .keep_all = TRUE)
   
@@ -994,8 +994,7 @@ expandbyspecies = function(data, species)
     mutate(COMMON.NAME = species) %>% 
     left_join(data) %>%
     dplyr::select(-c("COMMON.NAME","gridg2","gridg4","OBSERVER.ID",
-                     "ALL.SPECIES.REPORTED","group.id","year","timegroups1",
-                     "gridg0")) %>% 
+                     "ALL.SPECIES.REPORTED","group.id","year","gridg0")) %>% 
   # deal with NAs (column is character)
   mutate(OBSERVATION.COUNT = case_when(is.na(OBSERVATION.COUNT) ~ 0,
                                        OBSERVATION.COUNT != "0" ~ 1, 
@@ -1029,7 +1028,7 @@ expand_dt = function(data, species) {
   # considers only complete lists
   checklistinfo <- unique(data[, 
       .(gridg1, gridg2, gridg3, gridg4, ALL.SPECIES.REPORTED, OBSERVER.ID, 
-        group.id, month, year, no.sp, timegroups, timegroups1)
+        group.id, month, year, no.sp, timegroups)
       ])[
         # filter
       ALL.SPECIES.REPORTED == 1
@@ -1049,10 +1048,9 @@ expand_dt = function(data, species) {
     left_join(data |> lazy_dt(immutable = FALSE),
               by = c("group.id", "gridg1", "gridg2", "gridg3", "gridg4",
                       "ALL.SPECIES.REPORTED", "OBSERVER.ID", "month", "year", 
-                      "no.sp", "timegroups", "timegroups1", "COMMON.NAME")) %>%
+                      "no.sp", "timegroups", "COMMON.NAME")) %>%
     dplyr::select(-c("COMMON.NAME","gridg2","gridg4","OBSERVER.ID",
-                     "ALL.SPECIES.REPORTED","group.id","year","timegroups1",
-                     "gridg0")) %>% 
+                     "ALL.SPECIES.REPORTED","group.id","year","gridg0")) %>% 
     # deal with NAs (column is character)
     mutate(OBSERVATION.COUNT = case_when(is.na(OBSERVATION.COUNT) ~ 0,
                                        OBSERVATION.COUNT != "0" ~ 1, 
