@@ -106,10 +106,11 @@ if (to_run == TRUE) {
       # converting first row of species names (always true) to column names
       magrittr::set_colnames(.[1,]) %>% 
       slice(-1) %>% 
-      # will always have 28 rows
       mutate(timegroupsf = rep(databins$timegroups, 2),
              timegroups = rep(databins$year, 2),
-             type = rep(c("freq", "se"), each = 14),
+             type = rep(c("freq", "se"), 
+                        # will always have 2*N.YEAR rows (freq, se)
+                        each = length(soib_year_info("timegroup_lab"))),
              sl = k) %>%  # sim number
       # pivoting species names longer
       pivot_longer(-c(timegroups, timegroupsf, sl, type), 
