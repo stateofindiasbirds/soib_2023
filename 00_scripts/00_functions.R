@@ -549,7 +549,7 @@ dataspeciesfilter = function(cur_mask = "none") {
                  "filter 1 usable observations")
   stats8 = paste(length(unique(data[data$ALL.SPECIES.REPORTED == 1,]$group.id)),
                  "filter 2 unique complete checklists")
-  stats9 = paste(length(unique(data[data$timegroups == "before 2000" &
+  stats9 = paste(length(unique(data[data$timegroups == soib_year_info("timegroup_lab")[1] &
                                       data$ALL.SPECIES.REPORTED == 1,]$group.id)),
                  "pre-2000 checklists")
   
@@ -654,7 +654,7 @@ dataspeciesfilter = function(cur_mask = "none") {
         group_by(timegroups) %>%
         filter(n > listlimit)
       
-      if (length(tempresth1$timegroups) == 14)
+      if (length(tempresth1$timegroups) == length(soib_year_info("timegroup_lab")))
         speciesresth$validh[speciesresth$species == speciesresth$species[i]] = 1
       
     }
@@ -680,7 +680,7 @@ dataspeciesfilter = function(cur_mask = "none") {
         group_by(timegroups) %>%
         filter(n > listlimit)
       
-      if (length(temprestr1$timegroups) == 8)
+      if (length(temprestr1$timegroups) == length(soib_year_info("cat_years")))
         speciesrestr$validr[speciesrestr$species == speciesrestr$species[i]] = 1
       
     }
@@ -942,17 +942,17 @@ dataspeciesfilter = function(cur_mask = "none") {
     reframe(totalrange25km = n_distinct(gridg1))
   
   proprange2000 = temp %>%
-    filter(timegroups == "before 2000") %>%
+    filter(timegroups == soib_year_info("timegroup_lab")[1]) %>%
     group_by(COMMON.NAME) %>% 
     reframe(proprange25km2000 = n_distinct(gridg1))
   
   proprange2022 = temp %>%
-    filter(timegroups == "2022") %>%
+    filter(timegroups == as.character(soib_year_info("latest_year"))) %>%
     group_by(COMMON.NAME) %>% 
     reframe(proprange25km2022 = n_distinct(gridg1))
   
   proprange.current = temp %>%
-    filter(timegroups %in% as.character(2015:2022)) %>%
+    filter(timegroups %in% as.character(soib_year_info("cat_years"))) %>%
     group_by(COMMON.NAME, timegroups) %>% 
     reframe(proprange25km.current = n_distinct(gridg1)) %>%
     group_by(COMMON.NAME) %>% 
@@ -1296,9 +1296,7 @@ singlespeciesrun = function(data, species, specieslist, restrictedspecieslist)
     rename(timegroupsf = timegroups,
            timegroups = year) %>% 
     mutate(timegroupsf = factor(timegroupsf, 
-                               levels = c("before 2000","2000-2006","2007-2010",
-                                          "2011-2012","2013","2014","2015","2016",
-                                          "2017","2018","2019","2020","2021","2022"))) %>% 
+                               levels = soib_year_info("timegroup_lab"))) %>% 
     complete(timegroupsf) %>% 
     arrange(timegroupsf)
   
@@ -1521,7 +1519,7 @@ ltt_sens_sim <- function(my_seed, data = modtrends) {
     reframe(lci_std = 100*as.numeric(quantile(tp0, 0.025)),
             rci_std = 100*as.numeric(quantile(tp0, 0.975))) %>% 
     right_join(data, by = c("COMMON.NAME", "timegroups")) %>%
-    filter(timegroups == 2022) %>%
+    filter(timegroups == soib_year_info("latest_year")) %>%
     dplyr::select(COMMON.NAME, lci_std, mean_std, rci_std) %>%
     rename(longtermlci = lci_std,
            longtermmean = mean_std,
