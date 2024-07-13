@@ -1679,36 +1679,36 @@ specname_to_india_checklist <- function(spec_names, already_show = TRUE) {
   
 }
 
-# update IUCN Status based on India Checklist ---------------------------------------
+# update IUCN Status based on latest updated in mapping sheet ---------------------------------------
 
 # input dataframe can be any mapping/main type object with list of species along with IUCN status
-# mutates IUCN Status column based on latest Status according to India Checklist 7.3
+# mutates IUCN Status column based on latest Status updated in SoIB_mapping_2023.csv
 # preserves column order in input data
 
-# col_specname must be India Checklist species names; if not, convert before using above function
-# both col_specname and col_iucn should be strings
+# col_specname must be eBird checklist species names
 
 get_latest_IUCN_status <- function(data, col_specname, col_iucn = NULL,
-                                     path_checklist = "00_data/India-Checklist_v8_0.xlsx") {
+                                     path_mapping = "00_data/SoIB_mapping_2023.csv") {
   
   if (!(is.character(col_specname) & 
         (is.character(col_iucn)) | is.null(col_iucn))) {
     stop("Arguments col_specname and col_iucn can only be character values.")
   }
   
-  require(readxl)
   require(tidyverse)
   
+  # col_iucn is the name we want for newly mutated IUCN column
+  # (not necessarily name of IUCN column in mapping sheet)
   col_newnames <- if (is.null(col_iucn)) {
-    c(col_specname, "IUCN.Category")
+    c(col_specname, "IUCN.Category") # default name in mapping sheet
   } else {
     c(col_specname, col_iucn)
   }
   
   col_order <- names(data)
   
-  checklist <- read_xlsx(path_checklist, sheet = 2) %>% 
-    dplyr::select("English Name", "IUCN Category") %>% 
+  mapping <- read_csv(path_mapping) %>% 
+    dplyr::select("eBird.English.Name.2023", "IUCN.Category") %>% 
     magrittr::set_colnames(col_newnames)
   
   data_upd <- data %>% 
@@ -1718,7 +1718,7 @@ get_latest_IUCN_status <- function(data, col_specname, col_iucn = NULL,
     } else {
       .
     }} %>% 
-    left_join(checklist, by = col_specname) %>% 
+    left_join(mapping, by = col_specname) %>% 
     # if IUCN col existed, preserves exact order; else, will be new col after same old cols
     relocate(all_of(col_order))
   
