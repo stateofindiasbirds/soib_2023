@@ -1288,7 +1288,7 @@ singlespeciesrun = function(data, species, specieslist, restrictedspecieslist)
   }
   
   f1 = f2 %>%
-    filter(!is.na(freqt) & !is.na(se)) %>%
+    filter(!is.na(freqt) & !is.na(set)) %>%
     # average across month
     group_by(timegroups) %>% 
     reframe(freq = mean(freqt), se = mean(set)) %>% 
