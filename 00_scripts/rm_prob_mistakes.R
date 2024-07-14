@@ -25,7 +25,7 @@ rm_prob_mistakes <- function(data) {
         (COUNTY == "Nagpur" & LATITUDE < 21.398 & LONGITUDE < 79.400) ~ "MH_plains",
       
       COUNTY %in% c("Thiruvallur", "Ranipet", "Kancheepuram", "Chennai", "Cuddalore", 
-                    "Ariyalur", "Puducherry") |
+                    "Ariyalur", "Puducherry", "Chengalpattu") |
         COUNTY == "Viluppuram" & LONGITUDE > 79.42 ~ "TN_N-plains",
       
       COUNTY %in% c("Karur", "Thiruvarur", "Thanjavur", "Nagapattinam") |
@@ -719,25 +719,26 @@ rm_prob_mistakes <- function(data) {
 
   mistake3 <- data %>% 
     filter(
-      OBSERVER.ID == "obsr1158032" & COMMON.NAME %in% c(
-        "Fulvous Whistling-Duck", "Common Pochard", "Tufted Duck", "Red Spurfowl", 
-        "Painted Spurfowl", "Grey Junglefowl", "Rain Quail", "Jungle Bush-Quail", 
-        "Lesser Flamingo", "White-rumped Spinetail", "Alpine Swift", "Slaty-breasted Rail", 
-        "Watercock", "Great Thick-knee", "Black-bellied Plover", "Tibetan Sand-Plover", 
-        "Greater Sand-Plover", "Ruddy Turnstone", "Common Redshank", "Indian Courser",
-        "Little Tern", "Common Tern", "Sandwich Tern", "Lesser Crested Tern", "White Stork",
-        "Crested Serpent-Eagle", "Short-toed Snake-Eagle", "Changeable Hawk-Eagle",
-        "Black Eagle", "Tawny Eagle", "Eurasian Sparrowhawk", "Jungle Owlet",
-        "Blue-bearded Bee-eater", "Chestnut-headed Bee-eater", "Brown-headed Barbet",
-        "White-cheeked Barbet", "Brown-capped Pygmy-Woodpecker", "Yellow-crowned Woodpecker",
-        "Rufous Woodpecker", "Lesser Yellownape", "Orange Minivet", "Black-hooded Oriole",
-        "Great Gray Shrike", "Cinereous Tit", "Indian Yellow Tit", "Red-whiskered Bulbul",
-        "Yellow-eyed Babbler", "Tawny-bellied Babbler", "Puff-throated Babbler",
-        "Jungle Myna", "White-rumped Shama", "Indian Blue Robin", "Thick-billed Flowerpecker",
-        "White-rumped Munia"
-      ) |
-        OBSERVER.ID == "obsr701947" & COMMON.NAME %in% c(
-          "Common Tern", "Asian Brown Flycatcher"
+      OBSERVER.ID == "obsr3463417" |
+        OBSERVER.ID == "obsr1158032" & COMMON.NAME %in% c(
+          "Fulvous Whistling-Duck", "Common Pochard", "Tufted Duck", "Red Spurfowl", 
+          "Painted Spurfowl", "Grey Junglefowl", "Rain Quail", "Jungle Bush-Quail", 
+          "Lesser Flamingo", "White-rumped Spinetail", "Alpine Swift", "Slaty-breasted Rail", 
+          "Watercock", "Great Thick-knee", "Black-bellied Plover", "Tibetan Sand-Plover", 
+          "Greater Sand-Plover", "Ruddy Turnstone", "Common Redshank", "Indian Courser",
+          "Little Tern", "Common Tern", "Sandwich Tern", "Lesser Crested Tern", "White Stork",
+          "Crested Serpent-Eagle", "Short-toed Snake-Eagle", "Changeable Hawk-Eagle",
+          "Black Eagle", "Tawny Eagle", "Eurasian Sparrowhawk", "Jungle Owlet",
+          "Blue-bearded Bee-eater", "Chestnut-headed Bee-eater", "Brown-headed Barbet",
+          "White-cheeked Barbet", "Brown-capped Pygmy-Woodpecker", "Yellow-crowned Woodpecker",
+          "Rufous Woodpecker", "Lesser Yellownape", "Orange Minivet", "Black-hooded Oriole",
+          "Great Gray Shrike", "Cinereous Tit", "Indian Yellow Tit", "Red-whiskered Bulbul",
+          "Yellow-eyed Babbler", "Tawny-bellied Babbler", "Puff-throated Babbler",
+          "Jungle Myna", "White-rumped Shama", "Indian Blue Robin", "Thick-billed Flowerpecker",
+          "White-rumped Munia"
+          ) |
+            OBSERVER.ID == "obsr701947" & COMMON.NAME %in% c(
+              "Common Tern", "Asian Brown Flycatcher"
         )
     ) %>% 
     distinct(OBSERVER.ID, COMMON.NAME)
@@ -1091,7 +1092,8 @@ rm_prob_mistakes <- function(data) {
         (COMMON.NAME == "Common Babbler" & COUNTY == "Ratnagiri") |
         (COMMON.NAME == "Jungle Myna" & COUNTY %in% c(
           "Sri Potti Sriramulu Nellore", "Prakasam", "Kurnool", "Anantapuramu", "Jalgaon",
-          "Nagpur", "Chandrapur", "Gondia", "Bhandara", "Betul", "Nandurbar", "Jhansi"
+          "Nagpur", "Chandrapur", "Wardha", "Gondia", "Bhandara", "Betul", "Nandurbar", 
+          "Jhansi"
         )) |
         (COMMON.NAME == "Plain Flowerpecker" & STATE %in% c(
           "Goa", "Tamil Nadu"

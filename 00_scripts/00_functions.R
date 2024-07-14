@@ -1822,3 +1822,34 @@ get_soib_status_cats <- function(which = NULL) {
 }
 
 
+## update specieslists for each analysis (full, masks, states) for each year based on
+## a single mapping file
+## Currently it is specific to the years in question but this can be changed in 
+## upcoming years
+## <Karthik update pending> need to iterate this through all analysis folders
+## Also needs to be called in the pieline? And the specieslists RData files need to
+## be uploaded
+
+
+updatespecieslists = function(specieslist, restrictedspecieslist)
+{
+  library(tidyverse)
+  
+  updatemap = read.csv("00_data/eBird_taxonomy_mapping_2022to2023.csv")
+  specieslist = specieslist %>%
+    rename(eBird.English.Name.2022 = COMMON.NAME) %>%
+    left_join(updatemap) %>%
+    dplyr::select(eBird.English.Name.2023,ht,rt) %>%
+    rename(COMMON.NAME = eBird.English.Name.2023)
+  
+  restrictedspecieslist = restrictedspecieslist %>%
+    rename(eBird.English.Name.2022 = COMMON.NAME) %>%
+    left_join(updatemap) %>%
+    dplyr::select(eBird.English.Name.2023,ht,rt,mixed) %>%
+    rename(COMMON.NAME = eBird.English.Name.2023)
+    
+  lists.both = list(specieslist,restrictedspecieslist)
+  return(lists.both)
+}
+
+
