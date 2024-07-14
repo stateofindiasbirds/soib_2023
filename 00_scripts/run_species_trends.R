@@ -7,6 +7,8 @@ load(speclist_path)
 to_run <- (1 %in% specieslist$ht) | (1 %in% specieslist$rt) |
   (1 %in% restrictedspecieslist$ht) | (1 %in% restrictedspecieslist$rt)
 
+singleyear = T
+
 if (to_run == TRUE) {
 
   
@@ -73,10 +75,22 @@ if (to_run == TRUE) {
     # read data files
     load(data_path)
     
-    data <- data_filt %>% 
-      mutate(across(.cols = c(gridg1, gridg2, gridg3, gridg4, month, timegroups),
-                    ~ as.factor(.))) %>% 
-      mutate(gridg = gridg3)
+    if(!singleyear)
+    {
+      data <- data_filt %>% 
+        mutate(across(.cols = c(gridg1, gridg2, gridg3, gridg4, month, timegroups),
+                      ~ as.factor(.))) %>% 
+        mutate(gridg = gridg3)
+    }
+    
+    if(singleyear)
+    {
+      data <- data_filt %>% 
+        mutate(across(.cols = c(gridg1, gridg2, gridg3, gridg4, month),
+                      ~ as.factor(.))) %>% 
+        mutate(gridg = gridg3)
+    }
+    
     
     
     # start parallel
@@ -98,32 +112,62 @@ if (to_run == TRUE) {
       singlespeciesrun(data = data, 
                        species = i, 
                        specieslist = specieslist, 
-                       restrictedspecieslist = restrictedspecieslist)
+                       restrictedspecieslist = restrictedspecieslist,
+                       singleyear = singleyear)
     
     parallel::stopCluster(cl = my.cluster)
     
-    trends = data.frame(trends0) %>% 
-      # converting first row of species names (always true) to column names
-      magrittr::set_colnames(.[1,]) %>% 
-      slice(-1) %>% 
-      mutate(timegroupsf = rep(databins$timegroups, 2),
-             timegroups = rep(databins$year, 2),
-             type = rep(c("freq", "se"), 
-                        # will always have 2*N.YEAR rows (freq, se)
-                        each = length(soib_year_info("timegroup_lab"))),
-             sl = k) %>%  # sim number
-      # pivoting species names longer
-      pivot_longer(-c(timegroups, timegroupsf, sl, type), 
-                   values_to = "value", names_to = "COMMON.NAME") %>% 
-      pivot_wider(names_from = type, values_from = value) %>% 
-      # numerical ID for species names, for arranging
-      mutate(sp = row_number(), .by = timegroupsf) %>%
-      arrange(sl, sp) %>%
-      dplyr::select(-sp) %>% 
-      # reordering
-      relocate(sl, COMMON.NAME, timegroupsf, timegroups, freq, se)
+    if(!singleyear)
+    {
+      trends = data.frame(trends0) %>% 
+        # converting first row of species names (always true) to column names
+        magrittr::set_colnames(.[1,]) %>% 
+        slice(-1) %>% 
+        mutate(timegroupsf = rep(databins$timegroups, 2),
+               timegroups = rep(databins$year, 2),
+               type = rep(c("freq", "se"), 
+                          # will always have 2*N.YEAR rows (freq, se)
+                          each = length(soib_year_info("timegroup_lab"))),
+               sl = k) %>%  # sim number
+        # pivoting species names longer
+        pivot_longer(-c(timegroups, timegroupsf, sl, type), 
+                     values_to = "value", names_to = "COMMON.NAME") %>% 
+        pivot_wider(names_from = type, values_from = value) %>% 
+        # numerical ID for species names, for arranging
+        mutate(sp = row_number(), .by = timegroupsf) %>%
+        arrange(sl, sp) %>%
+        dplyr::select(-sp) %>% 
+        # reordering
+        relocate(sl, COMMON.NAME, timegroupsf, timegroups, freq, se)
+    }
+    
+    if(singleyear)
+    {
+      trends = data.frame(trends0) %>% 
+        # converting first row of species names (always true) to column names
+        magrittr::set_colnames(.[1,]) %>% 
+        slice(-1) %>% 
+        mutate(type = rep(c("freq", "se"), 
+                          # will always have 2*N.YEAR rows (freq, se)
+                          each = 1),
+               sl = k) %>%  # sim number
+        # pivoting species names longer
+        pivot_longer(-c(sl, type), 
+                     values_to = "value", names_to = "COMMON.NAME") %>% 
+        pivot_wider(names_from = type, values_from = value) %>% 
+        # numerical ID for species names, for arranging
+        mutate(sp = row_number()) %>%
+        arrange(sl, sp) %>%
+        dplyr::select(-sp) %>% 
+        # reordering
+        relocate(sl, COMMON.NAME, freq, se)
+    }
+    
     
     write.csv(trends, file = write_path, row.names = F)
+    
+    # <Karthik> worth changing the path where this is saved? Might be useful if we
+    # want to add this to all the other trends and recalculate some metrics
     
     tictoc::toc() 
     
