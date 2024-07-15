@@ -82,7 +82,7 @@ main_db <- main_db0 %>%
   # round model estimates appropriately 
   round_model_estimates() %>%
   # percentage for Range Coverages (Grid already percent)
-  mutate(across(c("proprange25km2000","proprange25km.current","proprange25km2022"),
+  mutate(across(c("proprange25km2000","proprange25km.current","proprange25km.latestyear"),
                 ~ round(. * 100))) %>% 
   mutate(across(c("mean5km","ci5km"),
                 ~ round(.))) %>% 
@@ -105,7 +105,7 @@ main_db <- main_db0 %>%
     "longtermlci","longtermmean","longtermrci","currentslopelci","currentslopemean",
     "currentsloperci","rangelci","rangemean","rangerci",
     "KEY",
-    "totalrange25km","proprange25km2000","proprange25km.current","proprange25km2022",
+    "totalrange25km","proprange25km2000","proprange25km.current","proprange25km.latestyear",
     "mean5km","ci5km",
     "Projected % Decline in 3 Generations","Regional Red List Category",
     "SOIB.Concern.Status","SOIB.Long.Term.Status","SOIB.Current.Status","SOIB.Range.Status"

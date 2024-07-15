@@ -305,7 +305,7 @@ if (run_res_trends == FALSE) {
     # identifying cells where on an average, less than 60 % of the 2022 coverage
     # was achieved during the last 8 years
     filter(!is.na(proprange25km.current) & 
-             (proprange25km.current/proprange25km2022) < 0.6 &
+             (proprange25km.current/proprange25km.latestyear) < 0.6 &
              (Current.Analysis == "X")) %>% 
     pull(eBird.English.Name.2023)
   
@@ -347,7 +347,7 @@ if (run_res_trends == FALSE) {
   
   
   # Years to project for PJ's IUCN comparison
-  extra.years = seq(soib_year_info("latest_year"), length.out = 7)
+  extra.years = seq(soib_year_info("latest_year"), length.out = 7) + 1
   
   trends = trends %>%
     group_by(COMMON.NAME, timegroupsf, timegroups) %>% 

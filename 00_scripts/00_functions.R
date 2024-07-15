@@ -946,10 +946,10 @@ dataspeciesfilter = function(cur_mask = "none") {
     group_by(COMMON.NAME) %>% 
     reframe(proprange25km2000 = n_distinct(gridg1))
   
-  proprange2022 = temp %>%
+  proprange.latestyear = temp %>%
     filter(timegroups == as.character(soib_year_info("latest_year"))) %>%
     group_by(COMMON.NAME) %>% 
-    reframe(proprange25km2022 = n_distinct(gridg1))
+    reframe(proprange25km.latestyear = n_distinct(gridg1))
   
   proprange.current = temp %>%
     filter(timegroups %in% as.character(soib_year_info("cat_years"))) %>%
@@ -961,10 +961,10 @@ dataspeciesfilter = function(cur_mask = "none") {
   range25km = totalrange %>% 
     left_join(proprange2000) %>% 
     left_join(proprange.current) %>% 
-    left_join(proprange2022) %>%
+    left_join(proprange.latestyear) %>%
     mutate(proprange25km2000 = proprange25km2000/totalrange25km,
            proprange25km.current = proprange25km.current/totalrange25km,
-           proprange25km2022 = proprange25km2022/totalrange25km)
+           proprange25km.latestyear = proprange25km.latestyear/totalrange25km)
   
   
   # additional filtering safeguards - proportional sampling within each 25km grid cell
@@ -1275,7 +1275,7 @@ singlespeciesrun = function(data, species, specieslist, restrictedspecieslist,
   {
     ## addition for single year
     data1 = data1 %>%
-      filter(timegroups == 2022)
+      filter(timegroups == soib_year_info("latest_year"))
   }
   
   

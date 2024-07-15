@@ -446,7 +446,7 @@ main = main %>%
            BLI.Common.Name, BLI.Scientific.Name, IUCN.Category, WPA.Schedule,
            CITES.Appendix, CMS.Appendix, Onepercent.Estimates,
            Long.Term.Analysis, Current.Analysis, Selected.SOIB,
-           totalrange25km, proprange25km2000, proprange25km.current, proprange25km2022,
+           totalrange25km, proprange25km2000, proprange25km.current, proprange25km.latestyear,
            mean5km, ci5km,
            proj2023.lci, proj2023.mean, proj2023.rci, proj2024.lci, proj2024.mean, proj2024.rci,
            proj2025.lci, proj2025.mean, proj2025.rci, proj2026.lci, proj2026.mean, proj2026.rci,
