@@ -353,7 +353,7 @@ if (run_res_trends == FALSE) {
     group_by(COMMON.NAME, timegroupsf, timegroups) %>% 
     reframe(mean_trans = mean(freq), 
             # adding se from variation between the means and propagated SE
-            se_trans = sd(freq) + sqrt(sum(se^2))/n()) %>%
+            se_trans = sd(freq) + sqrt(sum(se^2)/n())) %>%
     group_by(COMMON.NAME, timegroupsf, timegroups) %>% 
     mutate(lci = clogloglink(mean_trans - 1.96*se_trans, inverse = T),
            mean = clogloglink(mean_trans, inverse = T),
