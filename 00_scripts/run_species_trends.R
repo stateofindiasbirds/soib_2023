@@ -75,21 +75,17 @@ if (to_run == TRUE) {
     # read data files
     load(data_path)
     
-    if(!singleyear)
-    {
-      data <- data_filt %>% 
-        mutate(across(.cols = c(gridg1, gridg2, gridg3, gridg4, month, timegroups),
-                      ~ as.factor(.))) %>% 
-        mutate(gridg = gridg3)
+    cols_temp <- if (singleyear == FALSE) {
+      c("gridg1", "gridg2", "gridg3", "gridg4", "month", "timegroups")
+    } else if (singleyear == TRUE) {
+      c("gridg1", "gridg2", "gridg3", "gridg4", "month")
     }
-    
-    if(singleyear)
-    {
-      data <- data_filt %>% 
-        mutate(across(.cols = c(gridg1, gridg2, gridg3, gridg4, month),
-                      ~ as.factor(.))) %>% 
-        mutate(gridg = gridg3)
-    }
+
+    data <- data_filt %>% 
+      mutate(across(.cols = all_of(cols_temp), ~ as.factor(.))) %>% 
+      mutate(gridg = gridg3)
+
+    rm(cols_temp)
     
     
     
@@ -117,21 +113,23 @@ if (to_run == TRUE) {
     
     parallel::stopCluster(cl = my.cluster)
     
-    if(!singleyear)
-    {
-      trends = data.frame(trends0) %>% 
-        # converting first row of species names (always true) to column names
-        magrittr::set_colnames(.[1,]) %>% 
-        slice(-1) %>% 
-        mutate(timegroupsf = rep(databins$timegroups, 2),
-               timegroups = rep(databins$year, 2),
-               type = rep(c("freq", "se"), 
-                          # will always have 2*N.YEAR rows (freq, se)
-                          each = length(soib_year_info("timegroup_lab"))),
-               sl = k) %>%  # sim number
+
+    trends = data.frame(trends0) %>% 
+      # converting first row of species names (always true) to column names
+      magrittr::set_colnames(.[1,]) %>% 
+      slice(-1) %>% 
+      {if (singleyear == FALSE) {
+        
+        mutate(.,
+                timegroupsf = rep(databins$timegroups, 2),
+                timegroups = rep(databins$year, 2),
+                type = rep(c("freq", "se"), 
+                            # will always have 2*N.YEAR rows (freq, se)
+                            each = length(soib_year_info("timegroup_lab"))),
+                sl = k) %>%  # sim number
         # pivoting species names longer
         pivot_longer(-c(timegroups, timegroupsf, sl, type), 
-                     values_to = "value", names_to = "COMMON.NAME") %>% 
+                      values_to = "value", names_to = "COMMON.NAME") %>% 
         pivot_wider(names_from = type, values_from = value) %>% 
         # numerical ID for species names, for arranging
         mutate(sp = row_number(), .by = timegroupsf) %>%
@@ -139,21 +137,16 @@ if (to_run == TRUE) {
         dplyr::select(-sp) %>% 
         # reordering
         relocate(sl, COMMON.NAME, timegroupsf, timegroups, freq, se)
-    }
-    
-    if(singleyear)
-    {
-      trends = data.frame(trends0) %>% 
-        # converting first row of species names (always true) to column names
-        magrittr::set_colnames(.[1,]) %>% 
-        slice(-1) %>% 
-        mutate(type = rep(c("freq", "se"), 
-                          # will always have 2*N.YEAR rows (freq, se)
-                          each = 1),
-               sl = k) %>%  # sim number
+        
+      } else if (singleyear == TRUE) {
+
+        mutate(.,
+                type = rep(c("freq", "se"), 
+                            each = 1),
+                sl = k) %>%  # sim number
         # pivoting species names longer
         pivot_longer(-c(sl, type), 
-                     values_to = "value", names_to = "COMMON.NAME") %>% 
+                      values_to = "value", names_to = "COMMON.NAME") %>% 
         pivot_wider(names_from = type, values_from = value) %>% 
         # numerical ID for species names, for arranging
         mutate(sp = row_number()) %>%
@@ -161,7 +154,8 @@ if (to_run == TRUE) {
         dplyr::select(-sp) %>% 
         # reordering
         relocate(sl, COMMON.NAME, freq, se)
-    }
+
+      }}
     
     
     write.csv(trends, file = write_path, row.names = F)

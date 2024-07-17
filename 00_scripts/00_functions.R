@@ -1069,7 +1069,7 @@ expandbyspecies = function(data, species)
 # faster version of this function using data.table and dtplyr
 # optimising runtime
 # previous expandbyspecies() to be retired entirely in next annual update
-expand_dt = function(data, species, singleyear = F) {
+expand_dt = function(data, species, singleyear = FALSE) {
 
   require(tidyverse)
   require(dtplyr)
@@ -1078,23 +1078,16 @@ expand_dt = function(data, species, singleyear = F) {
 
   setDT(data)
   
-  if (!singleyear)
-  {
+  
     data <- data %>% 
       lazy_dt(immutable = FALSE) |> 
       mutate(across(contains("gridg"), ~ as.factor(.))) %>% 
-      mutate(timegroups = as.factor(timegroups)) |> 
+      {if (singleyear == FALSE) {
+        mutate(., timegroups = as.factor(timegroups))
+      } else if (singleyear == TRUE) {
+        .
+      }} |> 
       as.data.table()
-  }
-  
-  if (singleyear)
-  {
-    data <- data %>% 
-      lazy_dt(immutable = FALSE) |> 
-      mutate(across(contains("gridg"), ~ as.factor(.))) |> 
-      as.data.table()
-  }
-
 
 
   # Get distinct rows and filter based on a condition
@@ -1103,8 +1096,8 @@ expand_dt = function(data, species, singleyear = F) {
   # and immutable == TRUE copies the data and this is a huge bottleneck)
   # considers only complete lists
   
-  if (!singleyear)
-  {
+  if (singleyear == FALSE) {
+
     checklistinfo <- unique(data[, 
                                  .(gridg1, gridg2, gridg3, gridg4, ALL.SPECIES.REPORTED, OBSERVER.ID, 
                                    group.id, month, year, no.sp, timegroups)
@@ -1112,10 +1105,9 @@ expand_dt = function(data, species, singleyear = F) {
       # filter
       ALL.SPECIES.REPORTED == 1
     ]
-  }
-  
-  if (singleyear)
-  {
+
+  } else if (singleyear == TRUE) {
+
     checklistinfo <- unique(data[, 
                                  .(gridg1, gridg2, gridg3, gridg4, ALL.SPECIES.REPORTED, OBSERVER.ID, 
                                    group.id, month, year, no.sp)
@@ -1123,6 +1115,7 @@ expand_dt = function(data, species, singleyear = F) {
       # filter
       ALL.SPECIES.REPORTED == 1
     ]
+
   }
   
 
@@ -1136,15 +1129,21 @@ expand_dt = function(data, species, singleyear = F) {
     
   # expand data frame to include the bird species in every list
   
-  if (!singleyear)
-  {
+  join_by_temp <- if (singleyear == FALSE) {
+    c("group.id", "gridg1", "gridg2", "gridg3", "gridg4",
+      "ALL.SPECIES.REPORTED", "OBSERVER.ID", "month", "year", 
+      "no.sp", "timegroups", "COMMON.NAME")
+  } else if (singleyear == TRUE) {
+    c("group.id", "gridg1", "gridg2", "gridg3", "gridg4",
+      "ALL.SPECIES.REPORTED", "OBSERVER.ID", "month", "year", 
+      "no.sp","COMMON.NAME")
+  }
+
     data2 = checklistinfo %>% 
       lazy_dt(immutable = FALSE) |> 
       mutate(COMMON.NAME = species) %>% 
       left_join(data |> lazy_dt(immutable = FALSE),
-                by = c("group.id", "gridg1", "gridg2", "gridg3", "gridg4",
-                       "ALL.SPECIES.REPORTED", "OBSERVER.ID", "month", "year", 
-                       "no.sp", "timegroups", "COMMON.NAME")) %>%
+                by = join_by_temp) %>%
       dplyr::select(-c("COMMON.NAME","gridg2","gridg4","OBSERVER.ID",
                        "ALL.SPECIES.REPORTED","group.id","year","gridg0")) %>% 
       # deal with NAs (column is character)
@@ -1152,25 +1151,8 @@ expand_dt = function(data, species, singleyear = F) {
                                            OBSERVATION.COUNT != "0" ~ 1, 
                                            TRUE ~ as.numeric(OBSERVATION.COUNT))) |> 
       as_tibble()
-  }
   
-  if (singleyear)
-  {
-    data2 = checklistinfo %>% 
-      lazy_dt(immutable = FALSE) |> 
-      mutate(COMMON.NAME = species) %>% 
-      left_join(data |> lazy_dt(immutable = FALSE),
-                by = c("group.id", "gridg1", "gridg2", "gridg3", "gridg4",
-                       "ALL.SPECIES.REPORTED", "OBSERVER.ID", "month", "year", 
-                       "no.sp","COMMON.NAME")) %>%
-      dplyr::select(-c("COMMON.NAME","gridg2","gridg4","OBSERVER.ID",
-                       "ALL.SPECIES.REPORTED","group.id","year","gridg0")) %>% 
-      # deal with NAs (column is character)
-      mutate(OBSERVATION.COUNT = case_when(is.na(OBSERVATION.COUNT) ~ 0,
-                                           OBSERVATION.COUNT != "0" ~ 1, 
-                                           TRUE ~ as.numeric(OBSERVATION.COUNT))) |> 
-      as_tibble()
-  }
+  rm(join_by_temp)
   
   return(data2)
 
@@ -1218,7 +1200,7 @@ filt_data_for_mig <- function(data, species_var, status_var) {
 
 # trends
 singlespeciesrun = function(data, species, specieslist, restrictedspecieslist, 
-                            singleyear = F)
+                            singleyear = FALSE)
 {
   require(tidyverse)
   require(merTools)
@@ -1248,10 +1230,17 @@ singlespeciesrun = function(data, species, specieslist, restrictedspecieslist,
   # or short-term trends (rt) 
   # (if only recent, then need to filter for recent years. else, use all years so no filter.)
   
-  if (is.na(specieslist2$ht) & !is.na(specieslist2$rt) & !singleyear)
-  {
-    data1 = data1 %>% filter(year >= 2015)
+  if (singleyear == FALSE) {
+
+    if (is.na(specieslist2$ht) & !is.na(specieslist2$rt)) {
+      data1 = data1 %>% filter(year >= soib_year_info("cat_start"))
+    }
+  
+  } else if (singleyear == TRUE) {
+
+    data1 = data1 %>% filter(year == soib_year_info("latest_year"))
   }
+
   
   data1 = data1 %>%
     filter(COMMON.NAME == species) %>%
@@ -1271,13 +1260,6 @@ singlespeciesrun = function(data, species, specieslist, restrictedspecieslist,
   
   medianlla = datay$medianlla
   
-  if (singleyear)
-  {
-    ## addition for single year
-    data1 = data1 %>%
-      filter(timegroups == soib_year_info("latest_year"))
-  }
-  
   
   # expand dataframe to include absences as well
   ed = expand_dt(data1, species) %>% 
@@ -1292,96 +1274,55 @@ singlespeciesrun = function(data, species, specieslist, restrictedspecieslist,
 
   # the model ---------------------------------------------------------------
   
-  if (flag == 0)
-  {
-    if (!singleyear)
-    {
-      m1 = glmer(OBSERVATION.COUNT ~ month + month:log(no.sp) + timegroups + (1|gridg3/gridg1), 
-                 data = ed, family = binomial(link = 'cloglog'), 
-                 nAGQ = 0, control = glmerControl(optimizer = "bobyqa"))
-    }
-    
-    if (singleyear)
-    {
-      m1 = glmer(OBSERVATION.COUNT ~ month + month:log(no.sp) + (1|gridg3/gridg1), 
-                 data = ed, family = binomial(link = 'cloglog'), 
-                 nAGQ = 0, control = glmerControl(optimizer = "bobyqa"))
-    }
+  fixed_effects <- "OBSERVATION.COUNT ~ month + month:log(no.sp)"
+  include_timegroups <- if (singleyear == FALSE) "+ timegroups" else 
+                          if (singleyear == TRUE) ""
+  random_effects <- if (flag == 0) "+ (1|gridg3/gridg1)" else 
+                      if (flag == 1) "+ (1|gridg1)" else 
+                      if (flag == 2) ""
 
-  }
-  
-  if (flag == 1)
-  {
-    if (!singleyear)
-    {
-      m1 = glmer(OBSERVATION.COUNT ~ month + month:log(no.sp) + timegroups + (1|gridg1), 
-                 data = ed, family = binomial(link = 'cloglog'), 
-                 nAGQ = 0, control = glmerControl(optimizer = "bobyqa"))
-    }
-    
-    if (singleyear)
-    {
-      m1 = glmer(OBSERVATION.COUNT ~ month + month:log(no.sp) + (1|gridg1), 
-                 data = ed, family = binomial(link = 'cloglog'), 
-                 nAGQ = 0, control = glmerControl(optimizer = "bobyqa"))
-    }
-    
-  }
-  
-  if (flag == 2)
-  {
-    if (!singleyear)
-    {
-      m1 = glm(OBSERVATION.COUNT ~ month + month:log(no.sp) + timegroups, 
-               data = ed, family = binomial(link = 'cloglog'))
-    }
-    
-    if (singleyear)
-    {
-      m1 = glm(OBSERVATION.COUNT ~ month + month:log(no.sp), 
-               data = ed, family = binomial(link = 'cloglog'))
-    }
+  model_formula <- as.formula(glue("{fixed_effects} {include_timegroups} {random_effects}"))
+
+  m1 <- if (flag != 2) {
+    glmer(model_formula, 
+          data = ed, family = binomial(link = 'cloglog'), 
+          nAGQ = 0, control = glmerControl(optimizer = "bobyqa"))
+  } else {
+    glm(model_formula, 
+        data = ed, family = binomial(link = 'cloglog'))
   }
   
 
   # predicting from model ---------------------------------------------------
 
   # prepare a new data file to predict
+
+  ltemp <- ed %>% 
+    {if (singleyear == FALSE) {
+      group_by(., month) %>% 
+      reframe(., timegroups = unique(tm$timegroups))
+    } else if (singleyear == TRUE) {
+      distinct(., month)
+    }} %>% 
+    mutate(no.sp = medianlla,
+           # taking the first value but any random value will do because we do not
+           # intend to predict random variation across grids
+           gridg1 = data1$gridg1[1], 
+           gridg3 = data1$gridg3[1])
   
-  if (!singleyear)
-  {
-    ltemp <- ed %>% 
-      group_by(month) %>% 
-      reframe(timegroups = unique(tm$timegroups)) %>% 
-      mutate(no.sp = medianlla,
-             # taking the first value but any random value will do because we do not
-             # intend to prect random variation across grids
-             gridg1 = data1$gridg1[1], 
-             gridg3 = data1$gridg3[1])
+  f2 <- ltemp %>% 
+    {if (singleyear == FALSE) {
+      dplyr::select(., timegroups)
+    } else if (singleyear == TRUE) {
+      .
+    }} %>% 
+    mutate(freq = 0, se = 0) |> # this is not actually needed
+    {if (singleyear == FALSE) {
+      .
+    } else if (singleyear == TRUE) {
+      dplyr::select(., freq, se)
+    }}
     
-    f2 <- ltemp %>% 
-      dplyr::select(timegroups) %>% 
-      # this is not actually needed
-      mutate(freq = 0, se = 0)
-  }
-  
-  if (singleyear)
-  {
-    ltemp <- ed %>% 
-      distinct(month) %>% 
-      mutate(no.sp = medianlla,
-             # taking the first value but any random value will do because we do not
-             # intend to prect random variation across grids
-             gridg1 = data1$gridg1[1], 
-             gridg3 = data1$gridg3[1])
-    
-    f2 <- ltemp %>% 
-      mutate(freq = 0, se = 0) %>%
-      dplyr::select(freq, se)
-  }
-  
-  
-  
   
   if (flag != 2)
   {
@@ -1399,12 +1340,12 @@ singlespeciesrun = function(data, species, specieslist, restrictedspecieslist,
     f2$set = pred$se.fit
   }
   
-  if (!singleyear)
-  {
-    f1 = f2 %>%
-      filter(!is.na(freqt) & !is.na(set)) %>%
-      # average across month
-      group_by(timegroups) %>% 
+
+  f1 = f2 %>%
+    filter(!is.na(freqt) & !is.na(set)) %>%
+    # average across month
+    {if (singleyear == FALSE) {
+      group_by(., timegroups) %>% 
       reframe(freq = mean(freqt), se = mean(set)) %>% 
       right_join(tm) %>% 
       left_join(databins %>% distinct(timegroups, year)) %>% 
@@ -1414,19 +1355,12 @@ singlespeciesrun = function(data, species, specieslist, restrictedspecieslist,
                                   levels = soib_year_info("timegroup_lab"))) %>% 
       complete(timegroupsf) %>% 
       arrange(timegroupsf)
-  }
+    } else if (singleyear == TRUE) {
+      reframe(., freq = mean(freqt), se = mean(set))
+    }}
   
-  if (singleyear)
-  {
-    f1 = f2 %>%
-      filter(!is.na(freqt) & !is.na(set)) %>%
-      # average across month
-      reframe(freq = mean(freqt), se = mean(set))
-  }
   
 
-  
-  
   tocomb = c(species, f1$freq, f1$se)
   return(tocomb)
   # each species's tocomb becomes one column in final trends0 output object
