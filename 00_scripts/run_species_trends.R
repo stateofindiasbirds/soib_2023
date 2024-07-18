@@ -137,7 +137,7 @@ if (to_run == TRUE) {
         dplyr::select(-sp) %>% 
         # reordering
         relocate(sl, COMMON.NAME, timegroupsf, timegroups, freq, se)
-        
+            
       } else if (singleyear == TRUE) {
 
         mutate(.,
@@ -153,15 +153,39 @@ if (to_run == TRUE) {
         arrange(sl, sp) %>%
         dplyr::select(-sp) %>% 
         # reordering
-        relocate(sl, COMMON.NAME, freq, se)
+        relocate(sl, COMMON.NAME, freq, se) |> 
+        # bringing back timegroups columns
+        mutate(timegroups = soib_year_info("latest_year"),
+               timegroupsf = as.character(soib_year_info("latest_year")))
 
       }}
     
     
-    write.csv(trends, file = write_path, row.names = F)
-    
-    # <Karthik> worth changing the path where this is saved? Might be useful if we
-    # want to add this to all the other trends and recalculate some metrics
+    # if full run, overwrite the CSV
+    # else append single year results to all previous year results
+    if (singleyear == FALSE) {
+
+      write.csv(trends, file = write_path, row.names = FALSE)
+
+    } else if (singleyear == TRUE) {
+
+      trends_old <- read.csv(write_path, header = TRUE) |> 
+        filter(timegroups != soib_year_info("latest_year"))
+
+      trends_new <- trends_old |> 
+        bind_rows(trends) |> 
+        left_join(specieslist |> 
+                    mutate(order = row_number(),
+                            ht = NULL,
+                            rt = NULL), 
+                  by = "COMMON.NAME") |> 
+        arrange(sl, order, timegroups) |> 
+        dplyr::select(-order)
+
+      write.csv(trends_new, file = write_path, row.names = FALSE)
+
+    }
+
     
     tictoc::toc() 
     
