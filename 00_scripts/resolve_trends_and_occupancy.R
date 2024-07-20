@@ -301,7 +301,7 @@ if (run_res_trends == FALSE) {
   
   specsd3 = main %>%
     # identifying cells where on an average, less than 60 % of the 2022 coverage
-    # was achieved during the last 8 years
+    # was achieved during the last N CAT years
     filter(!is.na(proprange25km.current) & 
              (proprange25km.current/proprange25km.latestyear) < 0.6 &
              (Current.Analysis == "X")) %>% 

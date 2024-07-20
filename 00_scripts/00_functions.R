@@ -597,7 +597,7 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = interannual_update)
     group_by(COMMON.NAME) %>% 
     reframe(years = n()) %>%
     group_by(COMMON.NAME) %>%
-    filter(years == 14) %>%
+    filter(years == length(soib_year_info("timegroup_lab"))) %>%
     mutate(ht = 1) %>% 
     dplyr::select(COMMON.NAME, ht)
   
@@ -606,7 +606,7 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = interannual_update)
   datar = data0 %>%
     filter(ALL.SPECIES.REPORTED == 1, 
            CATEGORY %in% c("species", "issf"), 
-           year > 2014) %>%
+           year >= soib_year_info("cat_start")) %>%
     group_by(COMMON.NAME, year) %>%
     reframe(locs = n_distinct(LOCALITY.ID), 
             cells = n_distinct(gridg4)) %>%
@@ -615,7 +615,7 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = interannual_update)
     group_by(COMMON.NAME) %>% 
     reframe(years = n()) %>%
     group_by(COMMON.NAME) %>%
-    filter(years == 8) %>%
+    filter(years == length(soib_year_info("cat_years"))) %>%
     mutate(rt = 1) %>% 
     dplyr::select(COMMON.NAME, rt)
   
@@ -633,13 +633,13 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = interannual_update)
     group_by(COMMON.NAME) %>% 
     reframe(years = n()) %>%
     group_by(COMMON.NAME) %>%
-    filter(years == 14) %>%
+    filter(years == length(soib_year_info("timegroup_lab"))) %>%
     dplyr::select(COMMON.NAME)
   
   datarestr1 = data0 %>%
     filter(ALL.SPECIES.REPORTED == 1, 
            CATEGORY %in% c("species", "issf"), 
-           year > 2014) %>%
+           year >= soib_year_info("cat_start")) %>%
     group_by(COMMON.NAME, timegroups) %>%
     reframe(cells = n_distinct(gridg4)) %>%
     group_by(COMMON.NAME, timegroups) %>%
@@ -647,7 +647,7 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = interannual_update)
     group_by(COMMON.NAME) %>% 
     reframe(years = n()) %>%
     group_by(COMMON.NAME) %>%
-    filter(years == 8) %>%
+    filter(years == length(soib_year_info("cat_years"))) %>%
     dplyr::select(COMMON.NAME)
   
   
@@ -693,7 +693,7 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = interannual_update)
         filter(COMMON.NAME == speciesrestr$species[i]) %>%
         distinct(gridg1) %>%
         left_join(data0) %>%
-        filter(year > 2014) %>%
+        filter(year >= soib_year_info("cat_start")) %>%
         group_by(timegroups) %>% 
         reframe(n = n_distinct(group.id)) %>%
         group_by(timegroups) %>%
