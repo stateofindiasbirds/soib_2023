@@ -1,3 +1,23 @@
+# get analyses metadata -------------------------------------------------
+
+get_metadata <- function(mask = NULL) {
+
+  load("00_data/analyses_metadata.RData")
+
+  if(is.null(mask)) {
+    return(analyses_metadata)
+  } else {
+
+    if (!mask %in% analyses_metadata$MASK) {
+      stop("Select valid mask name")
+    } else {
+      return(analyses_metadata |> filter(MASK == mask))
+    }
+
+  }
+
+}
+
 ###   error operations ########################################
 
 # function to propagate standard errors while dividing or multiplying values
@@ -488,18 +508,17 @@ removevagrants = function(data)
 # followed by all diurnal endemics (endemicity) and essential species (SelectSpecies)
 # followed by assigning some species from within the previous set for 'restricted' trend analyses
 
-dataspeciesfilter = function(cur_mask = "none") {
+dataspeciesfilter = function(cur_mask = "none", singleyear = interannual_update) {
   
   # ensuring only valid cur_mask names are provided
   if (!(cur_mask %in% unique(analyses_metadata$MASK))) {
     return('Invalid mask! Please provide valid mask name, one of: c("none","woodland","cropland","ONEland","PA").')
   }
   
-  
 
   # preparing data for mask -------------------------------------------------
 
-  cur_metadata <- analyses_metadata %>% filter(MASK == cur_mask)
+  cur_metadata <- get_metadata(cur_mask)
   
   # thresholds for species to be considered in each analysis
   # - individual locations
@@ -698,52 +717,70 @@ dataspeciesfilter = function(cur_mask = "none") {
     left_join(datah, by = c("COMMON.NAME")) %>% 
     left_join(datar, by = c("COMMON.NAME"))
   
-  # we need country specieslist to derive specieslist for states
-  if (cur_metadata$MASK.TYPE == "state") {
-    load(file = analyses_metadata %>% 
-           filter(MASK == "none") %>% 
-           pull(SPECLISTDATA.PATH))
-    
-    specieslist_nat <- specieslist
-    rm(specieslist, restrictedspecieslist)
-  }
-  
-  # to limit number of species in restricted species list for states
-  specieslist_rest = dataf %>%
-    filter(., 
-             (Essential == 1 | Endemic.Region != "Non-endemic" | ht == 1 | rt == 1), 
-             (Breeding.Activity.Period != "Nocturnal" | 
-                Non.Breeding.Activity.Period != "Nocturnal" | 
-                COMMON.NAME == "Jerdon's Courser"),
-             (is.na(Discard))
-      ) %>%
-    # filter out species not recorded from current mask
-    filter(COMMON.NAME %in% cur_mask_spec) %>% 
-    dplyr::select(COMMON.NAME, ht, rt)
-  
-  specieslist = dataf %>%
-    # for states, we want to include any species reported from the state & with trend for country
-    {if (cur_metadata$MASK.TYPE != "state") {
+
+
+  # rerun specieslist and restrictedspecieslist only if "major" SoIB update
+  # use previous year's if interannual update, and update it to latest taxonomy
+
+  if (singleyear == TRUE) {
+
+    load(cur_metadata$SPECLISTDATA.PATH)
+    # update taxonomy
+    specieslist <- update_species_lists(specieslist)
+    restrictedspecieslist <- update_species_lists(restrictedspecieslist)
+
+  } else if (singleyear == FALSE) {
+
+    # we need country specieslist to derive specieslist for states
+    if (cur_metadata$MASK.TYPE == "state") {
+      load(file = analyses_metadata %>% 
+             filter(MASK == "none") %>% 
+             pull(SPECLISTDATA.PATH))
+      
+      specieslist_nat <- specieslist
+      rm(specieslist, restrictedspecieslist)
+    }
+
+    # to limit number of species in restricted species list for states
+    specieslist_rest = dataf %>%
       filter(., 
-             (Essential == 1 | Endemic.Region != "Non-endemic" | ht == 1 | rt == 1), 
-             (Breeding.Activity.Period != "Nocturnal" | 
-                Non.Breeding.Activity.Period != "Nocturnal" | 
-                COMMON.NAME == "Jerdon's Courser"),
-             (is.na(Discard))
-      )
-    } else {
-      filter(.,
-             (COMMON.NAME %in% specieslist_nat$COMMON.NAME | ht == 1 | rt == 1), 
-             (Breeding.Activity.Period != "Nocturnal" | 
-                Non.Breeding.Activity.Period != "Nocturnal" | 
-                COMMON.NAME == "Jerdon's Courser"), 
-             (is.na(Discard))
-      )
-    }} %>%
-    # filter out species not recorded from current mask
-    filter(COMMON.NAME %in% cur_mask_spec) %>% 
-    dplyr::select(COMMON.NAME, ht, rt)
+               (Essential == 1 | Endemic.Region != "Non-endemic" | ht == 1 | rt == 1), 
+               (Breeding.Activity.Period != "Nocturnal" | 
+                  Non.Breeding.Activity.Period != "Nocturnal" | 
+                  COMMON.NAME == "Jerdon's Courser"),
+               (is.na(Discard))
+        ) %>%
+      # filter out species not recorded from current mask
+      filter(COMMON.NAME %in% cur_mask_spec) %>% 
+      dplyr::select(COMMON.NAME, ht, rt)
+      
+    specieslist = dataf %>%
+      # for states, we want to include any species reported from the state & with trend for country
+      {if (cur_metadata$MASK.TYPE != "state") {
+        filter(., 
+               (Essential == 1 | Endemic.Region != "Non-endemic" | ht == 1 | rt == 1), 
+               (Breeding.Activity.Period != "Nocturnal" | 
+                  Non.Breeding.Activity.Period != "Nocturnal" | 
+                  COMMON.NAME == "Jerdon's Courser"),
+               (is.na(Discard))
+        )
+      } else {
+        filter(.,
+               (COMMON.NAME %in% specieslist_nat$COMMON.NAME | ht == 1 | rt == 1), 
+               (Breeding.Activity.Period != "Nocturnal" | 
+                  Non.Breeding.Activity.Period != "Nocturnal" | 
+                  COMMON.NAME == "Jerdon's Courser"), 
+               (is.na(Discard))
+        )
+      }} %>%
+      # filter out species not recorded from current mask
+      filter(COMMON.NAME %in% cur_mask_spec) %>% 
+      dplyr::select(COMMON.NAME, ht, rt)
+    
+  }
+
   
+
   # although specieslist is already extracted previously, ht and rt in dataf need to be
   # synced so that later calculations of stats (number of species that met certain criteria)
   # can be done using this data frame
@@ -755,107 +792,8 @@ dataspeciesfilter = function(cur_mask = "none") {
                             Non.Breeding.Activity.Period == "Nocturnal" ~ NA_real_,
                           TRUE ~ rt))
   
-  # ignoring species that are frequently misIDd
-  specieslist <- specieslist %>% 
-    mutate(ht = case_when(COMMON.NAME %in% spec_misid ~ NA_real_,
-                          TRUE ~ ht),
-           rt = case_when(COMMON.NAME %in% spec_misid ~ NA_real_,
-                          TRUE ~ rt))
   
-  
-  # creation of restrictedspecieslist that only includes species that did not qualify 
-  # for trend analysis through the primary logic (see specieslist assignment)
-  restrictedspecieslist = {if (cur_metadata$MASK.TYPE != "state") {
-    data.frame(species = specieslist$COMMON.NAME)
-  } else {
-    data.frame(species = specieslist_rest$COMMON.NAME)
-  }} %>% 
-    left_join(speciesresth) %>% 
-    left_join(speciesrestr) %>%
-    # valid for at least 1 of 2 analyses
-    filter(!is.na(validh) | !is.na(validr)) %>% 
-    magrittr::set_colnames(c("COMMON.NAME", "ht", "rt")) %>% 
-    mutate(ht = case_when(COMMON.NAME %in% spec_misid ~ NA_real_,
-                          TRUE ~ ht),
-           rt = case_when(COMMON.NAME %in% spec_misid ~ NA_real_,
-                          TRUE ~ rt))  
-  
-  
-  # filtering for only species in certain masks ###
-  if (cur_mask == "woodland") {
-    
-    specieslist <- specieslist %>% 
-      mutate(ht = case_when(!(COMMON.NAME %in% spec_woodland) ~ NA_real_,
-                            TRUE ~ ht),
-             rt = case_when(!(COMMON.NAME %in% spec_woodland) ~ NA_real_,
-                            TRUE ~ rt))
-    
-    restrictedspecieslist = restrictedspecieslist %>% 
-      mutate(ht = case_when(!(COMMON.NAME %in% spec_woodland) ~ NA_real_,
-                            TRUE ~ ht),
-             rt = case_when(!(COMMON.NAME %in% spec_woodland) ~ NA_real_,
-                            TRUE ~ rt))
-    
-  } else if (cur_mask %in% c("cropland", "ONEland")) {
-    
-    specieslist <- specieslist %>% 
-      mutate(ht = case_when(!(COMMON.NAME %in% spec_openland) ~ NA_real_,
-                            TRUE ~ ht),
-             rt = case_when(!(COMMON.NAME %in% spec_openland) ~ NA_real_,
-                            TRUE ~ rt))
-    
-    restrictedspecieslist = restrictedspecieslist %>% 
-      mutate(ht = case_when(!(COMMON.NAME %in% spec_openland) ~ NA_real_,
-                            TRUE ~ ht),
-             rt = case_when(!(COMMON.NAME %in% spec_openland) ~ NA_real_,
-                            TRUE ~ rt))
-    
-  }
-  
-  
-  # check1 and check2 are lists of  species that qualified for restricted analyses for
-  # long-term and current analyses
-  # these vectors are used to update the columns in dataf that mention whether a species
-  # has qualified for either of these analyses
-  check1 = restrictedspecieslist %>% 
-    filter(!is.na(ht)) %>% 
-    dplyr::select(COMMON.NAME) %>% as.vector() %>% list_c()
-  check2 = restrictedspecieslist %>% 
-    filter(!is.na(rt)) %>% 
-    dplyr::select(COMMON.NAME) %>% as.vector() %>% list_c()
-  
-  
-  # randomcheck a and b are to determine whether the models for these restricted species 
-  # will include random effects or not - "randomcheck_a" has those species that qualified
-  randomcheck_a = data0 %>% 
-    filter(ALL.SPECIES.REPORTED == 1, 
-           COMMON.NAME %in% restrictedspecieslist$COMMON.NAME) %>%
-    group_by(COMMON.NAME) %>% 
-    reframe(n = n_distinct(gridg1)) %>%
-    group_by(COMMON.NAME) %>% 
-    filter(n > 7)
-  
-  randomcheck_b = data0 %>% 
-    filter(ALL.SPECIES.REPORTED == 1, 
-           COMMON.NAME %in% restrictedspecieslist$COMMON.NAME) %>%
-    group_by(COMMON.NAME) %>% 
-    reframe(n = n_distinct(gridg1)) %>%
-    group_by(COMMON.NAME) %>% 
-    filter(n <= 7)
-  
-  
-  # information from the randomchecks is stored on the restrictedspecieslist data frame
-  restrictedspecieslist_a = restrictedspecieslist %>% 
-    filter(COMMON.NAME %in% randomcheck_a$COMMON.NAME) %>% 
-    mutate(mixed = 1)
-  restrictedspecieslist_b = restrictedspecieslist %>% 
-    filter(COMMON.NAME %in% randomcheck_b$COMMON.NAME) %>% 
-    mutate(mixed = 0)
-  
-  restrictedspecieslist = rbind(restrictedspecieslist_a,restrictedspecieslist_b)
-  
-  
-  # t1, t2, and t3 are dataframes that are filtered to five information on
+  # t1, t2, and t3 are dataframes that are filtered to give information on
   # 1) how many species qualified for SoIB through data availability for trends
   # 2) how many species qualified through endemicity
   # 3) how many qualified because they were noted to be essential for the Indian context
@@ -875,7 +813,113 @@ dataspeciesfilter = function(cur_mask = "none") {
   stats10 = paste(length(t1$COMMON.NAME),"filter 1 number of species")
   stats11 = paste(length(t2$COMMON.NAME),"filter 2 number of species")
   stats12 = paste(length(t3$COMMON.NAME),"filter 3 number of species")
+
   
+  
+  if (singleyear == FALSE) {
+
+    # ignoring species that are frequently misIDd
+    specieslist <- specieslist %>% 
+      mutate(ht = case_when(COMMON.NAME %in% spec_misid ~ NA_real_,
+                            TRUE ~ ht),
+             rt = case_when(COMMON.NAME %in% spec_misid ~ NA_real_,
+                            TRUE ~ rt))
+            
+            
+    # creation of restrictedspecieslist that only includes species that did not qualify 
+    # for trend analysis through the primary logic (see specieslist assignment)
+    restrictedspecieslist = {if (cur_metadata$MASK.TYPE != "state") {
+      data.frame(species = specieslist$COMMON.NAME)
+    } else {
+      data.frame(species = specieslist_rest$COMMON.NAME)
+    }} %>% 
+      left_join(speciesresth) %>% 
+      left_join(speciesrestr) %>%
+      # valid for at least 1 of 2 analyses
+      filter(!is.na(validh) | !is.na(validr)) %>% 
+      magrittr::set_colnames(c("COMMON.NAME", "ht", "rt")) %>% 
+      mutate(ht = case_when(COMMON.NAME %in% spec_misid ~ NA_real_,
+                            TRUE ~ ht),
+             rt = case_when(COMMON.NAME %in% spec_misid ~ NA_real_,
+                            TRUE ~ rt))  
+            
+            
+    # filtering for only species in certain masks ###
+    if (cur_mask == "woodland") {
+
+      specieslist <- specieslist %>% 
+        mutate(ht = case_when(!(COMMON.NAME %in% spec_woodland) ~ NA_real_,
+                              TRUE ~ ht),
+               rt = case_when(!(COMMON.NAME %in% spec_woodland) ~ NA_real_,
+                              TRUE ~ rt))
+
+      restrictedspecieslist = restrictedspecieslist %>% 
+        mutate(ht = case_when(!(COMMON.NAME %in% spec_woodland) ~ NA_real_,
+                              TRUE ~ ht),
+               rt = case_when(!(COMMON.NAME %in% spec_woodland) ~ NA_real_,
+                              TRUE ~ rt))
+
+    } else if (cur_mask %in% c("cropland", "ONEland")) {
+
+      specieslist <- specieslist %>% 
+        mutate(ht = case_when(!(COMMON.NAME %in% spec_openland) ~ NA_real_,
+                              TRUE ~ ht),
+               rt = case_when(!(COMMON.NAME %in% spec_openland) ~ NA_real_,
+                              TRUE ~ rt))
+
+      restrictedspecieslist = restrictedspecieslist %>% 
+        mutate(ht = case_when(!(COMMON.NAME %in% spec_openland) ~ NA_real_,
+                              TRUE ~ ht),
+               rt = case_when(!(COMMON.NAME %in% spec_openland) ~ NA_real_,
+                              TRUE ~ rt))
+
+    }
+
+
+    # check1 and check2 are lists of  species that qualified for restricted analyses for
+    # long-term and current analyses
+    # these vectors are used to update the columns in dataf that mention whether a species
+    # has qualified for either of these analyses
+    check1 = restrictedspecieslist %>% 
+      filter(!is.na(ht)) %>% 
+      pull(COMMON.NAME)
+    check2 = restrictedspecieslist %>% 
+      filter(!is.na(rt)) %>% 
+        pull(COMMON.NAME)
+
+
+    # randomcheck a and b are to determine whether the models for these restricted species 
+    # will include random effects or not - "randomcheck_a" has those species that qualified
+    randomcheck_a = data0 %>% 
+      filter(ALL.SPECIES.REPORTED == 1, 
+             COMMON.NAME %in% restrictedspecieslist$COMMON.NAME) %>%
+      group_by(COMMON.NAME) %>% 
+      reframe(n = n_distinct(gridg1)) %>%
+      group_by(COMMON.NAME) %>% 
+      filter(n > 7)
+      
+    randomcheck_b = data0 %>% 
+      filter(ALL.SPECIES.REPORTED == 1, 
+             COMMON.NAME %in% restrictedspecieslist$COMMON.NAME) %>%
+      group_by(COMMON.NAME) %>% 
+      reframe(n = n_distinct(gridg1)) %>%
+      group_by(COMMON.NAME) %>% 
+      filter(n <= 7)
+      
+      
+    # information from the randomchecks is stored on the restrictedspecieslist data frame
+    restrictedspecieslist_a = restrictedspecieslist %>% 
+      filter(COMMON.NAME %in% randomcheck_a$COMMON.NAME) %>% 
+      mutate(mixed = 1)
+    restrictedspecieslist_b = restrictedspecieslist %>% 
+      filter(COMMON.NAME %in% randomcheck_b$COMMON.NAME) %>% 
+      mutate(mixed = 0)
+      
+    restrictedspecieslist = rbind(restrictedspecieslist_a,restrictedspecieslist_b)
+  
+  }
+  
+
   
   # creates the column "selected" that is used to provide information about which species
   # have been selected for SoIB when the data frame is written on to the larger data frame
@@ -1011,6 +1055,7 @@ dataspeciesfilter = function(cur_mask = "none") {
   # saving a data frame called "specieslist" that has both specieslist as well as restrictedspecieslist
   # these is an essential dataframe that is called whenever information is required
   # about which analysis to perfrom for a species
+  # (rewrites the RData file even if interannual update, since databins would be different)
   save(specieslist, restrictedspecieslist, databins, 
        file = cur_metadata$SPECLISTDATA.PATH)
   
@@ -1881,34 +1926,41 @@ get_soib_status_cats <- function(which = NULL) {
 }
 
 
+# Update specieslists during interannual SoIB updates --------------------
+
+# for interannual updates, we don't rerun (i.e., generate new) specieslists
+# mainly because we want to retain the same species set being analysed.
+# but nevertheless, taxonomy updates need to reflect.
+
 ## update specieslists for each analysis (full, masks, states) for each year based on
 ## a single mapping file
 ## Currently it is specific to the years in question but this can be changed in 
 ## upcoming years
-## <Karthik update pending> need to iterate this through all analysis folders
-## Also needs to be called in the pieline? And the specieslists RData files need to
-## be uploaded
+
+# this update of specieslists happens during the dataspeciesfilter() call itself
+# and so gets iterated across masks during each corresponding run
 
 
-updatespecieslists = function(specieslist, restrictedspecieslist)
-{
-  library(tidyverse)
+update_species_lists = function(species_list_data) {
+
+  # works for both specieslist and restrictedspecieslist
+
+  if (interannual_update == FALSE) {
+    stop("Currently running 'major' SoIB update, so specieslists needs to be rerun properly!")
+  }
+
+  require(tidyverse)
   
   updatemap = read.csv("00_data/eBird_taxonomy_mapping_2022to2023.csv")
-  specieslist = specieslist %>%
-    rename(eBird.English.Name.2022 = COMMON.NAME) %>%
-    left_join(updatemap) %>%
-    dplyr::select(eBird.English.Name.2023,ht,rt) %>%
-    rename(COMMON.NAME = eBird.English.Name.2023)
-  
-  restrictedspecieslist = restrictedspecieslist %>%
-    rename(eBird.English.Name.2022 = COMMON.NAME) %>%
-    left_join(updatemap) %>%
-    dplyr::select(eBird.English.Name.2023,ht,rt,mixed) %>%
+
+  list_new <- species_list_data |> 
+    left_join(updatemap, by = c("COMMON.NAME" = "eBird.English.Name.2022")) |> 
+    dplyr::select(-COMMON.NAME) |> 
+    relocate(eBird.English.Name.2023) |> # first column is species name
     rename(COMMON.NAME = eBird.English.Name.2023)
     
-  lists.both = list(specieslist,restrictedspecieslist)
-  return(lists.both)
+  return(list_new)
+
 }
 
 

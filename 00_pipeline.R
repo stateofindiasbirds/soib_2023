@@ -8,6 +8,11 @@ library(parallel)
 source("00_scripts/00_functions.R")
 
 
+# Is the current run for a new major SoIB version (every 3-4 years), 
+# or for an interannual update (every year between major versions)?
+interannual_update = TRUE
+
+
 # PART 0 (paths) ----------------------------------------------------------
 
 source("00_scripts/01_create_metadata.R")
