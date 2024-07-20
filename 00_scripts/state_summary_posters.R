@@ -5,9 +5,8 @@ require(officer)
 load("00_data/dataforanalyses_extra.RData")
 load("01_analyses_full/specieslists.RData")
 load("00_data/maps_sf.RData")
-load("00_data/analyses_metadata.RData")
-analyses_metadata = analyses_metadata %>%
-  filter(MASK.TYPE == "state")
+
+analyses_metadata = get_metadata() %>% filter(MASK.TYPE == "state")
 
 
 dataM <- read.delim("00_data/dataforMyna.txt", 

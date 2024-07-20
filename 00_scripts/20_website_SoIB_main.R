@@ -4,7 +4,6 @@ require(tidyverse)
 require(glue)
 require(writexl)
 
-load("00_data/analyses_metadata.RData")
 load("00_data/maps_sf.RData") # for no. of cells in README
 source("00_scripts/20_functions.R")
 
@@ -16,7 +15,7 @@ keystates <- read.csv("01_analyses_full/results/key_state_species_full.csv") %>%
 # import ----------------------------------------------------------------------------
 
 # importing all data and setting up
-main_db0 <- map2(analyses_metadata$SOIBMAIN.PATH, analyses_metadata$MASK, 
+main_db0 <- map2(get_metadata()$SOIBMAIN.PATH, get_metadata()$MASK, 
                  ~ read_fn(.x) %>% bind_cols(tibble(MASK = .y))) %>% 
   list_rbind()
 
@@ -344,7 +343,7 @@ main_db_split <- main_db %>%
 
 split_order <- data.frame(MASK.LABEL = names(main_db_split)) %>% 
   rownames_to_column("ID") %>% 
-  left_join(analyses_metadata %>% join_mask_codes()) %>% 
+  left_join(get_metadata() %>% join_mask_codes()) %>% 
   arrange(MASK.ORDERED) %>%
   pull(ID) %>% 
   as.numeric()

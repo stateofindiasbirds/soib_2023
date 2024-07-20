@@ -5,7 +5,6 @@ library(tictoc)
 
 load("00_data/maps_sf.RData") 
 load("00_data/grids_st_sf.RData") 
-load("00_data/analyses_metadata.RData")
 load("00_data/dataforanalyses_extra.RData")
 data0_filt <- data0 %>% distinct(ST_NM, gridg1, COMMON.NAME)
 
@@ -15,13 +14,12 @@ source("00_scripts/20_functions.R")
 sf_use_s2(FALSE)
 
 # importing SoIB results data
-main0 <- analyses_metadata %>% 
-  filter(MASK == "none") %>% 
+main0 <- get_metadata("none") %>% 
   pull(SOIBMAIN.PATH) %>% 
   read_csv()
 
 
-states_to_walk <- analyses_metadata %>% 
+states_to_walk <- get_metadata() %>% 
   filter(MASK.TYPE == "state") %>% 
   # temp. exclude AR due to issue with admin boundary
   filter(MASK != "Arunachal Pradesh") %>% 

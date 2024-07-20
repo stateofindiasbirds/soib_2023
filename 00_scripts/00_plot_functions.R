@@ -255,7 +255,7 @@ ggtheme_soibrangemap <- function() {
 # read data and add 'Mask' column
 plot_import_data <- function(mask, import_trend = fn_cur_trend, import_plot_type = fn_plot_type) {
   
-  cur_metadata <- analyses_metadata %>% filter(MASK == mask)
+  cur_metadata <- get_metadata(mask)
   
   # function to add mask titles/labels
   add_mask_titles <- function(data, which_mask) {
@@ -269,9 +269,9 @@ plot_import_data <- function(mask, import_trend = fn_cur_trend, import_plot_type
                which_mask == "PA"        ~ "Protected areas",
                TRUE                      ~ which_mask # states
              )) %>% 
-      mutate(MASK = factor(MASK, levels = levels(analyses_metadata$MASK)),
+      mutate(MASK = factor(MASK, levels = levels(get_metadata()$MASK)),
              MASK.TITLE = factor(MASK.TITLE, 
-                                 levels = analyses_metadata %>% 
+                                 levels = get_metadata() %>% 
                                    mutate(MASK.TITLE = case_when(
                                      MASK == "none"      ~ "Full country",
                                      MASK == "woodland"  ~ "Woodland grids",
@@ -357,20 +357,18 @@ plot_load_filter_data <- function(fn_plot_type, fn_cur_trend, fn_cur_mask = "non
 
   if (fn_plot_type == "single") {
     
-    cur_metadata <- analyses_metadata %>% 
-      filter(MASK == "none") %>% 
+    cur_metadata <- get_metadata("none") %>% 
       mutate(CUR.OUT.PATH = PLOT.SINGLE.FOLDER) # path (folder) to write to
     
   } else if (fn_plot_type == "multi") {
     
-    cur_metadata <- analyses_metadata %>%
-      filter(MASK == "none") %>% 
+    cur_metadata <- get_metadata("none") %>% 
       mutate(CUR.OUT.PATH = PLOT.MULTI.FOLDER) # path (folder) to write to
     
   } else {
     
     # process mask data
-    cur_metadata <- analyses_metadata %>% 
+    cur_metadata <- get_metadata() %>% 
       filter(MASK %in% c("none", as.character(fn_cur_mask))) %>% 
       # path (folder) to write to
       {if (fn_plot_type == "single_mask") {
@@ -1766,11 +1764,8 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
   
   source("00_scripts/00_functions.R")
   source("00_scripts/20_functions.R")
-  load("00_data/analyses_metadata.RData")
   
-  cur_metadata <- analyses_metadata %>% 
-    filter(MASK == cur_mask) %>% 
-    join_mask_codes()
+  cur_metadata <- get_metadata(cur_mask) %>% join_mask_codes()
   
   if (!cur_metadata$MASK.TYPE %in% c("country", "state")) {
     return("Select either a country or a state!")

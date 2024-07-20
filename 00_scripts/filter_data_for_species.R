@@ -134,7 +134,7 @@ toc() # 80 sec
 tic.clearlog()
 tic("dataspeciesfilter for all states")
 
-analyses_metadata %>% 
+get_metadata() %>% 
   filter(MASK.TYPE == "state") %>% 
   distinct(MASK) %>% 
   pull(MASK) %>% 

@@ -5,13 +5,11 @@ library(VGAM)
 library(sf)
 library(writexl)
 
-load("00_data/analyses_metadata.RData")
-
 
 # setup -------------------------------------------------------------------
 
 # preparing data for specific mask (this is the only part that changes, but automatically)
-cur_metadata <- analyses_metadata %>% filter(MASK == cur_mask)
+cur_metadata <- get_metadata(cur_mask)
 
 # read paths
 base_path <- cur_metadata$FULLSPECLIST.PATH

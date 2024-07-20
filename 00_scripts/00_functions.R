@@ -511,7 +511,7 @@ removevagrants = function(data)
 dataspeciesfilter = function(cur_mask = "none", singleyear = interannual_update) {
   
   # ensuring only valid cur_mask names are provided
-  if (!(cur_mask %in% unique(analyses_metadata$MASK))) {
+  if (!(cur_mask %in% unique(get_metadata()$MASK))) {
     return('Invalid mask! Please provide valid mask name, one of: c("none","woodland","cropland","ONEland","PA").')
   }
   
@@ -733,9 +733,7 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = interannual_update)
 
     # we need country specieslist to derive specieslist for states
     if (cur_metadata$MASK.TYPE == "state") {
-      load(file = analyses_metadata %>% 
-             filter(MASK == "none") %>% 
-             pull(SPECLISTDATA.PATH))
+      load(file = get_metadata("none") %>% pull(SPECLISTDATA.PATH))
       
       specieslist_nat <- specieslist
       rm(specieslist, restrictedspecieslist)

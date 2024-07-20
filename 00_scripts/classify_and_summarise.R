@@ -3,13 +3,11 @@ library(glue)
 library(tictoc)
 library(writexl)
 
-load("00_data/analyses_metadata.RData")
-
 
 # setup -------------------------------------------------------------------
 
 # preparing data for specific mask (this is the only part that changes, but automatically)
-cur_metadata <- analyses_metadata %>% filter(MASK == cur_mask)
+cur_metadata <- get_metadata(cur_mask)
 
 # read paths
 speclist_path <- cur_metadata$SPECLISTDATA.PATH
@@ -171,8 +169,7 @@ if (cur_metadata$MASK.TYPE == "state") {
   
   main_toupdate <- anti_join(main, main_tokeep) %>% dplyr::select(-SOIBv2.Range.Status)
   
-  main_nat <- analyses_metadata %>%
-    filter(MASK == "none") %>%
+  main_nat <- get_metadata("none") %>%
     pull(SOIBMAIN.PATH) %>%
     read.csv() %>%
     distinct(eBird.English.Name.2023, SOIBv2.Range.Status)

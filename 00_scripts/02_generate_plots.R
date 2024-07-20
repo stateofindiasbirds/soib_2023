@@ -52,18 +52,16 @@ gen_trend_plots <- function(plot_type = "single",
   source('00_scripts/00_functions.R')
   source('00_scripts/00_plot_functions.R')
   
-  load("00_data/analyses_metadata.RData")
-  
   # assigning objects to environment --------------------------------------------------
   
   if (!(plot_type %in% c("multi", "composite"))) {
     obj_list <- list(plot_type = plot_type, 
                      cur_trend = cur_trend,
                      cur_spec = cur_spec,
-                     analyses_metadata = analyses_metadata)
+                     analyses_metadata = get_metadata())
   } else {
     obj_list <- list(plot_type = plot_type, 
-                     analyses_metadata = analyses_metadata)
+                     analyses_metadata = get_metadata())
   }
   
   list2env(obj_list, envir = .GlobalEnv)
@@ -472,9 +470,7 @@ gen_range_maps <- function(mask_type = "country", which_mask = NULL, which_spec 
       
   # error checks ----------------------------------------------------------------------
   
-  load("00_data/analyses_metadata.RData")
-  
-  which_metadata <- analyses_metadata %>% filter(MASK.TYPE == mask_type)
+  which_metadata <- get_metadata() %>% filter(MASK.TYPE == mask_type)
   
   if (!mask_type %in% c("country", "state")) {
     return("Select either a country or a state! Range maps cannot be created for habitat or CA masks.")
@@ -483,7 +479,7 @@ gen_range_maps <- function(mask_type = "country", which_mask = NULL, which_spec 
   # if both mask type and mask specified, avoid mismatches
   if (!is.null(which_mask)) {
     
-    list_states <- analyses_metadata %>% filter(MASK.TYPE == "state") %>% pull(MASK)
+    list_states <- get_metadata() %>% filter(MASK.TYPE == "state") %>% pull(MASK)
     
     if ((mask_type == "country" & which_mask != "none") |
         (mask_type == "state" & !(which_mask %in% list_states))) {
@@ -516,7 +512,7 @@ gen_range_maps <- function(mask_type = "country", which_mask = NULL, which_spec 
     # setting up data for range maps 
     # (this only runs when the output CSVs don't already exist!)
     
-    which_metadata <- analyses_metadata %>% filter(MASK == .x)
+    which_metadata <- get_metadata(.x)
     
     # input paths
     path_speclists <- which_metadata$SPECLISTDATA.PATH

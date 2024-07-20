@@ -6,10 +6,9 @@ library(furrr)
 
 load("00_data/maps_sf.RData")
 load("00_data/maps_pa_sf.RData")
-load("00_data/analyses_metadata.RData")
 
 
-states_to_walk <- analyses_metadata %>% 
+states_to_walk <- get_metadata() %>% 
   filter(MASK.TYPE == "state") %>% 
   # temp. exclude AR due to issue with admin boundary
   filter(MASK != "Arunachal Pradesh") %>% 

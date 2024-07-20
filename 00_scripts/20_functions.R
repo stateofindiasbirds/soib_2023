@@ -132,7 +132,7 @@ join_mask_codes <- function(data) {
 
 # function to identify if current state is key to the species
 
-# keystates, analyses_metadata objects must exist in environment
+# keystates object must exist in environment
 
 is_curspec_key4state <- function(data) {
   
@@ -141,7 +141,7 @@ is_curspec_key4state <- function(data) {
     mutate(KEY = TRUE)
   
   data <- data %>% 
-    left_join(analyses_metadata %>% distinct(MASK, MASK.TYPE)) %>% 
+    left_join(get_metadata() %>% distinct(MASK, MASK.TYPE)) %>% 
     join_mask_codes() %>% 
     left_join(key_db, 
               by = c("MASK.LABEL" = "ST_NM", "India.Checklist.Common.Name")) %>% 
