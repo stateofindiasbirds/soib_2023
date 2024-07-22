@@ -1951,13 +1951,24 @@ update_species_lists = function(species_list_data) {
   
   updatemap = read.csv("00_data/eBird_taxonomy_mapping_2022to2023.csv")
 
-  list_new <- species_list_data |> 
-    left_join(updatemap, by = c("COMMON.NAME" = "eBird.English.Name.2022")) |> 
-    dplyr::select(-COMMON.NAME) |> 
-    relocate(eBird.English.Name.2023) |> # first column is species name
-    rename(COMMON.NAME = eBird.English.Name.2023)
-    
-  return(list_new)
+  # when rerunning for same year, need to return unmodified list
+  # because species names already updated in prior run
+  if (any(!species_list_data$COMMON.NAME %in% updatemap$eBird.English.Name.2022)) {
+
+    message("Species list is already updated to latest taxonomy. Returning original list.")
+    return(species_list_dataa)
+
+  } else {
+
+    list_new <- species_list_data |> 
+      left_join(updatemap, by = c("COMMON.NAME" = "eBird.English.Name.2022")) |> 
+      dplyr::select(-COMMON.NAME) |> 
+      relocate(eBird.English.Name.2023) |> # first column is species name
+      rename(COMMON.NAME = eBird.English.Name.2023)
+      
+    return(list_new)
+  
+  }
 
 }
 
