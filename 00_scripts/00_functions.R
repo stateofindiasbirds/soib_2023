@@ -1359,7 +1359,7 @@ singlespeciesrun = function(data, species, specieslist, restrictedspecieslist,
     } else if (singleyear == TRUE) {
       .
     }} %>% 
-    mutate(freq = 0, se = 0) |> # this is not actually needed
+    mutate(freq = 0, se = 0) %>%  # this is not actually needed
     {if (singleyear == FALSE) {
       .
     } else if (singleyear == TRUE) {
