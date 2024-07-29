@@ -30,7 +30,7 @@ IUCN.end.species = main %>%
 
 # calculate proportional range within each state for each of the selected species
 key.state.species0 = data0 %>%
-  filter(year > 2017) %>%
+  filter(year > (soib_year_info("latest_year") - 5)) %>%
   filter(COMMON.NAME %in% specs.states) %>%
   dplyr::select(ST_NM,COMMON.NAME,gridg1) %>%
   group_by(COMMON.NAME) %>% 
@@ -459,7 +459,7 @@ one.perc = main %>%
 
 full.list.one.perc = data0 %>%
   rename(eBird.English.Name.2023 = COMMON.NAME) %>%
-  filter(year > 2017) %>%
+  filter(year > (soib_year_info("latest_year") - 5)) %>%
   left_join(one.perc) %>%
   filter(!is.na(Onepercent.Estimates), 
          OBSERVATION.COUNT != "X") %>%
@@ -506,7 +506,7 @@ num.spec = full.list.4 %>%
 # contribution to range > 0.35
 full.list.prop.rem = data0 %>%
   rename(eBird.English.Name.2023 = COMMON.NAME) %>%
-  filter(year > 2017) %>%
+  filter(year > (soib_year_info("latest_year") - 5)) %>%
   filter(eBird.English.Name.2023 %in% specs.states) %>%
   group_by(eBird.English.Name.2023) %>%
   mutate(tot.range = n_distinct(gridg1)) %>%

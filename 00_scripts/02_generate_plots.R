@@ -561,7 +561,7 @@ gen_range_maps <- function(mask_type = "country", which_mask = NULL, which_spec 
       
       data0 = data0 %>% 
         filter(COMMON.NAME %in% list_mig, 
-               year > 2017) %>% 
+               year > (soib_year_info("latest_year") - 5)) %>% 
         dplyr::select(COMMON.NAME, day, gridg1)
       
       # defining summer, winter, passage
@@ -591,7 +591,7 @@ gen_range_maps <- function(mask_type = "country", which_mask = NULL, which_spec 
 
       d = d %>% 
         filter(COMMON.NAME %in% list_mig, 
-               year > 2017) %>% 
+               year > (soib_year_info("latest_year") - 5)) %>% 
         # subset for state when required
         dplyr::select(COMMON.NAME, day, LATITUDE, LONGITUDE)
       
