@@ -2,6 +2,8 @@
 
 get_metadata <- function(mask = NULL) {
 
+  require(tidyverse)
+  
   load("00_data/analyses_metadata.RData")
 
   if(is.null(mask)) {
@@ -515,30 +517,15 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = interannual_update)
     return('Invalid mask! Please provide valid mask name, one of: c("none","woodland","cropland","ONEland","PA").')
   }
   
-
-  # preparing data for mask -------------------------------------------------
-
+  # metadata
   cur_metadata <- get_metadata(cur_mask)
   
-  # thresholds for species to be considered in each analysis
-  # - individual locations
-  # - grid cells
-  # - checklists
-  # lowered slightly for states for inclusion; their Statuses will handle rest
-  if (cur_metadata$MASK.TYPE == "state") {
-    
-    locationlimit = 10
-    gridlimit = 4 
-    listlimit = 30
-    
-  } else {
-    
-    locationlimit = 15 
-    gridlimit = 4 
-    listlimit = 50
-    
-  }
-  
+
+  # processing data filter (updates every time) -------------------------------
+
+  # most of the data filtering happens in filter_data_for_species.R before
+  # this function is called, so here only filtering for respective mask
+  # and removing some unnecessary columns
   
   if (cur_mask == "none"){
     data0 = data_base
@@ -556,7 +543,13 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = interannual_update)
   } 
   
   
-  # processing dataspeciesfilter --------------------------------------------
+  # number of sampled grid cell at each resolution
+  sampledcells = c(length(unique(data0$gridg0)),
+                   length(unique(data0$gridg1)),
+                   length(unique(data0$gridg2)),
+                   length(unique(data0$gridg3)),
+                   length(unique(data0$gridg4)))
+
   
   data = data0 %>% 
     dplyr::select(-CATEGORY,-REVIEWED,-APPROVED,-ST_NM,-DISTRICT,
@@ -580,157 +573,206 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = interannual_update)
             year = round(median(year))) %>%
     arrange(year)
   
-  # list of species recorded from state
-  cur_mask_spec <- data %>% distinct(COMMON.NAME) %>% pull(COMMON.NAME)
+  
+  # writing filtered data files ---------------------------------------------
+  
+  # saving a full list of location IDs to be used if required
+  locs_write = data0 %>% 
+    filter(ALL.SPECIES.REPORTED == 1) %>%
+    distinct(LOCALITY.ID, group.id, month, timegroups)
+  
+  write.csv(locs_write, row.names = F, 
+            file = cur_metadata$LOCS.PATH)
   
   
-  # historical data (data from before 2000 onwards), used for long-term trends
-  # gives list of species for which we have enough data and this analysis can be done
-  datah = data0 %>%
-    filter(ALL.SPECIES.REPORTED == 1, 
-           CATEGORY %in% c("species", "issf")) %>%
-    group_by(COMMON.NAME, timegroups) %>%
-    reframe(locs = n_distinct(LOCALITY.ID), 
-            cells = n_distinct(gridg4)) %>%
-    group_by(COMMON.NAME, timegroups) %>%
-    filter(locs > locationlimit, cells > gridlimit) %>%
-    group_by(COMMON.NAME) %>% 
-    reframe(years = n()) %>%
-    group_by(COMMON.NAME) %>%
-    filter(years == length(soib_year_info("timegroup_lab"))) %>%
-    mutate(ht = 1) %>% 
-    dplyr::select(COMMON.NAME, ht)
-  
-  # recent data (data from 2015 onwards), used for recent trends
-  # gives list of species for which we have enough data and this analysis can be done
-  datar = data0 %>%
-    filter(ALL.SPECIES.REPORTED == 1, 
-           CATEGORY %in% c("species", "issf"), 
-           year >= soib_year_info("cat_start")) %>%
-    group_by(COMMON.NAME, year) %>%
-    reframe(locs = n_distinct(LOCALITY.ID), 
-            cells = n_distinct(gridg4)) %>%
-    group_by(COMMON.NAME, year) %>%
-    filter(locs > locationlimit, cells > gridlimit) %>%
-    group_by(COMMON.NAME) %>% 
-    reframe(years = n()) %>%
-    group_by(COMMON.NAME) %>%
-    filter(years == length(soib_year_info("cat_years"))) %>%
-    mutate(rt = 1) %>% 
-    dplyr::select(COMMON.NAME, rt)
-  
-  # return
+  # saving the full filtered data
+  save(data, sampledcells, databins, 
+       file = cur_metadata$DATA.PATH)
   
   
-  # for other species that don't qualify simple rules above (restricted range)
-  dataresth1 = data0 %>%
-    filter(ALL.SPECIES.REPORTED == 1, 
-           CATEGORY %in% c("species", "issf")) %>%
-    group_by(COMMON.NAME, timegroups) %>%
-    reframe(cells = n_distinct(gridg4)) %>%
-    group_by(COMMON.NAME, timegroups) %>%
-    filter(cells <= gridlimit) %>%
-    group_by(COMMON.NAME) %>% 
-    reframe(years = n()) %>%
-    group_by(COMMON.NAME) %>%
-    filter(years == length(soib_year_info("timegroup_lab"))) %>%
-    dplyr::select(COMMON.NAME)
+  # processing species filter (updates for major SoIB versions) ----------------
   
-  datarestr1 = data0 %>%
-    filter(ALL.SPECIES.REPORTED == 1, 
-           CATEGORY %in% c("species", "issf"), 
-           year >= soib_year_info("cat_start")) %>%
-    group_by(COMMON.NAME, timegroups) %>%
-    reframe(cells = n_distinct(gridg4)) %>%
-    group_by(COMMON.NAME, timegroups) %>%
-    filter(cells <= gridlimit) %>%
-    group_by(COMMON.NAME) %>% 
-    reframe(years = n()) %>%
-    group_by(COMMON.NAME) %>%
-    filter(years == length(soib_year_info("cat_years"))) %>%
-    dplyr::select(COMMON.NAME)
+  # for annual updates, we use the same set of species in analyses as last major version
+  # so only thing to be changed in this set of species filters
+  # is to update the species names with latest taxonomy
   
-  
-  # return
-  
-  speciesresth = dataresth1 %>% 
-    rename(species = COMMON.NAME) %>% 
-    inner_join(data.frame(species = spec_resident)) %>% 
-    mutate(validh = NA_real_)
-  
-  if (nrow(speciesresth) > 0) {
-  
-    # if the grids in which species has been reported a few times have sufficient lists
-    # from enough years, still consider for analysis
-    for (i in 1:length(speciesresth$species))
-    {
-      tempresth1 = data0 %>%
-        filter(COMMON.NAME == speciesresth$species[i]) %>%
-        distinct(gridg1) %>%
-        left_join(data0) %>%
-        group_by(timegroups) %>% 
-        reframe(n = n_distinct(group.id)) %>%
-        group_by(timegroups) %>%
-        filter(n > listlimit)
-      
-      if (length(tempresth1$timegroups) == length(soib_year_info("timegroup_lab")))
-        speciesresth$validh[speciesresth$species == speciesresth$species[i]] = 1
-      
-    }
-    
-  }
-  
-  speciesrestr = datarestr1 %>% 
-    rename(species = COMMON.NAME) %>% 
-    inner_join(data.frame(species = spec_resident)) %>% 
-    mutate(validr = NA_real_)
-  
-  if (nrow(speciesrestr) > 0) {
-    
-    for (i in 1:length(speciesrestr$species))
-    {
-      temprestr1 = data0 %>%
-        filter(COMMON.NAME == speciesrestr$species[i]) %>%
-        distinct(gridg1) %>%
-        left_join(data0) %>%
-        filter(year >= soib_year_info("cat_start")) %>%
-        group_by(timegroups) %>% 
-        reframe(n = n_distinct(group.id)) %>%
-        group_by(timegroups) %>%
-        filter(n > listlimit)
-      
-      if (length(temprestr1$timegroups) == length(soib_year_info("cat_years")))
-        speciesrestr$validr[speciesrestr$species == speciesrestr$species[i]] = 1
-      
-    }
-    
-  }
-  
-  
-  # full species list (historical + recent) ###
-  
-  dataf = fullmap
-  names(dataf)[1:2] = c("COMMON.NAME","SCIENTIFIC.NAME")
-  
-  # joining info for normal species (non-range-restricted)
-  dataf = dataf %>% 
-    left_join(datah, by = c("COMMON.NAME")) %>% 
-    left_join(datar, by = c("COMMON.NAME"))
-  
-
-
-  # rerun specieslist and restrictedspecieslist only if "major" SoIB update
-  # use previous year's if interannual update, and update it to latest taxonomy
 
   if (singleyear == TRUE) {
+    
+    # update taxonomy
 
     load(cur_metadata$SPECLISTDATA.PATH)
-    # update taxonomy
-    specieslist <- update_species_lists(specieslist)
-    restrictedspecieslist <- update_species_lists(restrictedspecieslist)
-
+    specieslist <- update_species_lists(specieslist, scientific_also = FALSE)
+    restrictedspecieslist <- update_species_lists(restrictedspecieslist, scientific_also = FALSE)
+    
+    dataf <- read.csv(file = cur_metadata$FULLSPECLIST.PATH) %>% 
+      update_species_lists(scientific_also = TRUE)
+    
+    
+    # if annual update, don't include stats10-12 (species filters)
+    stats = c(stats1, stats2, stats3, stats4, stats5, stats6,
+              stats7, stats8, stats9)
+    
   } else if (singleyear == FALSE) {
-
+    
+    # thresholds for species to be considered in each analysis
+    # - individual locations
+    # - grid cells
+    # - checklists
+    # lowered slightly for states for inclusion; their Statuses will handle rest
+    if (cur_metadata$MASK.TYPE == "state") {
+      
+      locationlimit = 10
+      gridlimit = 4 
+      listlimit = 30
+      
+    } else {
+      
+      locationlimit = 15 
+      gridlimit = 4 
+      listlimit = 50
+      
+    }
+    
+    
+    # list of species recorded from state
+    cur_mask_spec <- data %>% distinct(COMMON.NAME) %>% pull(COMMON.NAME)
+    
+    
+    # historical data (data from before 2000 onwards), used for long-term trends
+    # gives list of species for which we have enough data and this analysis can be done
+    datah = data0 %>%
+      filter(ALL.SPECIES.REPORTED == 1, 
+             CATEGORY %in% c("species", "issf")) %>%
+      group_by(COMMON.NAME, timegroups) %>%
+      reframe(locs = n_distinct(LOCALITY.ID), 
+              cells = n_distinct(gridg4)) %>%
+      group_by(COMMON.NAME, timegroups) %>%
+      filter(locs > locationlimit, cells > gridlimit) %>%
+      group_by(COMMON.NAME) %>% 
+      reframe(years = n()) %>%
+      group_by(COMMON.NAME) %>%
+      filter(years == length(soib_year_info("timegroup_lab"))) %>%
+      mutate(ht = 1) %>% 
+      dplyr::select(COMMON.NAME, ht)
+    
+    # recent data (data from 2015 onwards), used for recent trends
+    # gives list of species for which we have enough data and this analysis can be done
+    datar = data0 %>%
+      filter(ALL.SPECIES.REPORTED == 1, 
+             CATEGORY %in% c("species", "issf"), 
+             year >= soib_year_info("cat_start")) %>%
+      group_by(COMMON.NAME, year) %>%
+      reframe(locs = n_distinct(LOCALITY.ID), 
+              cells = n_distinct(gridg4)) %>%
+      group_by(COMMON.NAME, year) %>%
+      filter(locs > locationlimit, cells > gridlimit) %>%
+      group_by(COMMON.NAME) %>% 
+      reframe(years = n()) %>%
+      group_by(COMMON.NAME) %>%
+      filter(years == length(soib_year_info("cat_years"))) %>%
+      mutate(rt = 1) %>% 
+      dplyr::select(COMMON.NAME, rt)
+    
+    # return
+    
+    
+    # for other species that don't qualify simple rules above (restricted range)
+    dataresth1 = data0 %>%
+      filter(ALL.SPECIES.REPORTED == 1, 
+             CATEGORY %in% c("species", "issf")) %>%
+      group_by(COMMON.NAME, timegroups) %>%
+      reframe(cells = n_distinct(gridg4)) %>%
+      group_by(COMMON.NAME, timegroups) %>%
+      filter(cells <= gridlimit) %>%
+      group_by(COMMON.NAME) %>% 
+      reframe(years = n()) %>%
+      group_by(COMMON.NAME) %>%
+      filter(years == length(soib_year_info("timegroup_lab"))) %>%
+      dplyr::select(COMMON.NAME)
+    
+    datarestr1 = data0 %>%
+      filter(ALL.SPECIES.REPORTED == 1, 
+             CATEGORY %in% c("species", "issf"), 
+             year >= soib_year_info("cat_start")) %>%
+      group_by(COMMON.NAME, timegroups) %>%
+      reframe(cells = n_distinct(gridg4)) %>%
+      group_by(COMMON.NAME, timegroups) %>%
+      filter(cells <= gridlimit) %>%
+      group_by(COMMON.NAME) %>% 
+      reframe(years = n()) %>%
+      group_by(COMMON.NAME) %>%
+      filter(years == length(soib_year_info("cat_years"))) %>%
+      dplyr::select(COMMON.NAME)
+    
+    
+    # return
+    
+    speciesresth = dataresth1 %>% 
+      rename(species = COMMON.NAME) %>% 
+      inner_join(data.frame(species = spec_resident)) %>% 
+      mutate(validh = NA_real_)
+    
+    if (nrow(speciesresth) > 0) {
+      
+      # if the grids in which species has been reported a few times have sufficient lists
+      # from enough years, still consider for analysis
+      for (i in 1:length(speciesresth$species))
+      {
+        tempresth1 = data0 %>%
+          filter(COMMON.NAME == speciesresth$species[i]) %>%
+          distinct(gridg1) %>%
+          left_join(data0) %>%
+          group_by(timegroups) %>% 
+          reframe(n = n_distinct(group.id)) %>%
+          group_by(timegroups) %>%
+          filter(n > listlimit)
+        
+        if (length(tempresth1$timegroups) == length(soib_year_info("timegroup_lab")))
+          speciesresth$validh[speciesresth$species == speciesresth$species[i]] = 1
+        
+      }
+      
+    }
+    
+    speciesrestr = datarestr1 %>% 
+      rename(species = COMMON.NAME) %>% 
+      inner_join(data.frame(species = spec_resident)) %>% 
+      mutate(validr = NA_real_)
+    
+    if (nrow(speciesrestr) > 0) {
+      
+      for (i in 1:length(speciesrestr$species))
+      {
+        temprestr1 = data0 %>%
+          filter(COMMON.NAME == speciesrestr$species[i]) %>%
+          distinct(gridg1) %>%
+          left_join(data0) %>%
+          filter(year >= soib_year_info("cat_start")) %>%
+          group_by(timegroups) %>% 
+          reframe(n = n_distinct(group.id)) %>%
+          group_by(timegroups) %>%
+          filter(n > listlimit)
+        
+        if (length(temprestr1$timegroups) == length(soib_year_info("cat_years")))
+          speciesrestr$validr[speciesrestr$species == speciesrestr$species[i]] = 1
+        
+      }
+      
+    }
+    
+    
+    # full species list (historical + recent) ###
+    
+    dataf = fullmap
+    names(dataf)[1:2] = c("COMMON.NAME","SCIENTIFIC.NAME")
+    
+    # joining info for normal species (non-range-restricted)
+    dataf = dataf %>% 
+      left_join(datah, by = c("COMMON.NAME")) %>% 
+      left_join(datar, by = c("COMMON.NAME"))
+    
+    
     # we need country specieslist to derive specieslist for states
     if (cur_metadata$MASK.TYPE == "state") {
       load(file = get_metadata("none") %>% pull(SPECLISTDATA.PATH))
@@ -738,20 +780,20 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = interannual_update)
       specieslist_nat <- specieslist
       rm(specieslist, restrictedspecieslist)
     }
-
+    
     # to limit number of species in restricted species list for states
     specieslist_rest = dataf %>%
       filter(., 
-               (Essential == 1 | Endemic.Region != "Non-endemic" | ht == 1 | rt == 1), 
-               (Breeding.Activity.Period != "Nocturnal" | 
-                  Non.Breeding.Activity.Period != "Nocturnal" | 
-                  COMMON.NAME == "Jerdon's Courser"),
-               (is.na(Discard))
-        ) %>%
+             (Essential == 1 | Endemic.Region != "Non-endemic" | ht == 1 | rt == 1), 
+             (Breeding.Activity.Period != "Nocturnal" | 
+                Non.Breeding.Activity.Period != "Nocturnal" | 
+                COMMON.NAME == "Jerdon's Courser"),
+             (is.na(Discard))
+      ) %>%
       # filter out species not recorded from current mask
       filter(COMMON.NAME %in% cur_mask_spec) %>% 
       dplyr::select(COMMON.NAME, ht, rt)
-      
+    
     specieslist = dataf %>%
       # for states, we want to include any species reported from the state & with trend for country
       {if (cur_metadata$MASK.TYPE != "state") {
@@ -775,47 +817,45 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = interannual_update)
       filter(COMMON.NAME %in% cur_mask_spec) %>% 
       dplyr::select(COMMON.NAME, ht, rt)
     
-  }
-
-  
-
-  # although specieslist is already extracted previously, ht and rt in dataf need to be
-  # synced so that later calculations of stats (number of species that met certain criteria)
-  # can be done using this data frame
-  dataf <- dataf %>% 
-    mutate(ht = case_when(Breeding.Activity.Period == "Nocturnal" &
-                            Non.Breeding.Activity.Period == "Nocturnal" ~ NA_real_,
-                          TRUE ~ ht),
-           rt = case_when(Breeding.Activity.Period == "Nocturnal" &
-                            Non.Breeding.Activity.Period == "Nocturnal" ~ NA_real_,
-                          TRUE ~ rt))
-  
-  
-  # t1, t2, and t3 are dataframes that are filtered to give information on
-  # 1) how many species qualified for SoIB through data availability for trends
-  # 2) how many species qualified through endemicity
-  # 3) how many qualified because they were noted to be essential for the Indian context
-  t1 = dataf %>%
-    filter((ht == 1 | rt == 1) &
-             (Breeding.Activity.Period != "Nocturnal" |
-                Non.Breeding.Activity.Period != "Nocturnal"))
-  t2 = dataf %>%
-    filter((Endemic.Region != "Non-endemic" | ht == 1 | rt == 1) & 
-             (Breeding.Activity.Period != "Nocturnal" |
-                Non.Breeding.Activity.Period != "Nocturnal"))
-  t3 = dataf %>%
-    filter((Essential == 1 | Endemic.Region != "Non-endemic" | ht == 1 | rt == 1) &
-             (Breeding.Activity.Period != "Nocturnal" |
-                Non.Breeding.Activity.Period != "Nocturnal"))
-  
-  stats10 = paste(length(t1$COMMON.NAME),"filter 1 number of species")
-  stats11 = paste(length(t2$COMMON.NAME),"filter 2 number of species")
-  stats12 = paste(length(t3$COMMON.NAME),"filter 3 number of species")
-
-  
-  
-  if (singleyear == FALSE) {
-
+    
+    # although specieslist is already extracted previously, ht and rt in dataf need to be
+    # synced so that later calculations of stats (number of species that met certain criteria)
+    # can be done using this data frame
+    dataf <- dataf %>% 
+      mutate(ht = case_when(Breeding.Activity.Period == "Nocturnal" &
+                              Non.Breeding.Activity.Period == "Nocturnal" ~ NA_real_,
+                            TRUE ~ ht),
+             rt = case_when(Breeding.Activity.Period == "Nocturnal" &
+                              Non.Breeding.Activity.Period == "Nocturnal" ~ NA_real_,
+                            TRUE ~ rt))
+    
+    
+    # t1, t2, and t3 are dataframes that are filtered to give information on
+    # 1) how many species qualified for SoIB through data availability for trends
+    # 2) how many species qualified through endemicity
+    # 3) how many qualified because they were noted to be essential for the Indian context
+    t1 = dataf %>%
+      filter((ht == 1 | rt == 1) &
+               (Breeding.Activity.Period != "Nocturnal" |
+                  Non.Breeding.Activity.Period != "Nocturnal"))
+    t2 = dataf %>%
+      filter((Endemic.Region != "Non-endemic" | ht == 1 | rt == 1) & 
+               (Breeding.Activity.Period != "Nocturnal" |
+                  Non.Breeding.Activity.Period != "Nocturnal"))
+    t3 = dataf %>%
+      filter((Essential == 1 | Endemic.Region != "Non-endemic" | ht == 1 | rt == 1) &
+               (Breeding.Activity.Period != "Nocturnal" |
+                  Non.Breeding.Activity.Period != "Nocturnal"))
+    
+    stats10 = paste(length(t1$COMMON.NAME),"filter 1 number of species")
+    stats11 = paste(length(t2$COMMON.NAME),"filter 2 number of species")
+    stats12 = paste(length(t3$COMMON.NAME),"filter 3 number of species")
+    
+    
+    stats = c(stats1, stats2, stats3, stats4, stats5, stats6,
+              stats7, stats8, stats9, stats10, stats11, stats12)
+    
+    
     # ignoring species that are frequently misIDd
     specieslist <- specieslist %>% 
       mutate(ht = case_when(COMMON.NAME %in% spec_misid ~ NA_real_,
@@ -914,152 +954,125 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = interannual_update)
       mutate(mixed = 0)
       
     restrictedspecieslist = rbind(restrictedspecieslist_a,restrictedspecieslist_b)
-  
-  }
-  
 
-  
-  # creates the column "selected" that is used to provide information about which species
-  # have been selected for SoIB when the data frame is written on to the larger data frame
-  # with the full species list
-  specieslist1 = specieslist %>% 
-    mutate(selected = 1) %>% 
-    dplyr::select(COMMON.NAME, selected)
-  
-  dataf = dataf %>%
-    dplyr::select(COMMON.NAME, SCIENTIFIC.NAME, ht, rt) %>% 
-    left_join(specieslist1) %>% 
-    magrittr::set_colnames(c("COMMON.NAME","SCIENTIFIC.NAME",
-                             "Long.Term.Analysis","Current.Analysis",
-                             "Selected.SOIB")) %>%  
-    # converting to report table-style with blanks for NAs and Xs for 1s
-    mutate(across(everything(), ~ as.character(.))) %>% 
-    mutate(across(everything(), ~ replace_na(., replace = ""))) %>% 
-    mutate(across(everything(), ~ str_replace(., pattern = "1", replacement = "X"))) %>% 
-    # also including species in checks
-    mutate(Long.Term.Analysis = if_else(COMMON.NAME %in% check1, "X", Long.Term.Analysis),
-           Current.Analysis = if_else(COMMON.NAME %in% check2, "X", Current.Analysis)) %>%
-    dplyr::select("COMMON.NAME","SCIENTIFIC.NAME","Long.Term.Analysis","Current.Analysis",
-                  "Selected.SOIB")
-  
-  
-  # filtering for only species in certain masks ###
-  if (cur_mask == "woodland") {
     
-    dataf <- dataf %>% 
-      mutate(Long.Term.Analysis = if_else(!(COMMON.NAME %in% spec_woodland), "", Long.Term.Analysis),
-             Current.Analysis = if_else(!(COMMON.NAME %in% spec_woodland), "", Current.Analysis),
-             Selected.SOIB = if_else(!(COMMON.NAME %in% spec_woodland), "", Selected.SOIB))
+    # creates the column "selected" that is used to provide information about which species
+    # have been selected for SoIB when the data frame is written on to the larger data frame
+    # with the full species list
+    specieslist1 = specieslist %>% 
+      mutate(selected = 1) %>% 
+      dplyr::select(COMMON.NAME, selected)
     
-  } else if (cur_mask %in% c("cropland", "ONEland")) {
+    dataf = dataf %>%
+      dplyr::select(COMMON.NAME, SCIENTIFIC.NAME, ht, rt) %>% 
+      left_join(specieslist1) %>% 
+      magrittr::set_colnames(c("COMMON.NAME","SCIENTIFIC.NAME",
+                               "Long.Term.Analysis","Current.Analysis",
+                               "Selected.SOIB")) %>%  
+      # converting to report table-style with blanks for NAs and Xs for 1s
+      mutate(across(everything(), ~ as.character(.))) %>% 
+      mutate(across(everything(), ~ replace_na(., replace = ""))) %>% 
+      mutate(across(everything(), ~ str_replace(., pattern = "1", replacement = "X"))) %>% 
+      # also including species in checks
+      mutate(Long.Term.Analysis = if_else(COMMON.NAME %in% check1, "X", Long.Term.Analysis),
+             Current.Analysis = if_else(COMMON.NAME %in% check2, "X", Current.Analysis)) %>%
+      dplyr::select("COMMON.NAME","SCIENTIFIC.NAME","Long.Term.Analysis","Current.Analysis",
+                    "Selected.SOIB")
     
-    dataf <- dataf %>% 
-      mutate(Long.Term.Analysis = if_else(!(COMMON.NAME %in% spec_openland), "", Long.Term.Analysis),
-             Current.Analysis = if_else(!(COMMON.NAME %in% spec_openland), "", Current.Analysis),
-             Selected.SOIB = if_else(!(COMMON.NAME %in% spec_openland), "", Selected.SOIB))
+    
+    # filtering for only species in certain masks ###
+    if (cur_mask == "woodland") {
+      
+      dataf <- dataf %>% 
+        mutate(Long.Term.Analysis = if_else(!(COMMON.NAME %in% spec_woodland), "", Long.Term.Analysis),
+               Current.Analysis = if_else(!(COMMON.NAME %in% spec_woodland), "", Current.Analysis),
+               Selected.SOIB = if_else(!(COMMON.NAME %in% spec_woodland), "", Selected.SOIB))
+      
+    } else if (cur_mask %in% c("cropland", "ONEland")) {
+      
+      dataf <- dataf %>% 
+        mutate(Long.Term.Analysis = if_else(!(COMMON.NAME %in% spec_openland), "", Long.Term.Analysis),
+               Current.Analysis = if_else(!(COMMON.NAME %in% spec_openland), "", Current.Analysis),
+               Selected.SOIB = if_else(!(COMMON.NAME %in% spec_openland), "", Selected.SOIB))
+      
+    }
+    
+    
+    
+    # additional filtering safeguards - proportion of range sampled during every timegroup
+    
+    temp = data %>%
+      filter(COMMON.NAME %in% dataf$COMMON.NAME, 
+             ALL.SPECIES.REPORTED == 1)
+    
+    totalrange = temp %>%
+      group_by(COMMON.NAME) %>% 
+      reframe(totalrange25km = n_distinct(gridg1))
+    
+    proprange2000 = temp %>%
+      filter(timegroups == soib_year_info("timegroup_lab")[1]) %>%
+      group_by(COMMON.NAME) %>% 
+      reframe(proprange25km2000 = n_distinct(gridg1))
+    
+    proprange.latestyear = temp %>%
+      filter(timegroups == as.character(soib_year_info("latest_year"))) %>%
+      group_by(COMMON.NAME) %>% 
+      reframe(proprange25km.latestyear = n_distinct(gridg1))
+    
+    proprange.current = temp %>%
+      filter(timegroups %in% as.character(soib_year_info("cat_years"))) %>%
+      group_by(COMMON.NAME, timegroups) %>% 
+      reframe(proprange25km.current = n_distinct(gridg1)) %>%
+      group_by(COMMON.NAME) %>% 
+      reframe(proprange25km.current = mean(proprange25km.current))
+    
+    range25km = totalrange %>% 
+      left_join(proprange2000) %>% 
+      left_join(proprange.current) %>% 
+      left_join(proprange.latestyear) %>%
+      mutate(proprange25km2000 = proprange25km2000/totalrange25km,
+             proprange25km.current = proprange25km.current/totalrange25km,
+             proprange25km.latestyear = proprange25km.latestyear/totalrange25km)
+    
+    
+    # additional filtering safeguards - proportional sampling within each 25km grid cell
+    
+    samp5km = data %>%
+      filter(ALL.SPECIES.REPORTED == 1) %>%
+      group_by(gridg1) %>% 
+      reframe(n = n_distinct(gridg0))
+    
+    spec25km = data %>%
+      filter(ALL.SPECIES.REPORTED == 1,
+             COMMON.NAME %in% dataf$COMMON.NAME) %>%
+      distinct(COMMON.NAME, gridg1)
+    
+    samp25km5km = spec25km %>% 
+      left_join(samp5km) %>%
+      group_by(COMMON.NAME) %>% 
+      reframe(mean5km = mean(n), 
+              ci5km = 1.96*sd(n)/sqrt(n()))
+    
+    dataf = dataf %>% left_join(range25km) %>% left_join(samp25km5km)
+    
     
   }
   
   
-  # number of sampled grid cell at each resolution
-  sampledcells = c(length(unique(data0$gridg0)),
-                   length(unique(data0$gridg1)),
-                   length(unique(data0$gridg2)),
-                   length(unique(data0$gridg3)),
-                   length(unique(data0$gridg4)))
-  
-  stats = c(stats1, stats2, stats3, stats4, stats5, stats6,
-            stats7, stats8, stats9, stats10, stats11, stats12)
-  
-  
-  
-  # additional filtering safeguards - proportion of range sampled during every timegroup
-  
-  temp = data %>%
-    filter(COMMON.NAME %in% dataf$COMMON.NAME, 
-           ALL.SPECIES.REPORTED == 1)
-  
-  totalrange = temp %>%
-    group_by(COMMON.NAME) %>% 
-    reframe(totalrange25km = n_distinct(gridg1))
-  
-  proprange2000 = temp %>%
-    filter(timegroups == soib_year_info("timegroup_lab")[1]) %>%
-    group_by(COMMON.NAME) %>% 
-    reframe(proprange25km2000 = n_distinct(gridg1))
-  
-  proprange.latestyear = temp %>%
-    filter(timegroups == as.character(soib_year_info("latest_year"))) %>%
-    group_by(COMMON.NAME) %>% 
-    reframe(proprange25km.latestyear = n_distinct(gridg1))
-  
-  proprange.current = temp %>%
-    filter(timegroups %in% as.character(soib_year_info("cat_years"))) %>%
-    group_by(COMMON.NAME, timegroups) %>% 
-    reframe(proprange25km.current = n_distinct(gridg1)) %>%
-    group_by(COMMON.NAME) %>% 
-    reframe(proprange25km.current = mean(proprange25km.current))
-  
-  range25km = totalrange %>% 
-    left_join(proprange2000) %>% 
-    left_join(proprange.current) %>% 
-    left_join(proprange.latestyear) %>%
-    mutate(proprange25km2000 = proprange25km2000/totalrange25km,
-           proprange25km.current = proprange25km.current/totalrange25km,
-           proprange25km.latestyear = proprange25km.latestyear/totalrange25km)
-  
-  
-  # additional filtering safeguards - proportional sampling within each 25km grid cell
-  
-  samp5km = data %>%
-    filter(ALL.SPECIES.REPORTED == 1) %>%
-    group_by(gridg1) %>% 
-    reframe(n = n_distinct(gridg0))
-  
-  spec25km = data %>%
-    filter(ALL.SPECIES.REPORTED == 1,
-           COMMON.NAME %in% dataf$COMMON.NAME) %>%
-    distinct(COMMON.NAME, gridg1)
-  
-  samp25km5km = spec25km %>% 
-    left_join(samp5km) %>%
-    group_by(COMMON.NAME) %>% 
-    reframe(mean5km = mean(n), 
-            ci5km = 1.96*sd(n)/sqrt(n()))
-  
-  dataf = dataf %>% left_join(range25km) %>% left_join(samp25km5km)
-  
-  
-  # writing filtered data files ---------------------------------------------
-  
-  # saving a set of CSVs and RData files to be used further down the pipeline
-  
+  # writing filtered species list files ---------------------------------------------
   
   # saving a full species list of the country with all associated metadata including
   # whether they've been included for SoIB and whether they've qualified for any analyses
-  write.csv(dataf, row.names = F, 
+  write.csv(dataf, row.names = FALSE, 
             file = cur_metadata$FULLSPECLIST.PATH)
-  
-  
-  # saving a full list of location IDs to be used if required (currently unused)
-  locs_write = data0 %>% 
-    filter(ALL.SPECIES.REPORTED == 1) %>%
-    distinct(LOCALITY.ID, group.id, month, timegroups)
-  
-  write.csv(locs_write, row.names = F, 
-            file = cur_metadata$LOCS.PATH)
   
   
   # saving a data frame called "specieslist" that has both specieslist as well as restrictedspecieslist
   # these is an essential dataframe that is called whenever information is required
   # about which analysis to perfrom for a species
   # (rewrites the RData file even if interannual update, since databins would be different)
-  save(specieslist, restrictedspecieslist, databins, 
+  save(specieslist, restrictedspecieslist, databins, stats, 
        file = cur_metadata$SPECLISTDATA.PATH)
-  
-  # saving the full filtered data
-  save(data, sampledcells, databins, stats, 
-       file = cur_metadata$DATA.PATH)
   
 }
 
@@ -1939,9 +1952,9 @@ get_soib_status_cats <- function(which = NULL) {
 # and so gets iterated across masks during each corresponding run
 
 
-update_species_lists = function(species_list_data) {
+update_species_lists = function(species_list_data, scientific_also = FALSE) {
 
-  # works for both specieslist and restrictedspecieslist
+  # works for both specieslist and restrictedspecieslist, and fullspecieslist
 
   if (interannual_update == FALSE) {
     stop("Currently running 'major' SoIB update, so specieslists needs to be rerun properly!")
@@ -1950,21 +1963,39 @@ update_species_lists = function(species_list_data) {
   require(tidyverse)
   
   updatemap = read.csv("00_data/eBird_taxonomy_mapping_2022to2023.csv")
+  if (!exists("fullmap")) {
+    fullmap <- read.csv("00_data/SoIB_mapping_2023.csv")
+  }
+  
+  
 
   # when rerunning for same year, need to return unmodified list
   # because species names already updated in prior run
   if (any(!species_list_data$COMMON.NAME %in% updatemap$eBird.English.Name.2022)) {
 
     message("Species list is already updated to latest taxonomy. Returning original list.")
-    return(species_list_dataa)
+    return(species_list_data)
 
   } else {
 
     list_new <- species_list_data |> 
-      left_join(updatemap, by = c("COMMON.NAME" = "eBird.English.Name.2022")) |> 
+      left_join(updatemap, 
+                by = c("COMMON.NAME" = "eBird.English.Name.2022")) |> 
       dplyr::select(-COMMON.NAME) |> 
       relocate(eBird.English.Name.2023) |> # first column is species name
       rename(COMMON.NAME = eBird.English.Name.2023)
+    
+    if (scientific_also == TRUE) {
+      
+      list_new <- list_new %>% 
+        left_join(fullmap %>% 
+                    distinct(eBird.English.Name.2023, eBird.Scientific.Name.2023),
+                  by = c("COMMON.NAME" = "eBird.English.Name.2023")) %>% 
+        dplyr::select(-SCIENTIFIC.NAME) %>% 
+        rename(SCIENTIFIC.NAME = eBird.Scientific.Name.2023) %>% 
+        relocate(COMMON.NAME, SCIENTIFIC.NAME)
+
+    }
       
     return(list_new)
   
