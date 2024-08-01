@@ -7,7 +7,12 @@ load(speclist_path)
 to_run <- (1 %in% specieslist$ht) | (1 %in% specieslist$rt) |
   (1 %in% restrictedspecieslist$ht) | (1 %in% restrictedspecieslist$rt)
 
-singleyear = T
+
+# singleyear = interannualupdate
+singleyear = FALSE
+# not using single year modelling approach, since test runs showed that
+# single year models produce notably higher estimates than full-year models
+
 
 if (to_run == TRUE) {
 
