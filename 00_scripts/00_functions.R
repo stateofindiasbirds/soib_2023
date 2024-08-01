@@ -81,7 +81,7 @@ createrandomlocs = function(locs)
 soib_year_info <- function(what = "latest_year") {
 
   # catch input errors
-  valid_inputs <- c("latest_year", "timegroup_lab", "cat_years", "cat_start")
+  valid_inputs <- c("latest_year", "timegroup_lab", "timegroup_med", "cat_years", "cat_start")
 
   if (!what %in% valid_inputs) {
     stop(paste("Choose valid info to obtain regarding current SoIB years: {", 
@@ -100,13 +100,20 @@ soib_year_info <- function(what = "latest_year") {
   }
 
     
-  # timegroup labels (2013 as threshold here is somewhat arbitrary, not sure which years in full_soib_my)
-  if (what == "timegroup_lab") {
-    pre_labels <- c("before 2000","2000-2006","2007-2010","2011-2012","2013")
-    full_labels <- full_soib_my[full_soib_my > 2013] |> as.character()
+  # timegroup labels or median years
+  # (2013 as threshold here is somewhat arbitrary, not sure which years in full_soib_my)
+  if (what %in% c("timegroup_lab", "timegroup_med")) {
+    
+    if (what == "timegroup_lab") {
+      pre <- c("before 2000","2000-2006","2007-2010","2011-2012","2013")
+      full <- full_soib_my[full_soib_my > 2013] |> as.character()
+    } else if (what == "timegroup_med") {
+      pre <- c(median_soib_hist_years, 2013)
+      full <- full_soib_my[full_soib_my > 2013]
+    }
 
-    all_labels <- c(pre_labels, full_labels)
-    return(all_labels)
+    all <- c(pre, full)
+    return(all)
   }
 
 
@@ -300,8 +307,22 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_relJun-2024.txt",
     pull(year)
 
   latest_soib_my <- max(full_soib_my)
+  
+  # median years for each historical timegroup
+  median_soib_hist_years <- data %>% 
+    distinct(group.id, .keep_all = TRUE) %>% 
+    filter(ALL.SPECIES.REPORTED == 1) %>%
+    mutate(hist_period = case_when(year <= 1999 ~ 1,
+                                  year > 1999 & year <= 2006 ~ 2,
+                                  year > 2006 & year <= 2010 ~ 3,
+                                  year > 2010 & year <= 2012 ~ 4)) %>% 
+    group_by(hist_period) %>% 
+    reframe(median_year = round(median(year))) %>% 
+    arrange(hist_period) %>% 
+    pull(median_year)
 
-  save(full_soib_my, latest_soib_my, file = "00_data/current_soib_migyears.RData")
+  save(full_soib_my, latest_soib_my, median_soib_hist_years, 
+       file = "00_data/current_soib_migyears.RData")
   # this RData file gets updated each time readcleanrawdata() is run---
   # which is usually only once in each annual or "major" update
   # (intermediate changes usually don't run readcleanrawdata() so year won't change)
@@ -1070,8 +1091,7 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = interannual_update)
   # saving a data frame called "specieslist" that has both specieslist as well as restrictedspecieslist
   # these is an essential dataframe that is called whenever information is required
   # about which analysis to perfrom for a species
-  # (rewrites the RData file even if interannual update, since databins would be different)
-  save(specieslist, restrictedspecieslist, databins, stats, 
+  save(specieslist, restrictedspecieslist, stats, 
        file = cur_metadata$SPECLISTDATA.PATH)
   
 }
@@ -1259,7 +1279,9 @@ singlespeciesrun = function(data, species, specieslist, restrictedspecieslist,
                             singleyear = FALSE)
 {
   require(tidyverse)
+  require(lme4)
   require(merTools)
+  require(glue)
   
   data1 = data
   

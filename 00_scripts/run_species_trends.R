@@ -104,7 +104,9 @@ if (to_run == TRUE) {
     # # how many workers are available? (optional)
     # foreach::getDoParWorkers()
     
-    trends0 = foreach(i = listofspecies, .combine = 'cbind', .errorhandling = 'remove') %dopar%
+    trends0 = foreach(i = listofspecies, 
+                      # .verbose = TRUE,
+                      .combine = 'cbind', .errorhandling = 'remove') %dopar%
       singlespeciesrun(data = data, 
                        species = i, 
                        specieslist = specieslist, 
@@ -158,7 +160,9 @@ if (to_run == TRUE) {
         mutate(timegroups = soib_year_info("latest_year"),
                timegroupsf = as.character(soib_year_info("latest_year")))
 
-      }}
+      }} %>% 
+      # make sure freq and se are numerical
+      mutate(across(c("freq", "se"), ~ as.numeric(.)))
     
     
     # if full run, overwrite the CSV
