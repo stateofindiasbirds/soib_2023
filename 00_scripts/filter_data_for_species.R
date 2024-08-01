@@ -98,35 +98,45 @@ save(data0, file = "00_data/dataforanalyses_extra.RData")
 
 tic("dataspeciesfilter for full country")
 dataspeciesfilter(cur_mask = "none")
-toc() # 495 sec
+toc() 
+# 495 sec (2023)
+# 191 sec (2024)
 
 
 # 2. processing: woodland mask ----------------------------------------------
 
 tic("dataspeciesfilter for woodland mask")
 dataspeciesfilter(cur_mask = "woodland")
-toc() # 240 sec
+toc() 
+# 240 sec (2023)
+# 87 sec (2024)
 
 
 # 3. processing: cropland mask ----------------------------------------------
 
 tic("dataspeciesfilter for cropland mask")
 dataspeciesfilter(cur_mask = "cropland")
-toc() # 60 sec
+toc() 
+# 60 sec (2023)
+# 46 sec (2024)
 
 
 # 4. processing: ONEland mask -----------------------------------------------
 
 tic("dataspeciesfilter for ONEland mask")
 dataspeciesfilter(cur_mask = "ONEland")
-toc() # 60 sec
+toc() 
+# 60 sec (2023)
+# 20 sec (2024)
 
 
 # 5. processing: PA mask ----------------------------------------------------
 
 tic("dataspeciesfilter for PA mask")
 dataspeciesfilter(cur_mask = "PA")
-toc() # 80 sec
+toc() 
+# 80 sec (2023)
+# 24 sec (2024)
 
 
 # 6. processing: states ---------------------------------------------
@@ -149,3 +159,4 @@ get_metadata() %>%
 
 toc(log = TRUE, quiet = TRUE) 
 tic.log()
+# 253 sec (2024)

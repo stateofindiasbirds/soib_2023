@@ -39,7 +39,7 @@ source("00_scripts/01_create_metadata.R")
 tic("Reading and cleaning raw data")
 readcleanrawdata(rawpath = "00_data/ebd_IN_relJun-2024.txt", 
                  sensitivepath = "00_data/ebd_sensitive_relJun-2024_IN.txt")
-toc() # 55 min
+toc() # 34 min
 
 
 # for the following steps, there are two data files required, which need to be generated
@@ -69,7 +69,7 @@ toc() # 55 min
 
 tic("Adding map and grid variables to dataset")
 addmapvars()
-toc() # 11 min
+toc() # 12 min
 
 
 # STEP 3: Process and filter data for analyses
@@ -96,7 +96,9 @@ load("00_data/analyses_metadata.RData")
 
 tic("Processing and filtering data for analyses")
 source("00_scripts/filter_data_for_species.R")
-toc() # 51 min
+toc() 
+# 51 min (SoIB 2023)
+# 21 min (2024 annual update)
 
 # PART 2 (subsample) ------------------------------------------------------------------
 
@@ -121,7 +123,7 @@ load("00_data/analyses_metadata.RData")
 cur_mask <- "none"
 tic("generated random group IDs for full country")
 source("00_scripts/create_random_groupids.R")
-toc() # 86 min
+toc() # 100 min
 
 cur_mask <- "woodland"
 tic("generated random group IDs for woodland")
