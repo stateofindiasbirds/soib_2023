@@ -52,7 +52,7 @@ state_summary = states_sf %>%
 # key districts for top 4
 
 key_districts = data0 %>%
-  filter(ALL.SPECIES.REPORTED == 1, !is.na(DISTRICT), year > 2017) %>%
+  filter(ALL.SPECIES.REPORTED == 1, !is.na(DISTRICT), year > (soib_year_info("latest_year") - 5)) %>%
   group_by(ST_NM,DISTRICT) %>%
   mutate(lists = n_distinct(group.id)) %>% ungroup() %>%
   semi_join(top4) %>%

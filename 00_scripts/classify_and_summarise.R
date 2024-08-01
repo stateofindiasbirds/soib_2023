@@ -88,7 +88,7 @@ if (skip_res_occu == TRUE) {
 
 # any vagrant reported recently
 spec_vagrants <- d %>%
-  filter(year > 2017) %>%
+  filter(year > (soib_year_info("latest_year") - 5)) %>%
   distinct(COMMON.NAME) %>%
   pull(COMMON.NAME)
 

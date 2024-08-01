@@ -513,7 +513,7 @@ removevagrants = function(data)
     dplyr::select(gridg4, month, COMMON.NAME)
   
   d = left_join(d, data) %>%
-    filter(year > 2014)
+    filter(year >= soib_year_info("cat_start"))
   
   save(d, file = "00_data/vagrantdata.RData")
   
