@@ -100,7 +100,7 @@ tic("dataspeciesfilter for full country")
 dataspeciesfilter(cur_mask = "none")
 toc() 
 # 495 sec (2023)
-# 191 sec (2024)
+# 185 sec (2024)
 
 
 # 2. processing: woodland mask ----------------------------------------------
@@ -109,7 +109,7 @@ tic("dataspeciesfilter for woodland mask")
 dataspeciesfilter(cur_mask = "woodland")
 toc() 
 # 240 sec (2023)
-# 87 sec (2024)
+# 86 sec (2024)
 
 
 # 3. processing: cropland mask ----------------------------------------------
@@ -118,7 +118,7 @@ tic("dataspeciesfilter for cropland mask")
 dataspeciesfilter(cur_mask = "cropland")
 toc() 
 # 60 sec (2023)
-# 46 sec (2024)
+# 42 sec (2024)
 
 
 # 4. processing: ONEland mask -----------------------------------------------

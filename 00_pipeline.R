@@ -39,7 +39,7 @@ source("00_scripts/01_create_metadata.R")
 tic("Reading and cleaning raw data")
 readcleanrawdata(rawpath = "00_data/ebd_IN_relJun-2024.txt", 
                  sensitivepath = "00_data/ebd_sensitive_relJun-2024_IN.txt")
-toc() # 34 min
+toc() # 42 min
 
 
 # for the following steps, there are two data files required, which need to be generated
@@ -69,7 +69,7 @@ toc() # 34 min
 
 tic("Adding map and grid variables to dataset")
 addmapvars()
-toc() # 12 min
+toc() # 11 min
 
 
 # STEP 3: Process and filter data for analyses
@@ -123,31 +123,31 @@ load("00_data/analyses_metadata.RData")
 cur_mask <- "none"
 tic("generated random group IDs for full country")
 source("00_scripts/create_random_groupids.R")
-toc() # 100 min
+toc() # 109 min
 
 cur_mask <- "woodland"
 tic("generated random group IDs for woodland")
 source("00_scripts/create_random_groupids.R")
-toc() # 2331 sec (38 min)
+toc() # 2963 sec (49 min)
 
 cur_mask <- "cropland"
 tic("generated random group IDs for cropland")
 source("00_scripts/create_random_groupids.R")
-toc() # 833 sec (14 min)
+toc() # 1060 sec (18 min)
 
 cur_mask <- "ONEland"
 tic("generated random group IDs for ONEland")
 source("00_scripts/create_random_groupids.R")
-toc() # 463 sec (8 min)
+toc() # 615 sec (10 min)
 
 cur_mask <- "PA"
 tic("generated random group IDs for PA")
 source("00_scripts/create_random_groupids.R")
-toc() # 409 sec (7 min)
+toc() # 543 sec (9 min)
 
 # states
 tic.clearlog()
-tic("generated random group IDs for all states") # 74 min
+tic("generated random group IDs for all states") # 91 min
 
 analyses_metadata %>% 
   filter(MASK.TYPE == "state") %>% 
@@ -177,16 +177,16 @@ tic.log()
 #   - "dataforanalyses.RData" for whole country and individual mask versions
 #   - "randomgroupids.RData" for whole country and individual mask versions
 # Outputs:
-# - "dataforsim/dataX.csv" for whole country and individual mask versions
+# - "dataforsim/dataX.RData" for whole country and individual mask versions
 
 load("00_data/analyses_metadata.RData")
 
 
 cur_mask <- "none"
-my_assignment <- 1:100 # CHANGE FOR YOUR SUBSET
+my_assignment <- 1:200 # CHANGE FOR YOUR SUBSET
 tic(glue("Generated subsampled data for full country (# {min(my_assignment)}:{max(my_assignment)})"))
 source("00_scripts/create_random_datafiles.R")
-toc() # 462 min (~ 8 h)
+toc() # 124 min (~ 2 h) for 100
 
 
 cur_mask <- "woodland"
@@ -197,12 +197,12 @@ toc()
 cur_mask <- "cropland"
 tic(glue("Generated subsampled data for {cur_mask}"))
 source("00_scripts/create_random_datafiles.R")
-toc() 
+toc() # 4.75 hours
 
 cur_mask <- "ONEland"
 tic(glue("Generated subsampled data for {cur_mask}"))
 source("00_scripts/create_random_datafiles.R")
-toc() 
+toc() # 3 hours
 
 cur_mask <- "PA"
 tic(glue("Generated subsampled data for {cur_mask}"))
@@ -240,7 +240,7 @@ tic.log()
 # Requires:
 # - tidyverse, tictoc, lme4, VGAM, parallel, foreach, doParallel
 # - data files:
-#   - "dataforsim/dataX.csv" for whole country and individual mask versions
+#   - "dataforsim/dataX.RData" for whole country and individual mask versions
 #   - "specieslists.RData" for whole country and individual mask versions
 # Outputs:
 # - "trends/trendsX.csv" for whole country and individual mask versions
@@ -249,10 +249,11 @@ load("00_data/analyses_metadata.RData")
 
 # not functionising because parallelisation doesn't work inside functions
 cur_mask <- "none"
-my_assignment <- 1:100 # CHANGE FOR YOUR SUBSET
+my_assignment <- 1:200 # CHANGE FOR YOUR SUBSET
 tic(glue("Species trends for full country (sims {min(my_assignment)}--{max(my_assignment)})"))
 source("00_scripts/run_species_trends.R")
 toc() # 102 hours
+rm(my_assignment)
 
 cur_mask <- "woodland"
 tic(glue("Species trends for {cur_mask}"))
@@ -274,6 +275,8 @@ tic(glue("Species trends for {cur_mask}"))
 source("00_scripts/run_species_trends.R")
 toc() # 195 sec for 1 sim (~ 11 hours for 200 sim)
 
+
+cur_states <- c("")
 tic.clearlog()
 tic("Ran species trends for all states")
 # Karnataka takes 4.5 min per 1 sim
@@ -281,6 +284,7 @@ tic("Ran species trends for all states")
 analyses_metadata %>% 
   filter(MASK.TYPE == "state") %>% 
   distinct(MASK) %>% 
+  filter(MASK %in% cur_states) %>% 
   pull(MASK) %>% 
   # walking over each state
   walk(~ {
