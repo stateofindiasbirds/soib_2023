@@ -63,8 +63,10 @@ toc()
 # state runs --------------------------------------------------------------
 
 # list of states assigned (CHANGE FOR YOUR SUBSET)
-my_states <- c("Gujarat", "Uttarakhand", "West Bengal", "Maharashtra",
-               "Kerala", "Tamil Nadu") 
+my_states <- c("Gujarat", "Uttarakhand", "West Bengal", "Maharashtra", "Karnataka", 
+               "Kerala", "Tamil Nadu", "Meghalaya", "Ladakh")
+# my_states <- c("Telangana", "Chhattisgarh", "Jammu and Kashmir", "Assam",  
+#                "Andhra Pradesh", "Puducherry", "Madhya Pradesh")
 
 
 # STEP 1: Create subsampled data files using subsampled GROUP.IDs
@@ -97,7 +99,7 @@ tic("Ran species trends for all assigned states")
 analyses_metadata %>% 
   filter(MASK.TYPE == "state") %>% 
   distinct(MASK) %>% 
-  filter(MASK %in% my_assignment) %>% 
+  filter(MASK %in% my_states) %>% 
   pull(MASK) %>% 
   # walking over each state
   walk(~ {
@@ -111,3 +113,5 @@ analyses_metadata %>%
 
 toc(log = TRUE, quiet = TRUE) 
 tic.log()
+
+rm(my_states)

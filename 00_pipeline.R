@@ -209,13 +209,21 @@ tic(glue("Generated subsampled data for {cur_mask}"))
 source("00_scripts/create_random_datafiles.R")
 toc() 
 
+
 # states
+not_my_states <- c(
+  c("Telangana", "Chhattisgarh", "Jammu and Kashmir", "Assam",  "Andhra Pradesh", "Puducherry", 
+    "Madhya Pradesh"),
+  c("Gujarat", "Uttarakhand", "West Bengal", "Maharashtra", "Karnataka", "Kerala", "Tamil Nadu", 
+    "Meghalaya", "Ladakh")
+)
 tic.clearlog()
 tic("Generated subsampled data for all states") # 71 hours
 
 analyses_metadata %>% 
   filter(MASK.TYPE == "state") %>% 
   distinct(MASK) %>% 
+  filter(!MASK %in% not_my_states) %>% 
   pull(MASK) %>% 
   # walking over each state
   walk(~ {
@@ -229,6 +237,7 @@ analyses_metadata %>%
 
 toc(log = TRUE, quiet = TRUE) 
 tic.log()
+rm(not_my_states)
 
 
 
@@ -276,7 +285,12 @@ source("00_scripts/run_species_trends.R")
 toc() # 195 sec for 1 sim (~ 11 hours for 200 sim)
 
 
-cur_states <- c("")
+not_my_states <- c(
+  c("Telangana", "Chhattisgarh", "Jammu and Kashmir", "Assam",  "Andhra Pradesh", "Puducherry", 
+    "Madhya Pradesh"),
+  c("Gujarat", "Uttarakhand", "West Bengal", "Maharashtra", "Karnataka", "Kerala", "Tamil Nadu", 
+    "Meghalaya", "Ladakh")
+)
 tic.clearlog()
 tic("Ran species trends for all states")
 # Karnataka takes 4.5 min per 1 sim
@@ -284,7 +298,7 @@ tic("Ran species trends for all states")
 analyses_metadata %>% 
   filter(MASK.TYPE == "state") %>% 
   distinct(MASK) %>% 
-  filter(MASK %in% cur_states) %>% 
+  filter(!MASK %in% not_my_states) %>% 
   pull(MASK) %>% 
   # walking over each state
   walk(~ {
@@ -298,6 +312,7 @@ analyses_metadata %>%
 
 toc(log = TRUE, quiet = TRUE) 
 tic.log()
+rm(not_my_states)
 
 # # for interrupted runs
 # cur_mask <- "Rajasthan"
