@@ -218,7 +218,7 @@ not_my_states <- c(
     "Meghalaya", "Ladakh")
 )
 tic.clearlog()
-tic("Generated subsampled data for all states") # 71 hours
+tic("Generated subsampled data for all states") # 4 hours for 21 states
 
 analyses_metadata %>% 
   filter(MASK.TYPE == "state") %>% 

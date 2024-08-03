@@ -1,6 +1,7 @@
 # preparing data for specific mask (this is the only part that changes, but automatically)
 cur_metadata <- get_metadata(cur_mask)
 speclist_path <- cur_metadata$SPECLISTDATA.PATH
+databins_path <- cur_metadata$DATA.PATH # for databins
 
 # don't run if no species selected
 load(speclist_path)
@@ -51,6 +52,8 @@ if (to_run == TRUE) {
   
   
   load(speclist_path)
+  load(databins_path)
+  rm(data)
   
   lsa = specieslist %>% filter(!is.na(ht) | !is.na(rt))
   listofspecies = c(lsa$COMMON.NAME, restrictedspecieslist$COMMON.NAME)
