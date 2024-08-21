@@ -46,8 +46,31 @@ if (to_run == TRUE) {
   require(VGAM)
   require(parallel)
   require(foreach)
-  require(doParallel)
-  
+
+  # from https://stackoverflow.com/a/38371601/13000254
+  # also see Linux-specific cases https://stackoverflow.com/q/37750937/13000254
+  if(Sys.info()["sysname"]=="Windows"){
+
+    sys_windows <- TRUE
+
+    if (!("doParallel" %in% installed.packages()[,"Package"])) {
+      install.packages("doParallel")
+    }
+
+    require(doParallel)
+
+  } else {
+
+    sys_windows <- FALSE
+
+    if (!("doMC" %in% installed.packages()[,"Package"])) {
+      install.packages("doMC")
+    }
+
+    require(doMC)
+
+  }
+
   source('00_scripts/00_functions.R')
   
   
@@ -99,13 +122,21 @@ if (to_run == TRUE) {
     
     # start parallel
     n.cores = parallel::detectCores()/2
+
+
     # create the cluster
-    my.cluster = parallel::makeCluster(
-      n.cores, 
-      type = "PSOCK"
-    )
-    # register it to be used by %dopar%
-    doParallel::registerDoParallel(cl = my.cluster)
+    if (sys_windows == TRUE) {
+
+      my.cluster = parallel::makeCluster(
+        n.cores, 
+        type = "PSOCK"
+      )
+      # register it to be used by %dopar%
+      doParallel::registerDoParallel(cl = my.cluster)
+
+    } else {
+      doMC::registerDoMC(n.cores)
+    }
     
     # # check if it is registered (optional)
     # foreach::getDoParRegistered()
@@ -121,7 +152,9 @@ if (to_run == TRUE) {
                        restrictedspecieslist = restrictedspecieslist,
                        singleyear = singleyear)
     
-    parallel::stopCluster(cl = my.cluster)
+    if (sys_windows == TRUE) {
+      parallel::stopCluster(cl = my.cluster)
+    }
     
 
     trends = data.frame(trends0) %>% 
@@ -201,9 +234,12 @@ if (to_run == TRUE) {
     
     tictoc::toc() 
     
-    gc()
+    # maybe unnecessary time-consuming step:
+    # worth trying the profiling mentioned here http://adv-r.had.co.nz/memory.html
+    # https://stackoverflow.com/questions/1467201/forcing-garbage-collection-to-run-in-r-with-the-gc-command
+    # gc()
     
-  }
+    }
   
 } else {
   
