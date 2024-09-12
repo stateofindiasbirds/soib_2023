@@ -1,0 +1,1359 @@
+"COMMON.NAME","SCIENTIFIC.NAME","Long.Term.Analysis","Current.Analysis","Selected.SOIB","totalrange25km","proprange25km2000","proprange25km.current","proprange25km2022","mean5km","ci5km"
+"Fulvous Whistling-Duck","Dendrocygna bicolor","","","",NA,NA,NA,NA,NA,NA
+"Lesser Whistling-Duck","Dendrocygna javanica","","","X",19,0.0526315789473684,0.388157894736842,0.631578947368421,7.47368421052632,1.92745526008375
+"Bar-headed Goose","Anser indicus","","","",NA,NA,NA,NA,NA,NA
+"Graylag Goose","Anser anser","","","",NA,NA,NA,NA,NA,NA
+"Greater White-fronted Goose","Anser albifrons","","","",NA,NA,NA,NA,NA,NA
+"Lesser White-fronted Goose","Anser erythropus","","","",NA,NA,NA,NA,NA,NA
+"Taiga Bean-Goose","Anser fabalis","","","",NA,NA,NA,NA,NA,NA
+"Tundra Bean-Goose","Anser serrirostris","","","",NA,NA,NA,NA,NA,NA
+"Red-breasted Goose","Branta ruficollis","","","",NA,NA,NA,NA,NA,NA
+"Mute Swan","Cygnus olor","","","",NA,NA,NA,NA,NA,NA
+"Tundra Swan","Cygnus columbianus","","","",NA,NA,NA,NA,NA,NA
+"Whooper Swan","Cygnus cygnus","","","",NA,NA,NA,NA,NA,NA
+"Knob-billed Duck","Sarkidiornis melanotos","","","X",1,NA,1,NA,18,NA
+"Ruddy Shelduck","Tadorna ferruginea","","","",NA,NA,NA,NA,NA,NA
+"Common Shelduck","Tadorna tadorna","","","",NA,NA,NA,NA,NA,NA
+"Cotton Pygmy-Goose","Nettapus coromandelianus","","","X",9,NA,0.388888888888889,0.666666666666667,9.22222222222222,2.70912404411827
+"Mandarin Duck","Aix galericulata","","","",NA,NA,NA,NA,NA,NA
+"Baikal Teal","Sibirionetta formosa","","","",NA,NA,NA,NA,NA,NA
+"Garganey","Spatula querquedula","","","X",1,NA,1,1,18,NA
+"Northern Shoveler","Spatula clypeata","","","",NA,NA,NA,NA,NA,NA
+"Gadwall","Mareca strepera","","","",NA,NA,NA,NA,NA,NA
+"Falcated Duck","Mareca falcata","","","",NA,NA,NA,NA,NA,NA
+"Eurasian Wigeon","Mareca penelope","","","X",1,NA,NA,NA,18,NA
+"Indian Spot-billed Duck","Anas poecilorhyncha","","","",NA,NA,NA,NA,NA,NA
+"Eastern Spot-billed Duck","Anas zonorhyncha","","","",NA,NA,NA,NA,NA,NA
+"Mallard","Anas platyrhynchos","","","",NA,NA,NA,NA,NA,NA
+"Northern Pintail","Anas acuta","","","",NA,NA,NA,NA,NA,NA
+"Green-winged Teal","Anas crecca","","","",NA,NA,NA,NA,NA,NA
+"Andaman Teal","Anas albogularis","X","X","X",17,0.176470588235294,0.330882352941176,0.411764705882353,6.88235294117647,2.34021499618597
+"Marbled Duck","Marmaronetta angustirostris","","","",NA,NA,NA,NA,NA,NA
+"Pink-headed Duck","Rhodonessa caryophyllacea","","","",NA,NA,NA,NA,NA,NA
+"White-winged Duck","Asarcornis scutulata","","","",NA,NA,NA,NA,NA,NA
+"Red-crested Pochard","Netta rufina","","","",NA,NA,NA,NA,NA,NA
+"Common Pochard","Aythya ferina","","","",NA,NA,NA,NA,NA,NA
+"Ferruginous Duck","Aythya nyroca","","","X",1,NA,NA,NA,18,NA
+"Baer's Pochard","Aythya baeri","","","",NA,NA,NA,NA,NA,NA
+"Tufted Duck","Aythya fuligula","","","",NA,NA,NA,NA,NA,NA
+"Greater Scaup","Aythya marila","","","",NA,NA,NA,NA,NA,NA
+"Long-tailed Duck","Clangula hyemalis","","","",NA,NA,NA,NA,NA,NA
+"Common Goldeneye","Bucephala clangula","","","",NA,NA,NA,NA,NA,NA
+"Smew","Mergellus albellus","","","",NA,NA,NA,NA,NA,NA
+"Common Merganser","Mergus merganser","","","",NA,NA,NA,NA,NA,NA
+"Red-breasted Merganser","Mergus serrator","","","",NA,NA,NA,NA,NA,NA
+"White-headed Duck","Oxyura leucocephala","","","",NA,NA,NA,NA,NA,NA
+"Nicobar Megapode","Megapodius nicobariensis","","","X",12,0.0833333333333333,0.263888888888889,0.583333333333333,4.16666666666667,1.88171960899298
+"Hill Partridge","Arborophila torqueola","","","",NA,NA,NA,NA,NA,NA
+"Chestnut-breasted Partridge","Arborophila mandellii","","","",NA,NA,NA,NA,NA,NA
+"Rufous-throated Partridge","Arborophila rufogularis","","","",NA,NA,NA,NA,NA,NA
+"White-cheeked Partridge","Arborophila atrogularis","","","",NA,NA,NA,NA,NA,NA
+"Snow Partridge","Lerwa lerwa","","","",NA,NA,NA,NA,NA,NA
+"Blood Pheasant","Ithaginis cruentus","","","",NA,NA,NA,NA,NA,NA
+"Western Tragopan","Tragopan melanocephalus","","","",NA,NA,NA,NA,NA,NA
+"Satyr Tragopan","Tragopan satyra","","","",NA,NA,NA,NA,NA,NA
+"Blyth's Tragopan","Tragopan blythii","","","",NA,NA,NA,NA,NA,NA
+"Temminck's Tragopan","Tragopan temminckii","","","",NA,NA,NA,NA,NA,NA
+"Himalayan Monal","Lophophorus impejanus","","","",NA,NA,NA,NA,NA,NA
+"Sclater's Monal","Lophophorus sclateri","","","",NA,NA,NA,NA,NA,NA
+"Koklass Pheasant","Pucrasia macrolopha","","","",NA,NA,NA,NA,NA,NA
+"Tibetan Partridge","Perdix hodgsoniae","","","",NA,NA,NA,NA,NA,NA
+"Mrs. Hume's Pheasant","Syrmaticus humiae","","","",NA,NA,NA,NA,NA,NA
+"Cheer Pheasant","Catreus wallichii","","","",NA,NA,NA,NA,NA,NA
+"Kalij Pheasant","Lophura leucomelanos","","","",NA,NA,NA,NA,NA,NA
+"Indian Peafowl","Pavo cristatus","","","X",2,NA,0.5,NA,5.5,2.94
+"Green Peafowl","Pavo muticus","","","",NA,NA,NA,NA,NA,NA
+"Red Spurfowl","Galloperdix spadicea","","","",NA,NA,NA,NA,NA,NA
+"Painted Spurfowl","Galloperdix lunulata","","","",NA,NA,NA,NA,NA,NA
+"Gray Peacock-Pheasant","Polyplectron bicalcaratum","","","",NA,NA,NA,NA,NA,NA
+"Mountain Bamboo-Partridge","Bambusicola fytchii","","","",NA,NA,NA,NA,NA,NA
+"Red Junglefowl","Gallus gallus","","","",NA,NA,NA,NA,NA,NA
+"Gray Junglefowl","Gallus sonneratii","","","",NA,NA,NA,NA,NA,NA
+"Gray Francolin","Ortygornis pondicerianus","","","X",2,NA,0.7,0.5,12.5,10.78
+"Swamp Francolin","Ortygornis gularis","","","",NA,NA,NA,NA,NA,NA
+"Chinese Francolin","Francolinus pintadeanus","","","",NA,NA,NA,NA,NA,NA
+"Black Francolin","Francolinus francolinus","","","",NA,NA,NA,NA,NA,NA
+"Painted Francolin","Francolinus pictus","","","",NA,NA,NA,NA,NA,NA
+"Tibetan Snowcock","Tetraogallus tibetanus","","","",NA,NA,NA,NA,NA,NA
+"Himalayan Snowcock","Tetraogallus himalayensis","","","",NA,NA,NA,NA,NA,NA
+"Blue-breasted Quail","Synoicus chinensis","","","",NA,NA,NA,NA,NA,NA
+"Common Quail","Coturnix coturnix","","","",NA,NA,NA,NA,NA,NA
+"Japanese Quail","Coturnix japonica","","","",NA,NA,NA,NA,NA,NA
+"Rain Quail","Coturnix coromandelica","","","",NA,NA,NA,NA,NA,NA
+"Chukar","Alectoris chukar","","","",NA,NA,NA,NA,NA,NA
+"Jungle Bush-Quail","Perdicula asiatica","","","",NA,NA,NA,NA,NA,NA
+"Rock Bush-Quail","Perdicula argoondah","","","",NA,NA,NA,NA,NA,NA
+"Painted Bush-Quail","Perdicula erythrorhyncha","","","",NA,NA,NA,NA,NA,NA
+"Manipur Bush-Quail","Perdicula manipurensis","","","",NA,NA,NA,NA,NA,NA
+"Himalayan Quail","Ophrysia superciliosa","","","",NA,NA,NA,NA,NA,NA
+"Greater Flamingo","Phoenicopterus roseus","","","",NA,NA,NA,NA,NA,NA
+"Lesser Flamingo","Phoeniconaias minor","","","",NA,NA,NA,NA,NA,NA
+"Little Grebe","Tachybaptus ruficollis","","","X",1,NA,NA,NA,18,NA
+"Horned Grebe","Podiceps auritus","","","",NA,NA,NA,NA,NA,NA
+"Red-necked Grebe","Podiceps grisegena","","","",NA,NA,NA,NA,NA,NA
+"Great Crested Grebe","Podiceps cristatus","","","",NA,NA,NA,NA,NA,NA
+"Eared Grebe","Podiceps nigricollis","","","",NA,NA,NA,NA,NA,NA
+"Rock Pigeon","Columba livia","","","X",21,0.0476190476190476,0.535714285714286,0.80952380952381,7.71428571428571,1.77456097857094
+"Hill Pigeon","Columba rupestris","","","",NA,NA,NA,NA,NA,NA
+"Snow Pigeon","Columba leuconota","","","",NA,NA,NA,NA,NA,NA
+"Yellow-eyed Pigeon","Columba eversmanni","","","",NA,NA,NA,NA,NA,NA
+"Common Wood-Pigeon","Columba palumbus","","","",NA,NA,NA,NA,NA,NA
+"Speckled Wood-Pigeon","Columba hodgsonii","","","",NA,NA,NA,NA,NA,NA
+"Ashy Wood-Pigeon","Columba pulchricollis","","","",NA,NA,NA,NA,NA,NA
+"Nilgiri Wood-Pigeon","Columba elphinstonii","","","",NA,NA,NA,NA,NA,NA
+"Pale-capped Pigeon","Columba punicea","","","",NA,NA,NA,NA,NA,NA
+"Andaman Wood-Pigeon","Columba palumboides","X","X","X",27,0.0740740740740741,0.305555555555556,0.666666666666667,6.66666666666667,1.57621494766848
+"European Turtle-Dove","Streptopelia turtur","","","",NA,NA,NA,NA,NA,NA
+"Oriental Turtle-Dove","Streptopelia orientalis","","","",NA,NA,NA,NA,NA,NA
+"Eurasian Collared-Dove","Streptopelia decaocto","","","",NA,NA,NA,NA,NA,NA
+"Red Collared-Dove","Streptopelia tranquebarica","","","X",23,0.130434782608696,0.635869565217391,0.826086956521739,6.8695652173913,1.74397798718826
+"Spotted Dove","Spilopelia chinensis","","","",NA,NA,NA,NA,NA,NA
+"Laughing Dove","Spilopelia senegalensis","","","",NA,NA,NA,NA,NA,NA
+"Barred Cuckoo-Dove","Macropygia unchall","","","",NA,NA,NA,NA,NA,NA
+"Andaman Cuckoo-Dove","Macropygia rufipennis","","","X",30,0.0333333333333333,0.375,0.766666666666667,6.5,1.47018772747666
+"Namaqua Dove","Oena capensis","","","",NA,NA,NA,NA,NA,NA
+"Asian Emerald Dove","Chalcophaps indica","","","X",38,0.184210526315789,0.4375,0.710526315789474,5.63157894736842,1.30661775257203
+"Nicobar Pigeon","Caloenas nicobarica","","","X",21,0.142857142857143,0.238095238095238,0.333333333333333,4.66666666666667,1.65281712371467
+"Orange-breasted Green-Pigeon","Treron bicinctus","","","",NA,NA,NA,NA,NA,NA
+"Gray-fronted Green-Pigeon","Treron affinis","","","",NA,NA,NA,NA,NA,NA
+"Andaman Green-Pigeon","Treron chloropterus","","","X",38,0.105263157894737,0.407894736842105,0.736842105263158,5.63157894736842,1.30661775257203
+"Ashy-headed Green-Pigeon","Treron phayrei","","","",NA,NA,NA,NA,NA,NA
+"Thick-billed Green-Pigeon","Treron curvirostra","","","",NA,NA,NA,NA,NA,NA
+"Yellow-footed Green-Pigeon","Treron phoenicopterus","","","",NA,NA,NA,NA,NA,NA
+"Pin-tailed Green-Pigeon","Treron apicauda","","","",NA,NA,NA,NA,NA,NA
+"Wedge-tailed Green-Pigeon","Treron sphenurus","","","",NA,NA,NA,NA,NA,NA
+"Green Imperial-Pigeon","Ducula aenea","","","X",28,0.142857142857143,0.540178571428571,0.642857142857143,5.89285714285714,1.63283325677928
+"Nicobar Imperial-Pigeon","Ducula nicobarica","","X","X",14,0.142857142857143,0.357142857142857,0.714285714285714,3.85714285714286,1.66738856160903
+"Malabar Imperial-Pigeon","Ducula cuprea","","","",NA,NA,NA,NA,NA,NA
+"Mountain Imperial-Pigeon","Ducula badia","","","",NA,NA,NA,NA,NA,NA
+"Pied Imperial-Pigeon","Ducula bicolor","","","",28,0.25,0.299107142857143,0.678571428571429,4,1.18855031523779
+"Tibetan Sandgrouse","Syrrhaptes tibetanus","","","",NA,NA,NA,NA,NA,NA
+"Pallas's Sandgrouse","Syrrhaptes paradoxus","","","",NA,NA,NA,NA,NA,NA
+"Pin-tailed Sandgrouse","Pterocles alchata","","","",NA,NA,NA,NA,NA,NA
+"Chestnut-bellied Sandgrouse","Pterocles exustus","","","",NA,NA,NA,NA,NA,NA
+"Spotted Sandgrouse","Pterocles senegallus","","","",NA,NA,NA,NA,NA,NA
+"Black-bellied Sandgrouse","Pterocles orientalis","","","",NA,NA,NA,NA,NA,NA
+"Painted Sandgrouse","Pterocles indicus","","","",NA,NA,NA,NA,NA,NA
+"Great Indian Bustard","Ardeotis nigriceps","","","",NA,NA,NA,NA,NA,NA
+"Macqueen's Bustard","Chlamydotis macqueenii","","","",NA,NA,NA,NA,NA,NA
+"Bengal Florican","Houbaropsis bengalensis","","","",NA,NA,NA,NA,NA,NA
+"Lesser Florican","Sypheotides indicus","","","",NA,NA,NA,NA,NA,NA
+"Little Bustard","Tetrax tetrax","","","",NA,NA,NA,NA,NA,NA
+"Andaman Coucal","Centropus andamanensis","X","X","X",25,0.16,0.595,0.68,6.48,1.68651138152104
+"Greater Coucal","Centropus sinensis","","","",NA,NA,NA,NA,NA,NA
+"Lesser Coucal","Centropus bengalensis","","","X",2,NA,1,1,12.5,10.78
+"Sirkeer Malkoha","Taccocua leschenaultii","","","",NA,NA,NA,NA,NA,NA
+"Blue-faced Malkoha","Phaenicophaeus viridirostris","","","",NA,NA,NA,NA,NA,NA
+"Green-billed Malkoha","Phaenicophaeus tristis","","","",NA,NA,NA,NA,NA,NA
+"Chestnut-winged Cuckoo","Clamator coromandus","","","X",NA,NA,NA,NA,NA,NA
+"Pied Cuckoo","Clamator jacobinus","","","",NA,NA,NA,NA,NA,NA
+"Asian Koel","Eudynamys scolopaceus","","","X",37,0.108108108108108,0.429054054054054,0.621621621621622,5.67567567567568,1.33948202420721
+"Asian Emerald Cuckoo","Chrysococcyx maculatus","","","X",1,NA,NA,NA,4,NA
+"Violet Cuckoo","Chrysococcyx xanthorhynchus","","","",15,NA,0.316666666666667,0.533333333333333,7.8,2.05299391134022
+"Horsfield's Bronze-Cuckoo","Chrysococcyx basalis","","","",NA,NA,NA,NA,NA,NA
+"Banded Bay Cuckoo","Cacomantis sonneratii","","","X",NA,NA,NA,NA,NA,NA
+"Plaintive Cuckoo","Cacomantis merulinus","","","X",1,NA,1,1,18,NA
+"Gray-bellied Cuckoo","Cacomantis passerinus","","","X",1,NA,1,1,18,NA
+"Fork-tailed Drongo-Cuckoo","Surniculus dicruroides","","","",NA,NA,NA,NA,NA,NA
+"Square-tailed Drongo-Cuckoo","Surniculus lugubris","","","",NA,NA,NA,NA,NA,NA
+"Large Hawk-Cuckoo","Hierococcyx sparverioides","","","X",1,1,NA,NA,3,NA
+"Common Hawk-Cuckoo","Hierococcyx varius","","","",NA,NA,NA,NA,NA,NA
+"Hodgson's Hawk-Cuckoo","Hierococcyx nisicolor","","","",NA,NA,NA,NA,NA,NA
+"Lesser Cuckoo","Cuculus poliocephalus","","","",NA,NA,NA,NA,NA,NA
+"Indian Cuckoo","Cuculus micropterus","","","X",21,0.0476190476190476,0.380952380952381,0.571428571428571,7.85714285714286,1.6019654594695
+"Himalayan Cuckoo","Cuculus saturatus","","","X",7,NA,0.326530612244898,0.571428571428571,9,3.2852803026023
+"Common Cuckoo","Cuculus canorus","","","X",NA,NA,NA,NA,NA,NA
+"Sri Lanka Frogmouth","Batrachostomus moniliger","","","",NA,NA,NA,NA,NA,NA
+"Hodgson's Frogmouth","Batrachostomus hodgsoni","","","",NA,NA,NA,NA,NA,NA
+"Great Eared-Nightjar","Lyncornis macrotis","","","",NA,NA,NA,NA,NA,NA
+"Jungle Nightjar","Caprimulgus indicus","","","",NA,NA,NA,NA,NA,NA
+"Gray Nightjar","Caprimulgus jotaka","","","",NA,NA,NA,NA,NA,NA
+"Eurasian Nightjar","Caprimulgus europaeus","","","",NA,NA,NA,NA,NA,NA
+"Sykes's Nightjar","Caprimulgus mahrattensis","","","",NA,NA,NA,NA,NA,NA
+"Large-tailed Nightjar","Caprimulgus macrurus","","","",NA,NA,NA,NA,NA,NA
+"Andaman Nightjar","Caprimulgus andamanicus","","","",13,NA,0.355769230769231,0.538461538461538,8.46153846153846,2.44738914140507
+"Jerdon's Nightjar","Caprimulgus atripennis","","","",NA,NA,NA,NA,NA,NA
+"Indian Nightjar","Caprimulgus asiaticus","","","",NA,NA,NA,NA,NA,NA
+"Savanna Nightjar","Caprimulgus affinis","","","",NA,NA,NA,NA,NA,NA
+"White-rumped Spinetail","Zoonavena sylvatica","","","",NA,NA,NA,NA,NA,NA
+"White-throated Needletail","Hirundapus caudacutus","","","",NA,NA,NA,NA,NA,NA
+"Silver-backed Needletail","Hirundapus cochinchinensis","","","",NA,NA,NA,NA,NA,NA
+"Brown-backed Needletail","Hirundapus giganteus","","","X",24,0.125,0.489583333333333,0.708333333333333,6.45833333333333,1.77743827902653
+"Plume-toed Swiftlet","Collocalia affinis","","","",38,0.0789473684210526,0.532894736842105,0.789473684210526,5.63157894736842,1.30661775257203
+"Indian Swiftlet","Aerodramus unicolor","","","",NA,NA,NA,NA,NA,NA
+"Himalayan Swiftlet","Aerodramus brevirostris","","","X",2,NA,0.5,0.5,6.5,6.86
+"White-nest Swiftlet","Aerodramus fuciphagus","","","",32,0.125,0.390625,0.625,6.125,1.46406058177139
+"Alpine Swift","Tachymarptis melba","","","",NA,NA,NA,NA,NA,NA
+"Common Swift","Apus apus","","","",NA,NA,NA,NA,NA,NA
+"Pacific Swift","Apus pacificus","","","",NA,NA,NA,NA,NA,NA
+"Blyth's Swift","Apus leuconyx","","","X",1,NA,NA,NA,5,NA
+"Dark-rumped Swift","Apus acuticauda","","","",NA,NA,NA,NA,NA,NA
+"Little Swift","Apus affinis","","","X",1,NA,1,1,3,NA
+"House Swift","Apus nipalensis","","","",NA,NA,NA,NA,NA,NA
+"Asian Palm Swift","Cypsiurus balasiensis","","","",NA,NA,NA,NA,NA,NA
+"Crested Treeswift","Hemiprocne coronata","","","",NA,NA,NA,NA,NA,NA
+"Water Rail","Rallus aquaticus","","","",NA,NA,NA,NA,NA,NA
+"Brown-cheeked Rail","Rallus indicus","","","",NA,NA,NA,NA,NA,NA
+"Corn Crake","Crex crex","","","",NA,NA,NA,NA,NA,NA
+"Slaty-breasted Rail","Lewinia striata","","","X",16,NA,0.3046875,0.5625,7.875,2.23384832370807
+"Spotted Crake","Porzana porzana","","","",NA,NA,NA,NA,NA,NA
+"Eurasian Moorhen","Gallinula chloropus","","","X",15,NA,0.433333333333333,0.666666666666667,7.8,2.12308203641153
+"Eurasian Coot","Fulica atra","","","X",5,NA,0.45,0.6,9.8,4.356317711095
+"Gray-headed Swamphen","Porphyrio poliocephalus","","","X",10,0.1,0.55,0.8,9.1,2.52105410052577
+"White-browed Crake","Poliolimnas cinereus","","","",NA,NA,NA,NA,NA,NA
+"Watercock","Gallicrex cinerea","","","X",12,0.0833333333333333,0.427083333333333,0.416666666666667,7.75,2.52026513756715
+"White-breasted Waterhen","Amaurornis phoenicurus","","","X",37,0.108108108108108,0.439189189189189,0.756756756756757,5.54054054054054,1.35774642966172
+"Andaman Crake","Rallina canningi","X","X","X",20,0.05,0.3875,0.65,7,1.98052411989193
+"Red-legged Crake","Rallina fasciata","","","",NA,NA,NA,NA,NA,NA
+"Slaty-legged Crake","Rallina eurizonoides","","","",1,NA,NA,NA,1,NA
+"Ruddy-breasted Crake","Zapornia fusca","","","X",6,NA,0.458333333333333,0.5,9.66666666666667,3.56650591538055
+"Brown Crake","Zapornia akool","","","",NA,NA,NA,NA,NA,NA
+"Little Crake","Zapornia parva","","","",NA,NA,NA,NA,NA,NA
+"Baillon's Crake","Zapornia pusilla","","","X",5,NA,0.425,0.4,9,5.07333420937356
+"Black-tailed Crake","Zapornia bicolor","","","",NA,NA,NA,NA,NA,NA
+"Masked Finfoot","Heliopais personatus","","","",NA,NA,NA,NA,NA,NA
+"Demoiselle Crane","Anthropoides virgo","","","",NA,NA,NA,NA,NA,NA
+"Siberian Crane","Leucogeranus leucogeranus","","","",NA,NA,NA,NA,NA,NA
+"Sarus Crane","Antigone antigone","","","",NA,NA,NA,NA,NA,NA
+"Common Crane","Grus grus","","","",NA,NA,NA,NA,NA,NA
+"Black-necked Crane","Grus nigricollis","","","",NA,NA,NA,NA,NA,NA
+"Indian Thick-knee","Burhinus indicus","","","",NA,NA,NA,NA,NA,NA
+"Great Thick-knee","Esacus recurvirostris","","","",NA,NA,NA,NA,NA,NA
+"Beach Thick-knee","Esacus magnirostris","","","",16,0.0625,0.25,0.4375,6.0625,2.60803238412921
+"Black-winged Stilt","Himantopus himantopus","","","X",1,NA,1,1,18,NA
+"Pied Avocet","Recurvirostra avosetta","","","",NA,NA,NA,NA,NA,NA
+"Ibisbill","Ibidorhyncha struthersii","","","",NA,NA,NA,NA,NA,NA
+"Eurasian Oystercatcher","Haematopus ostralegus","","","",NA,NA,NA,NA,NA,NA
+"Black-bellied Plover","Pluvialis squatarola","","","X",3,NA,0.444444444444444,NA,11,7.42044023851236
+"European Golden-Plover","Pluvialis apricaria","","","",NA,NA,NA,NA,NA,NA
+"American Golden-Plover","Pluvialis dominica","","","",NA,NA,NA,NA,NA,NA
+"Pacific Golden-Plover","Pluvialis fulva","","","X",26,0.0769230769230769,0.495192307692308,0.730769230769231,6.53846153846154,1.64607965325256
+"Northern Lapwing","Vanellus vanellus","","","",NA,NA,NA,NA,NA,NA
+"River Lapwing","Vanellus duvaucelii","","","",NA,NA,NA,NA,NA,NA
+"Yellow-wattled Lapwing","Vanellus malabaricus","","","",NA,NA,NA,NA,NA,NA
+"Gray-headed Lapwing","Vanellus cinereus","","","X",6,NA,0.357142857142857,0.166666666666667,9.66666666666667,3.56650591538055
+"Red-wattled Lapwing","Vanellus indicus","","","",NA,NA,NA,NA,NA,NA
+"Sociable Lapwing","Vanellus gregarius","","","",NA,NA,NA,NA,NA,NA
+"White-tailed Lapwing","Vanellus leucurus","","","",NA,NA,NA,NA,NA,NA
+"Tibetan Sand-Plover","Anarhynchus atrifrons","","","X",27,0.185185185185185,0.430555555555556,0.555555555555556,6.07407407407407,1.62721042914932
+"Greater Sand-Plover","Anarhynchus leschenaultii","","","",NA,NA,NA,NA,NA,NA
+"Caspian Plover","Anarhynchus asiaticus","","","",NA,NA,NA,NA,NA,NA
+"Kentish Plover","Anarhynchus alexandrinus","","","X",7,NA,0.306122448979592,0.285714285714286,8,3.77740651770497
+"Common Ringed Plover","Charadrius hiaticula","","","",NA,NA,NA,NA,NA,NA
+"Long-billed Plover","Charadrius placidus","","","",NA,NA,NA,NA,NA,NA
+"Little Ringed Plover","Charadrius dubius","","","X",7,0.142857142857143,0.321428571428571,0.142857142857143,8.71428571428571,3.54543838380155
+"Oriental Plover","Anarhynchus veredus","","","",NA,NA,NA,NA,NA,NA
+"Greater Painted-Snipe","Rostratula benghalensis","","","X",2,NA,0.5,NA,15,5.88
+"Pheasant-tailed Jacana","Hydrophasianus chirurgus","","","X",11,NA,0.386363636363636,0.545454545454545,8.72727272727273,2.30537252506809
+"Bronze-winged Jacana","Metopidius indicus","","","",NA,NA,NA,NA,NA,NA
+"Whimbrel","Numenius phaeopus","","","X",34,0.205882352941176,0.400735294117647,0.441176470588235,5.58823529411765,1.40462233678169
+"Eurasian Curlew","Numenius arquata","","","X",14,0.142857142857143,0.357142857142857,0.642857142857143,7.14285714285714,2.31415709858321
+"Bar-tailed Godwit","Limosa lapponica","","","X",6,0.166666666666667,0.25,0.166666666666667,7.16666666666667,4.8121004884677
+"Black-tailed Godwit","Limosa limosa","","","X",5,NA,0.285714285714286,0.4,9.6,4.36512726045874
+"Ruddy Turnstone","Arenaria interpres","","","X",12,0.5,0.226190476190476,0.333333333333333,5.58333333333333,2.70230186203084
+"Great Knot","Calidris tenuirostris","","","X",1,1,NA,NA,7,NA
+"Red Knot","Calidris canutus","","","",NA,NA,NA,NA,NA,NA
+"Ruff","Calidris pugnax","","","",NA,NA,NA,NA,NA,NA
+"Broad-billed Sandpiper","Calidris falcinellus","","","X",2,NA,0.5,0.5,12.5,10.78
+"Sharp-tailed Sandpiper","Calidris acuminata","","","",NA,NA,NA,NA,NA,NA
+"Curlew Sandpiper","Calidris ferruginea","","","X",4,0.25,0.53125,0.5,9.75,5.62255872949911
+"Temminck's Stint","Calidris temminckii","","","",NA,NA,NA,NA,NA,NA
+"Long-toed Stint","Calidris subminuta","","","",7,0.142857142857143,0.392857142857143,0.571428571428571,8.42857142857143,3.86967698910387
+"Spoon-billed Sandpiper","Calidris pygmaea","","","",NA,NA,NA,NA,NA,NA
+"Red-necked Stint","Calidris ruficollis","","","",NA,NA,NA,NA,NA,NA
+"Sanderling","Calidris alba","","","X",NA,NA,NA,NA,NA,NA
+"Dunlin","Calidris alpina","","","",NA,NA,NA,NA,NA,NA
+"Little Stint","Calidris minuta","","","X",5,0.2,0.375,0.4,9.2,4.48664507176576
+"Buff-breasted Sandpiper","Calidris subruficollis","","","",NA,NA,NA,NA,NA,NA
+"Pectoral Sandpiper","Calidris melanotos","","","",NA,NA,NA,NA,NA,NA
+"Asian Dowitcher","Limnodromus semipalmatus","","","",NA,NA,NA,NA,NA,NA
+"Long-billed Dowitcher","Limnodromus scolopaceus","","","",NA,NA,NA,NA,NA,NA
+"Jack Snipe","Lymnocryptes minimus","","","",NA,NA,NA,NA,NA,NA
+"Eurasian Woodcock","Scolopax rusticola","","","",NA,NA,NA,NA,NA,NA
+"Solitary Snipe","Gallinago solitaria","","","",NA,NA,NA,NA,NA,NA
+"Wood Snipe","Gallinago nemoricola","","","",NA,NA,NA,NA,NA,NA
+"Great Snipe","Gallinago media","","","",NA,NA,NA,NA,NA,NA
+"Common Snipe","Gallinago gallinago","","","X",9,0.222222222222222,0.513888888888889,0.777777777777778,8.22222222222222,2.74823130552033
+"Pin-tailed Snipe","Gallinago stenura","","","X",16,NA,0.4609375,0.5,7.875,2.16100555297759
+"Swinhoe's Snipe","Gallinago megala","","","",NA,NA,NA,NA,NA,NA
+"Terek Sandpiper","Xenus cinereus","","","X",6,0.333333333333333,0.416666666666667,0.166666666666667,8.83333333333333,3.8679319768809
+"Red-necked Phalarope","Phalaropus lobatus","","","",NA,NA,NA,NA,NA,NA
+"Red Phalarope","Phalaropus fulicarius","","","",NA,NA,NA,NA,NA,NA
+"Common Sandpiper","Actitis hypoleucos","","","X",33,0.181818181818182,0.462121212121212,0.575757575757576,6.03030303030303,1.4537872392501
+"Green Sandpiper","Tringa ochropus","","","X",6,NA,0.5,0.5,9.66666666666667,3.56650591538055
+"Gray-tailed Tattler","Tringa brevipes","","","",NA,NA,NA,NA,NA,NA
+"Spotted Redshank","Tringa erythropus","","","X",7,NA,0.326530612244898,0.285714285714286,7.85714285714286,3.73916211648189
+"Common Greenshank","Tringa nebularia","","","X",8,NA,0.4375,0.5,8.375,3.09764830153457
+"Nordmann's Greenshank","Tringa guttifer","","","",NA,NA,NA,NA,NA,NA
+"Marsh Sandpiper","Tringa stagnatilis","","","X",6,NA,0.416666666666667,0.333333333333333,9.66666666666667,3.56650591538055
+"Wood Sandpiper","Tringa glareola","","","X",15,0.0666666666666667,0.441666666666667,0.466666666666667,7.93333333333333,1.96435072677406
+"Common Redshank","Tringa totanus","","","X",28,0.142857142857143,0.415178571428571,0.535714285714286,6.25,1.56054477667256
+"Small Buttonquail","Turnix sylvaticus","","","",NA,NA,NA,NA,NA,NA
+"Yellow-legged Buttonquail","Turnix tanki","","","",NA,NA,NA,NA,NA,NA
+"Barred Buttonquail","Turnix suscitator","","","",NA,NA,NA,NA,NA,NA
+"Crab-Plover","Dromas ardeola","","","X",1,NA,NA,NA,2,NA
+"Cream-colored Courser","Cursorius cursor","","","",NA,NA,NA,NA,NA,NA
+"Indian Courser","Cursorius coromandelicus","","","",NA,NA,NA,NA,NA,NA
+"Jerdon's Courser","Rhinoptilus bitorquatus","","","",NA,NA,NA,NA,NA,NA
+"Collared Pratincole","Glareola pratincola","","","",NA,NA,NA,NA,NA,NA
+"Oriental Pratincole","Glareola maldivarum","","","X",7,NA,0.285714285714286,0.714285714285714,8.42857142857143,3.57480069374504
+"Small Pratincole","Glareola lactea","","","X",1,NA,1,NA,18,NA
+"South Polar Skua","Stercorarius maccormicki","","","",NA,NA,NA,NA,NA,NA
+"Brown Skua","Stercorarius antarcticus","","","",NA,NA,NA,NA,NA,NA
+"Pomarine Jaeger","Stercorarius pomarinus","","","",NA,NA,NA,NA,NA,NA
+"Parasitic Jaeger","Stercorarius parasiticus","","","",NA,NA,NA,NA,NA,NA
+"Long-tailed Jaeger","Stercorarius longicaudus","","","",NA,NA,NA,NA,NA,NA
+"Black-legged Kittiwake","Rissa tridactyla","","","",NA,NA,NA,NA,NA,NA
+"Sabine's Gull","Xema sabini","","","",NA,NA,NA,NA,NA,NA
+"Slender-billed Gull","Chroicocephalus genei","","","",NA,NA,NA,NA,NA,NA
+"Black-headed Gull","Chroicocephalus ridibundus","","","",NA,NA,NA,NA,NA,NA
+"Brown-headed Gull","Chroicocephalus brunnicephalus","","","",NA,NA,NA,NA,NA,NA
+"Little Gull","Hydrocoloeus minutus","","","",NA,NA,NA,NA,NA,NA
+"Franklin's Gull","Leucophaeus pipixcan","","","",NA,NA,NA,NA,NA,NA
+"White-eyed Gull","Ichthyaetus leucophthalmus","","","",NA,NA,NA,NA,NA,NA
+"Sooty Gull","Ichthyaetus hemprichii","","","",NA,NA,NA,NA,NA,NA
+"Pallas's Gull","Ichthyaetus ichthyaetus","","","",NA,NA,NA,NA,NA,NA
+"Common Gull","Larus canus","","","",NA,NA,NA,NA,NA,NA
+"Herring Gull","Larus argentatus","","","",NA,NA,NA,NA,NA,NA
+"Caspian Gull","Larus cachinnans","","","",NA,NA,NA,NA,NA,NA
+"Lesser Black-backed Gull","Larus fuscus","","","",NA,NA,NA,NA,NA,NA
+"Brown Noddy","Anous stolidus","","","",3,NA,0.333333333333333,0.333333333333333,9.33333333333333,8.78970104408816
+"Black Noddy","Anous minutus","","","",NA,NA,NA,NA,NA,NA
+"Lesser Noddy","Anous tenuirostris","","","",NA,NA,NA,NA,NA,NA
+"White Tern","Gygis alba","","","",NA,NA,NA,NA,NA,NA
+"Sooty Tern","Onychoprion fuscatus","","","",NA,NA,NA,NA,NA,NA
+"Bridled Tern","Onychoprion anaethetus","","","",NA,NA,NA,NA,NA,NA
+"Little Tern","Sternula albifrons","","","X",3,0.333333333333333,0.583333333333333,0.666666666666667,11.3333333333333,6.63060915586025
+"Saunders's Tern","Sternula saundersi","","","",NA,NA,NA,NA,NA,NA
+"Gull-billed Tern","Gelochelidon nilotica","","","",NA,NA,NA,NA,NA,NA
+"Caspian Tern","Hydroprogne caspia","","","",NA,NA,NA,NA,NA,NA
+"Black Tern","Chlidonias niger","","","",NA,NA,NA,NA,NA,NA
+"White-winged Tern","Chlidonias leucopterus","","","",1,NA,NA,NA,9,NA
+"Whiskered Tern","Chlidonias hybrida","","","X",3,NA,0.476190476190476,0.333333333333333,10,7.92124569328167
+"Roseate Tern","Sterna dougallii","","","",1,NA,NA,NA,18,NA
+"Black-naped Tern","Sterna sumatrana","","","",34,0.147058823529412,0.327205882352941,0.558823529411765,5.85294117647059,1.43599639462679
+"Common Tern","Sterna hirundo","","","X",NA,NA,NA,NA,NA,NA
+"Arctic Tern","Sterna paradisaea","","","",NA,NA,NA,NA,NA,NA
+"Black-bellied Tern","Sterna acuticauda","","","",NA,NA,NA,NA,NA,NA
+"River Tern","Sterna aurantia","","","",NA,NA,NA,NA,NA,NA
+"White-cheeked Tern","Sterna repressa","","","",NA,NA,NA,NA,NA,NA
+"Great Crested Tern","Thalasseus bergii","","","X",7,NA,0.257142857142857,0.428571428571429,10.8571428571429,3.43309384277991
+"Sandwich Tern","Thalasseus sandvicensis","","","",NA,NA,NA,NA,NA,NA
+"Lesser Crested Tern","Thalasseus bengalensis","","","X",14,NA,0.294642857142857,0.642857142857143,7.71428571428571,2.55328446093684
+"Indian Skimmer","Rynchops albicollis","","","",NA,NA,NA,NA,NA,NA
+"White-tailed Tropicbird","Phaethon lepturus","","","",1,NA,1,NA,10,NA
+"Red-billed Tropicbird","Phaethon aethereus","","","",NA,NA,NA,NA,NA,NA
+"Red-tailed Tropicbird","Phaethon rubricauda","","","",NA,NA,NA,NA,NA,NA
+"Red-throated Loon","Gavia stellata","","","",NA,NA,NA,NA,NA,NA
+"Arctic Loon","Gavia arctica","","","",NA,NA,NA,NA,NA,NA
+"Light-mantled Albatross","Phoebetria palpebrata","","","",NA,NA,NA,NA,NA,NA
+"Wilson's Storm-Petrel","Oceanites oceanicus","","","",NA,NA,NA,NA,NA,NA
+"White-faced Storm-Petrel","Pelagodroma marina","","","",NA,NA,NA,NA,NA,NA
+"Black-bellied Storm-Petrel","Fregetta tropica","","","",NA,NA,NA,NA,NA,NA
+"Swinhoe's Storm-Petrel","Hydrobates monorhis","","","",NA,NA,NA,NA,NA,NA
+"Barau's Petrel","Pterodroma baraui","","","",NA,NA,NA,NA,NA,NA
+"Jouanin's Petrel","Bulweria fallax","","","",NA,NA,NA,NA,NA,NA
+"Streaked Shearwater","Calonectris leucomelas","","","",NA,NA,NA,NA,NA,NA
+"Cory's Shearwater","Calonectris diomedea","","","",NA,NA,NA,NA,NA,NA
+"Flesh-footed Shearwater","Ardenna carneipes","","","",NA,NA,NA,NA,NA,NA
+"Wedge-tailed Shearwater","Ardenna pacifica","","","",NA,NA,NA,NA,NA,NA
+"Sooty Shearwater","Ardenna grisea","","","",NA,NA,NA,NA,NA,NA
+"Short-tailed Shearwater","Ardenna tenuirostris","","","",NA,NA,NA,NA,NA,NA
+"Tropical Shearwater","Puffinus bailloni","","","",NA,NA,NA,NA,NA,NA
+"Persian Shearwater","Puffinus persicus","","","",NA,NA,NA,NA,NA,NA
+"Asian Openbill","Anastomus oscitans","","","X",12,NA,0.4375,0.416666666666667,8.08333333333333,2.41811576198987
+"Black Stork","Ciconia nigra","","","",NA,NA,NA,NA,NA,NA
+"Asian Woolly-necked Stork","Ciconia episcopus","","","",NA,NA,NA,NA,NA,NA
+"White Stork","Ciconia ciconia","","","",NA,NA,NA,NA,NA,NA
+"Black-necked Stork","Ephippiorhynchus asiaticus","","","",NA,NA,NA,NA,NA,NA
+"Lesser Adjutant","Leptoptilos javanicus","","","",NA,NA,NA,NA,NA,NA
+"Greater Adjutant","Leptoptilos dubius","","","",NA,NA,NA,NA,NA,NA
+"Painted Stork","Mycteria leucocephala","","","",NA,NA,NA,NA,NA,NA
+"Lesser Frigatebird","Fregata ariel","","","",NA,NA,NA,NA,NA,NA
+"Christmas Island Frigatebird","Fregata andrewsi","","","",NA,NA,NA,NA,NA,NA
+"Great Frigatebird","Fregata minor","","","",NA,NA,NA,NA,NA,NA
+"Masked Booby","Sula dactylatra","","","",NA,NA,NA,NA,NA,NA
+"Brown Booby","Sula leucogaster","","","",NA,NA,NA,NA,NA,NA
+"Red-footed Booby","Sula sula","","","",NA,NA,NA,NA,NA,NA
+"Oriental Darter","Anhinga melanogaster","","","X",1,NA,1,NA,18,NA
+"Little Cormorant","Microcarbo niger","","","X",1,NA,NA,NA,18,NA
+"Great Cormorant","Phalacrocorax carbo","","","",NA,NA,NA,NA,NA,NA
+"Indian Cormorant","Phalacrocorax fuscicollis","","","",NA,NA,NA,NA,NA,NA
+"Great White Pelican","Pelecanus onocrotalus","","","",NA,NA,NA,NA,NA,NA
+"Spot-billed Pelican","Pelecanus philippensis","","","",NA,NA,NA,NA,NA,NA
+"Dalmatian Pelican","Pelecanus crispus","","","",NA,NA,NA,NA,NA,NA
+"Great Bittern","Botaurus stellaris","","","",NA,NA,NA,NA,NA,NA
+"Yellow Bittern","Ixobrychus sinensis","","","X",21,NA,0.404761904761905,0.666666666666667,7.66666666666667,1.86105824137177
+"Little Bittern","Ixobrychus minutus","","","",NA,NA,NA,NA,NA,NA
+"Cinnamon Bittern","Ixobrychus cinnamomeus","","","X",15,0.0666666666666667,0.441666666666667,0.733333333333333,8.53333333333333,1.95875516024279
+"Black Bittern","Ixobrychus flavicollis","","","X",4,NA,0.392857142857143,0.25,9.5,5.57251588901578
+"Gray Heron","Ardea cinerea","","","X",13,NA,0.394230769230769,0.384615384615385,7.76923076923077,2.20985385113869
+"White-bellied Heron","Ardea insignis","","","",NA,NA,NA,NA,NA,NA
+"Goliath Heron","Ardea goliath","","","",NA,NA,NA,NA,NA,NA
+"Purple Heron","Ardea purpurea","","","X",16,0.0625,0.4140625,0.75,7.1875,2.18563253620853
+"Great Egret","Ardea alba","","","X",30,0.0666666666666667,0.429166666666667,0.633333333333333,6.1,1.58187823760892
+"Medium Egret","Ardea intermedia","","","X",27,0.111111111111111,0.444444444444444,0.740740740740741,6.74074074074074,1.59551338869808
+"Chinese Egret","Egretta eulophotes","","","",5,NA,0.366666666666667,0.4,9.4,4.82494518103574
+"Little Egret","Egretta garzetta","","","X",25,0.08,0.44,0.6,6.8,1.74208610579386
+"Western Reef-Heron","Egretta gularis","","","",NA,NA,NA,NA,NA,NA
+"Pacific Reef-Heron","Egretta sacra","","","",38,0.236842105263158,0.407894736842105,0.605263157894737,5.39473684210526,1.34803140916406
+"Eastern Cattle Egret","Bubulcus coromandus","","","X",29,0.103448275862069,0.517241379310345,0.655172413793103,6.6551724137931,1.50152676956311
+"Indian Pond-Heron","Ardeola grayii","X","X","X",26,0.0384615384615385,0.442307692307692,0.576923076923077,6.61538461538461,1.59445144431683
+"Chinese Pond-Heron","Ardeola bacchus","","","",11,NA,0.386363636363636,0.363636363636364,7.27272727272727,2.70930127310156
+"Javan Pond-Heron","Ardeola speciosa","","","",1,NA,1,1,18,NA
+"Striated Heron","Butorides striata","","","X",31,0.0645161290322581,0.42741935483871,0.741935483870968,6.29032258064516,1.48573918859417
+"Black-crowned Night Heron","Nycticorax nycticorax","","","X",5,NA,0.35,0.6,9.4,4.40891097664718
+"White-eared Night Heron","Oroanassa magnifica","","","",NA,NA,NA,NA,NA,NA
+"Malayan Night Heron","Gorsachius melanolophus","","","",2,0.5,NA,NA,5.5,4.9
+"Glossy Ibis","Plegadis falcinellus","","","X",1,NA,1,1,18,NA
+"Black-headed Ibis","Threskiornis melanocephalus","","","",NA,NA,NA,NA,NA,NA
+"Red-naped Ibis","Pseudibis papillosa","","","",NA,NA,NA,NA,NA,NA
+"Eurasian Spoonbill","Platalea leucorodia","","","",NA,NA,NA,NA,NA,NA
+"Osprey","Pandion haliaetus","","","X",5,NA,0.2,0.2,8.2,6.05383052290036
+"Black-winged Kite","Elanus caeruleus","","","",NA,NA,NA,NA,NA,NA
+"Bearded Vulture","Gypaetus barbatus","","","",NA,NA,NA,NA,NA,NA
+"Egyptian Vulture","Neophron percnopterus","","","",NA,NA,NA,NA,NA,NA
+"European Honey-buzzard","Pernis apivorus","","","",NA,NA,NA,NA,NA,NA
+"Oriental Honey-buzzard","Pernis ptilorhynchus","","","X",6,NA,0.222222222222222,0.166666666666667,9.33333333333333,3.8095552379656
+"Jerdon's Baza","Aviceda jerdoni","","","X",2,NA,0.833333333333333,1,7.5,0.98
+"Black Baza","Aviceda leuphotes","","","X",11,0.0909090909090909,0.454545454545455,0.727272727272727,9.54545454545454,2.35442849832375
+"Red-headed Vulture","Sarcogyps calvus","","","",NA,NA,NA,NA,NA,NA
+"Cinereous Vulture","Aegypius monachus","","","",NA,NA,NA,NA,NA,NA
+"White-rumped Vulture","Gyps bengalensis","","","",NA,NA,NA,NA,NA,NA
+"Indian Vulture","Gyps indicus","","","",NA,NA,NA,NA,NA,NA
+"Slender-billed Vulture","Gyps tenuirostris","","","",NA,NA,NA,NA,NA,NA
+"Himalayan Griffon","Gyps himalayensis","","","",NA,NA,NA,NA,NA,NA
+"Eurasian Griffon","Gyps fulvus","","","",NA,NA,NA,NA,NA,NA
+"Nicobar Serpent-Eagle","Spilornis klossi","","","X",8,0.125,0.357142857142857,0.625,5.125,2.55116150017987
+"Crested Serpent-Eagle","Spilornis cheela","","","X",28,0.0714285714285714,0.383928571428571,0.678571428571429,6.64285714285714,1.57541764010079
+"Andaman Serpent-Eagle","Spilornis elgini","X","X","X",25,0.12,0.46,0.72,6.48,1.68651138152104
+"Short-toed Snake-Eagle","Circaetus gallicus","","","",NA,NA,NA,NA,NA,NA
+"Changeable Hawk-Eagle","Nisaetus cirrhatus","","","X",23,0.0434782608695652,0.483695652173913,0.782608695652174,6.82608695652174,1.76710543706619
+"Mountain Hawk-Eagle","Nisaetus nipalensis","","","",NA,NA,NA,NA,NA,NA
+"Legge's Hawk-Eagle","Nisaetus kelaarti","","","",NA,NA,NA,NA,NA,NA
+"Rufous-bellied Eagle","Lophotriorchis kienerii","","","",NA,NA,NA,NA,NA,NA
+"Black Eagle","Ictinaetus malaiensis","","","",NA,NA,NA,NA,NA,NA
+"Indian Spotted Eagle","Clanga hastata","","","",NA,NA,NA,NA,NA,NA
+"Greater Spotted Eagle","Clanga clanga","","","",NA,NA,NA,NA,NA,NA
+"Booted Eagle","Hieraaetus pennatus","","","",NA,NA,NA,NA,NA,NA
+"Tawny Eagle","Aquila rapax","","","",NA,NA,NA,NA,NA,NA
+"Steppe Eagle","Aquila nipalensis","","","",NA,NA,NA,NA,NA,NA
+"Imperial Eagle","Aquila heliaca","","","",NA,NA,NA,NA,NA,NA
+"Golden Eagle","Aquila chrysaetos","","","",NA,NA,NA,NA,NA,NA
+"Bonelli's Eagle","Aquila fasciata","","","",NA,NA,NA,NA,NA,NA
+"White-eyed Buzzard","Butastur teesa","","","",NA,NA,NA,NA,NA,NA
+"Rufous-winged Buzzard","Butastur liventer","","","",NA,NA,NA,NA,NA,NA
+"Gray-faced Buzzard","Butastur indicus","","","",NA,NA,NA,NA,NA,NA
+"Western Marsh Harrier","Circus aeruginosus","","","X",1,NA,NA,NA,18,NA
+"Eastern Marsh Harrier","Circus spilonotus","","","",NA,NA,NA,NA,NA,NA
+"Hen Harrier","Circus cyaneus","","","",NA,NA,NA,NA,NA,NA
+"Pallid Harrier","Circus macrourus","","","",NA,NA,NA,NA,NA,NA
+"Pied Harrier","Circus melanoleucos","","","X",3,NA,0.533333333333333,0.666666666666667,12.3333333333333,5.58208244694079
+"Montagu's Harrier","Circus pygargus","","","",NA,NA,NA,NA,NA,NA
+"Crested Goshawk","Accipiter trivirgatus","","","",NA,NA,NA,NA,NA,NA
+"Shikra","Accipiter badius","","","",NA,NA,NA,NA,NA,NA
+"Nicobar Sparrowhawk","Accipiter butleri","","","X",2,NA,0.75,NA,7,9.8
+"Chinese Sparrowhawk","Accipiter soloensis","","","",10,NA,0.4125,0.6,7.4,2.79027644986418
+"Japanese Sparrowhawk","Accipiter gularis","","","",6,NA,0.25,NA,9.66666666666667,3.74172390453622
+"Besra","Accipiter virgatus","","","X",4,NA,0.5,NA,10.5,5.68625242727288
+"Eurasian Sparrowhawk","Accipiter nisus","","","",NA,NA,NA,NA,NA,NA
+"Eurasian Goshawk","Accipiter gentilis","","","",NA,NA,NA,NA,NA,NA
+"Red Kite","Milvus milvus","","","",NA,NA,NA,NA,NA,NA
+"Black Kite","Milvus migrans","","","",NA,NA,NA,NA,NA,NA
+"Brahminy Kite","Haliastur indus","","X","X",6,NA,0.583333333333333,0.833333333333333,8,4.17315867579144
+"White-tailed Eagle","Haliaeetus albicilla","","","",NA,NA,NA,NA,NA,NA
+"Pallas's Fish-Eagle","Haliaeetus leucoryphus","","","",NA,NA,NA,NA,NA,NA
+"White-bellied Sea-Eagle","Icthyophaga leucogaster","","","X",43,0.186046511627907,0.450581395348837,0.604651162790698,5.11627906976744,1.23101919429201
+"Lesser Fish-Eagle","Icthyophaga humilis","","","",NA,NA,NA,NA,NA,NA
+"Gray-headed Fish-Eagle","Icthyophaga ichthyaetus","","","",NA,NA,NA,NA,NA,NA
+"Rough-legged Hawk","Buteo lagopus","","","",NA,NA,NA,NA,NA,NA
+"Common Buzzard","Buteo buteo","","","",NA,NA,NA,NA,NA,NA
+"Himalayan Buzzard","Buteo refectus","","","",NA,NA,NA,NA,NA,NA
+"Long-legged Buzzard","Buteo rufinus","","","",NA,NA,NA,NA,NA,NA
+"Upland Buzzard","Buteo hemilasius","","","",NA,NA,NA,NA,NA,NA
+"Australasian Grass-Owl","Tyto longimembris","","","",NA,NA,NA,NA,NA,NA
+"Barn Owl","Tyto alba","","","",NA,NA,NA,NA,NA,NA
+"Andaman Masked-Owl","Tyto deroepstorffi","","","",11,NA,0.340909090909091,0.636363636363636,8.54545454545454,2.92348529686601
+"Oriental Bay-Owl","Phodilus badius","","","",NA,NA,NA,NA,NA,NA
+"Sri Lanka Bay-Owl","Phodilus assimilis","","","",NA,NA,NA,NA,NA,NA
+"Andaman Scops-Owl","Otus balli","","","",16,0.0625,0.34375,0.625,8.1875,2.10353105911623
+"Mountain Scops-Owl","Otus spilocephalus","","","",NA,NA,NA,NA,NA,NA
+"Indian Scops-Owl","Otus bakkamoena","","","",NA,NA,NA,NA,NA,NA
+"Collared Scops-Owl","Otus lettia","","","",NA,NA,NA,NA,NA,NA
+"Nicobar Scops-Owl","Otus alius","","","",3,NA,0.555555555555556,1,6,2.99394945403782
+"Eurasian Scops-Owl","Otus scops","","","",NA,NA,NA,NA,NA,NA
+"Pallid Scops-Owl","Otus brucei","","","",NA,NA,NA,NA,NA,NA
+"Oriental Scops-Owl","Otus sunia","","","",19,NA,0.368421052631579,0.578947368421053,7.84210526315789,1.9672258309586
+"Eurasian Eagle-Owl","Bubo bubo","","","",NA,NA,NA,NA,NA,NA
+"Rock Eagle-Owl","Bubo bengalensis","","","",NA,NA,NA,NA,NA,NA
+"Spot-bellied Eagle-Owl","Ketupa nipalensis","","","",NA,NA,NA,NA,NA,NA
+"Dusky Eagle-Owl","Ketupa coromanda","","","",NA,NA,NA,NA,NA,NA
+"Brown Fish-Owl","Ketupa zeylonensis","","","",NA,NA,NA,NA,NA,NA
+"Tawny Fish-Owl","Ketupa flavipes","","","",NA,NA,NA,NA,NA,NA
+"Buffy Fish-Owl","Ketupa ketupu","","","",NA,NA,NA,NA,NA,NA
+"Asian Barred Owlet","Glaucidium cuculoides","","","",NA,NA,NA,NA,NA,NA
+"Jungle Owlet","Glaucidium radiatum","","","",NA,NA,NA,NA,NA,NA
+"Collared Owlet","Taenioptynx brodiei","","","",NA,NA,NA,NA,NA,NA
+"Spotted Owlet","Athene brama","","","",NA,NA,NA,NA,NA,NA
+"Little Owl","Athene noctua","","","",NA,NA,NA,NA,NA,NA
+"Forest Owlet","Athene blewitti","","","",NA,NA,NA,NA,NA,NA
+"Mottled Wood-Owl","Strix ocellata","","","",NA,NA,NA,NA,NA,NA
+"Brown Wood-Owl","Strix leptogrammica","","","",NA,NA,NA,NA,NA,NA
+"Tawny Owl","Strix aluco","","","",NA,NA,NA,NA,NA,NA
+"Himalayan Owl","Strix nivicolum","","","",NA,NA,NA,NA,NA,NA
+"Long-eared Owl","Asio otus","","","",NA,NA,NA,NA,NA,NA
+"Short-eared Owl","Asio flammeus","","","",NA,NA,NA,NA,NA,NA
+"Boreal Owl","Aegolius funereus","","","",NA,NA,NA,NA,NA,NA
+"Andaman Boobook","Ninox affinis","","","",13,0.0769230769230769,0.423076923076923,0.692307692307692,9.23076923076923,2.19868205098901
+"Brown Boobook","Ninox scutulata","","","",6,NA,0.380952380952381,0.5,6,2.99394945403782
+"Hume's Boobook","Ninox obscura","","","",15,NA,0.391666666666667,0.533333333333333,8.4,2.20424801992274
+"Malabar Trogon","Harpactes fasciatus","","","",NA,NA,NA,NA,NA,NA
+"Red-headed Trogon","Harpactes erythrocephalus","","","",NA,NA,NA,NA,NA,NA
+"Ward's Trogon","Harpactes wardi","","","",NA,NA,NA,NA,NA,NA
+"Eurasian Hoopoe","Upupa epops","","","X",NA,NA,NA,NA,NA,NA
+"Great Hornbill","Buceros bicornis","","","",NA,NA,NA,NA,NA,NA
+"Brown Hornbill","Anorrhinus austeni","","","",NA,NA,NA,NA,NA,NA
+"Indian Gray Hornbill","Ocyceros birostris","","","",NA,NA,NA,NA,NA,NA
+"Malabar Gray Hornbill","Ocyceros griseus","","","",NA,NA,NA,NA,NA,NA
+"Malabar Pied-Hornbill","Anthracoceros coronatus","","","",NA,NA,NA,NA,NA,NA
+"Oriental Pied-Hornbill","Anthracoceros albirostris","","","",NA,NA,NA,NA,NA,NA
+"Rufous-necked Hornbill","Aceros nipalensis","","","",NA,NA,NA,NA,NA,NA
+"Wreathed Hornbill","Rhyticeros undulatus","","","",NA,NA,NA,NA,NA,NA
+"Narcondam Hornbill","Rhyticeros narcondami","","","X",1,1,1,1,1,NA
+"Blyth's Kingfisher","Alcedo hercules","","","",NA,NA,NA,NA,NA,NA
+"Common Kingfisher","Alcedo atthis","","","X",29,0.137931034482759,0.387931034482759,0.655172413793103,6.51724137931035,1.53068744125187
+"Blue-eared Kingfisher","Alcedo meninting","","","X",15,NA,0.408333333333333,0.733333333333333,8.26666666666667,2.20147990628527
+"Black-backed Dwarf-Kingfisher","Ceyx erithaca","","","X",6,NA,0.30952380952381,0.5,8.66666666666667,4.00616413931221
+"Rufous-backed Dwarf-Kingfisher","Ceyx rufidorsa","","","",NA,NA,NA,NA,NA,NA
+"Brown-winged Kingfisher","Pelargopsis amauroptera","","","",NA,NA,NA,NA,NA,NA
+"Stork-billed Kingfisher","Pelargopsis capensis","","","X",30,0.0666666666666667,0.458333333333333,0.733333333333333,5.9,1.54230381490524
+"Ruddy Kingfisher","Halcyon coromanda","","X","X",16,NA,0.34375,0.5,7.625,2.08562021151183
+"White-throated Kingfisher","Halcyon smyrnensis","","","X",32,0.09375,0.52734375,0.71875,5.78125,1.46401925156455
+"Black-capped Kingfisher","Halcyon pileata","","","X",13,0.230769230769231,0.25,0.307692307692308,7,2.56898263810244
+"Collared Kingfisher","Todiramphus chloris","","","X",40,0.1,0.475,0.65,5.4,1.28026663889467
+"Crested Kingfisher","Megaceryle lugubris","","","",NA,NA,NA,NA,NA,NA
+"Pied Kingfisher","Ceryle rudis","","","",NA,NA,NA,NA,NA,NA
+"Blue-bearded Bee-eater","Nyctyornis athertoni","","","",NA,NA,NA,NA,NA,NA
+"Asian Green Bee-eater","Merops orientalis","","","",NA,NA,NA,NA,NA,NA
+"Blue-throated Bee-eater","Merops viridis","","","",NA,NA,NA,NA,NA,NA
+"Blue-cheeked Bee-eater","Merops persicus","","","",NA,NA,NA,NA,NA,NA
+"Blue-tailed Bee-eater","Merops philippinus","","","X",19,0.105263157894737,0.447368421052632,0.631578947368421,7.68421052631579,1.87836775832599
+"European Bee-eater","Merops apiaster","","","",NA,NA,NA,NA,NA,NA
+"Chestnut-headed Bee-eater","Merops leschenaulti","","","X",25,0.08,0.47,0.72,6.28,1.74032107382517
+"European Roller","Coracias garrulus","","","",NA,NA,NA,NA,NA,NA
+"Indian Roller","Coracias benghalensis","","","",NA,NA,NA,NA,NA,NA
+"Indochinese Roller","Coracias affinis","","","",NA,NA,NA,NA,NA,NA
+"Dollarbird","Eurystomus orientalis","","","X",21,0.0476190476190476,0.398809523809524,0.761904761904762,7.09523809523809,1.85402385217786
+"Malabar Barbet","Psilopogon malabaricus","","","",NA,NA,NA,NA,NA,NA
+"Coppersmith Barbet","Psilopogon haemacephalus","","","",NA,NA,NA,NA,NA,NA
+"Blue-eared Barbet","Psilopogon cyanotis","","","",NA,NA,NA,NA,NA,NA
+"Great Barbet","Psilopogon virens","","","",NA,NA,NA,NA,NA,NA
+"Lineated Barbet","Psilopogon lineatus","","","",NA,NA,NA,NA,NA,NA
+"Brown-headed Barbet","Psilopogon zeylanicus","","","",NA,NA,NA,NA,NA,NA
+"White-cheeked Barbet","Psilopogon viridis","","","",NA,NA,NA,NA,NA,NA
+"Golden-throated Barbet","Psilopogon franklinii","","","",NA,NA,NA,NA,NA,NA
+"Blue-throated Barbet","Psilopogon asiaticus","","","",NA,NA,NA,NA,NA,NA
+"Yellow-rumped Honeyguide","Indicator xanthonotus","","","",NA,NA,NA,NA,NA,NA
+"Eurasian Wryneck","Jynx torquilla","","","",NA,NA,NA,NA,NA,NA
+"Speckled Piculet","Picumnus innominatus","","","",NA,NA,NA,NA,NA,NA
+"White-browed Piculet","Sasia ochracea","","","",NA,NA,NA,NA,NA,NA
+"Heart-spotted Woodpecker","Hemicircus canente","","","",NA,NA,NA,NA,NA,NA
+"Brown-capped Pygmy Woodpecker","Yungipicus nanus","","","",NA,NA,NA,NA,NA,NA
+"Gray-capped Pygmy Woodpecker","Yungipicus canicapillus","","","",NA,NA,NA,NA,NA,NA
+"Yellow-crowned Woodpecker","Leiopicus mahrattensis","","","",NA,NA,NA,NA,NA,NA
+"Brown-fronted Woodpecker","Dendrocoptes auriceps","","","",NA,NA,NA,NA,NA,NA
+"Rufous-bellied Woodpecker","Dendrocopos hyperythrus","","","",NA,NA,NA,NA,NA,NA
+"Fulvous-breasted Woodpecker","Dendrocopos macei","","","",NA,NA,NA,NA,NA,NA
+"Freckle-breasted Woodpecker","Dendrocopos analis","","","",23,0.0869565217391304,0.494565217391304,0.695652173913043,6.95652173913043,1.69619393392626
+"Stripe-breasted Woodpecker","Dendrocopos atratus","","","",NA,NA,NA,NA,NA,NA
+"Darjeeling Woodpecker","Dendrocopos darjellensis","","","",NA,NA,NA,NA,NA,NA
+"Great Spotted Woodpecker","Dendrocopos major","","","",NA,NA,NA,NA,NA,NA
+"Himalayan Woodpecker","Dendrocopos himalayensis","","","",NA,NA,NA,NA,NA,NA
+"Sind Woodpecker","Dendrocopos assimilis","","","",NA,NA,NA,NA,NA,NA
+"Crimson-naped Woodpecker","Dryobates cathpharius","","","",NA,NA,NA,NA,NA,NA
+"Bay Woodpecker","Blythipicus pyrrhotis","","","",NA,NA,NA,NA,NA,NA
+"Greater Flameback","Chrysocolaptes guttacristatus","","","",NA,NA,NA,NA,NA,NA
+"White-naped Woodpecker","Chrysocolaptes festivus","","","",NA,NA,NA,NA,NA,NA
+"Rufous Woodpecker","Micropternus brachyurus","","","",NA,NA,NA,NA,NA,NA
+"Pale-headed Woodpecker","Gecinulus grantia","","","",NA,NA,NA,NA,NA,NA
+"Himalayan Flameback","Dinopium shorii","","","",NA,NA,NA,NA,NA,NA
+"Common Flameback","Dinopium javanense","","","",NA,NA,NA,NA,NA,NA
+"Black-rumped Flameback","Dinopium benghalense","","","",NA,NA,NA,NA,NA,NA
+"Lesser Yellownape","Picus chlorolophus","","","",NA,NA,NA,NA,NA,NA
+"Streak-throated Woodpecker","Picus xanthopygaeus","","","",NA,NA,NA,NA,NA,NA
+"Scaly-bellied Woodpecker","Picus squamatus","","","",NA,NA,NA,NA,NA,NA
+"Gray-headed Woodpecker","Picus canus","","","",NA,NA,NA,NA,NA,NA
+"Greater Yellownape","Chrysophlegma flavinucha","","","",NA,NA,NA,NA,NA,NA
+"Great Slaty Woodpecker","Mulleripicus pulverulentus","","","",NA,NA,NA,NA,NA,NA
+"White-bellied Woodpecker","Dryocopus javensis","","","",NA,NA,NA,NA,NA,NA
+"Andaman Woodpecker","Dryocopus hodgei","X","X","X",24,0.125,0.505208333333333,0.625,6.54166666666667,1.76565294268428
+"Collared Falconet","Microhierax caerulescens","","","",NA,NA,NA,NA,NA,NA
+"Pied Falconet","Microhierax melanoleucos","","","",NA,NA,NA,NA,NA,NA
+"Lesser Kestrel","Falco naumanni","","","",NA,NA,NA,NA,NA,NA
+"Eurasian Kestrel","Falco tinnunculus","","","X",3,0.333333333333333,0.333333333333333,NA,9.66666666666667,8.34120161873842
+"Red-necked Falcon","Falco chicquera","","","",NA,NA,NA,NA,NA,NA
+"Red-footed Falcon","Falco vespertinus","","","",NA,NA,NA,NA,NA,NA
+"Amur Falcon","Falco amurensis","","","X",NA,NA,NA,NA,NA,NA
+"Merlin","Falco columbarius","","","",NA,NA,NA,NA,NA,NA
+"Eurasian Hobby","Falco subbuteo","","","",NA,NA,NA,NA,NA,NA
+"Oriental Hobby","Falco severus","","","",NA,NA,NA,NA,NA,NA
+"Laggar Falcon","Falco jugger","","","",NA,NA,NA,NA,NA,NA
+"Saker Falcon","Falco cherrug","","","",NA,NA,NA,NA,NA,NA
+"Peregrine Falcon","Falco peregrinus","","","X",9,NA,0.253968253968254,0.444444444444444,7.11111111111111,3.2575799545819
+"Alexandrine Parakeet","Psittacula eupatria","","","X",27,0.185185185185185,0.453703703703704,0.666666666666667,6.03703703703704,1.66890111692112
+"Rose-ringed Parakeet","Psittacula krameri","","","",NA,NA,NA,NA,NA,NA
+"Slaty-headed Parakeet","Psittacula himalayana","","","",NA,NA,NA,NA,NA,NA
+"Gray-headed Parakeet","Psittacula finschii","","","",NA,NA,NA,NA,NA,NA
+"Plum-headed Parakeet","Psittacula cyanocephala","","","",NA,NA,NA,NA,NA,NA
+"Blossom-headed Parakeet","Psittacula roseata","","","",NA,NA,NA,NA,NA,NA
+"Malabar Parakeet","Psittacula columboides","","","",NA,NA,NA,NA,NA,NA
+"Derbyan Parakeet","Psittacula derbiana","","","",NA,NA,NA,NA,NA,NA
+"Red-breasted Parakeet","Psittacula alexandri","","","X",23,0.130434782608696,0.576086956521739,0.695652173913043,6.65217391304348,1.81356762501527
+"Nicobar Parakeet","Psittacula caniceps","","","X",8,0.125,0.416666666666667,0.75,5,2.56624238917527
+"Long-tailed Parakeet","Psittacula longicauda","","","X",39,0.153846153846154,0.496794871794872,0.769230769230769,5.51282051282051,1.2937847309606
+"Vernal Hanging-Parrot","Loriculus vernalis","","","X",27,0.148148148148148,0.560185185185185,0.666666666666667,6.07407407407407,1.6538958901606
+"Long-tailed Broadbill","Psarisomus dalhousiae","","","",NA,NA,NA,NA,NA,NA
+"Gray-lored Broadbill","Serilophus rubropygius","","","",NA,NA,NA,NA,NA,NA
+"Blue-naped Pitta","Hydrornis nipalensis","","","",NA,NA,NA,NA,NA,NA
+"Blue Pitta","Hydrornis cyaneus","","","",NA,NA,NA,NA,NA,NA
+"Indian Pitta","Pitta brachyura","","","",NA,NA,NA,NA,NA,NA
+"Blue-winged Pitta","Pitta moluccensis","","","",NA,NA,NA,NA,NA,NA
+"Western Hooded Pitta","Pitta sordida","","","X",4,NA,0.55,0.75,4.75,3.23795717492784
+"Mangrove Pitta","Pitta megarhyncha","","","",NA,NA,NA,NA,NA,NA
+"White-bellied Minivet","Pericrocotus erythropygius","","","",NA,NA,NA,NA,NA,NA
+"Small Minivet","Pericrocotus cinnamomeus","X","X","X",23,0.0869565217391304,0.58695652173913,0.826086956521739,6.91304347826087,1.72034782289038
+"Gray-chinned Minivet","Pericrocotus solaris","","","",NA,NA,NA,NA,NA,NA
+"Short-billed Minivet","Pericrocotus brevirostris","","","",NA,NA,NA,NA,NA,NA
+"Long-tailed Minivet","Pericrocotus ethologus","","","",NA,NA,NA,NA,NA,NA
+"Orange Minivet","Pericrocotus flammeus","","","",NA,NA,NA,NA,NA,NA
+"Scarlet Minivet","Pericrocotus speciosus","","","X",22,0.0909090909090909,0.602272727272727,0.818181818181818,7.13636363636364,1.7411572732346
+"Ashy Minivet","Pericrocotus divaricatus","","","",7,NA,0.619047619047619,0.714285714285714,8.71428571428571,3.54543838380155
+"Brown-rumped Minivet","Pericrocotus cantonensis","","","",NA,NA,NA,NA,NA,NA
+"Rosy Minivet","Pericrocotus roseus","","","",NA,NA,NA,NA,NA,NA
+"Large Cuckooshrike","Coracina macei","","","X",21,0.0952380952380952,0.505952380952381,0.80952380952381,7.19047619047619,1.79748466227423
+"Andaman Cuckooshrike","Coracina dobsoni","","X","X",16,NA,0.4296875,0.8125,7.8125,2.12623679694117
+"Pied Triller","Lalage nigra","","","",4,NA,0.5,0.75,5.75,4.26234286122863
+"Black-winged Cuckooshrike","Lalage melaschistos","","","",NA,NA,NA,NA,NA,NA
+"Black-headed Cuckooshrike","Lalage melanoptera","","","",NA,NA,NA,NA,NA,NA
+"Black-headed Shrike-Babbler","Pteruthius rufiventer","","","",NA,NA,NA,NA,NA,NA
+"White-browed Shrike-Babbler","Pteruthius aeralatus","","","",NA,NA,NA,NA,NA,NA
+"Green Shrike-Babbler","Pteruthius xanthochlorus","","","",NA,NA,NA,NA,NA,NA
+"Black-eared Shrike-Babbler","Pteruthius melanotis","","","",NA,NA,NA,NA,NA,NA
+"Clicking Shrike-Babbler","Pteruthius intermedius","","","",NA,NA,NA,NA,NA,NA
+"White-bellied Erpornis","Erpornis zantholeuca","","","",NA,NA,NA,NA,NA,NA
+"Mangrove Whistler","Pachycephala cinerea","","","",23,0.0869565217391304,0.402173913043478,0.652173913043478,6.69565217391304,1.80864662444953
+"Eurasian Golden Oriole","Oriolus oriolus","","","",NA,NA,NA,NA,NA,NA
+"Indian Golden Oriole","Oriolus kundoo","","","",NA,NA,NA,NA,NA,NA
+"Black-naped Oriole","Oriolus chinensis","","","X",35,0.142857142857143,0.525,0.714285714285714,5.77142857142857,1.40808021161898
+"Slender-billed Oriole","Oriolus tenuirostris","","","",NA,NA,NA,NA,NA,NA
+"Black-hooded Oriole","Oriolus xanthornus","","","X",11,NA,0.375,0.636363636363636,8.27272727272727,2.50850638777753
+"Maroon Oriole","Oriolus traillii","","","",NA,NA,NA,NA,NA,NA
+"Ashy Woodswallow","Artamus fuscus","","","",NA,NA,NA,NA,NA,NA
+"White-breasted Woodswallow","Artamus leucorynchus","","","",22,NA,0.380681818181818,0.545454545454545,6.54545454545455,1.91592312802651
+"Malabar Woodshrike","Tephrodornis sylvicola","","","",NA,NA,NA,NA,NA,NA
+"Large Woodshrike","Tephrodornis virgatus","","","",NA,NA,NA,NA,NA,NA
+"Common Woodshrike","Tephrodornis pondicerianus","","","",NA,NA,NA,NA,NA,NA
+"Bar-winged Flycatcher-shrike","Hemipus picatus","","","",NA,NA,NA,NA,NA,NA
+"Common Iora","Aegithina tiphia","","","",NA,NA,NA,NA,NA,NA
+"White-tailed Iora","Aegithina nigrolutea","","","",NA,NA,NA,NA,NA,NA
+"White-throated Fantail","Rhipidura albicollis","","","",NA,NA,NA,NA,NA,NA
+"Spot-breasted Fantail","Rhipidura albogularis","","","",NA,NA,NA,NA,NA,NA
+"White-browed Fantail","Rhipidura aureola","","","",NA,NA,NA,NA,NA,NA
+"Black Drongo","Dicrurus macrocercus","","","X",12,NA,0.3125,0.75,9.58333333333333,2.06778146863255
+"Ashy Drongo","Dicrurus leucophaeus","","","X",7,NA,0.428571428571429,1,8.85714285714286,3.406347016967
+"White-bellied Drongo","Dicrurus caerulescens","","","",NA,NA,NA,NA,NA,NA
+"Crow-billed Drongo","Dicrurus annectens","","","",NA,NA,NA,NA,NA,NA
+"Bronzed Drongo","Dicrurus aeneus","","","",NA,NA,NA,NA,NA,NA
+"Lesser Racket-tailed Drongo","Dicrurus remifer","","","",NA,NA,NA,NA,NA,NA
+"Hair-crested Drongo","Dicrurus hottentottus","","","",NA,NA,NA,NA,NA,NA
+"Andaman Drongo","Dicrurus andamanensis","X","X","X",26,0.0769230769230769,0.567307692307692,0.769230769230769,6.26923076923077,1.67217962852654
+"Greater Racket-tailed Drongo","Dicrurus paradiseus","","","X",38,0.184210526315789,0.509868421052632,0.789473684210526,5.47368421052632,1.34233880767212
+"Black-naped Monarch","Hypothymis azurea","","","X",32,0.0625,0.5,0.75,6.03125,1.492183920575
+"Amur Paradise-Flycatcher","Terpsiphone incei","","","",2,NA,0.5,0.5,11.5,12.74
+"Blyth's Paradise-Flycatcher","Terpsiphone affinis","","","",8,NA,0.3125,0.5,8.125,3.59955900076662
+"Indian Paradise-Flycatcher","Terpsiphone paradisi","","","",NA,NA,NA,NA,NA,NA
+"Red-backed Shrike","Lanius collurio","","","",NA,NA,NA,NA,NA,NA
+"Red-tailed Shrike","Lanius phoenicuroides","","","",NA,NA,NA,NA,NA,NA
+"Isabelline Shrike","Lanius isabellinus","","","",NA,NA,NA,NA,NA,NA
+"Brown Shrike","Lanius cristatus","","","X",28,0.107142857142857,0.566964285714286,0.678571428571429,6.46428571428571,1.51379214777547
+"Burmese Shrike","Lanius collurioides","","","",NA,NA,NA,NA,NA,NA
+"Bay-backed Shrike","Lanius vittatus","","","",NA,NA,NA,NA,NA,NA
+"Long-tailed Shrike","Lanius schach","","","",NA,NA,NA,NA,NA,NA
+"Gray-backed Shrike","Lanius tephronotus","","","",NA,NA,NA,NA,NA,NA
+"Great Gray Shrike","Lanius excubitor","","","",NA,NA,NA,NA,NA,NA
+"Lesser Gray Shrike","Lanius minor","","","",NA,NA,NA,NA,NA,NA
+"Masked Shrike","Lanius nubicus","","","",NA,NA,NA,NA,NA,NA
+"Woodchat Shrike","Lanius senator","","","",NA,NA,NA,NA,NA,NA
+"Eurasian Jay","Garrulus glandarius","","","",NA,NA,NA,NA,NA,NA
+"Black-headed Jay","Garrulus lanceolatus","","","",NA,NA,NA,NA,NA,NA
+"Yellow-billed Blue-Magpie","Urocissa flavirostris","","","",NA,NA,NA,NA,NA,NA
+"Red-billed Blue-Magpie","Urocissa erythroryncha","","","",NA,NA,NA,NA,NA,NA
+"Common Green-Magpie","Cissa chinensis","","","",NA,NA,NA,NA,NA,NA
+"Rufous Treepie","Dendrocitta vagabunda","","","",NA,NA,NA,NA,NA,NA
+"Gray Treepie","Dendrocitta formosae","","","",NA,NA,NA,NA,NA,NA
+"White-bellied Treepie","Dendrocitta leucogastra","","","",NA,NA,NA,NA,NA,NA
+"Collared Treepie","Dendrocitta frontalis","","","",NA,NA,NA,NA,NA,NA
+"Andaman Treepie","Dendrocitta bayleii","X","X","X",19,0.105263157894737,0.519736842105263,0.789473684210526,7.52631578947368,1.90400152082933
+"Black-rumped Magpie","Pica bottanensis","","","",NA,NA,NA,NA,NA,NA
+"Eurasian Magpie","Pica pica","","","",NA,NA,NA,NA,NA,NA
+"Eurasian Nutcracker","Nucifraga caryocatactes","","","",NA,NA,NA,NA,NA,NA
+"Kashmir Nutcracker","Nucifraga multipunctata","","","",NA,NA,NA,NA,NA,NA
+"Red-billed Chough","Pyrrhocorax pyrrhocorax","","","",NA,NA,NA,NA,NA,NA
+"Yellow-billed Chough","Pyrrhocorax graculus","","","",NA,NA,NA,NA,NA,NA
+"Eurasian Jackdaw","Corvus monedula","","","",NA,NA,NA,NA,NA,NA
+"House Crow","Corvus splendens","","","X",20,0.05,0.48125,0.75,7.65,1.92500066985634
+"Rook","Corvus frugilegus","","","",NA,NA,NA,NA,NA,NA
+"Carrion Crow","Corvus corone","","","",NA,NA,NA,NA,NA,NA
+"Hooded Crow","Corvus cornix","","","",NA,NA,NA,NA,NA,NA
+"Large-billed Crow","Corvus macrorhynchos","","","X",30,0.1,0.55,0.7,6.06666666666667,1.5063353516302
+"Pied Crow","Corvus albus","","","",NA,NA,NA,NA,NA,NA
+"Common Raven","Corvus corax","","","",NA,NA,NA,NA,NA,NA
+"Yellow-bellied Fairy-Fantail","Chelidorhynx hypoxanthus","","","",NA,NA,NA,NA,NA,NA
+"Gray-headed Canary-Flycatcher","Culicicapa ceylonensis","","","",NA,NA,NA,NA,NA,NA
+"Fire-capped Tit","Cephalopyrus flammiceps","","","",NA,NA,NA,NA,NA,NA
+"Yellow-browed Tit","Sylviparus modestus","","","",NA,NA,NA,NA,NA,NA
+"Sultan Tit","Melanochlora sultanea","","","",NA,NA,NA,NA,NA,NA
+"Coal Tit","Periparus ater","","","",NA,NA,NA,NA,NA,NA
+"Rufous-naped Tit","Periparus rufonuchalis","","","",NA,NA,NA,NA,NA,NA
+"Rufous-vented Tit","Periparus rubidiventris","","","",NA,NA,NA,NA,NA,NA
+"Gray-crested Tit","Lophophanes dichrous","","","",NA,NA,NA,NA,NA,NA
+"Azure Tit","Cyanistes cyanus","","","",NA,NA,NA,NA,NA,NA
+"Ground Tit","Pseudopodoces humilis","","","",NA,NA,NA,NA,NA,NA
+"Green-backed Tit","Parus monticolus","","","",NA,NA,NA,NA,NA,NA
+"Cinereous Tit","Parus cinereus","","","",NA,NA,NA,NA,NA,NA
+"White-naped Tit","Machlolophus nuchalis","","","",NA,NA,NA,NA,NA,NA
+"Himalayan Black-lored Tit","Machlolophus xanthogenys","","","",NA,NA,NA,NA,NA,NA
+"Indian Yellow Tit","Machlolophus aplonotus","","","",NA,NA,NA,NA,NA,NA
+"Yellow-cheeked Tit","Machlolophus spilonotus","","","",NA,NA,NA,NA,NA,NA
+"White-crowned Penduline-Tit","Remiz coronatus","","","",NA,NA,NA,NA,NA,NA
+"Greater Hoopoe-Lark","Alaemon alaudipes","","","",NA,NA,NA,NA,NA,NA
+"Rufous-tailed Lark","Ammomanes phoenicura","","","",NA,NA,NA,NA,NA,NA
+"Desert Lark","Ammomanes deserti","","","",NA,NA,NA,NA,NA,NA
+"Black-crowned Sparrow-Lark","Eremopterix nigriceps","","","",NA,NA,NA,NA,NA,NA
+"Ashy-crowned Sparrow-Lark","Eremopterix griseus","","","",NA,NA,NA,NA,NA,NA
+"Singing Bushlark","Mirafra javanica","","","",NA,NA,NA,NA,NA,NA
+"Bengal Bushlark","Mirafra assamica","","","",NA,NA,NA,NA,NA,NA
+"Jerdon's Bushlark","Mirafra affinis","","","",NA,NA,NA,NA,NA,NA
+"Indian Bushlark","Mirafra erythroptera","","","",NA,NA,NA,NA,NA,NA
+"Horned Lark","Eremophila alpestris","","","",NA,NA,NA,NA,NA,NA
+"Greater Short-toed Lark","Calandrella brachydactyla","","","X",2,NA,0.5,0.5,14,7.84
+"Mongolian Short-toed Lark","Calandrella dukhunensis","","","",NA,NA,NA,NA,NA,NA
+"Hume's Lark","Calandrella acutirostris","","","",NA,NA,NA,NA,NA,NA
+"Bimaculated Lark","Melanocorypha bimaculata","","","",NA,NA,NA,NA,NA,NA
+"Tibetan Lark","Melanocorypha maxima","","","",NA,NA,NA,NA,NA,NA
+"Turkestan Short-toed Lark","Alaudala heinei","","","",NA,NA,NA,NA,NA,NA
+"Sand Lark","Alaudala raytal","","","",NA,NA,NA,NA,NA,NA
+"Eurasian Skylark","Alauda arvensis","","","",NA,NA,NA,NA,NA,NA
+"Oriental Skylark","Alauda gulgula","","","X",2,NA,0.75,0.5,12.5,10.78
+"Crested Lark","Galerida cristata","","","",NA,NA,NA,NA,NA,NA
+"Malabar Lark","Galerida malabarica","","","",NA,NA,NA,NA,NA,NA
+"Tawny Lark","Galerida deva","","","",NA,NA,NA,NA,NA,NA
+"Common Tailorbird","Orthotomus sutorius","","","",NA,NA,NA,NA,NA,NA
+"Dark-necked Tailorbird","Orthotomus atrogularis","","","",NA,NA,NA,NA,NA,NA
+"Himalayan Prinia","Prinia crinigera","","","",NA,NA,NA,NA,NA,NA
+"Black-throated Prinia","Prinia atrogularis","","","",NA,NA,NA,NA,NA,NA
+"Rufous-crowned Prinia","Prinia khasiana","","","",NA,NA,NA,NA,NA,NA
+"Hill Prinia","Prinia superciliaris","","","",NA,NA,NA,NA,NA,NA
+"Gray-crowned Prinia","Prinia cinereocapilla","","","",NA,NA,NA,NA,NA,NA
+"Rufous-fronted Prinia","Prinia buchanani","","","",NA,NA,NA,NA,NA,NA
+"Rufescent Prinia","Prinia rufescens","","","",NA,NA,NA,NA,NA,NA
+"Gray-breasted Prinia","Prinia hodgsonii","","","",NA,NA,NA,NA,NA,NA
+"Delicate Prinia","Prinia lepida","","","",NA,NA,NA,NA,NA,NA
+"Jungle Prinia","Prinia sylvatica","","","",NA,NA,NA,NA,NA,NA
+"Yellow-bellied Prinia","Prinia flaviventris","","","",NA,NA,NA,NA,NA,NA
+"Ashy Prinia","Prinia socialis","","","",NA,NA,NA,NA,NA,NA
+"Plain Prinia","Prinia inornata","","","",NA,NA,NA,NA,NA,NA
+"Zitting Cisticola","Cisticola juncidis","","","X",5,NA,0.6,0.8,5,3.61406142725881
+"Golden-headed Cisticola","Cisticola exilis","","","",NA,NA,NA,NA,NA,NA
+"Thick-billed Warbler","Arundinax aedon","","","X",8,0.25,0.410714285714286,0.625,9.625,3.09764830153457
+"Booted Warbler","Iduna caligata","","","",NA,NA,NA,NA,NA,NA
+"Sykes's Warbler","Iduna rama","","","",NA,NA,NA,NA,NA,NA
+"Black-browed Reed Warbler","Acrocephalus bistrigiceps","","","",8,NA,0.4375,0.375,8.625,3.33236027464018
+"Moustached Warbler","Acrocephalus melanopogon","","","",NA,NA,NA,NA,NA,NA
+"Sedge Warbler","Acrocephalus schoenobaenus","","","",NA,NA,NA,NA,NA,NA
+"Paddyfield Warbler","Acrocephalus agricola","","","",NA,NA,NA,NA,NA,NA
+"Blunt-winged Warbler","Acrocephalus concinens","","","",NA,NA,NA,NA,NA,NA
+"Blyth's Reed Warbler","Acrocephalus dumetorum","","","",NA,NA,NA,NA,NA,NA
+"Large-billed Reed Warbler","Acrocephalus orinus","","","",NA,NA,NA,NA,NA,NA
+"Great Reed Warbler","Acrocephalus arundinaceus","","","",NA,NA,NA,NA,NA,NA
+"Oriental Reed Warbler","Acrocephalus orientalis","","","",8,0.25,0.515625,0.75,8.5,3.09903210696501
+"Clamorous Reed Warbler","Acrocephalus stentoreus","","","X",7,NA,0.589285714285714,0.714285714285714,8,3.77740651770497
+"Pallas's Grasshopper Warbler","Helopsaltes certhiola","","","X",3,NA,0.476190476190476,0.666666666666667,10.6666666666667,7.53460756185159
+"Lanceolated Warbler","Locustella lanceolata","","","",1,NA,NA,NA,18,NA
+"Brown Bush Warbler","Locustella luteoventris","","","",NA,NA,NA,NA,NA,NA
+"Common Grasshopper Warbler","Locustella naevia","","","",NA,NA,NA,NA,NA,NA
+"Long-billed Bush Warbler","Locustella major","","","",NA,NA,NA,NA,NA,NA
+"Chinese Bush Warbler","Locustella tacsanowskia","","","",NA,NA,NA,NA,NA,NA
+"Baikal Bush Warbler","Locustella davidi","","","",NA,NA,NA,NA,NA,NA
+"West Himalayan Bush Warbler","Locustella kashmirensis","","","",NA,NA,NA,NA,NA,NA
+"Spotted Bush Warbler","Locustella thoracica","","","",NA,NA,NA,NA,NA,NA
+"Russet Bush Warbler","Locustella mandelli","","","",NA,NA,NA,NA,NA,NA
+"Broad-tailed Grassbird","Schoenicola platyurus","","","",NA,NA,NA,NA,NA,NA
+"Bristled Grassbird","Schoenicola striatus","","","",NA,NA,NA,NA,NA,NA
+"Striated Grassbird","Megalurus palustris","","","",NA,NA,NA,NA,NA,NA
+"Scaly-breasted Cupwing","Pnoepyga albiventer","","","",NA,NA,NA,NA,NA,NA
+"Immaculate Cupwing","Pnoepyga immaculata","","","",NA,NA,NA,NA,NA,NA
+"Pygmy Cupwing","Pnoepyga pusilla","","","",NA,NA,NA,NA,NA,NA
+"Gray-throated Martin","Riparia chinensis","","","",NA,NA,NA,NA,NA,NA
+"Bank Swallow","Riparia riparia","","","",NA,NA,NA,NA,NA,NA
+"Pale Martin","Riparia diluta","","","",NA,NA,NA,NA,NA,NA
+"Eurasian Crag-Martin","Ptyonoprogne rupestris","","","",NA,NA,NA,NA,NA,NA
+"Dusky Crag-Martin","Ptyonoprogne concolor","","","",NA,NA,NA,NA,NA,NA
+"Barn Swallow","Hirundo rustica","","","X",23,0.130434782608696,0.451086956521739,0.695652173913043,7.39130434782609,1.73715073092965
+"Wire-tailed Swallow","Hirundo smithii","","","",NA,NA,NA,NA,NA,NA
+"Hill Swallow","Hirundo domicola","","","",NA,NA,NA,NA,NA,NA
+"Pacific Swallow","Hirundo tahitica","","","",21,0.0476190476190476,0.482142857142857,0.619047619047619,7.14285714285714,1.8509673146763
+"Red-rumped Swallow","Cecropis daurica","","","X",7,NA,0.408163265306122,0.571428571428571,8.85714285714286,3.406347016967
+"Striated Swallow","Cecropis striolata","","","",NA,NA,NA,NA,NA,NA
+"Streak-throated Swallow","Petrochelidon fluvicola","","","",NA,NA,NA,NA,NA,NA
+"Western House-Martin","Delichon urbicum","","","",NA,NA,NA,NA,NA,NA
+"Asian House-Martin","Delichon dasypus","","","X",1,1,NA,NA,18,NA
+"Nepal House-Martin","Delichon nipalense","","","",NA,NA,NA,NA,NA,NA
+"Gray-headed Bulbul","Microtarsus priocephalus","","","",NA,NA,NA,NA,NA,NA
+"Black-headed Bulbul","Microtarsus melanocephalos","","","",NA,NA,NA,NA,NA,NA
+"Andaman Bulbul","Microtarsus fuscoflavescens","X","X","X",26,0.0769230769230769,0.514423076923077,0.692307692307692,6.23076923076923,1.68888459392512
+"Black-crested Bulbul","Rubigula flaviventris","","","",NA,NA,NA,NA,NA,NA
+"Flame-throated Bulbul","Rubigula gularis","","","",NA,NA,NA,NA,NA,NA
+"Crested Finchbill","Spizixos canifrons","","","",NA,NA,NA,NA,NA,NA
+"Striated Bulbul","Alcurus striatus","","","",NA,NA,NA,NA,NA,NA
+"Red-vented Bulbul","Pycnonotus cafer","","","",NA,NA,NA,NA,NA,NA
+"Red-whiskered Bulbul","Pycnonotus jocosus","","","X",37,0.108108108108108,0.523648648648649,0.648648648648649,5.7027027027027,1.3347600839773
+"White-eared Bulbul","Pycnonotus leucotis","","","",NA,NA,NA,NA,NA,NA
+"Himalayan Bulbul","Pycnonotus leucogenys","","","",NA,NA,NA,NA,NA,NA
+"Yellow-throated Bulbul","Pycnonotus xantholaemus","","","",NA,NA,NA,NA,NA,NA
+"Flavescent Bulbul","Pycnonotus flavescens","","","",NA,NA,NA,NA,NA,NA
+"White-browed Bulbul","Pycnonotus luteolus","","","",NA,NA,NA,NA,NA,NA
+"White-throated Bulbul","Alophoixus flaveolus","","","",NA,NA,NA,NA,NA,NA
+"Gray-eyed Bulbul","Iole propinqua","","","",NA,NA,NA,NA,NA,NA
+"Cachar Bulbul","Iole cacharensis","","","",NA,NA,NA,NA,NA,NA
+"Yellow-browed Bulbul","Acritillas indica","","","",NA,NA,NA,NA,NA,NA
+"Black Bulbul","Hypsipetes leucocephalus","","","",NA,NA,NA,NA,NA,NA
+"Square-tailed Bulbul","Hypsipetes ganeesa","","","",NA,NA,NA,NA,NA,NA
+"Nicobar Bulbul","Ixos nicobariensis","","","X",6,0.166666666666667,0.428571428571429,0.666666666666667,4.66666666666667,3.02232875629226
+"Ashy Bulbul","Hemixos flavala","","","",NA,NA,NA,NA,NA,NA
+"Mountain Bulbul","Ixos mcclellandii","","","",NA,NA,NA,NA,NA,NA
+"Wood Warbler","Phylloscopus sibilatrix","","","",NA,NA,NA,NA,NA,NA
+"Ashy-throated Warbler","Phylloscopus maculipennis","","","",NA,NA,NA,NA,NA,NA
+"Buff-barred Warbler","Phylloscopus pulcher","","","",NA,NA,NA,NA,NA,NA
+"Yellow-browed Warbler","Phylloscopus inornatus","","","X",5,NA,0.371428571428571,0.8,7.4,5.76786407606837
+"Hume's Warbler","Phylloscopus humei","","","",NA,NA,NA,NA,NA,NA
+"Brooks's Leaf Warbler","Phylloscopus subviridis","","","",NA,NA,NA,NA,NA,NA
+"Chinese Leaf Warbler","Phylloscopus yunnanensis","","","",NA,NA,NA,NA,NA,NA
+"Pallas's Leaf Warbler","Phylloscopus proregulus","","","",NA,NA,NA,NA,NA,NA
+"Lemon-rumped Warbler","Phylloscopus chloronotus","","","",NA,NA,NA,NA,NA,NA
+"Sichuan Leaf Warbler","Phylloscopus forresti","","","",NA,NA,NA,NA,NA,NA
+"Tytler's Leaf Warbler","Phylloscopus tytleri","","","",NA,NA,NA,NA,NA,NA
+"Sulphur-bellied Warbler","Phylloscopus griseolus","","","",NA,NA,NA,NA,NA,NA
+"Tickell's Leaf Warbler","Phylloscopus affinis","","","",NA,NA,NA,NA,NA,NA
+"Dusky Warbler","Phylloscopus fuscatus","","","X",21,NA,0.446428571428571,0.714285714285714,7.33333333333333,1.78581571775415
+"Smoky Warbler","Phylloscopus fuligiventer","","","",NA,NA,NA,NA,NA,NA
+"Plain Leaf Warbler","Phylloscopus neglectus","","","",NA,NA,NA,NA,NA,NA
+"Buff-throated Warbler","Phylloscopus subaffinis","","","",NA,NA,NA,NA,NA,NA
+"Willow Warbler","Phylloscopus trochilus","","","",NA,NA,NA,NA,NA,NA
+"Mountain Chiffchaff","Phylloscopus sindianus","","","",NA,NA,NA,NA,NA,NA
+"Common Chiffchaff","Phylloscopus collybita","","","",NA,NA,NA,NA,NA,NA
+"White-spectacled Warbler","Phylloscopus intermedius","","","",NA,NA,NA,NA,NA,NA
+"Gray-cheeked Warbler","Phylloscopus poliogenys","","","",NA,NA,NA,NA,NA,NA
+"Green-crowned Warbler","Phylloscopus burkii","","","",NA,NA,NA,NA,NA,NA
+"Gray-crowned Warbler","Phylloscopus tephrocephalus","","","",NA,NA,NA,NA,NA,NA
+"Whistler's Warbler","Phylloscopus whistleri","","","",NA,NA,NA,NA,NA,NA
+"Green Warbler","Phylloscopus nitidus","","","",NA,NA,NA,NA,NA,NA
+"Greenish Warbler","Phylloscopus trochiloides","","","X",8,NA,0.354166666666667,0.625,8.125,3.59955900076662
+"Two-barred Warbler","Phylloscopus plumbeitarsus","","","",NA,NA,NA,NA,NA,NA
+"Large-billed Leaf Warbler","Phylloscopus magnirostris","","","",NA,NA,NA,NA,NA,NA
+"Pale-legged Leaf Warbler","Phylloscopus tenellipes","","","",NA,NA,NA,NA,NA,NA
+"Sakhalin Leaf Warbler","Phylloscopus borealoides","","","",NA,NA,NA,NA,NA,NA
+"Arctic Warbler","Phylloscopus borealis","","","",5,NA,0.4,0.6,10.4,4.32089990626953
+"Chestnut-crowned Warbler","Phylloscopus castaniceps","","","",NA,NA,NA,NA,NA,NA
+"Yellow-vented Warbler","Phylloscopus cantator","","","",NA,NA,NA,NA,NA,NA
+"Western Crowned Warbler","Phylloscopus occipitalis","","","",NA,NA,NA,NA,NA,NA
+"Blyth's Leaf Warbler","Phylloscopus reguloides","","","",NA,NA,NA,NA,NA,NA
+"Claudia's Leaf Warbler","Phylloscopus claudiae","","","",NA,NA,NA,NA,NA,NA
+"Gray-hooded Warbler","Phylloscopus xanthoschistos","","","",NA,NA,NA,NA,NA,NA
+"Pale-footed Bush Warbler","Hemitesia pallidipes","","","X",5,0.4,0.35,0.4,9.2,5.62625843700767
+"Asian Stubtail","Urosphena squameiceps","","","",NA,NA,NA,NA,NA,NA
+"Gray-bellied Tesia","Tesia cyaniventer","","","",NA,NA,NA,NA,NA,NA
+"Slaty-bellied Tesia","Tesia olivea","","","",NA,NA,NA,NA,NA,NA
+"Chestnut-crowned Bush Warbler","Cettia major","","","",NA,NA,NA,NA,NA,NA
+"Gray-sided Bush Warbler","Cettia brunnifrons","","","",NA,NA,NA,NA,NA,NA
+"Chestnut-headed Tesia","Cettia castaneocoronata","","","",NA,NA,NA,NA,NA,NA
+"Cetti's Warbler","Cettia cetti","","","",NA,NA,NA,NA,NA,NA
+"Yellow-bellied Warbler","Abroscopus superciliaris","","","",NA,NA,NA,NA,NA,NA
+"Rufous-faced Warbler","Abroscopus albogularis","","","",NA,NA,NA,NA,NA,NA
+"Black-faced Warbler","Abroscopus schisticeps","","","",NA,NA,NA,NA,NA,NA
+"Mountain Tailorbird","Phyllergates cucullatus","","","",NA,NA,NA,NA,NA,NA
+"Broad-billed Warbler","Tickellia hodgsoni","","","",NA,NA,NA,NA,NA,NA
+"Manchurian Bush Warbler","Horornis canturians","","","",NA,NA,NA,NA,NA,NA
+"Brownish-flanked Bush Warbler","Horornis fortipes","","","",NA,NA,NA,NA,NA,NA
+"Hume's Bush Warbler","Horornis brunnescens","","","",NA,NA,NA,NA,NA,NA
+"Aberrant Bush Warbler","Horornis flavolivaceus","","","",NA,NA,NA,NA,NA,NA
+"White-browed Tit-Warbler","Leptopoecile sophiae","","","",NA,NA,NA,NA,NA,NA
+"Crested Tit-Warbler","Leptopoecile elegans","","","",NA,NA,NA,NA,NA,NA
+"White-cheeked Tit","Aegithalos leucogenys","","","",NA,NA,NA,NA,NA,NA
+"Black-throated Tit","Aegithalos concinnus","","","",NA,NA,NA,NA,NA,NA
+"White-throated Tit","Aegithalos niveogularis","","","",NA,NA,NA,NA,NA,NA
+"Black-browed Tit","Aegithalos iouschistos","","","",NA,NA,NA,NA,NA,NA
+"Eurasian Blackcap","Sylvia atricapilla","","","",NA,NA,NA,NA,NA,NA
+"Garden Warbler","Sylvia borin","","","",NA,NA,NA,NA,NA,NA
+"Barred Warbler","Curruca nisoria","","","",NA,NA,NA,NA,NA,NA
+"Lesser Whitethroat","Curruca curruca","","","",NA,NA,NA,NA,NA,NA
+"Eastern Orphean Warbler","Curruca crassirostris","","","",NA,NA,NA,NA,NA,NA
+"Asian Desert Warbler","Curruca nana","","","",NA,NA,NA,NA,NA,NA
+"Greater Whitethroat","Curruca communis","","","",NA,NA,NA,NA,NA,NA
+"Fire-tailed Myzornis","Myzornis pyrrhoura","","","",NA,NA,NA,NA,NA,NA
+"Golden-breasted Fulvetta","Lioparus chrysotis","","","",NA,NA,NA,NA,NA,NA
+"Yellow-eyed Babbler","Chrysomma sinense","","","",NA,NA,NA,NA,NA,NA
+"Jerdon's Babbler","Chrysomma altirostre","","","",NA,NA,NA,NA,NA,NA
+"Brown-throated Fulvetta","Fulvetta ludlowi","","","",NA,NA,NA,NA,NA,NA
+"White-browed Fulvetta","Fulvetta vinipectus","","","",NA,NA,NA,NA,NA,NA
+"Manipur Fulvetta","Fulvetta manipurensis","","","",NA,NA,NA,NA,NA,NA
+"Black-breasted Parrotbill","Paradoxornis flavirostris","","","",NA,NA,NA,NA,NA,NA
+"Spot-breasted Parrotbill","Paradoxornis guttaticollis","","","",NA,NA,NA,NA,NA,NA
+"Great Parrotbill","Conostoma aemodium","","","",NA,NA,NA,NA,NA,NA
+"Brown Parrotbill","Cholornis unicolor","","","",NA,NA,NA,NA,NA,NA
+"Gray-headed Parrotbill","Psittiparus gularis","","","",NA,NA,NA,NA,NA,NA
+"White-breasted Parrotbill","Psittiparus ruficeps","","","",NA,NA,NA,NA,NA,NA
+"Rufous-headed Parrotbill","Psittiparus bakeri","","","",NA,NA,NA,NA,NA,NA
+"Fulvous Parrotbill","Suthora fulvifrons","","","",NA,NA,NA,NA,NA,NA
+"Black-throated Parrotbill","Suthora nipalensis","","","",NA,NA,NA,NA,NA,NA
+"Pale-billed Parrotbill","Suthora atrosuperciliaris","","","",NA,NA,NA,NA,NA,NA
+"Striated Yuhina","Staphida castaniceps","","","",NA,NA,NA,NA,NA,NA
+"Black-chinned Yuhina","Yuhina nigrimenta","","","",NA,NA,NA,NA,NA,NA
+"Whiskered Yuhina","Yuhina flavicollis","","","",NA,NA,NA,NA,NA,NA
+"White-naped Yuhina","Yuhina bakeri","","","",NA,NA,NA,NA,NA,NA
+"Stripe-throated Yuhina","Yuhina gularis","","","",NA,NA,NA,NA,NA,NA
+"Rufous-vented Yuhina","Yuhina occipitalis","","","",NA,NA,NA,NA,NA,NA
+"Chestnut-flanked White-eye","Zosterops erythropleurus","","","",NA,NA,NA,NA,NA,NA
+"Indian White-eye","Zosterops palpebrosus","","","X",35,0.0857142857142857,0.417857142857143,0.742857142857143,5.85714285714286,1.37808733608663
+"Chestnut-capped Babbler","Timalia pileata","","","",NA,NA,NA,NA,NA,NA
+"Tawny-bellied Babbler","Dumetia hyperythra","","","",NA,NA,NA,NA,NA,NA
+"Dark-fronted Babbler","Dumetia atriceps","","","",NA,NA,NA,NA,NA,NA
+"Pin-striped Tit-Babbler","Mixornis gularis","","","",NA,NA,NA,NA,NA,NA
+"Golden Babbler","Cyanoderma chrysaeum","","","",NA,NA,NA,NA,NA,NA
+"Black-chinned Babbler","Cyanoderma pyrrhops","","","",NA,NA,NA,NA,NA,NA
+"Rufous-capped Babbler","Cyanoderma ruficeps","","","",NA,NA,NA,NA,NA,NA
+"Buff-chested Babbler","Cyanoderma ambiguum","","","",NA,NA,NA,NA,NA,NA
+"Rufous-throated Wren-Babbler","Spelaeornis caudatus","","","",NA,NA,NA,NA,NA,NA
+"Mishmi Wren-Babbler","Spelaeornis badeigularis","","","",NA,NA,NA,NA,NA,NA
+"Bar-winged Wren-Babbler","Spelaeornis troglodytoides","","","",NA,NA,NA,NA,NA,NA
+"Naga Wren-Babbler","Spelaeornis chocolatinus","","","",NA,NA,NA,NA,NA,NA
+"Chin Hills Wren-Babbler","Spelaeornis oatesi","","","",NA,NA,NA,NA,NA,NA
+"Tawny-breasted Wren-Babbler","Spelaeornis longicaudatus","","","",NA,NA,NA,NA,NA,NA
+"Black-crowned Scimitar-Babbler","Pomatorhinus ferruginosus","","","",NA,NA,NA,NA,NA,NA
+"Brown-crowned Scimitar-Babbler","Pomatorhinus phayrei","","","",NA,NA,NA,NA,NA,NA
+"Red-billed Scimitar-Babbler","Pomatorhinus ochraceiceps","","","",NA,NA,NA,NA,NA,NA
+"Slender-billed Scimitar-Babbler","Pomatorhinus superciliaris","","","",NA,NA,NA,NA,NA,NA
+"Streak-breasted Scimitar-Babbler","Pomatorhinus ruficollis","","","",NA,NA,NA,NA,NA,NA
+"White-browed Scimitar-Babbler","Pomatorhinus schisticeps","","","",NA,NA,NA,NA,NA,NA
+"Indian Scimitar-Babbler","Pomatorhinus horsfieldii","","","",NA,NA,NA,NA,NA,NA
+"Large Scimitar-Babbler","Erythrogenys hypoleucos","","","",NA,NA,NA,NA,NA,NA
+"Rusty-cheeked Scimitar-Babbler","Erythrogenys erythrogenys","","","",NA,NA,NA,NA,NA,NA
+"Spot-breasted Scimitar-Babbler","Erythrogenys mcclellandi","","","",NA,NA,NA,NA,NA,NA
+"Gray-throated Babbler","Stachyris nigriceps","","","",NA,NA,NA,NA,NA,NA
+"Sikkim Wedge-billed Babbler","Stachyris humei","","","",NA,NA,NA,NA,NA,NA
+"Cachar Wedge-billed Babbler","Stachyris roberti","","","",NA,NA,NA,NA,NA,NA
+"Snowy-throated Babbler","Stachyris oglei","","","",NA,NA,NA,NA,NA,NA
+"Indian Grassbird","Graminicola bengalensis","","","",NA,NA,NA,NA,NA,NA
+"White-hooded Babbler","Gampsorhynchus rufulus","","","",NA,NA,NA,NA,NA,NA
+"Yellow-throated Fulvetta","Schoeniparus cinereus","","","",NA,NA,NA,NA,NA,NA
+"Rufous-winged Fulvetta","Schoeniparus castaneceps","","","",NA,NA,NA,NA,NA,NA
+"Rufous-throated Fulvetta","Schoeniparus rufogularis","","","",NA,NA,NA,NA,NA,NA
+"Rusty-capped Fulvetta","Schoeniparus dubius","","","",NA,NA,NA,NA,NA,NA
+"Puff-throated Babbler","Pellorneum ruficeps","","","",NA,NA,NA,NA,NA,NA
+"Marsh Babbler","Pellorneum palustre","","","",NA,NA,NA,NA,NA,NA
+"Spot-throated Babbler","Pellorneum albiventre","","","",NA,NA,NA,NA,NA,NA
+"Buff-breasted Babbler","Pellorneum tickelli","","","",NA,NA,NA,NA,NA,NA
+"Rufous-vented Grass Babbler","Laticilla burnesii","","","",NA,NA,NA,NA,NA,NA
+"Swamp Grass Babbler","Laticilla cinerascens","","","",NA,NA,NA,NA,NA,NA
+"Abbott's Babbler","Malacocincla abbotti","","","",NA,NA,NA,NA,NA,NA
+"Streaked Wren-Babbler","Gypsophila brevicaudata","","","",NA,NA,NA,NA,NA,NA
+"Eyebrowed Wren-Babbler","Napothera epilepidota","","","",NA,NA,NA,NA,NA,NA
+"Long-billed Wren-Babbler","Napothera malacoptila","","","",NA,NA,NA,NA,NA,NA
+"Brown-cheeked Fulvetta","Alcippe poioicephala","","","",NA,NA,NA,NA,NA,NA
+"Nepal Fulvetta","Alcippe nipalensis","","","",NA,NA,NA,NA,NA,NA
+"Striated Laughingthrush","Grammatoptila striata","","","",NA,NA,NA,NA,NA,NA
+"Himalayan Cutia","Cutia nipalensis","","","",NA,NA,NA,NA,NA,NA
+"Scaly Laughingthrush","Trochalopteron subunicolor","","","",NA,NA,NA,NA,NA,NA
+"Brown-capped Laughingthrush","Trochalopteron austeni","","","",NA,NA,NA,NA,NA,NA
+"Blue-winged Laughingthrush","Trochalopteron squamatum","","","",NA,NA,NA,NA,NA,NA
+"Streaked Laughingthrush","Trochalopteron lineatum","","","",NA,NA,NA,NA,NA,NA
+"Bhutan Laughingthrush","Trochalopteron imbricatum","","","",NA,NA,NA,NA,NA,NA
+"Striped Laughingthrush","Trochalopteron virgatum","","","",NA,NA,NA,NA,NA,NA
+"Variegated Laughingthrush","Trochalopteron variegatum","","","",NA,NA,NA,NA,NA,NA
+"Black-faced Laughingthrush","Trochalopteron affine","","","",NA,NA,NA,NA,NA,NA
+"Elliot's Laughingthrush","Trochalopteron elliotii","","","",NA,NA,NA,NA,NA,NA
+"Chestnut-crowned Laughingthrush","Trochalopteron erythrocephalum","","","",NA,NA,NA,NA,NA,NA
+"Assam Laughingthrush","Trochalopteron chrysopterum","","","",NA,NA,NA,NA,NA,NA
+"Banasura Laughingthrush","Montecincla jerdoni","","","",NA,NA,NA,NA,NA,NA
+"Nilgiri Laughingthrush","Montecincla cachinnans","","","",NA,NA,NA,NA,NA,NA
+"Palani Laughingthrush","Montecincla fairbanki","","","",NA,NA,NA,NA,NA,NA
+"Ashambu Laughingthrush","Montecincla meridionalis","","","",NA,NA,NA,NA,NA,NA
+"Long-tailed Sibia","Heterophasia picaoides","","","",NA,NA,NA,NA,NA,NA
+"Rufous Sibia","Heterophasia capistrata","","","",NA,NA,NA,NA,NA,NA
+"Beautiful Sibia","Heterophasia pulchella","","","",NA,NA,NA,NA,NA,NA
+"Gray Sibia","Heterophasia gracilis","","","",NA,NA,NA,NA,NA,NA
+"Hoary-throated Barwing","Actinodura nipalensis","","","",NA,NA,NA,NA,NA,NA
+"Streak-throated Barwing","Actinodura waldeni","","","",NA,NA,NA,NA,NA,NA
+"Blue-winged Minla","Actinodura cyanouroptera","","","",NA,NA,NA,NA,NA,NA
+"Chestnut-tailed Minla","Actinodura strigula","","","",NA,NA,NA,NA,NA,NA
+"Rusty-fronted Barwing","Actinodura egertoni","","","",NA,NA,NA,NA,NA,NA
+"Red-billed Leiothrix","Leiothrix lutea","","","",NA,NA,NA,NA,NA,NA
+"Silver-eared Mesia","Leiothrix argentauris","","","",NA,NA,NA,NA,NA,NA
+"Red-tailed Minla","Minla ignotincta","","","",NA,NA,NA,NA,NA,NA
+"Rufous-backed Sibia","Leioptila annectens","","","",NA,NA,NA,NA,NA,NA
+"Bugun Liocichla","Liocichla bugunorum","","","",NA,NA,NA,NA,NA,NA
+"Red-faced Liocichla","Liocichla phoenicea","","","",NA,NA,NA,NA,NA,NA
+"Large Gray Babbler","Argya malcolmi","","","",NA,NA,NA,NA,NA,NA
+"Slender-billed Babbler","Argya longirostris","","","",NA,NA,NA,NA,NA,NA
+"Rufous Babbler","Argya subrufa","","","",NA,NA,NA,NA,NA,NA
+"Jungle Babbler","Argya striata","","","",NA,NA,NA,NA,NA,NA
+"Yellow-billed Babbler","Argya affinis","","","",NA,NA,NA,NA,NA,NA
+"Common Babbler","Argya caudata","","","",NA,NA,NA,NA,NA,NA
+"Striated Babbler","Argya earlei","","","",NA,NA,NA,NA,NA,NA
+"Spot-breasted Laughingthrush","Garrulax merulinus","","","",NA,NA,NA,NA,NA,NA
+"Lesser Necklaced Laughingthrush","Garrulax monileger","","","",NA,NA,NA,NA,NA,NA
+"White-crested Laughingthrush","Garrulax leucolophus","","","",NA,NA,NA,NA,NA,NA
+"Rufous-chinned Laughingthrush","Ianthocincla rufogularis","","","",NA,NA,NA,NA,NA,NA
+"Moustached Laughingthrush","Ianthocincla cineracea","","","",NA,NA,NA,NA,NA,NA
+"Spotted Laughingthrush","Ianthocincla ocellata","","","",NA,NA,NA,NA,NA,NA
+"Wayanad Laughingthrush","Pterorhinus delesserti","","","",NA,NA,NA,NA,NA,NA
+"Rufous-vented Laughingthrush","Pterorhinus gularis","","","",NA,NA,NA,NA,NA,NA
+"Yellow-throated Laughingthrush","Pterorhinus galbanus","","","",NA,NA,NA,NA,NA,NA
+"Rufous-necked Laughingthrush","Pterorhinus ruficollis","","","",NA,NA,NA,NA,NA,NA
+"Chestnut-backed Laughingthrush","Pterorhinus nuchalis","","","",NA,NA,NA,NA,NA,NA
+"White-browed Laughingthrush","Pterorhinus sannio","","","",NA,NA,NA,NA,NA,NA
+"Greater Necklaced Laughingthrush","Pterorhinus pectoralis","","","",NA,NA,NA,NA,NA,NA
+"Mount Victoria Babax","Pterorhinus woodi","","","",NA,NA,NA,NA,NA,NA
+"White-throated Laughingthrush","Pterorhinus albogularis","","","",NA,NA,NA,NA,NA,NA
+"Gray-sided Laughingthrush","Pterorhinus caerulatus","","","",NA,NA,NA,NA,NA,NA
+"Goldcrest","Regulus regulus","","","",NA,NA,NA,NA,NA,NA
+"Wallcreeper","Tichodroma muraria","","","",NA,NA,NA,NA,NA,NA
+"Indian Nuthatch","Sitta castanea","","","",NA,NA,NA,NA,NA,NA
+"Chestnut-bellied Nuthatch","Sitta cinnamoventris","","","",NA,NA,NA,NA,NA,NA
+"Chestnut-vented Nuthatch","Sitta nagaensis","","","",NA,NA,NA,NA,NA,NA
+"Kashmir Nuthatch","Sitta cashmirensis","","","",NA,NA,NA,NA,NA,NA
+"White-tailed Nuthatch","Sitta himalayensis","","","",NA,NA,NA,NA,NA,NA
+"White-cheeked Nuthatch","Sitta leucopsis","","","",NA,NA,NA,NA,NA,NA
+"Yunnan Nuthatch","Sitta yunnanensis","","","",NA,NA,NA,NA,NA,NA
+"Velvet-fronted Nuthatch","Sitta frontalis","","","",NA,NA,NA,NA,NA,NA
+"Beautiful Nuthatch","Sitta formosa","","","",NA,NA,NA,NA,NA,NA
+"Hodgson's Treecreeper","Certhia hodgsoni","","","",NA,NA,NA,NA,NA,NA
+"Bar-tailed Treecreeper","Certhia himalayana","","","",NA,NA,NA,NA,NA,NA
+"Rusty-flanked Treecreeper","Certhia nipalensis","","","",NA,NA,NA,NA,NA,NA
+"Sikkim Treecreeper","Certhia discolor","","","",NA,NA,NA,NA,NA,NA
+"Hume's Treecreeper","Certhia manipurensis","","","",NA,NA,NA,NA,NA,NA
+"Indian Spotted Creeper","Salpornis spilonota","","","",NA,NA,NA,NA,NA,NA
+"Eurasian Wren","Troglodytes troglodytes","","","",NA,NA,NA,NA,NA,NA
+"Spotted Elachura","Elachura formosa","","","",NA,NA,NA,NA,NA,NA
+"White-throated Dipper","Cinclus cinclus","","","",NA,NA,NA,NA,NA,NA
+"Brown Dipper","Cinclus pallasii","","","",NA,NA,NA,NA,NA,NA
+"Asian Glossy Starling","Aplonis panayensis","","","X",36,0.194444444444444,0.475694444444444,0.75,5.80555555555556,1.35662371394376
+"Golden-crested Myna","Ampeliceps coronatus","","","",NA,NA,NA,NA,NA,NA
+"Common Hill Myna","Gracula religiosa","","","X",32,0.21875,0.51171875,0.65625,5.75,1.47525940857215
+"Southern Hill Myna","Gracula indica","","","",NA,NA,NA,NA,NA,NA
+"European Starling","Sturnus vulgaris","","","X",1,NA,NA,NA,18,NA
+"Rosy Starling","Pastor roseus","","","X",6,NA,0.277777777777778,0.5,9.66666666666667,3.56650591538055
+"Daurian Starling","Agropsar sturninus","","","",6,NA,0.523809523809524,0.333333333333333,9.33333333333333,3.60223140721291
+"Chestnut-cheeked Starling","Agropsar philippensis","","","",NA,NA,NA,NA,NA,NA
+"Indian Pied Starling","Gracupica contra","","","",NA,NA,NA,NA,NA,NA
+"White-shouldered Starling","Sturnia sinensis","","","",NA,NA,NA,NA,NA,NA
+"Brahminy Starling","Sturnia pagodarum","","","",NA,NA,NA,NA,NA,NA
+"Chestnut-tailed Starling","Sturnia malabarica","","","",NA,NA,NA,NA,NA,NA
+"Malabar Starling","Sturnia blythii","","","",NA,NA,NA,NA,NA,NA
+"White-headed Starling","Sturnia erythropygia","X","X","X",28,0.142857142857143,0.549107142857143,0.75,6.42857142857143,1.59851783201166
+"Red-billed Starling","Spodiopsar sericeus","","","",NA,NA,NA,NA,NA,NA
+"White-cheeked Starling","Spodiopsar cineraceus","","","",NA,NA,NA,NA,NA,NA
+"Common Myna","Acridotheres tristis","","","X",28,0.107142857142857,0.535714285714286,0.785714285714286,6.89285714285714,1.48962212459203
+"Bank Myna","Acridotheres ginginianus","","","",NA,NA,NA,NA,NA,NA
+"Jungle Myna","Acridotheres fuscus","","","",NA,NA,NA,NA,NA,NA
+"Collared Myna","Acridotheres albocinctus","","","",NA,NA,NA,NA,NA,NA
+"Great Myna","Acridotheres grandis","","","",NA,NA,NA,NA,NA,NA
+"Spot-winged Starling","Saroglossa spilopterus","","","",NA,NA,NA,NA,NA,NA
+"Grandala","Grandala coelicolor","","","",NA,NA,NA,NA,NA,NA
+"Long-tailed Thrush","Zoothera dixoni","","","",NA,NA,NA,NA,NA,NA
+"Alpine Thrush","Zoothera mollissima","","","",NA,NA,NA,NA,NA,NA
+"Himalayan Thrush","Zoothera salimalii","","","",NA,NA,NA,NA,NA,NA
+"Dark-sided Thrush","Zoothera marginata","","","",NA,NA,NA,NA,NA,NA
+"Long-billed Thrush","Zoothera monticola","","","",NA,NA,NA,NA,NA,NA
+"Scaly Thrush","Zoothera dauma","","","X",1,NA,1,NA,1,NA
+"Nilgiri Thrush","Zoothera neilgherriensis","","","",NA,NA,NA,NA,NA,NA
+"Purple Cochoa","Cochoa purpurea","","","",NA,NA,NA,NA,NA,NA
+"Green Cochoa","Cochoa viridis","","","",NA,NA,NA,NA,NA,NA
+"Siberian Thrush","Geokichla sibirica","","","",NA,NA,NA,NA,NA,NA
+"Pied Thrush","Geokichla wardii","","","",NA,NA,NA,NA,NA,NA
+"Orange-headed Thrush","Geokichla citrina","","X","X",25,NA,0.395,0.68,6.88,1.69861640951295
+"Chinese Thrush","Turdus mupinensis","","","",NA,NA,NA,NA,NA,NA
+"Mistle Thrush","Turdus viscivorus","","","",NA,NA,NA,NA,NA,NA
+"Song Thrush","Turdus philomelos","","","",NA,NA,NA,NA,NA,NA
+"Chinese Blackbird","Turdus mandarinus","","","",NA,NA,NA,NA,NA,NA
+"Gray-winged Blackbird","Turdus boulboul","","","",NA,NA,NA,NA,NA,NA
+"Indian Blackbird","Turdus simillimus","","","",NA,NA,NA,NA,NA,NA
+"Japanese Thrush","Turdus cardis","","","",NA,NA,NA,NA,NA,NA
+"Tickell's Thrush","Turdus unicolor","","","",NA,NA,NA,NA,NA,NA
+"Black-breasted Thrush","Turdus dissimilis","","","",NA,NA,NA,NA,NA,NA
+"Gray-sided Thrush","Turdus feae","","","",NA,NA,NA,NA,NA,NA
+"Eyebrowed Thrush","Turdus obscurus","","","",6,NA,0.305555555555556,0.666666666666667,8.33333333333333,4.34356126288607
+"White-backed Thrush","Turdus kessleri","","","",NA,NA,NA,NA,NA,NA
+"Tibetan Blackbird","Turdus maximus","","","",NA,NA,NA,NA,NA,NA
+"Fieldfare","Turdus pilaris","","","",NA,NA,NA,NA,NA,NA
+"White-collared Blackbird","Turdus albocinctus","","","",NA,NA,NA,NA,NA,NA
+"Chestnut Thrush","Turdus rubrocanus","","","",NA,NA,NA,NA,NA,NA
+"Black-throated Thrush","Turdus atrogularis","","","",NA,NA,NA,NA,NA,NA
+"Red-throated Thrush","Turdus ruficollis","","","",NA,NA,NA,NA,NA,NA
+"Dusky Thrush","Turdus eunomus","","","",NA,NA,NA,NA,NA,NA
+"Naumann's Thrush","Turdus naumanni","","","",NA,NA,NA,NA,NA,NA
+"Dark-sided Flycatcher","Muscicapa sibirica","","","",NA,NA,NA,NA,NA,NA
+"Ferruginous Flycatcher","Muscicapa ferruginea","","","",NA,NA,NA,NA,NA,NA
+"Asian Brown Flycatcher","Muscicapa dauurica","","","X",28,0.142857142857143,0.370535714285714,0.5,6.21428571428571,1.58872415618459
+"Brown-breasted Flycatcher","Muscicapa muttui","","","",NA,NA,NA,NA,NA,NA
+"Spotted Flycatcher","Muscicapa striata","","","",NA,NA,NA,NA,NA,NA
+"Rufous-tailed Scrub-Robin","Cercotrichas galactotes","","","",NA,NA,NA,NA,NA,NA
+"Indian Robin","Copsychus fulicatus","","","",NA,NA,NA,NA,NA,NA
+"Oriental Magpie-Robin","Copsychus saularis","","","X",24,0.166666666666667,0.604166666666667,0.791666666666667,6.66666666666667,1.71643659637401
+"White-rumped Shama","Copsychus malabaricus","","","",NA,NA,NA,NA,NA,NA
+"Andaman Shama","Copsychus albiventris","X","X","X",25,0.04,0.49,0.72,6.44,1.70523754747933
+"White-gorgeted Flycatcher","Anthipes monileger","","","",NA,NA,NA,NA,NA,NA
+"Nilgiri Sholakili","Sholicola major","","","",NA,NA,NA,NA,NA,NA
+"White-bellied Sholakili","Sholicola albiventris","","","",NA,NA,NA,NA,NA,NA
+"White-tailed Flycatcher","Leucoptilon concretum","","","",NA,NA,NA,NA,NA,NA
+"White-bellied Blue Flycatcher","Cyornis pallidipes","","","",NA,NA,NA,NA,NA,NA
+"Pale-chinned Flycatcher","Cyornis poliogenys","","","",NA,NA,NA,NA,NA,NA
+"Pale Blue Flycatcher","Cyornis unicolor","","","",NA,NA,NA,NA,NA,NA
+"Blue-throated Flycatcher","Cyornis rubeculoides","","","",NA,NA,NA,NA,NA,NA
+"Large Blue Flycatcher","Cyornis magnirostris","","","",NA,NA,NA,NA,NA,NA
+"Hill Blue Flycatcher","Cyornis whitei","","","",NA,NA,NA,NA,NA,NA
+"Tickell's Blue Flycatcher","Cyornis tickelliae","","","",NA,NA,NA,NA,NA,NA
+"Nicobar Jungle Flycatcher","Cyornis nicobaricus","","","X",4,NA,0.464285714285714,1,5,2.88504188300043
+"Large Niltava","Niltava grandis","","","",NA,NA,NA,NA,NA,NA
+"Small Niltava","Niltava macgrigoriae","","","",NA,NA,NA,NA,NA,NA
+"Rufous-bellied Niltava","Niltava sundara","","","",NA,NA,NA,NA,NA,NA
+"Chinese Vivid Niltava","Niltava oatesi","","","",NA,NA,NA,NA,NA,NA
+"Blue-and-white Flycatcher","Cyanoptila cyanomelana","","","",NA,NA,NA,NA,NA,NA
+"Zappey's Flycatcher","Cyanoptila cumatilis","","","",NA,NA,NA,NA,NA,NA
+"Nilgiri Flycatcher","Eumyias albicaudatus","","","",NA,NA,NA,NA,NA,NA
+"Verditer Flycatcher","Eumyias thalassinus","","","",NA,NA,NA,NA,NA,NA
+"Rusty-bellied Shortwing","Brachypteryx hyperythra","","","",NA,NA,NA,NA,NA,NA
+"Gould's Shortwing","Heteroxenicus stellatus","","","",NA,NA,NA,NA,NA,NA
+"Lesser Shortwing","Brachypteryx leucophris","","","",NA,NA,NA,NA,NA,NA
+"Himalayan Shortwing","Brachypteryx cruralis","","","",NA,NA,NA,NA,NA,NA
+"Indian Blue Robin","Larvivora brunnea","","","",NA,NA,NA,NA,NA,NA
+"Siberian Blue Robin","Larvivora cyane","","","",NA,NA,NA,NA,NA,NA
+"White-bellied Redstart","Luscinia phaenicuroides","","","",NA,NA,NA,NA,NA,NA
+"Bluethroat","Luscinia svecica","","","",NA,NA,NA,NA,NA,NA
+"Malabar Whistling-Thrush","Myophonus horsfieldii","","","",NA,NA,NA,NA,NA,NA
+"Blue Whistling-Thrush","Myophonus caeruleus","","","",NA,NA,NA,NA,NA,NA
+"Little Forktail","Enicurus scouleri","","","",NA,NA,NA,NA,NA,NA
+"White-crowned Forktail","Enicurus leschenaulti","","","",NA,NA,NA,NA,NA,NA
+"Spotted Forktail","Enicurus maculatus","","","",NA,NA,NA,NA,NA,NA
+"Black-backed Forktail","Enicurus immaculatus","","","",NA,NA,NA,NA,NA,NA
+"Slaty-backed Forktail","Enicurus schistaceus","","","",NA,NA,NA,NA,NA,NA
+"Firethroat","Calliope pectardens","","","",NA,NA,NA,NA,NA,NA
+"Siberian Rubythroat","Calliope calliope","","","",NA,NA,NA,NA,NA,NA
+"Himalayan Rubythroat","Calliope pectoralis","","","",NA,NA,NA,NA,NA,NA
+"Chinese Rubythroat","Calliope tschebaiewi","","","",NA,NA,NA,NA,NA,NA
+"White-tailed Robin","Myiomela leucura","","","",NA,NA,NA,NA,NA,NA
+"Blue-fronted Robin","Cinclidium frontale","","","",NA,NA,NA,NA,NA,NA
+"Red-flanked Bluetail","Tarsiger cyanurus","","","",NA,NA,NA,NA,NA,NA
+"Himalayan Bluetail","Tarsiger rufilatus","","","",NA,NA,NA,NA,NA,NA
+"Rufous-breasted Bush-Robin","Tarsiger hyperythrus","","","",NA,NA,NA,NA,NA,NA
+"White-browed Bush-Robin","Tarsiger indicus","","","",NA,NA,NA,NA,NA,NA
+"Golden Bush-Robin","Tarsiger chrysaeus","","","",NA,NA,NA,NA,NA,NA
+"Yellow-rumped Flycatcher","Ficedula zanthopygia","","","",NA,NA,NA,NA,NA,NA
+"Mugimaki Flycatcher","Ficedula mugimaki","","","",NA,NA,NA,NA,NA,NA
+"Slaty-backed Flycatcher","Ficedula erithacus","","","",NA,NA,NA,NA,NA,NA
+"Black-and-orange Flycatcher","Ficedula nigrorufa","","","",NA,NA,NA,NA,NA,NA
+"Slaty-blue Flycatcher","Ficedula tricolor","","","",NA,NA,NA,NA,NA,NA
+"Snowy-browed Flycatcher","Ficedula hyperythra","","","",NA,NA,NA,NA,NA,NA
+"Pygmy Flycatcher","Ficedula hodgsoni","","","",NA,NA,NA,NA,NA,NA
+"Rufous-gorgeted Flycatcher","Ficedula strophiata","","","",NA,NA,NA,NA,NA,NA
+"Sapphire Flycatcher","Ficedula sapphira","","","",NA,NA,NA,NA,NA,NA
+"Little Pied Flycatcher","Ficedula westermanni","","","",NA,NA,NA,NA,NA,NA
+"Ultramarine Flycatcher","Ficedula superciliaris","","","",NA,NA,NA,NA,NA,NA
+"Rusty-tailed Flycatcher","Ficedula ruficauda","","","",NA,NA,NA,NA,NA,NA
+"Taiga Flycatcher","Ficedula albicilla","","","",NA,NA,NA,NA,NA,NA
+"Kashmir Flycatcher","Ficedula subrubra","","","",NA,NA,NA,NA,NA,NA
+"Red-breasted Flycatcher","Ficedula parva","","","X",7,NA,0.448979591836735,1,8.71428571428571,3.54543838380155
+"Blue-fronted Redstart","Phoenicurus frontalis","","","",NA,NA,NA,NA,NA,NA
+"Plumbeous Redstart","Phoenicurus fuliginosus","","","",NA,NA,NA,NA,NA,NA
+"Rufous-backed Redstart","Phoenicurus erythronotus","","","",NA,NA,NA,NA,NA,NA
+"White-capped Redstart","Phoenicurus leucocephalus","","","",NA,NA,NA,NA,NA,NA
+"Blue-capped Redstart","Phoenicurus coeruleocephala","","","",NA,NA,NA,NA,NA,NA
+"Common Redstart","Phoenicurus phoenicurus","","","",NA,NA,NA,NA,NA,NA
+"Hodgson's Redstart","Phoenicurus hodgsoni","","","",NA,NA,NA,NA,NA,NA
+"White-throated Redstart","Phoenicurus schisticeps","","","",NA,NA,NA,NA,NA,NA
+"White-winged Redstart","Phoenicurus erythrogastrus","","","",NA,NA,NA,NA,NA,NA
+"Black Redstart","Phoenicurus ochruros","","","",NA,NA,NA,NA,NA,NA
+"Daurian Redstart","Phoenicurus auroreus","","","",NA,NA,NA,NA,NA,NA
+"Chestnut-bellied Rock-Thrush","Monticola rufiventris","","","",NA,NA,NA,NA,NA,NA
+"Blue-capped Rock-Thrush","Monticola cinclorhyncha","","","",NA,NA,NA,NA,NA,NA
+"Rufous-tailed Rock-Thrush","Monticola saxatilis","","","",NA,NA,NA,NA,NA,NA
+"Blue Rock-Thrush","Monticola solitarius","","","",NA,NA,NA,NA,NA,NA
+"Whinchat","Saxicola rubetra","","","",NA,NA,NA,NA,NA,NA
+"White-browed Bushchat","Saxicola macrorhynchus","","","",NA,NA,NA,NA,NA,NA
+"White-throated Bushchat","Saxicola insignis","","","",NA,NA,NA,NA,NA,NA
+"Siberian Stonechat","Saxicola maurus","","","X",8,NA,0.303571428571429,0.625,7.875,3.48333532695318
+"Amur Stonechat","Saxicola stejnegeri","","","",NA,NA,NA,NA,NA,NA
+"White-tailed Stonechat","Saxicola leucurus","","","",NA,NA,NA,NA,NA,NA
+"Pied Bushchat","Saxicola caprata","","","",NA,NA,NA,NA,NA,NA
+"Jerdon's Bushchat","Saxicola jerdoni","","","",NA,NA,NA,NA,NA,NA
+"Gray Bushchat","Saxicola ferreus","","","",NA,NA,NA,NA,NA,NA
+"Northern Wheatear","Oenanthe oenanthe","","","",NA,NA,NA,NA,NA,NA
+"Isabelline Wheatear","Oenanthe isabellina","","","",NA,NA,NA,NA,NA,NA
+"Desert Wheatear","Oenanthe deserti","","","",NA,NA,NA,NA,NA,NA
+"Pied Wheatear","Oenanthe pleschanka","","","",NA,NA,NA,NA,NA,NA
+"Brown Rock Chat","Oenanthe fusca","","","",NA,NA,NA,NA,NA,NA
+"Variable Wheatear","Oenanthe picata","","","",NA,NA,NA,NA,NA,NA
+"Hume's Wheatear","Oenanthe albonigra","","","",NA,NA,NA,NA,NA,NA
+"Finsch's Wheatear","Oenanthe finschii","","","",NA,NA,NA,NA,NA,NA
+"Persian Wheatear","Oenanthe chrysopygia","","","",NA,NA,NA,NA,NA,NA
+"Bohemian Waxwing","Bombycilla garrulus","","","",NA,NA,NA,NA,NA,NA
+"Hypocolius","Hypocolius ampelinus","","","",NA,NA,NA,NA,NA,NA
+"Thick-billed Flowerpecker","Dicaeum agile","","","",NA,NA,NA,NA,NA,NA
+"Yellow-vented Flowerpecker","Dicaeum chrysorrheum","","","",NA,NA,NA,NA,NA,NA
+"Yellow-bellied Flowerpecker","Dicaeum melanozanthum","","","",NA,NA,NA,NA,NA,NA
+"Pale-billed Flowerpecker","Dicaeum erythrorhynchos","","","",NA,NA,NA,NA,NA,NA
+"Nilgiri Flowerpecker","Dicaeum concolor","","","",NA,NA,NA,NA,NA,NA
+"Plain Flowerpecker","Dicaeum minullum","","","",NA,NA,NA,NA,NA,NA
+"Andaman Flowerpecker","Dicaeum virescens","X","X","X",26,0.0769230769230769,0.5625,0.846153846153846,6.26923076923077,1.67217962852654
+"Fire-breasted Flowerpecker","Dicaeum ignipectus","","","",NA,NA,NA,NA,NA,NA
+"Scarlet-backed Flowerpecker","Dicaeum cruentatum","","","",NA,NA,NA,NA,NA,NA
+"Ruby-cheeked Sunbird","Chalcoparia singalensis","","","",NA,NA,NA,NA,NA,NA
+"Purple-rumped Sunbird","Leptocoma zeylonica","","","",NA,NA,NA,NA,NA,NA
+"Crimson-backed Sunbird","Leptocoma minima","","","",NA,NA,NA,NA,NA,NA
+"Van Hasselt's Sunbird","Leptocoma brasiliana","","","",NA,NA,NA,NA,NA,NA
+"Purple Sunbird","Cinnyris asiaticus","","","",NA,NA,NA,NA,NA,NA
+"Ornate Sunbird","Cinnyris ornatus","","","X",43,0.255813953488372,0.497093023255814,0.744186046511628,5.11627906976744,1.23101919429201
+"Loten's Sunbird","Cinnyris lotenius","","","",NA,NA,NA,NA,NA,NA
+"Fire-tailed Sunbird","Aethopyga ignicauda","","","",NA,NA,NA,NA,NA,NA
+"Black-throated Sunbird","Aethopyga saturata","","","",NA,NA,NA,NA,NA,NA
+"Mrs. Gould's Sunbird","Aethopyga gouldiae","","","",NA,NA,NA,NA,NA,NA
+"Green-tailed Sunbird","Aethopyga nipalensis","","","",NA,NA,NA,NA,NA,NA
+"Vigors's Sunbird","Aethopyga vigorsii","","","",NA,NA,NA,NA,NA,NA
+"Crimson Sunbird","Aethopyga siparaja","","","X",6,0.166666666666667,0.416666666666667,1,3.66666666666667,2.46194864103846
+"Little Spiderhunter","Arachnothera longirostra","","","",NA,NA,NA,NA,NA,NA
+"Streaked Spiderhunter","Arachnothera magna","","","",NA,NA,NA,NA,NA,NA
+"Asian Fairy-bluebird","Irena puella","","","X",22,0.136363636363636,0.573863636363636,0.772727272727273,6.86363636363636,1.82509564261252
+"Blue-winged Leafbird","Chloropsis moluccensis","","","",NA,NA,NA,NA,NA,NA
+"Jerdon's Leafbird","Chloropsis jerdoni","","","",NA,NA,NA,NA,NA,NA
+"Golden-fronted Leafbird","Chloropsis aurifrons","","","",NA,NA,NA,NA,NA,NA
+"Orange-bellied Leafbird","Chloropsis hardwickii","","","",NA,NA,NA,NA,NA,NA
+"Streaked Weaver","Ploceus manyar","","","",NA,NA,NA,NA,NA,NA
+"Baya Weaver","Ploceus philippinus","","","",NA,NA,NA,NA,NA,NA
+"Finn's Weaver","Ploceus megarhynchus","","","",NA,NA,NA,NA,NA,NA
+"Black-breasted Weaver","Ploceus benghalensis","","","",NA,NA,NA,NA,NA,NA
+"Indian Silverbill","Euodice malabarica","","","",NA,NA,NA,NA,NA,NA
+"Scaly-breasted Munia","Lonchura punctulata","","","X",5,NA,0.475,0.6,9.8,4.61329210000841
+"Black-throated Munia","Lonchura kelaarti","","","",NA,NA,NA,NA,NA,NA
+"White-rumped Munia","Lonchura striata","X","X","X",26,0.0769230769230769,0.466346153846154,0.730769230769231,6.84615384615385,1.59673086141246
+"Tricolored Munia","Lonchura malacca","","","",NA,NA,NA,NA,NA,NA
+"Chestnut Munia","Lonchura atricapilla","","","",NA,NA,NA,NA,NA,NA
+"Green Avadavat","Amandava formosa","","","",NA,NA,NA,NA,NA,NA
+"Red Avadavat","Amandava amandava","","","",NA,NA,NA,NA,NA,NA
+"Alpine Accentor","Prunella collaris","","","",NA,NA,NA,NA,NA,NA
+"Altai Accentor","Prunella himalayana","","","",NA,NA,NA,NA,NA,NA
+"Robin Accentor","Prunella rubeculoides","","","",NA,NA,NA,NA,NA,NA
+"Rufous-breasted Accentor","Prunella strophiata","","","",NA,NA,NA,NA,NA,NA
+"Brown Accentor","Prunella fulvescens","","","",NA,NA,NA,NA,NA,NA
+"Black-throated Accentor","Prunella atrogularis","","","",NA,NA,NA,NA,NA,NA
+"Maroon-backed Accentor","Prunella immaculata","","","",NA,NA,NA,NA,NA,NA
+"House Sparrow","Passer domesticus","","","X",20,0.15,0.49375,0.55,7.3,1.81038431511684
+"Spanish Sparrow","Passer hispaniolensis","","","",NA,NA,NA,NA,NA,NA
+"Sind Sparrow","Passer pyrrhonotus","","","",NA,NA,NA,NA,NA,NA
+"Russet Sparrow","Passer cinnamomeus","","","",NA,NA,NA,NA,NA,NA
+"Eurasian Tree Sparrow","Passer montanus","","","X",NA,NA,NA,NA,NA,NA
+"Yellow-throated Sparrow","Gymnoris xanthocollis","","","",NA,NA,NA,NA,NA,NA
+"Rock Sparrow","Petronia petronia","","","",NA,NA,NA,NA,NA,NA
+"Pale Rockfinch","Carpospiza brachydactyla","","","",NA,NA,NA,NA,NA,NA
+"Black-winged Snowfinch","Montifringilla adamsi","","","",NA,NA,NA,NA,NA,NA
+"White-rumped Snowfinch","Onychostruthus taczanowskii","","","",NA,NA,NA,NA,NA,NA
+"Rufous-necked Snowfinch","Pyrgilauda ruficollis","","","",NA,NA,NA,NA,NA,NA
+"Blanford's Snowfinch","Pyrgilauda blanfordi","","","",NA,NA,NA,NA,NA,NA
+"Forest Wagtail","Dendronanthus indicus","","","X",16,0.125,0.390625,0.625,7.5,2.38712658510883
+"Gray Wagtail","Motacilla cinerea","","","X",29,0.206896551724138,0.40948275862069,0.551724137931034,6.17241379310345,1.62206896551724
+"Western Yellow Wagtail","Motacilla flava","","","X",24,0.0416666666666667,0.4375,0.583333333333333,6.66666666666667,1.74059404596541
+"Eastern Yellow Wagtail","Motacilla tschutschensis","","","",NA,NA,NA,NA,NA,NA
+"Citrine Wagtail","Motacilla citreola","","","X",2,NA,NA,NA,14,7.84
+"White-browed Wagtail","Motacilla maderaspatensis","","","",NA,NA,NA,NA,NA,NA
+"White Wagtail","Motacilla alba","","","X",6,NA,0.285714285714286,0.666666666666667,8.66666666666667,4.19356544137696
+"Richard's Pipit","Anthus richardi","","","X",1,NA,NA,NA,12,NA
+"Paddyfield Pipit","Anthus rufulus","","","X",NA,NA,NA,NA,NA,NA
+"Long-billed Pipit","Anthus similis","","","",NA,NA,NA,NA,NA,NA
+"Blyth's Pipit","Anthus godlewskii","","","X",NA,NA,NA,NA,NA,NA
+"Tawny Pipit","Anthus campestris","","","",NA,NA,NA,NA,NA,NA
+"Nilgiri Pipit","Anthus nilghiriensis","","","",NA,NA,NA,NA,NA,NA
+"Upland Pipit","Anthus sylvanus","","","",NA,NA,NA,NA,NA,NA
+"Meadow Pipit","Anthus pratensis","","","",NA,NA,NA,NA,NA,NA
+"Rosy Pipit","Anthus roseatus","","","",NA,NA,NA,NA,NA,NA
+"Tree Pipit","Anthus trivialis","","","",NA,NA,NA,NA,NA,NA
+"Olive-backed Pipit","Anthus hodgsoni","","","",NA,NA,NA,NA,NA,NA
+"Red-throated Pipit","Anthus cervinus","","","",6,0.166666666666667,0.380952380952381,0.5,8.33333333333333,4.57333333333333
+"Water Pipit","Anthus spinoletta","","","",NA,NA,NA,NA,NA,NA
+"American Pipit","Anthus rubescens","","","",NA,NA,NA,NA,NA,NA
+"Common Chaffinch","Fringilla coelebs","","","",NA,NA,NA,NA,NA,NA
+"Brambling","Fringilla montifringilla","","","",NA,NA,NA,NA,NA,NA
+"Black-and-yellow Grosbeak","Mycerobas icterioides","","","",NA,NA,NA,NA,NA,NA
+"Collared Grosbeak","Mycerobas affinis","","","",NA,NA,NA,NA,NA,NA
+"Spot-winged Grosbeak","Mycerobas melanozanthos","","","",NA,NA,NA,NA,NA,NA
+"White-winged Grosbeak","Mycerobas carnipes","","","",NA,NA,NA,NA,NA,NA
+"Hawfinch","Coccothraustes coccothraustes","","","",NA,NA,NA,NA,NA,NA
+"Common Rosefinch","Carpodacus erythrinus","","","",NA,NA,NA,NA,NA,NA
+"Scarlet Finch","Carpodacus sipahi","","","",NA,NA,NA,NA,NA,NA
+"Blyth's Rosefinch","Carpodacus grandis","","","",NA,NA,NA,NA,NA,NA
+"Himalayan Beautiful Rosefinch","Carpodacus pulcherrimus","","","",NA,NA,NA,NA,NA,NA
+"Pink-rumped Rosefinch","Carpodacus waltoni","","","",NA,NA,NA,NA,NA,NA
+"Dark-rumped Rosefinch","Carpodacus edwardsii","","","",NA,NA,NA,NA,NA,NA
+"Pink-browed Rosefinch","Carpodacus rodochroa","","","",NA,NA,NA,NA,NA,NA
+"Spot-winged Rosefinch","Carpodacus rodopeplus","","","",NA,NA,NA,NA,NA,NA
+"Vinaceous Rosefinch","Carpodacus vinaceus","","","",NA,NA,NA,NA,NA,NA
+"Pale Rosefinch","Carpodacus stoliczkae","","","",NA,NA,NA,NA,NA,NA
+"Sillem's Rosefinch","Carpodacus sillemi","","","",NA,NA,NA,NA,NA,NA
+"Streaked Rosefinch","Carpodacus rubicilloides","","","",NA,NA,NA,NA,NA,NA
+"Great Rosefinch","Carpodacus rubicilla","","","",NA,NA,NA,NA,NA,NA
+"Red-fronted Rosefinch","Carpodacus puniceus","","","",NA,NA,NA,NA,NA,NA
+"Crimson-browed Finch","Carpodacus subhimachalus","","","",NA,NA,NA,NA,NA,NA
+"Three-banded Rosefinch","Carpodacus trifasciatus","","","",NA,NA,NA,NA,NA,NA
+"Himalayan White-browed Rosefinch","Carpodacus thura","","","",NA,NA,NA,NA,NA,NA
+"Chinese White-browed Rosefinch","Carpodacus dubius","","","",NA,NA,NA,NA,NA,NA
+"Brown Bullfinch","Pyrrhula nipalensis","","","",NA,NA,NA,NA,NA,NA
+"Orange Bullfinch","Pyrrhula aurantiaca","","","",NA,NA,NA,NA,NA,NA
+"Red-headed Bullfinch","Pyrrhula erythrocephala","","","",NA,NA,NA,NA,NA,NA
+"Gray-headed Bullfinch","Pyrrhula erythaca","","","",NA,NA,NA,NA,NA,NA
+"Crimson-winged Finch","Rhodopechys sanguineus","","","",NA,NA,NA,NA,NA,NA
+"Trumpeter Finch","Bucanetes githagineus","","","",NA,NA,NA,NA,NA,NA
+"Mongolian Finch","Bucanetes mongolicus","","","",NA,NA,NA,NA,NA,NA
+"Blanford's Rosefinch","Agraphospiza rubescens","","","",NA,NA,NA,NA,NA,NA
+"Gold-naped Finch","Pyrrhoplectes epauletta","","","",NA,NA,NA,NA,NA,NA
+"Spectacled Finch","Callacanthis burtoni","","","",NA,NA,NA,NA,NA,NA
+"Dark-breasted Rosefinch","Procarduelis nipalensis","","","",NA,NA,NA,NA,NA,NA
+"Plain Mountain Finch","Leucosticte nemoricola","","","",NA,NA,NA,NA,NA,NA
+"Black-headed Mountain Finch","Leucosticte brandti","","","",NA,NA,NA,NA,NA,NA
+"Desert Finch","Rhodospiza obsoleta","","","",NA,NA,NA,NA,NA,NA
+"Yellow-breasted Greenfinch","Chloris spinoides","","","",NA,NA,NA,NA,NA,NA
+"Black-headed Greenfinch","Chloris ambigua","","","",NA,NA,NA,NA,NA,NA
+"Twite","Linaria flavirostris","","","",NA,NA,NA,NA,NA,NA
+"Eurasian Linnet","Linaria cannabina","","","",NA,NA,NA,NA,NA,NA
+"Red Crossbill","Loxia curvirostra","","","",NA,NA,NA,NA,NA,NA
+"European Goldfinch","Carduelis carduelis","","","",NA,NA,NA,NA,NA,NA
+"Fire-fronted Serin","Serinus pusillus","","","",NA,NA,NA,NA,NA,NA
+"Tibetan Serin","Spinus thibetanus","","","",NA,NA,NA,NA,NA,NA
+"Eurasian Siskin","Spinus spinus","","","",NA,NA,NA,NA,NA,NA
+"Crested Bunting","Emberiza lathami","","","",NA,NA,NA,NA,NA,NA
+"Black-headed Bunting","Emberiza melanocephala","","","",NA,NA,NA,NA,NA,NA
+"Red-headed Bunting","Emberiza bruniceps","","","",NA,NA,NA,NA,NA,NA
+"Chestnut-eared Bunting","Emberiza fucata","","","",NA,NA,NA,NA,NA,NA
+"Rock Bunting","Emberiza cia","","","",NA,NA,NA,NA,NA,NA
+"Godlewski's Bunting","Emberiza godlewskii","","","",NA,NA,NA,NA,NA,NA
+"White-capped Bunting","Emberiza stewarti","","","",NA,NA,NA,NA,NA,NA
+"Yellowhammer","Emberiza citrinella","","","",NA,NA,NA,NA,NA,NA
+"Pine Bunting","Emberiza leucocephalos","","","",NA,NA,NA,NA,NA,NA
+"Gray-necked Bunting","Emberiza buchanani","","","",NA,NA,NA,NA,NA,NA
+"Ortolan Bunting","Emberiza hortulana","","","",NA,NA,NA,NA,NA,NA
+"Striolated Bunting","Emberiza striolata","","","",NA,NA,NA,NA,NA,NA
+"Reed Bunting","Emberiza schoeniclus","","","",NA,NA,NA,NA,NA,NA
+"Yellow-breasted Bunting","Emberiza aureola","","","",NA,NA,NA,NA,NA,NA
+"Little Bunting","Emberiza pusilla","","","",NA,NA,NA,NA,NA,NA
+"Rustic Bunting","Emberiza rustica","","","",NA,NA,NA,NA,NA,NA
+"Black-faced Bunting","Emberiza spodocephala","","","X",NA,NA,NA,NA,NA,NA
+"Chestnut Bunting","Emberiza rutila","","","",NA,NA,NA,NA,NA,NA
+"Yellow-browed Bunting","Emberiza chrysophrys","","","",NA,NA,NA,NA,NA,NA
+"Tristram's Bunting","Emberiza tristrami","","","",NA,NA,NA,NA,NA,NA

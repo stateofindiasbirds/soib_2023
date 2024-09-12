@@ -6,31 +6,55 @@
 
 # raw data files
 *.txt
-*.xlsx
 *.zip
+*.rar
+
+20_website/website_database.csv
+*/data_rangemap_vagrants.csv
+00_data/BOW_image_list.csv
+00_data/state_summary_image_list.csv
+01_analyses_states/SoIB_state_summary.docx
+30_certificates/India_eBirders_20230815.csv
 
 # RData files
 00_data/rawdata.RData
 00_data/data.RData
 00_data/dataforanalyses_extra.RData
 00_data/maps_pa_sf.RData
+00_data/grids_st_sf.Rdata
 00_data/randomgroupids.RData
+00_data/vagrantdata.RData
 
 # for any mask
 dataforanalyses.RData 
 randomgroupids.RData
+# list length
+randomgroupids_di.RData
+randomgroupids_du.RData
 
-# 200 large CSVs
+# large CSVs
 dataforsim/
+trends/
+occupancy-model/
+occupancy-presence/
+*/results/occupancy/
+*/*/results/occupancy/
+20_website/archive/
+40_manuscripts/02_listlength/results/
+
 
 # image outputs
 *.gif
 *.jpeg
+*.jpg
 *.tiff
 *.tif
 *.png
 *.svg
 *.pdf
+02_graphs/statewise_pas/
+02_graphs/statewise_prioritygrids/
+
 
 # all shapefile related files
 #/*.dbf
@@ -63,6 +87,12 @@ snippets/
 #Division@Range6/
 
 # folders and specific files in Karthik's system
+hist_spread/
 hist_spread/*.RData
+hist_spread/*.csv
 hist_spread/figs/
 hist_spread/Ecoregions2017/
+hist_spread/ecoregions_reclass_viz_files/
+hist_spread/ecoregions_reclass_viz.html
+hist_spread/reg_abs.csv
+Literature/

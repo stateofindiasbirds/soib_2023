@@ -1,0 +1,978 @@
+This is LuaHBTeX, Version 1.17.1 (MiKTeX 24.1) (format=lualatex 2024.5.13)  20 MAY 2024 15:37
+ restricted system commands enabled.
+**decisionTree.tex
+(./decisionTree.tex
+LaTeX2e <2023-11-01> patch level 1
+L3 programming layer <2024-01-04>
+Lua module: luaotfload 2023-08-31 3.26 Lua based OpenType font support
+Lua module: lualibs 2023-07-13 2.76 ConTeXt Lua standard libraries.
+Lua module: lualibs-extended 2023-07-13 2.76 ConTeXt Lua libraries -- extended c
+ollection.
+luaotfload | conf : Root cache directory is "C:/Users/Karthik Thrikkadeeri/AppDa
+ta/Local/MiKTeX/luatex-cache/generic/names".
+luaotfload | init : Loading fontloader "fontloader-2023-08-19.lua" from kpse-res
+olved path "C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/luat
+ex/luaotfload/fontloader-2023-08-19.lua".
+Lua-only attribute luaotfload@noligature = 1
+luaotfload | init : Context OpenType loader version 3.133
+Inserting `luaotfload.node_processor' in `pre_linebreak_filter'.
+Inserting `luaotfload.node_processor' in `hpack_filter'.
+Inserting `luaotfload.glyph_stream' in `glyph_stream_provider'.
+Inserting `luaotfload.define_font' in `define_font'.
+Lua-only attribute luaotfload_color_attribute = 2
+luaotfload | conf : Root cache directory is "C:/Users/Karthik Thrikkadeeri/AppDa
+ta/Local/MiKTeX/luatex-cache/generic/names".
+Inserting `luaotfload.harf.strip_prefix' in `find_opentype_file'.
+Inserting `luaotfload.harf.strip_prefix' in `find_truetype_file'.
+Removing  `luaotfload.glyph_stream' from `glyph_stream_provider'.
+Inserting `luaotfload.harf.glyphstream' in `glyph_stream_provider'.
+Inserting `luaotfload.harf.finalize_vlist' in `post_linebreak_filter'.
+Inserting `luaotfload.harf.finalize_hlist' in `hpack_filter'.
+Inserting `luaotfload.cleanup_files' in `wrapup_run'.
+Inserting `luaotfload.harf.finalize_unicode' in `finish_pdffile'.
+Inserting `luaotfload.glyphinfo' in `glyph_info'.
+Lua-only attribute luaotfload.letterspace_done = 3
+Inserting `luaotfload.aux.set_sscale_dimens' in `luaotfload.patch_font'.
+Inserting `luaotfload.aux.set_font_index' in `luaotfload.patch_font'.
+Inserting `luaotfload.aux.patch_cambria_domh' in `luaotfload.patch_font'.
+Inserting `luaotfload.aux.fixup_fontdata' in `luaotfload.patch_font_unsafe'.
+Inserting `luaotfload.aux.set_capheight' in `luaotfload.patch_font'.
+Inserting `luaotfload.aux.set_xheight' in `luaotfload.patch_font'.
+Inserting `luaotfload.rewrite_fontname' in `luaotfload.patch_font'.
+Inserting `tracingstacklevels' in `input_level_string'.
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/standal
+one/standalone.cls"
+Document Class: standalone 2022/10/10 v1.3b Class to compile TeX sub-files stan
+dalone
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/tools/s
+hellesc.sty"
+Package: shellesc 2023/07/08 v1.0d unified shell escape interface for LaTeX
+Package shellesc Info: Restricted shell escape enabled on input line 77.
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/iftex
+/ifluatex.sty"
+Package: ifluatex 2019/10/25 v1.5 ifluatex legacy package. Use iftex instead.
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/iftex
+/iftex.sty"
+Package: iftex 2022/02/03 v1.0f TeX engine tests
+))
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/xkeyval
+/xkeyval.sty"
+Package: xkeyval 2022/06/16 v2.9 package option processing (HA)
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/xkeyv
+al/xkeyval.tex"
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/xkeyv
+al/xkvutils.tex"
+\XKV@toks=\toks17
+\XKV@tempa@toks=\toks18
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/xkeyv
+al/keyval.tex"))
+\XKV@depth=\count185
+File: xkeyval.tex 2014/12/03 v2.7a key=value parser (HA)
+))
+\sa@internal=\count186
+\c@sapage=\count187
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/standal
+one/standalone.cfg"
+File: standalone.cfg 2022/10/10 v1.3b Default configuration file for 'standalon
+e' class
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/base/ar
+ticle.cls"
+Document Class: article 2023/05/17 v1.4n Standard LaTeX document class
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/base/si
+ze10.clo"
+File: size10.clo 2023/05/17 v1.4n Standard LaTeX file (size option)
+luaotfload | db : Font names database loaded from C:/Users/Karthik Thrikkadeeri/
+AppData/Local/MiKTeX/luatex-cache/generic/names/luaotfload-names.luc.gz)
+\c@part=\count188
+\c@section=\count189
+\c@subsection=\count190
+\c@subsubsection=\count191
+\c@paragraph=\count192
+\c@subparagraph=\count193
+\c@figure=\count194
+\c@table=\count195
+\abovecaptionskip=\skip48
+\belowcaptionskip=\skip49
+\bibindent=\dimen139
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/luatex8
+5/luatex85.sty"
+Package: luatex85 2016/06/15 v1.4 pdftex aliases for luatex
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pdfte
+xcmds/pdftexcmds.sty"
+Package: pdftexcmds 2020-06-27 v0.33 Utility functions of pdfTeX for LuaTeX (HO
+)
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/infwa
+rerr/infwarerr.sty"
+Package: infwarerr 2019/12/03 v1.5 Providing info/warning/error messages (HO)
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/ltxcm
+ds/ltxcmds.sty"
+Package: ltxcmds 2023-12-04 v1.26 LaTeX kernel commands for general use (HO)
+)
+Package pdftexcmds Info: \pdf@primitive is available.
+Package pdftexcmds Info: \pdf@ifprimitive is available.
+Package pdftexcmds Info: \pdfdraftmode found.
+\pdftexcmds@toks=\toks19
+)
+\sa@box=\box51
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/pgf/fro
+ntendlayer/tikz.sty"
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/pgf/bas
+iclayer/pgf.sty"
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/pgf/uti
+lities/pgfrcs.sty"
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/u
+tilities/pgfutil-common.tex"
+\pgfutil@everybye=\toks20
+\pgfutil@tempdima=\dimen140
+\pgfutil@tempdimb=\dimen141
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/u
+tilities/pgfutil-latex.def"
+\pgfutil@abb=\box52
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/u
+tilities/pgfrcs.code.tex"
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/p
+gf.revision.tex")
+Package: pgfrcs 2023-01-15 v3.1.10 (3.1.10)
+))
+Package: pgf 2023-01-15 v3.1.10 (3.1.10)
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/pgf/bas
+iclayer/pgfcore.sty"
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/graphic
+s/graphicx.sty"
+Package: graphicx 2021/09/16 v1.2d Enhanced LaTeX Graphics (DPC,SPQR)
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/graphic
+s/graphics.sty"
+Package: graphics 2022/03/10 v1.4e Standard LaTeX Graphics (DPC,SPQR)
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/graphic
+s/trig.sty"
+Package: trig 2021/08/11 v1.11 sin cos tan (DPC)
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/graphic
+s-cfg/graphics.cfg"
+File: graphics.cfg 2016/06/04 v1.11 sample graphics configuration
+)
+Package graphics Info: Driver file: luatex.def on input line 107.
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/graphic
+s-def/luatex.def"
+File: luatex.def 2022/09/22 v1.2d Graphics/color driver for luatex
+))
+\Gin@req@height=\dimen142
+\Gin@req@width=\dimen143
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/pgf/sys
+temlayer/pgfsys.sty"
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/s
+ystemlayer/pgfsys.code.tex"
+Package: pgfsys 2023-01-15 v3.1.10 (3.1.10)
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/u
+tilities/pgfkeys.code.tex"
+\pgfkeys@pathtoks=\toks21
+\pgfkeys@temptoks=\toks22
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/u
+tilities/pgfkeyslibraryfiltered.code.tex"
+\pgfkeys@tmptoks=\toks23
+))
+\pgf@x=\dimen144
+\pgf@y=\dimen145
+\pgf@xa=\dimen146
+\pgf@ya=\dimen147
+\pgf@xb=\dimen148
+\pgf@yb=\dimen149
+\pgf@xc=\dimen150
+\pgf@yc=\dimen151
+\pgf@xd=\dimen152
+\pgf@yd=\dimen153
+\w@pgf@writea=\write3
+\r@pgf@reada=\read2
+\c@pgf@counta=\count196
+\c@pgf@countb=\count197
+\c@pgf@countc=\count198
+\c@pgf@countd=\count199
+\t@pgf@toka=\toks24
+\t@pgf@tokb=\toks25
+\t@pgf@tokc=\toks26
+\pgf@sys@id@count=\count266
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/s
+ystemlayer/pgf.cfg"
+File: pgf.cfg 2023-01-15 v3.1.10 (3.1.10)
+)
+Driver file for pgf: pgfsys-luatex.def
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/s
+ystemlayer/pgfsys-luatex.def"
+File: pgfsys-luatex.def 2023-01-15 v3.1.10 (3.1.10)
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/s
+ystemlayer/pgfsys-common-pdf.def"
+File: pgfsys-common-pdf.def 2023-01-15 v3.1.10 (3.1.10)
+)))
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/s
+ystemlayer/pgfsyssoftpath.code.tex"
+File: pgfsyssoftpath.code.tex 2023-01-15 v3.1.10 (3.1.10)
+\pgfsyssoftpath@smallbuffer@items=\count267
+\pgfsyssoftpath@bigbuffer@items=\count268
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/s
+ystemlayer/pgfsysprotocol.code.tex"
+File: pgfsysprotocol.code.tex 2023-01-15 v3.1.10 (3.1.10)
+))
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/xcolor/
+xcolor.sty"
+Package: xcolor 2023/11/15 v3.01 LaTeX color extensions (UK)
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/graphic
+s-cfg/color.cfg"
+File: color.cfg 2016/01/02 v1.6 sample color configuration
+)
+Package xcolor Info: Driver file: luatex.def on input line 274.
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/graphic
+s/mathcolor.ltx")
+Package xcolor Info: Model `cmy' substituted by `cmy0' on input line 1350.
+Package xcolor Info: Model `hsb' substituted by `rgb' on input line 1354.
+Package xcolor Info: Model `RGB' extended on input line 1366.
+Package xcolor Info: Model `HTML' substituted by `rgb' on input line 1368.
+Package xcolor Info: Model `Hsb' substituted by `hsb' on input line 1369.
+Package xcolor Info: Model `tHsb' substituted by `hsb' on input line 1370.
+Package xcolor Info: Model `HSB' substituted by `hsb' on input line 1371.
+Package xcolor Info: Model `Gray' substituted by `gray' on input line 1372.
+Package xcolor Info: Model `wave' substituted by `hsb' on input line 1373.
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/b
+asiclayer/pgfcore.code.tex"
+Package: pgfcore 2023-01-15 v3.1.10 (3.1.10)
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/m
+ath/pgfmath.code.tex"
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/m
+ath/pgfmathutil.code.tex")
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/m
+ath/pgfmathparser.code.tex"
+\pgfmath@dimen=\dimen154
+\pgfmath@count=\count269
+\pgfmath@box=\box53
+\pgfmath@toks=\toks27
+\pgfmath@stack@operand=\toks28
+\pgfmath@stack@operation=\toks29
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/m
+ath/pgfmathfunctions.code.tex")
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/m
+ath/pgfmathfunctions.basic.code.tex")
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/m
+ath/pgfmathfunctions.trigonometric.code.tex")
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/m
+ath/pgfmathfunctions.random.code.tex")
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/m
+ath/pgfmathfunctions.comparison.code.tex")
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/m
+ath/pgfmathfunctions.base.code.tex")
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/m
+ath/pgfmathfunctions.round.code.tex")
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/m
+ath/pgfmathfunctions.misc.code.tex")
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/m
+ath/pgfmathfunctions.integerarithmetics.code.tex")
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/m
+ath/pgfmathcalc.code.tex")
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/m
+ath/pgfmathfloat.code.tex"
+\c@pgfmathroundto@lastzeros=\count270
+))
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/m
+ath/pgfint.code.tex")
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/b
+asiclayer/pgfcorepoints.code.tex"
+File: pgfcorepoints.code.tex 2023-01-15 v3.1.10 (3.1.10)
+\pgf@picminx=\dimen155
+\pgf@picmaxx=\dimen156
+\pgf@picminy=\dimen157
+\pgf@picmaxy=\dimen158
+\pgf@pathminx=\dimen159
+\pgf@pathmaxx=\dimen160
+\pgf@pathminy=\dimen161
+\pgf@pathmaxy=\dimen162
+\pgf@xx=\dimen163
+\pgf@xy=\dimen164
+\pgf@yx=\dimen165
+\pgf@yy=\dimen166
+\pgf@zx=\dimen167
+\pgf@zy=\dimen168
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/b
+asiclayer/pgfcorepathconstruct.code.tex"
+File: pgfcorepathconstruct.code.tex 2023-01-15 v3.1.10 (3.1.10)
+\pgf@path@lastx=\dimen169
+\pgf@path@lasty=\dimen170
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/b
+asiclayer/pgfcorepathusage.code.tex"
+File: pgfcorepathusage.code.tex 2023-01-15 v3.1.10 (3.1.10)
+\pgf@shorten@end@additional=\dimen171
+\pgf@shorten@start@additional=\dimen172
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/b
+asiclayer/pgfcorescopes.code.tex"
+File: pgfcorescopes.code.tex 2023-01-15 v3.1.10 (3.1.10)
+\pgfpic=\box54
+\pgf@hbox=\box55
+\pgf@layerbox@main=\box56
+\pgf@picture@serial@count=\count271
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/b
+asiclayer/pgfcoregraphicstate.code.tex"
+File: pgfcoregraphicstate.code.tex 2023-01-15 v3.1.10 (3.1.10)
+\pgflinewidth=\dimen173
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/b
+asiclayer/pgfcoretransformations.code.tex"
+File: pgfcoretransformations.code.tex 2023-01-15 v3.1.10 (3.1.10)
+\pgf@pt@x=\dimen174
+\pgf@pt@y=\dimen175
+\pgf@pt@temp=\dimen176
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/b
+asiclayer/pgfcorequick.code.tex"
+File: pgfcorequick.code.tex 2023-01-15 v3.1.10 (3.1.10)
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/b
+asiclayer/pgfcoreobjects.code.tex"
+File: pgfcoreobjects.code.tex 2023-01-15 v3.1.10 (3.1.10)
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/b
+asiclayer/pgfcorepathprocessing.code.tex"
+File: pgfcorepathprocessing.code.tex 2023-01-15 v3.1.10 (3.1.10)
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/b
+asiclayer/pgfcorearrows.code.tex"
+File: pgfcorearrows.code.tex 2023-01-15 v3.1.10 (3.1.10)
+\pgfarrowsep=\dimen177
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/b
+asiclayer/pgfcoreshade.code.tex"
+File: pgfcoreshade.code.tex 2023-01-15 v3.1.10 (3.1.10)
+\pgf@max=\dimen178
+\pgf@sys@shading@range@num=\count272
+\pgf@shadingcount=\count273
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/b
+asiclayer/pgfcoreimage.code.tex"
+File: pgfcoreimage.code.tex 2023-01-15 v3.1.10 (3.1.10)
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/b
+asiclayer/pgfcoreexternal.code.tex"
+File: pgfcoreexternal.code.tex 2023-01-15 v3.1.10 (3.1.10)
+\pgfexternal@startupbox=\box57
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/b
+asiclayer/pgfcorelayers.code.tex"
+File: pgfcorelayers.code.tex 2023-01-15 v3.1.10 (3.1.10)
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/b
+asiclayer/pgfcoretransparency.code.tex"
+File: pgfcoretransparency.code.tex 2023-01-15 v3.1.10 (3.1.10)
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/b
+asiclayer/pgfcorepatterns.code.tex"
+File: pgfcorepatterns.code.tex 2023-01-15 v3.1.10 (3.1.10)
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/b
+asiclayer/pgfcorerdf.code.tex"
+File: pgfcorerdf.code.tex 2023-01-15 v3.1.10 (3.1.10)
+)))
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/m
+odules/pgfmoduleshapes.code.tex"
+File: pgfmoduleshapes.code.tex 2023-01-15 v3.1.10 (3.1.10)
+\pgfnodeparttextbox=\box58
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/m
+odules/pgfmoduleplot.code.tex"
+File: pgfmoduleplot.code.tex 2023-01-15 v3.1.10 (3.1.10)
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/pgf/com
+patibility/pgfcomp-version-0-65.sty"
+Package: pgfcomp-version-0-65 2023-01-15 v3.1.10 (3.1.10)
+\pgf@nodesepstart=\dimen179
+\pgf@nodesepend=\dimen180
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/pgf/com
+patibility/pgfcomp-version-1-18.sty"
+Package: pgfcomp-version-1-18 2023-01-15 v3.1.10 (3.1.10)
+))
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/pgf/uti
+lities/pgffor.sty"
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/pgf/uti
+lities/pgfkeys.sty"
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/u
+tilities/pgfkeys.code.tex"))
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/pgf/mat
+h/pgfmath.sty"
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/m
+ath/pgfmath.code.tex"))
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/u
+tilities/pgffor.code.tex"
+Package: pgffor 2023-01-15 v3.1.10 (3.1.10)
+\pgffor@iter=\dimen181
+\pgffor@skip=\dimen182
+\pgffor@stack=\toks30
+\pgffor@toks=\toks31
+))
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/f
+rontendlayer/tikz/tikz.code.tex"
+Package: tikz 2023-01-15 v3.1.10 (3.1.10)
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/l
+ibraries/pgflibraryplothandlers.code.tex"
+File: pgflibraryplothandlers.code.tex 2023-01-15 v3.1.10 (3.1.10)
+\pgf@plot@mark@count=\count274
+\pgfplotmarksize=\dimen183
+)
+\tikz@lastx=\dimen184
+\tikz@lasty=\dimen185
+\tikz@lastxsaved=\dimen186
+\tikz@lastysaved=\dimen187
+\tikz@lastmovetox=\dimen188
+\tikz@lastmovetoy=\dimen189
+\tikzleveldistance=\dimen190
+\tikzsiblingdistance=\dimen191
+\tikz@figbox=\box59
+\tikz@figbox@bg=\box60
+\tikz@tempbox=\box61
+\tikz@tempbox@bg=\box62
+\tikztreelevel=\count275
+\tikznumberofchildren=\count276
+\tikznumberofcurrentchild=\count277
+\tikz@fig@count=\count278
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/m
+odules/pgfmodulematrix.code.tex"
+File: pgfmodulematrix.code.tex 2023-01-15 v3.1.10 (3.1.10)
+\pgfmatrixcurrentrow=\count279
+\pgfmatrixcurrentcolumn=\count280
+\pgf@matrix@numberofcolumns=\count281
+)
+\tikz@expandcount=\count282
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/f
+rontendlayer/tikz/libraries/tikzlibrarytopaths.code.tex"
+File: tikzlibrarytopaths.code.tex 2023-01-15 v3.1.10 (3.1.10)
+)))
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/l
+ibraries/pgflibraryarrows.meta.code.tex"
+File: pgflibraryarrows.meta.code.tex 2023-01-15 v3.1.10 (3.1.10)
+\pgfarrowinset=\dimen192
+\pgfarrowlength=\dimen193
+\pgfarrowwidth=\dimen194
+\pgfarrowlinewidth=\dimen195
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/f
+rontendlayer/tikz/libraries/tikzlibraryshapes.code.tex"
+File: tikzlibraryshapes.code.tex 2023-01-15 v3.1.10 (3.1.10)
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/f
+rontendlayer/tikz/libraries/tikzlibraryshapes.geometric.code.tex"
+File: tikzlibraryshapes.geometric.code.tex 2023-01-15 v3.1.10 (3.1.10)
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/l
+ibraries/shapes/pgflibraryshapes.geometric.code.tex"
+File: pgflibraryshapes.geometric.code.tex 2023-01-15 v3.1.10 (3.1.10)
+))
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/f
+rontendlayer/tikz/libraries/tikzlibraryshapes.misc.code.tex"
+File: tikzlibraryshapes.misc.code.tex 2023-01-15 v3.1.10 (3.1.10)
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/l
+ibraries/shapes/pgflibraryshapes.misc.code.tex"
+File: pgflibraryshapes.misc.code.tex 2023-01-15 v3.1.10 (3.1.10)
+))
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/f
+rontendlayer/tikz/libraries/tikzlibraryshapes.symbols.code.tex"
+File: tikzlibraryshapes.symbols.code.tex 2023-01-15 v3.1.10 (3.1.10)
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/l
+ibraries/shapes/pgflibraryshapes.symbols.code.tex"
+File: pgflibraryshapes.symbols.code.tex 2023-01-15 v3.1.10 (3.1.10)
+))
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/f
+rontendlayer/tikz/libraries/tikzlibraryshapes.arrows.code.tex"
+File: tikzlibraryshapes.arrows.code.tex 2023-01-15 v3.1.10 (3.1.10)
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/l
+ibraries/shapes/pgflibraryshapes.arrows.code.tex"
+File: pgflibraryshapes.arrows.code.tex 2023-01-15 v3.1.10 (3.1.10)
+))
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/f
+rontendlayer/tikz/libraries/tikzlibraryshapes.callouts.code.tex"
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/l
+ibraries/shapes/pgflibraryshapes.callouts.code.tex"))
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/f
+rontendlayer/tikz/libraries/tikzlibraryshapes.multipart.code.tex"
+File: tikzlibraryshapes.multipart.code.tex 2023-01-15 v3.1.10 (3.1.10)
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/l
+ibraries/shapes/pgflibraryshapes.multipart.code.tex"
+File: pgflibraryshapes.multipart.code.tex 2023-01-15 v3.1.10 (3.1.10)
+\pgfnodepartlowerbox=\box63
+\pgfnodeparttwobox=\box64
+\pgfnodepartthreebox=\box65
+\pgfnodepartfourbox=\box66
+\pgfnodeparttwentybox=\box67
+\pgfnodepartnineteenbox=\box68
+\pgfnodeparteighteenbox=\box69
+\pgfnodepartseventeenbox=\box70
+\pgfnodepartsixteenbox=\box71
+\pgfnodepartfifteenbox=\box72
+\pgfnodepartfourteenbox=\box73
+\pgfnodepartthirteenbox=\box74
+\pgfnodeparttwelvebox=\box75
+\pgfnodepartelevenbox=\box76
+\pgfnodeparttenbox=\box77
+\pgfnodepartninebox=\box78
+\pgfnodeparteightbox=\box79
+\pgfnodepartsevenbox=\box80
+\pgfnodepartsixbox=\box81
+\pgfnodepartfivebox=\box82
+)))
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/f
+rontendlayer/tikz/libraries/tikzlibrarypositioning.code.tex"
+File: tikzlibrarypositioning.code.tex 2023-01-15 v3.1.10 (3.1.10)
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/f
+rontendlayer/tikz/libraries/tikzlibrarydecorations.markings.code.tex"
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/f
+rontendlayer/tikz/libraries/tikzlibrarydecorations.code.tex"
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/m
+odules/pgfmoduledecorations.code.tex"
+\pgfdecoratedcompleteddistance=\dimen196
+\pgfdecoratedremainingdistance=\dimen197
+\pgfdecoratedinputsegmentcompleteddistance=\dimen198
+\pgfdecoratedinputsegmentremainingdistance=\dimen199
+\pgf@decorate@distancetomove=\dimen256
+\pgf@decorate@repeatstate=\count283
+\pgfdecorationsegmentamplitude=\dimen257
+\pgfdecorationsegmentlength=\dimen258
+)
+\tikz@lib@dec@box=\box83
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/l
+ibraries/decorations/pgflibrarydecorations.markings.code.tex"))
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/pgfplot
+s/pgfplots.sty"
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgfpl
+ots/pgfplots.revision.tex")
+Package: pgfplots 2021/05/15 v1.18.1 Data Visualization (1.18.1)
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgfpl
+ots/pgfplots.code.tex"
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgfpl
+ots/pgfplotscore.code.tex"
+Package pgfplots info on input line 124: Initializing with LUA version Lua 5.3
+\pgfplots@luabackend@table=\catcodetable14
+\t@pgfplots@toka=\toks32
+\t@pgfplots@tokb=\toks33
+\t@pgfplots@tokc=\toks34
+\pgfplots@tmpa=\dimen259
+\c@pgfplots@coordindex=\count284
+\c@pgfplots@scanlineindex=\count285
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgfpl
+ots/sys/pgfplotssysgeneric.code.tex"))
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgfpl
+ots/libs/pgfplotslibrary.code.tex")
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgfpl
+ots/oldpgfcompatib/pgfplotsoldpgfsupp_loader.code.tex"
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/l
+ibraries/pgflibraryfpu.code.tex")
+Package pgfplots: loading complementary utilities for your pgf version...
+\t@pgf@toka=\toks35
+\t@pgf@tokb=\toks36
+\t@pgf@tokc=\toks37
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgfpl
+ots/oldpgfcompatib/pgfplotsoldpgfsupp_pgfutil-common-lists.tex")
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/l
+ibraries/luamath/pgflibraryluamath.code.tex")
+Package pgfplots info on input line 290: luamath library shipped with pgf 3.1.1
+0 is up-to-date
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgfpl
+ots/util/pgfplotsutil.code.tex"
+Package pgfplots info on input line 82: Found new luatex: initializing lua comm
+ands instead of write18 (shell-escape)
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgfpl
+ots/liststructure/pgfplotsliststructure.code.tex")
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgfpl
+ots/liststructure/pgfplotsliststructureext.code.tex")
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgfpl
+ots/liststructure/pgfplotsarray.code.tex"
+\c@pgfplotsarray@tmp=\count286
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgfpl
+ots/liststructure/pgfplotsmatrix.code.tex")
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgfpl
+ots/numtable/pgfplotstableshared.code.tex"
+\c@pgfplotstable@counta=\count287
+\t@pgfplotstable@a=\toks38
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgfpl
+ots/liststructure/pgfplotsdeque.code.tex")
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgfpl
+ots/util/pgfplotsbinary.code.tex"
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgfpl
+ots/util/pgfplotsbinary.data.code.tex"))
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgfpl
+ots/util/pgfplotsutil.verb.code.tex")
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgfpl
+ots/libs/pgflibrarypgfplots.surfshading.code.tex"
+\c@pgfplotslibrarysurf@no=\count288
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgfpl
+ots/sys/pgflibrarypgfplots.surfshading.pgfsys-luatex.def")))
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgfpl
+ots/util/pgfplotscolormap.code.tex"
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgfpl
+ots/util/pgfplotscolor.code.tex"))
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgfpl
+ots/pgfplotsstackedplots.code.tex")
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgfpl
+ots/pgfplotsplothandlers.code.tex"
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgfpl
+ots/pgfplotsmeshplothandler.code.tex"
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgfpl
+ots/pgfplotsmeshplotimage.code.tex")))
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgfpl
+ots/pgfplots.scaling.code.tex")
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgfpl
+ots/pgfplotscoordprocessing.code.tex")
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgfpl
+ots/pgfplots.errorbars.code.tex")
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgfpl
+ots/pgfplots.markers.code.tex")
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgfpl
+ots/pgfplotsticks.code.tex")
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgfpl
+ots/pgfplots.paths.code.tex")
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/f
+rontendlayer/tikz/libraries/tikzlibrarydecorations.pathmorphing.code.tex"
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/l
+ibraries/decorations/pgflibrarydecorations.pathmorphing.code.tex"))
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/f
+rontendlayer/tikz/libraries/tikzlibrarydecorations.pathreplacing.code.tex"
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/l
+ibraries/decorations/pgflibrarydecorations.pathreplacing.code.tex"))
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgfpl
+ots/libs/tikzlibrarypgfplots.contourlua.code.tex")
+\pgfplots@numplots=\count289
+\pgfplots@xmin@reg=\dimen260
+\pgfplots@xmax@reg=\dimen261
+\pgfplots@ymin@reg=\dimen262
+\pgfplots@ymax@reg=\dimen263
+\pgfplots@zmin@reg=\dimen264
+\pgfplots@zmax@reg=\dimen265
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/f
+rontendlayer/tikz/libraries/tikzlibraryplotmarks.code.tex"
+File: tikzlibraryplotmarks.code.tex 2023-01-15 v3.1.10 (3.1.10)
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/pgf/l
+ibraries/pgflibraryplotmarks.code.tex"
+File: pgflibraryplotmarks.code.tex 2023-01-15 v3.1.10 (3.1.10)
+)))
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/graphic
+s/dvipsnam.def"
+File: dvipsnam.def 2016/06/17 v3.0m Driver-dependent file (DPC,SPQR)
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/fontspe
+c/fontspec.sty"
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/l3packa
+ges/xparse/xparse.sty"
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/l3kerne
+l/expl3.sty"
+Package: expl3 2024-01-04 L3 programming layer (loader) 
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/l3backe
+nd/l3backend-luatex.def"
+File: l3backend-luatex.def 2024-01-04 L3 backend support: PDF output (LuaTeX)
+\l__color_backend_stack_int=\count290
+Inserting `l3color' in `luaotfload.parse_color'.
+\l__pdf_internal_box=\box84
+))
+Package: xparse 2023-10-10 L3 Experimental document command parser
+)
+Package: fontspec 2022/01/15 v2.8a Font selection for XeLaTeX and LuaLaTeX
+Lua module: fontspec 2022/01/15 2.8a Font selection for XeLaTeX and LuaLaTeX
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/fontspe
+c/fontspec-luatex.sty"
+Package: fontspec-luatex 2022/01/15 v2.8a Font selection for XeLaTeX and LuaLaT
+eX
+\l__fontspec_script_int=\count291
+\l__fontspec_language_int=\count292
+\l__fontspec_strnum_int=\count293
+\l__fontspec_tmp_int=\count294
+\l__fontspec_tmpa_int=\count295
+\l__fontspec_tmpb_int=\count296
+\l__fontspec_tmpc_int=\count297
+\l__fontspec_em_int=\count298
+\l__fontspec_emdef_int=\count299
+\l__fontspec_strong_int=\count300
+\l__fontspec_strongdef_int=\count301
+\l__fontspec_tmpa_dim=\dimen266
+\l__fontspec_tmpb_dim=\dimen267
+\l__fontspec_tmpc_dim=\dimen268
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/base/fo
+ntenc.sty"
+Package: fontenc 2021/04/29 v2.0v Standard LaTeX package
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/fontspe
+c/fontspec.cfg")))
+luaotfload | cache : Lookup cache loaded from C:/Users/Karthik Thrikkadeeri/AppD
+ata/Local/MiKTeX/luatex-cache/generic/names/luaotfload-lookup-cache.luc.
+luaotfload | aux : font no 22 (nil) does not define feature smcp for script latn
+ with language dflt
+luaotfload | aux : font no 23 (nil) does not define feature smcp for script latn
+ with language dflt
+luaotfload | aux : font no 24 (nil) does not define feature smcp for script latn
+ with language dflt
+luaotfload | aux : font no 24 (nil) does not define feature smcp for script latn
+ with language dflt
+
+Package fontspec Info: Font family 'Inter(0)' created for font 'Inter' with
+(fontspec)             options [Ligatures=TeX,Ligatures=TeX].
+(fontspec)              
+(fontspec)              This font family consists of the following NFSS
+(fontspec)             series/shapes:
+(fontspec)              
+(fontspec)             - 'normal' (m/n) with NFSS spec.:
+(fontspec)             <->"Inter:mode=node;script=latn;language=dflt;+tlig;"
+(fontspec)             - 'small caps'  (m/sc) with NFSS spec.: 
+(fontspec)             - 'bold' (b/n) with NFSS spec.:
+(fontspec)             <->"Inter/B:mode=node;script=latn;language=dflt;+tlig;"
+(fontspec)             - 'bold small caps'  (b/sc) with NFSS spec.: 
+(fontspec)             - 'italic' (m/it) with NFSS spec.:
+(fontspec)             <->"Inter/I:mode=node;script=latn;language=dflt;+tlig;"
+(fontspec)             - 'italic small caps'  (m/scit) with NFSS spec.: 
+(fontspec)             - 'bold italic' (b/it) with NFSS spec.:
+(fontspec)             <->"Inter/BI:mode=node;script=latn;language=dflt;+tlig;"
+
+(fontspec)             - 'bold italic small caps'  (b/scit) with NFSS spec.: 
+
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/mathast
+ext/mathastext.sty"
+Package: mathastext 2023/12/29 v1.3zb Use the text font in math mode (JFB)
+
+Package mathastext Info: Starting the math mode configuration.
+\mst@exists@muskip=\muskip16
+\mst@forall@muskip=\muskip17
+\mst@prime@muskip=\muskip18
+\mst@do@nonletters=\toks39
+\mst@do@easynonletters=\toks40
+\mst@do@az=\toks41
+\mst@do@AZ=\toks42
+\symmtoperatorfont=\mathgroup4
+\symmtletterfont=\mathgroup5
+(   mathastext:   ) ! and ?
+(   mathastext:   ) punctuation: , . : ; and \colon
+LaTeX Info: Redefining \relbar on input line 894.
+LaTeX Info: Redefining \rightarrowfill on input line 897.
+LaTeX Info: Redefining \leftarrowfill on input line 902.
+(   mathastext:   ) + and =
+LaTeX Info: Redefining \Relbar on input line 993.
+(   mathastext:   ) adding = ; and + to \nfss@catcodes
+(   mathastext:   ) parentheses ( ) [ ] and slash /
+(   mathastext:   ) alldelims: < > \backslash \setminus | \vert \mid \{ \}
+LaTeX Font Info:    Redeclaring math delimiter \backslash on input line 1039.
+LaTeX Font Info:    Redeclaring math symbol \setminus on input line 1051.
+LaTeX Info: Redefining \models on input line 1060.
+(   mathastext:   ) \# \mathdollar \% \& 
+(   mathastext:   ) \imath and \jmath 
+LaTeX Font Info:    Overwriting math alphabet `\Mathnormalbold' in version `nor
+mal'
+(Font)                  TU/Inter(0)/b/n --> TU/Inter(0)/b/n on input line 2516.
+
+LaTeX Font Info:    Overwriting math alphabet `\Mathnormalbold' in version `bol
+d'
+(Font)                  TU/Inter(0)/b/n --> TU/Inter(0)/b/n on input line 2516.
+
+LaTeX Font Info:    Overwriting symbol font `mtletterfont' in version `normal'
+(Font)                  TU/Inter(0)/m/n --> TU/Inter(0)/m/n on input line 2516.
+
+LaTeX Font Info:    Overwriting symbol font `mtletterfont' in version `bold'
+(Font)                  TU/Inter(0)/m/n --> TU/Inter(0)/b/n on input line 2516.
+
+LaTeX Font Info:    Overwriting symbol font `mtoperatorfont' in version `normal
+'
+(Font)                  TU/Inter(0)/m/n --> TU/Inter(0)/m/n on input line 2516.
+
+LaTeX Font Info:    Overwriting symbol font `mtoperatorfont' in version `bold'
+(Font)                  TU/Inter(0)/m/n --> TU/Inter(0)/b/n on input line 2516.
+
+LaTeX Font Info:    Overwriting math alphabet `\Mathbf' in version `normal'
+(Font)                  TU/Inter(0)/b/n --> TU/Inter(0)/b/n on input line 2516.
+
+LaTeX Font Info:    Overwriting math alphabet `\Mathbf' in version `bold'
+(Font)                  TU/Inter(0)/b/n --> TU/Inter(0)/b/n on input line 2516.
+
+LaTeX Font Info:    Overwriting math alphabet `\Mathit' in version `normal'
+(Font)                  TU/Inter(0)/m/it --> TU/Inter(0)/m/it on input line 251
+6.
+LaTeX Font Info:    Overwriting math alphabet `\Mathit' in version `bold'
+(Font)                  TU/Inter(0)/m/it --> TU/Inter(0)/b/it on input line 251
+6.
+LaTeX Font Info:    Overwriting math alphabet `\Mathsf' in version `normal'
+(Font)                  TU/lmss/m/n --> TU/lmss/m/n on input line 2516.
+LaTeX Font Info:    Overwriting math alphabet `\Mathsf' in version `bold'
+(Font)                  TU/lmss/m/n --> TU/lmss/b/n on input line 2516.
+LaTeX Font Info:    Overwriting math alphabet `\Mathtt' in version `normal'
+(Font)                  TU/lmtt/m/n --> TU/lmtt/m/n on input line 2516.
+LaTeX Font Info:    Overwriting math alphabet `\Mathtt' in version `bold'
+(Font)                  TU/lmtt/m/n --> TU/lmtt/b/n on input line 2516.
+(   mathastext:   ) Latin letters in the `normal', resp. `bold',
+(   mathastext:   ) math versions are now set up to use the fonts
+(   mathastext:   ) TU/Inter(0)/m/n, resp. TU/Inter(0)/b/n.
+(   mathastext:   ) Other characters (digits, ...) and \log-like names will be
+(   mathastext:   ) typeset with the n shape.
+(   mathastext:   ) \hbar
+(   mathastext:   ) minus as endash
+
+Package mathastext Info: Loading is complete.  You can now use \Mathastext to
+(mathastext)             modify the normal and bold math versions.  Use it
+(mathastext)             with optional argument or use \MTDeclareVersion to
+(mathastext)             declare additional math versions.
+) (./decisionTree.aux)
+\openout1 = decisionTree.aux
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 17.
+LaTeX Font Info:    ... okay on input line 17.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 17.
+LaTeX Font Info:    ... okay on input line 17.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 17.
+LaTeX Font Info:    ... okay on input line 17.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 17.
+LaTeX Font Info:    ... okay on input line 17.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 17.
+LaTeX Font Info:    Trying to load font information for TS1+cmr on input line 1
+7.
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/base/ts
+1cmr.fd"
+File: ts1cmr.fd 2023/04/13 v2.5m Standard LaTeX font definitions
+)
+LaTeX Font Info:    ... okay on input line 17.
+LaTeX Font Info:    Checking defaults for TU/lmr/m/n on input line 17.
+LaTeX Font Info:    ... okay on input line 17.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 17.
+LaTeX Font Info:    ... okay on input line 17.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 17.
+LaTeX Font Info:    ... okay on input line 17.
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/context/base/
+mkii/supp-pdf.mkii"
+[Loading MPS to PDF converter (version 2006.09.02).]
+\scratchcounter=\count302
+\scratchdimen=\dimen269
+\scratchbox=\box85
+\nofMPsegments=\count303
+\nofMParguments=\count304
+\everyMPshowfont=\toks43
+\MPscratchCnt=\count305
+\MPscratchDim=\dimen270
+\MPnumerator=\count306
+\makeMPintoPDFobject=\count307
+\everyMPtoPDFconversion=\toks44
+)
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/epstopd
+f-pkg/epstopdf-base.sty"
+Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/grfext/
+grfext.sty"
+Package: grfext 2019/12/03 v1.3 Manage graphics extensions (HO)
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/generic/kvdef
+inekeys/kvdefinekeys.sty"
+Package: kvdefinekeys 2019-12-19 v1.6 Define keys (HO)
+))
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/kvoptio
+ns/kvoptions.sty"
+Package: kvoptions 2022-06-15 v3.15 Key value format for package options (HO)
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/kvsetke
+ys/kvsetkeys.sty"
+Package: kvsetkeys 2022-10-05 v1.19 Key value parser (HO)
+))
+Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
+85.
+Package grfext Info: Graphics extension search list:
+(grfext)             [.pdf,.png,.jpg,.mps,.jpeg,.jbig2,.jb2,.PDF,.PNG,.JPG,.JPE
+G,.JBIG2,.JB2,.eps]
+(grfext)             \AppendGraphicsExtensions on input line 504.
+
+("C:/Users/Karthik Thrikkadeeri/AppData/Local/Programs/MiKTeX/tex/latex/00mikte
+x/epstopdf-sys.cfg"
+File: epstopdf-sys.cfg 2021/03/18 v2.0 Configuration of epstopdf for MiKTeX
+))
+Package pgfplots notification 'compat/show suggested version=true': document ha
+s been generated with the most recent feature set (\pgfplotsset{compat=1.18}).
+
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <20.74> on input line 72.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <14.4> on input line 72.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <12> on input line 72.
+[1
+
+{C:/Users/Karthik Thrikkadeeri/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}
+] (./decisionTree.aux)
+ ***********
+LaTeX2e <2023-11-01> patch level 1
+L3 programming layer <2024-01-04>
+ ***********
+)
+
+Here is how much of LuaTeX's memory you used:
+ 29400 strings out of 476497
+ 100000,1977958 words of node,token memory allocated
+ 37078 words of node memory still in use:
+   679 hlist, 6 vlist, 2 rule, 54 disc, 36 math, 1088 glue, 136 kern, 741 glyph,
+ 2774 attribute, 51 glue_spec, 2774 attribute_list, 2 write, 1709 pdf_literal, 4
+ pdf_colorstack nodes
+   avail lists: 2:30,3:3421,4:18,5:284,6:2,7:3750,8:41,9:1388,11:108
+ 50653 multiletter control sequences out of 65536+600000
+ 42 fonts using 8079879 bytes
+ 102i,9n,101p,753b,941s stack positions out of 10000i,1000n,20000p,200000b,200000s
+<C:/Users/Karthik Thrikkadeeri/AppData/Local/Microsoft/Windows/Fonts/inter-bold.
+ttf><C:/Users/Karthik Thrikkadeeri/AppData/Local/Microsoft/Windows/Fonts/inter-r
+egular.ttf><C:/Users/Karthik Thrikkadeeri/AppData/Local/Microsoft/Windows/Fonts/
+inter-regular.ttf>
+Output written on decisionTree.pdf (1 page, 64967 bytes).
+
+PDF statistics: 30 PDF objects out of 1000 (max. 8388607)
+ 0 named destinations out of 1000 (max. 131072)
+ 16 words of extra memory for PDF output out of 10000 (max. 100000000)
+

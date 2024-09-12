@@ -1,246 +1,295 @@
-SOIBv2.Long.Term.Status,SOIBv2.Current.Status,SOIB.Range.Status,SOIBv2.Priority.Status
+SOIBv2.Long.Term.Status,SOIBv2.Current.Status,SOIBv2.Range.Status,SOIBv2.Priority.Status
 Rapid Decline,Rapid Decline,Very Restricted,High
 Decline,Rapid Decline,Very Restricted,High
-eBird Data Deficient,Rapid Decline,Very Restricted,High
-eBird Data Inconclusive,Rapid Decline,Very Restricted,High
+Insufficient Data,Rapid Decline,Very Restricted,High
+Trend Inconclusive,Rapid Decline,Very Restricted,High
 Stable,Rapid Decline,Very Restricted,High
 Increase,Rapid Decline,Very Restricted,High
 Rapid Increase,Rapid Decline,Very Restricted,High
 Rapid Decline,Decline,Very Restricted,High
 Decline,Decline,Very Restricted,High
-eBird Data Deficient,Decline,Very Restricted,High
-eBird Data Inconclusive,Decline,Very Restricted,High
+Insufficient Data,Decline,Very Restricted,High
+Trend Inconclusive,Decline,Very Restricted,High
 Stable,Decline,Very Restricted,High
 Increase,Decline,Very Restricted,Moderate
 Rapid Increase,Decline,Very Restricted,Moderate
-Rapid Decline,eBird Data Deficient,Very Restricted,NA
-Decline,eBird Data Deficient,Very Restricted,NA
-eBird Data Deficient,eBird Data Deficient,Very Restricted,High
-eBird Data Inconclusive,eBird Data Deficient,Very Restricted,NA
-Stable,eBird Data Deficient,Very Restricted,NA
-Increase,eBird Data Deficient,Very Restricted,NA
-Rapid Increase,eBird Data Deficient,Very Restricted,NA
-Rapid Decline,eBird Data Inconclusive,Very Restricted,High
-Decline,eBird Data Inconclusive,Very Restricted,High
-eBird Data Deficient,eBird Data Inconclusive,Very Restricted,High
-eBird Data Inconclusive,eBird Data Inconclusive,Very Restricted,High
-Stable,eBird Data Inconclusive,Very Restricted,Low
-Increase,eBird Data Inconclusive,Very Restricted,Moderate
-Rapid Increase,eBird Data Inconclusive,Very Restricted,Moderate
+Rapid Decline,Insufficient Data,Very Restricted,NA
+Decline,Insufficient Data,Very Restricted,NA
+Insufficient Data,Insufficient Data,Very Restricted,High
+Trend Inconclusive,Insufficient Data,Very Restricted,NA
+Stable,Insufficient Data,Very Restricted,NA
+Increase,Insufficient Data,Very Restricted,NA
+Rapid Increase,Insufficient Data,Very Restricted,NA
+Rapid Decline,Trend Inconclusive,Very Restricted,High
+Decline,Trend Inconclusive,Very Restricted,High
+Insufficient Data,Trend Inconclusive,Very Restricted,High
+Trend Inconclusive,Trend Inconclusive,Very Restricted,High
+Stable,Trend Inconclusive,Very Restricted,Low
+Increase,Trend Inconclusive,Very Restricted,Moderate
+Rapid Increase,Trend Inconclusive,Very Restricted,Moderate
 Rapid Decline,Stable,Very Restricted,High
 Decline,Stable,Very Restricted,High
-eBird Data Deficient,Stable,Very Restricted,Moderate
-eBird Data Inconclusive,Stable,Very Restricted,Moderate
+Insufficient Data,Stable,Very Restricted,Moderate
+Trend Inconclusive,Stable,Very Restricted,Moderate
 Stable,Stable,Very Restricted,Low
 Increase,Stable,Very Restricted,Low
 Rapid Increase,Stable,Very Restricted,Low
 Rapid Decline,Increase,Very Restricted,High
 Decline,Increase,Very Restricted,High
-eBird Data Deficient,Increase,Very Restricted,Moderate
-eBird Data Inconclusive,Increase,Very Restricted,Moderate
+Insufficient Data,Increase,Very Restricted,Moderate
+Trend Inconclusive,Increase,Very Restricted,Moderate
 Stable,Increase,Very Restricted,Low
 Increase,Increase,Very Restricted,Low
 Rapid Increase,Increase,Very Restricted,Low
 Rapid Decline,Rapid Increase,Very Restricted,High
 Decline,Rapid Increase,Very Restricted,High
-eBird Data Deficient,Rapid Increase,Very Restricted,Moderate
-eBird Data Inconclusive,Rapid Increase,Very Restricted,Moderate
+Insufficient Data,Rapid Increase,Very Restricted,Moderate
+Trend Inconclusive,Rapid Increase,Very Restricted,Moderate
 Stable,Rapid Increase,Very Restricted,Low
 Increase,Rapid Increase,Very Restricted,Low
 Rapid Increase,Rapid Increase,Very Restricted,Low
 Rapid Decline,Rapid Decline,Restricted,High
 Decline,Rapid Decline,Restricted,High
-eBird Data Deficient,Rapid Decline,Restricted,High
-eBird Data Inconclusive,Rapid Decline,Restricted,High
+Insufficient Data,Rapid Decline,Restricted,High
+Trend Inconclusive,Rapid Decline,Restricted,High
 Stable,Rapid Decline,Restricted,High
 Increase,Rapid Decline,Restricted,Moderate
 Rapid Increase,Rapid Decline,Restricted,Moderate
 Rapid Decline,Decline,Restricted,High
 Decline,Decline,Restricted,High
-eBird Data Deficient,Decline,Restricted,High
-eBird Data Inconclusive,Decline,Restricted,High
+Insufficient Data,Decline,Restricted,High
+Trend Inconclusive,Decline,Restricted,High
 Stable,Decline,Restricted,Moderate
 Increase,Decline,Restricted,Moderate
 Rapid Increase,Decline,Restricted,Moderate
-Rapid Decline,eBird Data Deficient,Restricted,NA
-Decline,eBird Data Deficient,Restricted,NA
-eBird Data Deficient,eBird Data Deficient,Restricted,Moderate
-eBird Data Inconclusive,eBird Data Deficient,Restricted,NA
-Stable,eBird Data Deficient,Restricted,NA
-Increase,eBird Data Deficient,Restricted,NA
-Rapid Increase,eBird Data Deficient,Restricted,NA
-Rapid Decline,eBird Data Inconclusive,Restricted,High
-Decline,eBird Data Inconclusive,Restricted,High
-eBird Data Deficient,eBird Data Inconclusive,Restricted,Moderate
-eBird Data Inconclusive,eBird Data Inconclusive,Restricted,Moderate
-Stable,eBird Data Inconclusive,Restricted,Low
-Increase,eBird Data Inconclusive,Restricted,Low
-Rapid Increase,eBird Data Inconclusive,Restricted,Low
+Rapid Decline,Insufficient Data,Restricted,NA
+Decline,Insufficient Data,Restricted,NA
+Insufficient Data,Insufficient Data,Restricted,Moderate
+Trend Inconclusive,Insufficient Data,Restricted,NA
+Stable,Insufficient Data,Restricted,NA
+Increase,Insufficient Data,Restricted,NA
+Rapid Increase,Insufficient Data,Restricted,NA
+Rapid Decline,Trend Inconclusive,Restricted,High
+Decline,Trend Inconclusive,Restricted,High
+Insufficient Data,Trend Inconclusive,Restricted,Moderate
+Trend Inconclusive,Trend Inconclusive,Restricted,Moderate
+Stable,Trend Inconclusive,Restricted,Low
+Increase,Trend Inconclusive,Restricted,Low
+Rapid Increase,Trend Inconclusive,Restricted,Low
 Rapid Decline,Stable,Restricted,High
 Decline,Stable,Restricted,Moderate
-eBird Data Deficient,Stable,Restricted,Low
-eBird Data Inconclusive,Stable,Restricted,Low
+Insufficient Data,Stable,Restricted,Low
+Trend Inconclusive,Stable,Restricted,Low
 Stable,Stable,Restricted,Low
 Increase,Stable,Restricted,Low
 Rapid Increase,Stable,Restricted,Low
 Rapid Decline,Increase,Restricted,Moderate
 Decline,Increase,Restricted,Moderate
-eBird Data Deficient,Increase,Restricted,Low
-eBird Data Inconclusive,Increase,Restricted,Low
+Insufficient Data,Increase,Restricted,Low
+Trend Inconclusive,Increase,Restricted,Low
 Stable,Increase,Restricted,Low
 Increase,Increase,Restricted,Low
 Rapid Increase,Increase,Restricted,Low
 Rapid Decline,Rapid Increase,Restricted,Moderate
 Decline,Rapid Increase,Restricted,Moderate
-eBird Data Deficient,Rapid Increase,Restricted,Low
-eBird Data Inconclusive,Rapid Increase,Restricted,Low
+Insufficient Data,Rapid Increase,Restricted,Low
+Trend Inconclusive,Rapid Increase,Restricted,Low
 Stable,Rapid Increase,Restricted,Low
 Increase,Rapid Increase,Restricted,Low
 Rapid Increase,Rapid Increase,Restricted,Low
 Rapid Decline,Rapid Decline,Moderate,High
 Decline,Rapid Decline,Moderate,High
-eBird Data Deficient,Rapid Decline,Moderate,Moderate
-eBird Data Inconclusive,Rapid Decline,Moderate,Moderate
+Insufficient Data,Rapid Decline,Moderate,Moderate
+Trend Inconclusive,Rapid Decline,Moderate,Moderate
 Stable,Rapid Decline,Moderate,Moderate
 Increase,Rapid Decline,Moderate,Moderate
 Rapid Increase,Rapid Decline,Moderate,Moderate
 Rapid Decline,Decline,Moderate,High
 Decline,Decline,Moderate,High
-eBird Data Deficient,Decline,Moderate,Moderate
-eBird Data Inconclusive,Decline,Moderate,Moderate
+Insufficient Data,Decline,Moderate,Moderate
+Trend Inconclusive,Decline,Moderate,Moderate
 Stable,Decline,Moderate,Moderate
 Increase,Decline,Moderate,Moderate
 Rapid Increase,Decline,Moderate,Moderate
-Rapid Decline,eBird Data Deficient,Moderate,NA
-Decline,eBird Data Deficient,Moderate,NA
-eBird Data Deficient,eBird Data Deficient,Moderate,Moderate
-eBird Data Inconclusive,eBird Data Deficient,Moderate,NA
-Stable,eBird Data Deficient,Moderate,NA
-Increase,eBird Data Deficient,Moderate,NA
-Rapid Increase,eBird Data Deficient,Moderate,NA
-Rapid Decline,eBird Data Inconclusive,Moderate,Moderate
-Decline,eBird Data Inconclusive,Moderate,Moderate
-eBird Data Deficient,eBird Data Inconclusive,Moderate,Low
-eBird Data Inconclusive,eBird Data Inconclusive,Moderate,Low
-Stable,eBird Data Inconclusive,Moderate,Low
-Increase,eBird Data Inconclusive,Moderate,Low
-Rapid Increase,eBird Data Inconclusive,Moderate,Low
+Rapid Decline,Insufficient Data,Moderate,NA
+Decline,Insufficient Data,Moderate,NA
+Insufficient Data,Insufficient Data,Moderate,Low
+Trend Inconclusive,Insufficient Data,Moderate,NA
+Stable,Insufficient Data,Moderate,NA
+Increase,Insufficient Data,Moderate,NA
+Rapid Increase,Insufficient Data,Moderate,NA
+Rapid Decline,Trend Inconclusive,Moderate,Moderate
+Decline,Trend Inconclusive,Moderate,Moderate
+Insufficient Data,Trend Inconclusive,Moderate,Low
+Trend Inconclusive,Trend Inconclusive,Moderate,Low
+Stable,Trend Inconclusive,Moderate,Low
+Increase,Trend Inconclusive,Moderate,Low
+Rapid Increase,Trend Inconclusive,Moderate,Low
 Rapid Decline,Stable,Moderate,Moderate
 Decline,Stable,Moderate,Moderate
-eBird Data Deficient,Stable,Moderate,Low
-eBird Data Inconclusive,Stable,Moderate,Low
+Insufficient Data,Stable,Moderate,Low
+Trend Inconclusive,Stable,Moderate,Low
 Stable,Stable,Moderate,Low
 Increase,Stable,Moderate,Low
 Rapid Increase,Stable,Moderate,Low
 Rapid Decline,Increase,Moderate,Moderate
 Decline,Increase,Moderate,Moderate
-eBird Data Deficient,Increase,Moderate,Low
-eBird Data Inconclusive,Increase,Moderate,Low
+Insufficient Data,Increase,Moderate,Low
+Trend Inconclusive,Increase,Moderate,Low
 Stable,Increase,Moderate,Low
 Increase,Increase,Moderate,Low
 Rapid Increase,Increase,Moderate,Low
 Rapid Decline,Rapid Increase,Moderate,Moderate
 Decline,Rapid Increase,Moderate,Moderate
-eBird Data Deficient,Rapid Increase,Moderate,Low
-eBird Data Inconclusive,Rapid Increase,Moderate,Low
+Insufficient Data,Rapid Increase,Moderate,Low
+Trend Inconclusive,Rapid Increase,Moderate,Low
 Stable,Rapid Increase,Moderate,Low
 Increase,Rapid Increase,Moderate,Low
 Rapid Increase,Rapid Increase,Moderate,Low
 Rapid Decline,Rapid Decline,Very Large,High
 Decline,Rapid Decline,Very Large,Moderate
-eBird Data Deficient,Rapid Decline,Very Large,Moderate
-eBird Data Inconclusive,Rapid Decline,Very Large,Moderate
+Insufficient Data,Rapid Decline,Very Large,Moderate
+Trend Inconclusive,Rapid Decline,Very Large,Moderate
 Stable,Rapid Decline,Very Large,Moderate
 Increase,Rapid Decline,Very Large,Moderate
 Rapid Increase,Rapid Decline,Very Large,Low
 Rapid Decline,Decline,Very Large,Moderate
 Decline,Decline,Very Large,Moderate
-eBird Data Deficient,Decline,Very Large,Moderate
-eBird Data Inconclusive,Decline,Very Large,Moderate
+Insufficient Data,Decline,Very Large,Moderate
+Trend Inconclusive,Decline,Very Large,Moderate
 Stable,Decline,Very Large,Low
 Increase,Decline,Very Large,Low
 Rapid Increase,Decline,Very Large,Low
-Rapid Decline,eBird Data Deficient,Very Large,NA
-Decline,eBird Data Deficient,Very Large,NA
-eBird Data Deficient,eBird Data Deficient,Very Large,Moderate
-eBird Data Inconclusive,eBird Data Deficient,Very Large,NA
-Stable,eBird Data Deficient,Very Large,NA
-Increase,eBird Data Deficient,Very Large,NA
-Rapid Increase,eBird Data Deficient,Very Large,NA
-Rapid Decline,eBird Data Inconclusive,Very Large,Moderate
-Decline,eBird Data Inconclusive,Very Large,Moderate
-eBird Data Deficient,eBird Data Inconclusive,Very Large,Low
-eBird Data Inconclusive,eBird Data Inconclusive,Very Large,Low
-Stable,eBird Data Inconclusive,Very Large,Low
-Increase,eBird Data Inconclusive,Very Large,Low
-Rapid Increase,eBird Data Inconclusive,Very Large,Low
+Rapid Decline,Insufficient Data,Very Large,NA
+Decline,Insufficient Data,Very Large,NA
+Insufficient Data,Insufficient Data,Very Large,Low
+Trend Inconclusive,Insufficient Data,Very Large,NA
+Stable,Insufficient Data,Very Large,NA
+Increase,Insufficient Data,Very Large,NA
+Rapid Increase,Insufficient Data,Very Large,NA
+Rapid Decline,Trend Inconclusive,Very Large,Moderate
+Decline,Trend Inconclusive,Very Large,Moderate
+Insufficient Data,Trend Inconclusive,Very Large,Low
+Trend Inconclusive,Trend Inconclusive,Very Large,Low
+Stable,Trend Inconclusive,Very Large,Low
+Increase,Trend Inconclusive,Very Large,Low
+Rapid Increase,Trend Inconclusive,Very Large,Low
 Rapid Decline,Stable,Very Large,Moderate
 Decline,Stable,Very Large,Low
-eBird Data Deficient,Stable,Very Large,Low
-eBird Data Inconclusive,Stable,Very Large,Low
+Insufficient Data,Stable,Very Large,Low
+Trend Inconclusive,Stable,Very Large,Low
 Stable,Stable,Very Large,Low
 Increase,Stable,Very Large,Low
 Rapid Increase,Stable,Very Large,Low
 Rapid Decline,Increase,Very Large,Moderate
 Decline,Increase,Very Large,Low
-eBird Data Deficient,Increase,Very Large,Low
-eBird Data Inconclusive,Increase,Very Large,Low
+Insufficient Data,Increase,Very Large,Low
+Trend Inconclusive,Increase,Very Large,Low
 Stable,Increase,Very Large,Low
 Increase,Increase,Very Large,Low
 Rapid Increase,Increase,Very Large,Low
 Rapid Decline,Rapid Increase,Very Large,Low
 Decline,Rapid Increase,Very Large,Low
-eBird Data Deficient,Rapid Increase,Very Large,Low
-eBird Data Inconclusive,Rapid Increase,Very Large,Low
+Insufficient Data,Rapid Increase,Very Large,Low
+Trend Inconclusive,Rapid Increase,Very Large,Low
 Stable,Rapid Increase,Very Large,Low
 Increase,Rapid Increase,Very Large,Low
 Rapid Increase,Rapid Increase,Very Large,Low
 Rapid Decline,Rapid Decline,Large,High
 Decline,Rapid Decline,Large,High
-eBird Data Deficient,Rapid Decline,Large,Moderate
-eBird Data Inconclusive,Rapid Decline,Large,Moderate
+Insufficient Data,Rapid Decline,Large,Moderate
+Trend Inconclusive,Rapid Decline,Large,Moderate
 Stable,Rapid Decline,Large,Moderate
 Increase,Rapid Decline,Large,Moderate
 Rapid Increase,Rapid Decline,Large,Moderate
 Rapid Decline,Decline,Large,High
 Decline,Decline,Large,Moderate
-eBird Data Deficient,Decline,Large,Moderate
-eBird Data Inconclusive,Decline,Large,Moderate
+Insufficient Data,Decline,Large,Moderate
+Trend Inconclusive,Decline,Large,Moderate
 Stable,Decline,Large,Low
 Increase,Decline,Large,Low
 Rapid Increase,Decline,Large,Low
-Rapid Decline,eBird Data Deficient,Large,NA
-Decline,eBird Data Deficient,Large,NA
-eBird Data Deficient,eBird Data Deficient,Large,Moderate
-eBird Data Inconclusive,eBird Data Deficient,Large,NA
-Stable,eBird Data Deficient,Large,NA
-Increase,eBird Data Deficient,Large,NA
-Rapid Increase,eBird Data Deficient,Large,NA
-Rapid Decline,eBird Data Inconclusive,Large,Moderate
-Decline,eBird Data Inconclusive,Large,Moderate
-eBird Data Deficient,eBird Data Inconclusive,Large,Low
-eBird Data Inconclusive,eBird Data Inconclusive,Large,Low
-Stable,eBird Data Inconclusive,Large,Low
-Increase,eBird Data Inconclusive,Large,Low
-Rapid Increase,eBird Data Inconclusive,Large,Low
+Rapid Decline,Insufficient Data,Large,NA
+Decline,Insufficient Data,Large,NA
+Insufficient Data,Insufficient Data,Large,Low
+Trend Inconclusive,Insufficient Data,Large,NA
+Stable,Insufficient Data,Large,NA
+Increase,Insufficient Data,Large,NA
+Rapid Increase,Insufficient Data,Large,NA
+Rapid Decline,Trend Inconclusive,Large,Moderate
+Decline,Trend Inconclusive,Large,Moderate
+Insufficient Data,Trend Inconclusive,Large,Low
+Trend Inconclusive,Trend Inconclusive,Large,Low
+Stable,Trend Inconclusive,Large,Low
+Increase,Trend Inconclusive,Large,Low
+Rapid Increase,Trend Inconclusive,Large,Low
 Rapid Decline,Stable,Large,Moderate
 Decline,Stable,Large,Low
-eBird Data Deficient,Stable,Large,Low
-eBird Data Inconclusive,Stable,Large,Low
+Insufficient Data,Stable,Large,Low
+Trend Inconclusive,Stable,Large,Low
 Stable,Stable,Large,Low
 Increase,Stable,Large,Low
 Rapid Increase,Stable,Large,Low
 Rapid Decline,Increase,Large,Moderate
 Decline,Increase,Large,Low
-eBird Data Deficient,Increase,Large,Low
-eBird Data Inconclusive,Increase,Large,Low
+Insufficient Data,Increase,Large,Low
+Trend Inconclusive,Increase,Large,Low
 Stable,Increase,Large,Low
 Increase,Increase,Large,Low
 Rapid Increase,Increase,Large,Low
 Rapid Decline,Rapid Increase,Large,Moderate
 Decline,Rapid Increase,Large,Low
-eBird Data Deficient,Rapid Increase,Large,Low
-eBird Data Inconclusive,Rapid Increase,Large,Low
+Insufficient Data,Rapid Increase,Large,Low
+Trend Inconclusive,Rapid Increase,Large,Low
 Stable,Rapid Increase,Large,Low
 Increase,Rapid Increase,Large,Low
 Rapid Increase,Rapid Increase,Large,Low
+Rapid Decline,Rapid Decline,Historical,Low
+Decline,Rapid Decline,Historical,Low
+Insufficient Data,Rapid Decline,Historical,Low
+Trend Inconclusive,Rapid Decline,Historical,Low
+Stable,Rapid Decline,Historical,Low
+Increase,Rapid Decline,Historical,Low
+Rapid Increase,Rapid Decline,Historical,Low
+Rapid Decline,Decline,Historical,Low
+Decline,Decline,Historical,Low
+Insufficient Data,Decline,Historical,Low
+Trend Inconclusive,Decline,Historical,Low
+Stable,Decline,Historical,Low
+Increase,Decline,Historical,Low
+Rapid Increase,Decline,Historical,Low
+Rapid Decline,Insufficient Data,Historical,Low
+Decline,Insufficient Data,Historical,Low
+Insufficient Data,Insufficient Data,Historical,Low
+Trend Inconclusive,Insufficient Data,Historical,Low
+Stable,Insufficient Data,Historical,Low
+Increase,Insufficient Data,Historical,Low
+Rapid Increase,Insufficient Data,Historical,Low
+Rapid Decline,Trend Inconclusive,Historical,Low
+Decline,Trend Inconclusive,Historical,Low
+Insufficient Data,Trend Inconclusive,Historical,Low
+Trend Inconclusive,Trend Inconclusive,Historical,Low
+Stable,Trend Inconclusive,Historical,Low
+Increase,Trend Inconclusive,Historical,Low
+Rapid Increase,Trend Inconclusive,Historical,Low
+Rapid Decline,Stable,Historical,Low
+Decline,Stable,Historical,Low
+Insufficient Data,Stable,Historical,Low
+Trend Inconclusive,Stable,Historical,Low
+Stable,Stable,Historical,Low
+Increase,Stable,Historical,Low
+Rapid Increase,Stable,Historical,Low
+Rapid Decline,Increase,Historical,Low
+Decline,Increase,Historical,Low
+Insufficient Data,Increase,Historical,Low
+Trend Inconclusive,Increase,Historical,Low
+Stable,Increase,Historical,Low
+Increase,Increase,Historical,Low
+Rapid Increase,Increase,Historical,Low
+Rapid Decline,Rapid Increase,Historical,Low
+Decline,Rapid Increase,Historical,Low
+Insufficient Data,Rapid Increase,Historical,Low
+Trend Inconclusive,Rapid Increase,Historical,Low
+Stable,Rapid Increase,Historical,Low
+Increase,Rapid Increase,Historical,Low
+Rapid Increase,Rapid Increase,Historical,Low
