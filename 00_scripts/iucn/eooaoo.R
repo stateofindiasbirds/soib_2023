@@ -13,6 +13,9 @@ source("gridgen.R")
 # Calculates and maps eoo using ebd
 source("eoo.R")
 
+# Makes a list of species for which there has been an EOO change
+source("eoodiff.R")
+
 # Uses EOO maps to filter out only the grids that overlap with EOO 
 source("eooGrids.R")
 
@@ -30,5 +33,6 @@ EOOAOO <- EOOAOO %>%
     MaxAOO = round(MaxAOO),
     LikelyEOO = round(LikelyEOO),
     MaxEOO = round(MaxEOO)
-  )
+  ) %>% 
+  select (Species, MinAOO, MaxAOO, MinEstimate_2km, EOOStartYear, LikelyEOO, MaxEOO)
 write.csv(EOOAOO, "eooaoo.csv")

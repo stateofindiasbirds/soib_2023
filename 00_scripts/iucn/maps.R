@@ -77,7 +77,7 @@ plot3Maps <- function (sp, EOO, EOOGrids, AOO, kerala_map)
 
 
 
-kerala_map <- st_read("..\\data\\states_sf_admin_mapped/states_sf_admin_mapped.shp") %>% filter (STATE_NAME == "Kerala")
+kerala_map <- st_read(paste0(dir,regionshape)) %>% filter (STATE_NAME == "Kerala")
 sp <- "Brahminy Kite"
 resolution <- 4
 
@@ -86,6 +86,26 @@ EOOGrids <- readRDS ("grid_maps.RDS")
 AOO <- readRDS ("aoo.RDS")
 
 species <- AOO$Species
+
+species <- c (
+  "Brahminy Kite",
+  "White-browed Bulbul",
+  "Yellow-browed Bulbul",
+  "Malabar Gray Hornbill",
+  "Lesser Coucal",
+  "Oriental Scops-Owl",
+  "Rufous-bellied Eagle",
+  "Sanderling",
+  "White-cheeked Barbet",
+  "Malabar Barbet",
+  "Bay-backed Shrike",
+  "Jerdon's Baza",
+  "Legge's Hawk-Eagle",
+  "Lesser Fish-Eagle",
+  "Spot-bellied Eagle-Owl",
+  "Golden-headed Cisticola"
+)
+
 
 # Iterate over all species and save the plots
 lapply(species, function(sp) {
