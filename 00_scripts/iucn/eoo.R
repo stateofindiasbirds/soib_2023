@@ -1,3 +1,4 @@
+# This list of specie is used for testing. It can be overridden for all species
 species <- c (
   "Brahminy Kite",
   "White-browed Bulbul",
@@ -17,7 +18,7 @@ species <- c (
   "Golden-headed Cisticola"
 )
 
-
+library(tidyr)
 library(dplyr)
 library(sf)
 library(units)
@@ -27,8 +28,11 @@ source("config.R")
 # Read the eBird data
 obsv <- readRDS("ebd_sf.RDS")
 species <- obsv$COMMON.NAME %>% unique() %>% grep(pattern = "[()/\\\\.]", value = TRUE, invert = TRUE)
+
+#How to calculate time of a function
 #system.time({x <- compute_eoo(obsv, 2015)})
 
+# This table will be filled from the seasonal data of SoIB. Not done right now
 species_attr <- data.frame(
   Species = species,
   SeasonEndDay = 60,
@@ -44,38 +48,77 @@ obsv <- obsv %>%
 
 obsv <- obsv %>% select (COMMON.NAME, SOIB_YEAR, geometry)
 
-
-# Calculates EOO of all species in data using YEAR1 to YEAR2 as filters
-compute_eoo <- function (data, startYear, species, endYears) {
-
+# Calculates EOO of all species in data using one start Year and species specific end years as filters
+compute_eoo_parallel <- function(data, years, radius, pointsOnCircle, noCores) {
+  minStartYear <- min(years$startYear)
+  maxEndYear <- max(years$endYear)
+  
+  cl <- new_cluster(noCores)
+  cluster_library(cl, "dplyr")
+  cluster_library(cl, "sf")
   # Filter observations based on year and group by species with more than 5 observations
   eoo <- data %>%
-          filter(SOIB_YEAR >= startYear) %>%
-          inner_join (tibble(Species = species, endYear = endYears), by = c("COMMON.NAME" = "Species")) %>%
-          filter(SOIB_YEAR <= endYear) %>%
-          group_by(COMMON.NAME) %>%
-          filter(n() > 5) %>%
-          summarize(
-            mcp = st_convex_hull(st_union(geometry)),  # Calculate MCP only once
-            area_km2 = as.numeric(st_area(st_transform(mcp, crs = 32643)) / 1e6)  # Project and calculate area
-          ) %>%
-          select(COMMON.NAME, area_km2, mcp)  # Select relevant columns
+    filter(SOIB_YEAR >= minStartYear, SOIB_YEAR <= maxEndYear) %>%
+    inner_join(years, by = c("COMMON.NAME" = "Species")) %>%
+    filter(SOIB_YEAR >= startYear, SOIB_YEAR <= endYear) %>%
+    group_by(COMMON.NAME) %>%
+    filter(n() > 5) %>%
+    partition(cluster = cl) %>%
+    summarize(
+      # Calculate MCP and area_km2 when radius is 0
+      mcp = if (radius == 0) {
+        st_convex_hull(st_union(geometry))  # Compute MCP
+      } else {
+        st_convex_hull(st_make_valid(st_union(st_buffer(geometry, dist = radius * 1000, nQuadSegs = pointsOnCircle))))
+      },
+      area_km2 = as.numeric(st_area(st_transform(mcp, crs = 32643)) / 1e6)  
+    ) %>%
+    collect() %>%
+    select(COMMON.NAME, area_km2, mcp)  # Select relevant columns
   
   # Rename columns
-  colnames(eoo) <- c("Species", "LikelyEOO", "EOOMap")
+  colnames(eoo) <- c("Species", "EOO", "EOOMap")
   
-  print(startYear)
   return(eoo)
 }
 
+# Calculates EOO of all species in data using one start Year and species specific end years as filters
+compute_eoo <- function(data, years, radius, pointsOnCircle) {
+  minStartYear <- min(years$startYear)
+  maxEndYear <- max(years$endYear)
+  
+  # Filter observations based on year and group by species with more than 5 observations
+  eoo <- data %>%
+    filter(SOIB_YEAR >= minStartYear, SOIB_YEAR <= maxEndYear) %>%
+    inner_join(years, by = c("COMMON.NAME" = "Species")) %>%
+    filter(SOIB_YEAR >= startYear, SOIB_YEAR <= endYear) %>%
+    group_by(COMMON.NAME) %>%
+    filter(n() > 5) %>%
+    summarize(
+      # Calculate MCP and area_km2 when radius is 0
+      mcp = if (radius == 0) {
+        st_convex_hull(st_union(geometry))  # Compute MCP
+      } else {
+        st_convex_hull(st_make_valid(st_union(st_buffer(geometry, dist = radius * 1000, nQuadSegs = pointsOnCircle))))
+      },
+      area_km2 = as.numeric(st_area(st_transform(mcp, crs = 32643)) / 1e6)  
+    ) %>%
+    select(COMMON.NAME, area_km2, mcp)  # Select relevant columns
+  
+  # Rename columns
+  colnames(eoo) <- c("Species", "EOO", "EOOMap")
+  
+  return(eoo)
+}
+# Calculates EOO of all species in data by iterating back to get a start year while using species specific end years as filters
 calculateEOOwithEndYear <- function (obsv, species, EOOEndYear_list)
 {
+  # Named array for easy manipulation
   eoo <- setNames(
     lapply(species, function(s) list(
       EOOStartYear = lastYearforEOOCalculation,
       EOOEndYear = EOOEndYear_list,
-      LikelyEOO = 0,
-      MaxEOO = 0,
+      EOO = 0,
       EOOMap = NULL
     )),
     species
@@ -86,21 +129,22 @@ calculateEOOwithEndYear <- function (obsv, species, EOOEndYear_list)
   # Iterate from 2022 to 2000
   for (year in endYear:lastYearforEOOCalculation) {
     # Compute EOO for the current year
-    eoo_current_year <- compute_eoo(obsv, year, species, EOOEndYear_list)
+    years <- tibble (Species = species, startYear = rep(year, length(species)), endYear = EOOEndYear_list)
+    eoo_current_year <- compute_eoo(obsv, years, 0, 0)
     
     # Check for each species
     for (species_name in eoo_current_year$Species) {
       # Get EOO values for the current and previous years
-      previous_eoo <- eoo[[species_name]]$LikelyEOO
-      current_eoo <- eoo_current_year %>% filter(Species == species_name) %>% pull(LikelyEOO)
+      previous_eoo <- eoo[[species_name]]$EOO
+      current_eoo <- eoo_current_year %>% filter(Species == species_name) %>% pull(EOO)
       if ( current_eoo > 0 ) { #If species no longer there, it will be empty. Just protection
         # Update eoo if the EOO value has changed
         if( current_eoo > previous_eoo) {
-          eoo[[species_name]]$LikelyEOO <- current_eoo
+          eoo[[species_name]]$EOO <- current_eoo
           eoo[[species_name]]$EOOStartYear <- year
           eoo[[species_name]]$EOOEndYear <- tibble(Species = species, endYear = EOOEndYear_list) %>% filter (Species == species_name) %>% pull (endYear)
           eoo[[species_name]]$EOOMap <- eoo_current_year %>% filter(Species == species_name) %>% pull(EOOMap)
-          print(paste(species_name, round(eoo[[species_name]]$LikelyEOO,0), eoo[[species_name]]$EOOStartYear, eoo[[species_name]]$EOOEndYear))
+          print(paste(species_name, round(eoo[[species_name]]$EOO,0), eoo[[species_name]]$EOOStartYear, eoo[[species_name]]$EOOEndYear))
         } 
         else {
           # Track if EOO is the same for 5 consecutive years
@@ -116,14 +160,14 @@ calculateEOOwithEndYear <- function (obsv, species, EOOEndYear_list)
   }
 
 
+  # Convert named array to a dataframe
   eoo_df <- bind_rows(
     lapply(names(eoo), function(species_name) {
       tibble(
         Species = species_name,
         EOOStartYear = eoo[[species_name]]$EOOStartYear,
         EOOEndYear = eoo[[species_name]]$EOOEndYear,
-        LikelyEOO = eoo[[species_name]]$LikelyEOO,
-        MaxEOO = eoo[[species_name]]$MaxEOO,
+        LikelyEOO = eoo[[species_name]]$EOO,
         EOOMap = list(eoo[[species_name]]$EOOMap)
       )
     })
@@ -142,19 +186,21 @@ calculateEOOwithEndYear <- function (obsv, species, EOOEndYear_list)
 }
 
 
+# Main function
 eoo_agg_df <- tibble(
   Species = character(),        # character type
   EOOStartYear = integer(),     # integer type
   LikelyEOO = numeric(),        # numeric type
-  MaxEOO = numeric(),           # numeric type
   EOOMap = list()               # list type
 )
 
 endYear <- obsv$SOIB_YEAR %>% unique() %>% max()
 species_list <- species
-EOOEndYear_list <- rep ( endYear, length(species))
+EOOEndYear_list <- rep ( endYear, length(species)) # Start with uniform endYear (which is the highest)
 iteration <- 1
 
+# Repeat until no data is present or all species have reached lastYearforEOOCalculation
+# The first EOO is the latest EOO. Remaining are historical EOO for calculationg EOO difference
 repeat {
   
   print (iteration)
@@ -163,7 +209,7 @@ repeat {
   if (nrow(eoo_df) == 0) { break;}
   
   eoo_agg_df <- eoo_df %>% bind_rows(eoo_agg_df)
-  if (iteration == 1 ) { saveRDS("eoo_df.RDS")}
+  if (iteration == 1 ) { saveRDS(eoo_agg_df, "eoo_df.RDS")} #We need this file for AOO calculation. Latest EOO.
   
   eoo_summary <- eoo_agg_df %>%
                   group_by(Species) %>%
@@ -194,5 +240,36 @@ repeat {
   }
 }
 
+years_df <- eoo_agg_df %>%
+              group_by(Species) %>%
+              summarize(
+                startYear = max(EOOStartYear),  # Get the highest start year per species
+                endYear = max(EOOEndYear)       # Get the highest end year per species
+              ) %>%
+              ungroup()  # Ensure the result is no longer grouped
 
+
+# Read the eBird data
+obsv <- readRDS("ebd_sf.RDS")
+#species <- obsv$COMMON.NAME %>% unique() %>% grep(pattern = "[()/\\\\.]", value = TRUE, invert = TRUE)
+#system.time({x <- compute_eoo(obsv, 2015)})
+
+obsv <- obsv %>%
+  left_join (species_attr, by = c("COMMON.NAME" = "Species")) %>%
+  filter( EFFORT.DISTANCE.KM < MaxChecklistDistanceforEOO,
+          COMMON.NAME %in% species,
+          SOIB_YEAR >= lastYearforEOOCalculation,
+          DAY <= SeasonEndDay | DAY >= SeasonStartDay)
+
+obsv <- obsv %>% select (COMMON.NAME, SOIB_YEAR, geometry)
+
+
+# Function to calculate max eoo
+eoo_max <- compute_eoo(obsv, years_df, 10, 5) %>% select ("Species", "EOO")
+colnames(eoo_max) <- c("Species", "MaxEOO")
+
+eoo_agg_df <- eoo_agg_df %>% inner_join (eoo_max, by = c("Species"))
+
+# Save all EOO, including historical
 saveRDS(eoo_agg_df, "eoo_t.RDS")
+
