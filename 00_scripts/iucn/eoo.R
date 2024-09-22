@@ -23,8 +23,10 @@ library(dplyr)
 library(sf)
 library(units)
 library(magrittr)
+library(multidplyr)
 source("config.R")
 
+#parallel::detectCores()
 # Read the eBird data
 obsv <- readRDS("ebd_sf.RDS")
 species <- obsv$COMMON.NAME %>% unique() %>% grep(pattern = "[()/\\\\.]", value = TRUE, invert = TRUE)
@@ -66,14 +68,17 @@ compute_eoo_parallel <- function(data, years, radius, pointsOnCircle, noCores) {
     partition(cluster = cl) %>%
     summarize(
       # Calculate MCP and area_km2 when radius is 0
-      mcp = if (radius == 0) {
-        st_convex_hull(st_union(geometry))  # Compute MCP
-      } else {
-        st_convex_hull(st_make_valid(st_union(st_buffer(geometry, dist = radius * 1000, nQuadSegs = pointsOnCircle))))
-      },
+      multipolygons = if (radius == 0) {
+                          st_union(geometry)  # Compute MCP
+                      } else {
+                        union_result <- st_union(st_buffer(geometry, dist = radius * 1000, nQuadSegs = pointsOnCircle))
+                        union_result[st_geometry_type(union_result) == "MULTIPOLYGON"] #Sometimes, it can return MULTILINESTRING
+                      },
+      mcp = st_convex_hull(st_make_valid(multipolygons)),
       area_km2 = as.numeric(st_area(st_transform(mcp, crs = 32643)) / 1e6)  
     ) %>%
     collect() %>%
+    as.data.frame() %>%
     select(COMMON.NAME, area_km2, mcp)  # Select relevant columns
   
   # Rename columns
@@ -96,18 +101,21 @@ compute_eoo <- function(data, years, radius, pointsOnCircle) {
     filter(n() > 5) %>%
     summarize(
       # Calculate MCP and area_km2 when radius is 0
-      mcp = if (radius == 0) {
-        st_convex_hull(st_union(geometry))  # Compute MCP
-      } else {
-        st_convex_hull(st_make_valid(st_union(st_buffer(geometry, dist = radius * 1000, nQuadSegs = pointsOnCircle))))
-      },
+      multipolygons = if (radius == 0) {
+                          st_union(geometry)  # Compute MCP
+                        } else {
+                          union_result <- st_union(st_buffer(geometry, dist = radius * 1000, nQuadSegs = pointsOnCircle))
+                          union_result[st_geometry_type(union_result) == "MULTIPOLYGON"] #Sometimes, it can return MULTILINESTRING
+                        },
+      mcp = st_convex_hull(st_make_valid(multipolygons)),
       area_km2 = as.numeric(st_area(st_transform(mcp, crs = 32643)) / 1e6)  
-    ) %>%
+    ) %>% 
+    as.data.frame() %>%
     select(COMMON.NAME, area_km2, mcp)  # Select relevant columns
   
   # Rename columns
   colnames(eoo) <- c("Species", "EOO", "EOOMap")
-  
+
   return(eoo)
 }
 # Calculates EOO of all species in data by iterating back to get a start year while using species specific end years as filters
@@ -130,8 +138,13 @@ calculateEOOwithEndYear <- function (obsv, species, EOOEndYear_list)
   for (year in endYear:lastYearforEOOCalculation) {
     # Compute EOO for the current year
     years <- tibble (Species = species, startYear = rep(year, length(species)), endYear = EOOEndYear_list)
-    eoo_current_year <- compute_eoo(obsv, years, 0, 0)
-    
+    eoo_current_year <- tryCatch({ compute_eoo(obsv, years, 0, 0)},
+                                      error = function (e) {
+                                      print (e)
+                                    # Return an empty dataframe
+                                      data.frame (Species = character(), EOO = numeric(),EOOMap = list())
+                                })
+#    eoo_current_year <- compute_eoo_parallel(obsv, years, 0, 0,3)
     # Check for each species
     for (species_name in eoo_current_year$Species) {
       # Get EOO values for the current and previous years
@@ -248,6 +261,7 @@ years_df <- eoo_agg_df %>%
               ) %>%
               ungroup()  # Ensure the result is no longer grouped
 
+saveRDS(eoo_agg_df %>% filter (EOOEndYear == eoo_agg_df$EOOEndYear %>% max()), "eoo.RDS")
 
 # Read the eBird data
 obsv <- readRDS("ebd_sf.RDS")
@@ -265,11 +279,14 @@ obsv <- obsv %>% select (COMMON.NAME, SOIB_YEAR, geometry)
 
 
 # Function to calculate max eoo
-eoo_max <- compute_eoo(obsv, years_df, 10, 5) %>% select ("Species", "EOO")
-colnames(eoo_max) <- c("Species", "MaxEOO")
-
-eoo_agg_df <- eoo_agg_df %>% inner_join (eoo_max, by = c("Species"))
-
+tryCatch({
+          eoo_max <- compute_eoo(obsv, years_df, 10, 5) %>% as.data.frame() %>% select ("Species", "EOO")
+          colnames(eoo_max) <- c("Species", "MaxEOO")
+          eoo_agg_df <- eoo_agg_df %>% inner_join (eoo_max, by = c("Species"))
+          },
+          error = function (e) {
+              print (e)
+          })
 # Save all EOO, including historical
 saveRDS(eoo_agg_df, "eoo_t.RDS")
 

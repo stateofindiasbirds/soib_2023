@@ -28,9 +28,10 @@ calculate_eoo_diff <- function(df) {
   
   return(df_processed)
 }
-df <- eoo_agg_df
+df <- readRDS("EOO.rds")
 # Example usage with the original dataframe (df)
 result <- calculate_eoo_diff(df)
 
-# Display the result
-print(result)
+declingspecies <- result %>% filter (PercentChange < 0) 
+
+saveRDS(declingspecies, "eoodiff.RDS")

@@ -27,7 +27,7 @@ source("utils.R")
 source("config.R")
 
 obsv    <- readRDS("ebd.RDS")
-#species <- obsv$COMMON.NAME %>% unique() %>% grep(pattern = "[()/\\\\.]", value = TRUE, invert = TRUE)
+species <- obsv$COMMON.NAME %>% unique() %>% grep(pattern = "[()/\\\\.]", value = TRUE, invert = TRUE)
 species <- readRDS("eoo.RDS") %>% select(Species) %>% pull()
 
 obsv    <- obsv %>% 

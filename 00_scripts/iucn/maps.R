@@ -85,8 +85,6 @@ EOO <- readRDS ("eoo.RDS")
 EOOGrids <- readRDS ("grid_maps.RDS")
 AOO <- readRDS ("aoo.RDS")
 
-species <- AOO$Species
-
 species <- c (
   "Brahminy Kite",
   "White-browed Bulbul",
@@ -106,6 +104,7 @@ species <- c (
   "Golden-headed Cisticola"
 )
 
+species <- AOO$Species
 
 # Iterate over all species and save the plots
 lapply(species, function(sp) {

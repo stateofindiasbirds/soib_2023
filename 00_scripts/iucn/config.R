@@ -1,9 +1,9 @@
 # To pick the ebd file. May need configuration to pick the RDS directly and transform the column names
-CurMonth <- 9
-CurYear <- 2022
+CurMonth <- 7
+CurYear <- 2024
 dir <- "..\\..\\..\\data\\"
 unzip <- 0
-ebdfile <- paste0("ebd_IN-KL_rel",month.abb[CurMonth],"-",CurYear)
+ebdfile <- paste0("ebd_IN-KL_smp_rel",month.abb[CurMonth],"-",CurYear)
 regionshape <- "states_sf_admin_mapped/states_sf_admin_mapped.shp"
 
 #Lists that have effort.distance are greater than this value (in km) will not be considered for AOO calculations
@@ -26,6 +26,9 @@ grid_sizes_km <- c(2, 4, 8)
 
 # No records before 2000 used in EOO calculation
 lastYearforEOOCalculation <- 2000
+
+# No records after 2023 used in EOO & AOO calculation
+maxYearforProcessing <- 2023
 
 # MAximum distance to be used for EOO Calculation
 MaxChecklistDistanceforEOO <- 10

@@ -25,14 +25,18 @@ source("aoo.R")
 # Maps the AOO Grids (which is the EOO area) with occupancy and also shows the AOO/EOO values
 source("maps.R")
 
+EOO <- readRDS("eoo.rds")
+EOODiff <- readRDS("eoodiff.rds")
+AOO <- readRDS ("aoo.rds")
 
-EOOAOO <- AOO %>% left_join(EOO, by = c("Species"))
+EOOAOO <- AOO %>% left_join(EOO, by = c("Species")) %>% left_join(EOODiff, c("Species"))
 EOOAOO <- EOOAOO %>%
   mutate(
     MinAOO = round(MinAOO),
     MaxAOO = round(MaxAOO),
     LikelyEOO = round(LikelyEOO),
-    MaxEOO = round(MaxEOO)
+    MaxEOO = 0,
+    EOOChange = round(PercentChange),
   ) %>% 
-  select (Species, MinAOO, MaxAOO, MinEstimate_2km, EOOStartYear, LikelyEOO, MaxEOO)
+  select (Species, MinAOO, MaxAOO, MinEstimate_2km, EOOStartYear, LikelyEOO, MaxEOO, YearBandChange, EOOChange)
 write.csv(EOOAOO, "eooaoo.csv")
