@@ -256,14 +256,6 @@ rm(not_my_states)
 
 load("00_data/analyses_metadata.RData")
 
-# not functionising because parallelisation doesn't work inside functions
-cur_mask <- "none"
-my_assignment <- 1:200 # CHANGE FOR YOUR SUBSET
-tic(glue("Species trends for full country (sims {min(my_assignment)}--{max(my_assignment)})"))
-source("00_scripts/run_species_trends.R")
-toc() # 102 hours
-rm(my_assignment)
-
 cur_mask <- "woodland"
 tic(glue("Species trends for {cur_mask}"))
 source("00_scripts/run_species_trends.R")
@@ -274,10 +266,8 @@ tic(glue("Species trends for {cur_mask}"))
 source("00_scripts/run_species_trends.R")
 toc() 
 
-cur_mask <- "ONEland"
-tic(glue("Species trends for {cur_mask}"))
-source("00_scripts/run_species_trends.R")
-toc() 
+
+
 
 cur_mask <- "PA"
 tic(glue("Species trends for {cur_mask}"))
@@ -299,6 +289,7 @@ analyses_metadata %>%
   filter(MASK.TYPE == "state") %>% 
   distinct(MASK) %>% 
   filter(!MASK %in% not_my_states) %>% 
+  # filter(MASK %in% c("Tripura", "Punjab", "Jharkhand", "Nagaland")) %>% 
   pull(MASK) %>% 
   # walking over each state
   walk(~ {

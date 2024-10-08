@@ -592,7 +592,11 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = interannual_update)
     group_by(timegroups) %>% 
     reframe(lists = n_distinct(group.id), 
             year = round(median(year))) %>%
-    arrange(year)
+    # for states like TR and NL, no data at all in some historical
+    # timegroups, so complete with NAs (cos timegroups column used in run_species_trends)
+    complete(timegroups = soib_year_info("timegroup_lab")) %>% 
+    mutate(timegroups = factor(timegroups, levels = soib_year_info("timegroup_lab"))) %>% 
+    arrange(timegroups, year)
   
   
   # writing filtered data files ---------------------------------------------

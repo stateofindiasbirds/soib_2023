@@ -110,5 +110,100 @@ imp = c("TAXONOMIC.ORDER","CATEGORY","COMMON.NAME","SCIENTIFIC.NAME","EXOTIC.COD
 data = data %>%
   dplyr::select(all_of(imp))
 
-write_delim(data, file = "00_data/dataforMyna.txt", delim = "\t")
+write_delim(data, file = "00_data/dataforMyna_2024.txt", delim = "\t")
+
+
+
+
+
+
+
+## additional annual data as required for Myna
+
+require(lubridate)
+require(tidyverse)
+
+imp = c("CATEGORY","COMMON.NAME","SCIENTIFIC.NAME","EXOTIC.CODE",
+        "OBSERVATION.COUNT","STATE","STATE.CODE","COUNTY","COUNTY.CODE","LOCALITY",
+        "LOCALITY.ID","LOCALITY.TYPE","LATITUDE","LONGITUDE",
+        "OBSERVATION.DATE","SAMPLING.EVENT.IDENTIFIER","PROTOCOL.TYPE",
+        "PROTOCOL.CODE","DURATION.MINUTES","EFFORT.DISTANCE.KM",
+        "NUMBER.OBSERVERS","ALL.SPECIES.REPORTED","GROUP.IDENTIFIER",
+        "OBSERVER.ID")
+
+data_current = read.delim("00_data/dataforMyna_2024.txt", sep = "\t", header = T)
+data_past = read.delim("00_data/dataforMyna.txt", sep = "\t", header = T)
+data_current = data_current %>%
+  mutate(OBSERVATION.DATE = as.Date(OBSERVATION.DATE))
+data_past = data_past %>%
+  mutate(OBSERVATION.DATE = as.Date(OBSERVATION.DATE))
+
+# fullmap = read.csv("00_data/SoIB_mapping_2023.csv") %>%
+#   dplyr::select(eBird.English.Name.2023,eBird.Scientific.Name.2023)
+# updatemap = read.csv("00_data/eBird_taxonomy_mapping_2022to2023.csv") %>%
+#   left_join(fullmap) %>%
+#   rename(COMMON.NAME = eBird.English.Name.2022)
+
+data_current = data_current %>%
+  mutate(OBSERVATION.DATE = as.Date(OBSERVATION.DATE), 
+         month = month(OBSERVATION.DATE),
+         cyear = year(OBSERVATION.DATE)) %>%
+  mutate(year = ifelse(month > 5, cyear, cyear-1)) %>% # from June to May
+  ungroup()
+
+data_past = data_past %>%
+  mutate(OBSERVATION.DATE = as.Date(OBSERVATION.DATE), 
+         month = month(OBSERVATION.DATE),
+         cyear = year(OBSERVATION.DATE)) %>%
+  mutate(year = ifelse(month > 5, cyear, cyear-1)) %>% # from June to May
+  ungroup()
+
+# new data in the current year
+
+newdata_current = data_current %>%
+  filter(year == 2023) %>%
+  dplyr::select(all_of(imp))
+
+# new data for the past
+
+newdatatill_past = data_current %>%
+  filter(year != 2023, cyear >= 1900) %>%
+  dplyr::select(all_of(imp))
+data_past = data_past %>%
+  filter(cyear >= 1900) %>%
+  dplyr::select(all_of(imp))
+
+data_past = data_past %>%
+  mutate(LATITUDE = as.numeric(LATITUDE),
+         LONGITUDE = as.numeric(LONGITUDE),
+         DURATION.MINUTES = as.numeric(DURATION.MINUTES))
+
+newdata_past  = newdatatill_past %>%
+  setdiff(data_past)
+
+# deleted data from the past, but not where only scientific name  has changed
+
+data_pastd = data_past %>% 
+  dplyr::select(-SCIENTIFIC.NAME)
+newdatatill_pastd = newdatatill_past %>% 
+  dplyr::select(-SCIENTIFIC.NAME)
+
+deleteddata_past  = data_pastd %>%
+  setdiff(newdatatill_pastd)
+
+deleteddata_past  = deleteddata_past %>%
+  left_join(data_past) %>%
+  dplyr::select(all_of(imp))
+
+
+
+
+
+
+write_delim(newdata_current, file = "00_data/D-24.txt", delim = "\t")
+write_delim(newdata_past, file = "00_data/Plus-D-23.txt", delim = "\t")
+write_delim(deleteddata_past, file = "00_data/Minus-D-23.txt", delim = "\t")
+
+
+
 
