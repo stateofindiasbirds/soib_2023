@@ -9,7 +9,7 @@ load("00_data/analyses_metadata.RData")
 
 # full country runs -------------------------------------------------------
 
-my_assignment <- 601:700 # CHANGE FOR YOUR SUBSET
+my_assignment <- 629:700 # CHANGE FOR YOUR SUBSET
 
 
 # STEP 1: Create subsampled data files using subsampled GROUP.IDs
@@ -36,10 +36,7 @@ toc()
 # Outputs:
 # - "trends/trendsX.csv" files
 
-cur_mask <- "none" # analysis for full country (not masks)
-tic(glue("Species trends for full country (sims {min(my_assignment)}:{max(my_assignment)})"))
-source("00_scripts/run_species_trends.R")
-toc()
+ 
 
 
 rm(my_assigment)
