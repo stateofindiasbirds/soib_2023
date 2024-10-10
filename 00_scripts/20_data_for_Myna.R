@@ -3,7 +3,8 @@
 require(lubridate)
 require(tidyverse)
 
-rawpath = "00_data/ebd_IN_relJun-2024.txt"
+latest_year = soib_year_info()
+rawpath = paste("00_data/ebd_IN_relJun-",latest_year+1,".txt",sep="")
 
 # select only necessary columns
 preimp = c("TAXONOMIC.ORDER","CATEGORY","COMMON.NAME","SCIENTIFIC.NAME","EXOTIC.CODE",
@@ -110,7 +111,9 @@ imp = c("TAXONOMIC.ORDER","CATEGORY","COMMON.NAME","SCIENTIFIC.NAME","EXOTIC.COD
 data = data %>%
   dplyr::select(all_of(imp))
 
-write_delim(data, file = "00_data/dataforMyna_2024.txt", delim = "\t")
+writepath = paste("00_data/dataforMyna_",latest_year+1,".txt",sep="")
+
+write_delim(data, file = writepath, delim = "\t")
 
 
 
@@ -139,7 +142,9 @@ imp = c("CATEGORY","SCIENTIFIC.NAME","EXOTIC.CODE",
         "NUMBER.OBSERVERS","ALL.SPECIES.REPORTED","GROUP.IDENTIFIER",
         "OBSERVER.ID")
 
-data_current = read.delim("00_data/dataforMyna_2024.txt", sep = "\t", header = T)
+rawpath = paste("00_data/dataforMyna_",latest_year+1,".txt",sep="")
+
+data_current = read.delim(rawpath, sep = "\t", header = T)
 data_past = read.delim("00_data/dataforMyna.txt", sep = "\t", header = T)
 data_current_1 = data_current %>%
   mutate(OBSERVATION.DATE = as.Date(OBSERVATION.DATE))
@@ -157,7 +162,7 @@ data_current_1 = data_current_1 %>%
          month = month(OBSERVATION.DATE),
          cyear = year(OBSERVATION.DATE)) %>%
   mutate(year = ifelse(month > 5, cyear, cyear-1)) %>% # from June to May
-  filter(year != 2024) %>%
+  filter(year != latest_year+1) %>%
   ungroup()
 
 data_past_1 = data_past_1 %>%
@@ -170,13 +175,13 @@ data_past_1 = data_past_1 %>%
 # new data in the current year
 
 newdata_current = data_current_1 %>%
-  filter(year == 2023) %>%
+  filter(year == latest_year) %>%
   dplyr::select(all_of(imp))
 
 # new data for the past
 
 newdatatill_past = data_current_1 %>%
-  filter(year != 2023, cyear >= 1900) %>%
+  filter(year != latest_year, cyear >= 1900) %>%
   dplyr::select(all_of(imp))
 data_past_1 = data_past_1 %>%
   filter(cyear >= 1900) %>%
