@@ -3,6 +3,7 @@
 require(lubridate)
 require(tidyverse)
 
+source("00_scripts/00_functions.R")
 latest_year = soib_year_info()
 rawpath = paste("00_data/ebd_IN_relJun-",latest_year+1,".txt",sep="")
 
@@ -126,6 +127,9 @@ write_delim(data, file = writepath, delim = "\t")
 require(lubridate)
 require(tidyverse)
 
+source("00_scripts/00_functions.R")
+latest_year = soib_year_info()
+
 imp_full = c("TAXONOMIC.ORDER","CATEGORY","COMMON.NAME","SCIENTIFIC.NAME","EXOTIC.CODE",
         "OBSERVATION.COUNT","STATE","STATE.CODE","COUNTY","COUNTY.CODE","LOCALITY",
         "LOCALITY.ID","LOCALITY.TYPE","LATITUDE","LONGITUDE",
@@ -239,6 +243,7 @@ tax = read.csv("00_data/SoIB_mapping_2023.csv")
 
 ## write all files
 
+# https://docs.google.com/document/d/1pkb0ftUJ98qgMIlyqlh5bHwvTd71a4aVFtmo_E0hTzk/edit#heading=h.rh4agtvap9l0
 write_delim(newdata_current, file = "00_data/D-24.txt", delim = "\t")
 write_delim(newdata_past, file = "00_data/Plus-D-23.txt", delim = "\t")
 write_delim(deleteddata_past, file = "00_data/Minus-D-23.txt", delim = "\t")
