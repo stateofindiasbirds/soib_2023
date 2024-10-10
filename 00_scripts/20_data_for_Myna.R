@@ -227,12 +227,15 @@ deleteddata_past = deleteddata_past %>%
          COMMON.NAME = "delete") %>%
   dplyr::select(all_of(imp_full))
 
+## create S-24
+
+tax = read.csv("00_data/SoIB_mapping_2023.csv")
 
 
-
-
+## write all files
 
 write_delim(newdata_current, file = "00_data/D-24.txt", delim = "\t")
 write_delim(newdata_past, file = "00_data/Plus-D-23.txt", delim = "\t")
 write_delim(deleteddata_past, file = "00_data/Minus-D-23.txt", delim = "\t")
-write_delim(diff, file = "00_data/Minus-S-23.txt", delim = "\t")
+write.csv(tax, file = "00_data/S-24.csv", row.names = F)
+write.csv(diff, file = "00_data/Minus-S-23.csv", row.names = F)
