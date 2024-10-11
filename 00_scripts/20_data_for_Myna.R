@@ -151,7 +151,9 @@ rawpath = paste("00_data/dataforMyna_",latest_year+1,".txt",sep="")
 data_current = read.delim(rawpath, sep = "\t", header = T)
 data_past = read.delim("00_data/dataforMyna.txt", sep = "\t", header = T)
 data_current_1 = data_current %>%
-  mutate(OBSERVATION.DATE = as.Date(OBSERVATION.DATE))
+  mutate(OBSERVATION.DATE = as.Date(OBSERVATION.DATE)) %>%
+  filter(!COMMON.NAME %in% 
+           c("Band-bellied Crake","Spur-winged Lapwing","Cape Petrel","African Openbill","Levant Sparrowhawk"))
 data_past_1 = data_past %>%
   mutate(OBSERVATION.DATE = as.Date(OBSERVATION.DATE))
 
@@ -238,7 +240,11 @@ deleteddata_past = deleteddata_past %>%
 
 ## create S-24
 
-tax = read.csv("00_data/SoIB_mapping_2023.csv")
+tax = read.csv("00_data/SoIB_mapping_2023.csv") %>%
+  filter(!eBird.English.Name.2023 %in% 
+           c("Band-bellied Crake","Spur-winged Lapwing","Cape Petrel","African Openbill","Levant Sparrowhawk")) %>%
+  rename(eBird.English.Name.2022 = eBird.English.Name.2023,
+         eBird.Scientific.Name.2022 = eBird.Scientific.Name.2023)
 
 
 ## write all files
