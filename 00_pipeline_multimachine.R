@@ -9,7 +9,7 @@ load("00_data/analyses_metadata.RData")
 
 # full country runs -------------------------------------------------------
 
-my_assignment <- 678:700 # CHANGE FOR YOUR SUBSET
+my_assignment <- 1:1000 # CHANGE FOR YOUR SUBSET
 
 
 # STEP 1: Create subsampled data files using subsampled GROUP.IDs
@@ -63,8 +63,7 @@ toc()
 # state runs --------------------------------------------------------------
 
 # list of states assigned (CHANGE FOR YOUR SUBSET)
-my_states <- c("Gujarat", "Uttarakhand", "West Bengal", "Maharashtra", "Karnataka", 
-               "Kerala", "Tamil Nadu", "Meghalaya", "Ladakh")
+my_states <- c("Tamil Nadu")
 # my_states <- c("Telangana", "Chhattisgarh", "Jammu and Kashmir", "Assam",  
 #                "Andhra Pradesh", "Puducherry", "Madhya Pradesh")
 
