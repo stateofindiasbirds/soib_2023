@@ -6,7 +6,24 @@ if (!cur_metadata$MASK.TYPE %in% c("country", "state")) {
 # creating new directory if it doesn't already exist
 if (!dir.exists(cur_metadata$OCCU.PRES.PATHONLY)) {
   dir.create(cur_metadata$OCCU.PRES.PATHONLY, 
-             recursive = T)
+             recursive = TRUE)
+} else {
+  
+  # in interannual updates, we need to delete all past-year output files
+  # because species names change every year with taxonomy updates.
+  # hence, although most species' files will simply get overwritten, for many
+  # species we will end up with multiple files, one for each taxonomy update
+  # (if not interannual update, everything will be in a new repo so no need for this.)
+  if (interannual_update == TRUE) {
+    
+    files_to_del <- list.files(cur_metadata$OCCU.PRES.PATHONLY, full.names = TRUE)
+    
+    if (length(files_to_del) != 0) {
+      file.remove(files_to_del)
+    }
+    
+  }
+  
 }
 
 
@@ -39,7 +56,5 @@ speciesforocc %>%
     if (length(data_grids_present$COMMON.NAME) > 0) {
       write.csv(data_grids_present, file = write_path, row.names = FALSE)
     }
-    
-    gc()
     
   })}

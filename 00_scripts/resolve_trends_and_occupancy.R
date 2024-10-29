@@ -27,6 +27,23 @@ occu_outpath <- cur_metadata$OCCU.OUTPATH
 
 mainwocats_path <- cur_metadata$SOIBMAIN.WOCATS.PATH
 
+
+# in interannual updates, we need to delete all past-year output files
+# because species names change every year with taxonomy updates.
+# hence, although most species' files will simply get overwritten, for many
+# species we will end up with multiple files, one for each taxonomy update
+# (if not interannual update, everything will be in a new repo so no need for this.)
+if (interannual_update == TRUE) {
+  
+  files_to_del <- list.files(occu_outpath, full.names = TRUE)
+  
+  if (length(files_to_del) != 0) {
+    file.remove(files_to_del)
+  }
+  
+}
+
+
 ###
 
 source('00_scripts/00_functions.R')
