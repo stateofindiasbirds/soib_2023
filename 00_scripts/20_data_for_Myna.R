@@ -138,12 +138,12 @@ imp_full = c("TAXONOMIC.ORDER","CATEGORY","COMMON.NAME","SCIENTIFIC.NAME","EXOTI
         "NUMBER.OBSERVERS","ALL.SPECIES.REPORTED","GROUP.IDENTIFIER",
         "OBSERVER.ID")
 
-imp = c("CATEGORY","SCIENTIFIC.NAME","EXOTIC.CODE",
+imp = c("CATEGORY","SCIENTIFIC.NAME",
         "OBSERVATION.COUNT","STATE","STATE.CODE","COUNTY","COUNTY.CODE","LOCALITY",
         "LOCALITY.ID","LOCALITY.TYPE","LATITUDE","LONGITUDE",
         "OBSERVATION.DATE","SAMPLING.EVENT.IDENTIFIER","PROTOCOL.TYPE",
         "PROTOCOL.CODE","DURATION.MINUTES","EFFORT.DISTANCE.KM",
-        "NUMBER.OBSERVERS","ALL.SPECIES.REPORTED","GROUP.IDENTIFIER",
+        "ALL.SPECIES.REPORTED","GROUP.IDENTIFIER",
         "OBSERVER.ID")
 
 rawpath = paste("00_data/dataforMyna_",latest_year+1,".txt",sep="")
@@ -152,6 +152,7 @@ data_current = read.delim(rawpath, sep = "\t", header = T)
 data_past = read.delim("00_data/dataforMyna.txt", sep = "\t", header = T)
 data_current_1 = data_current %>%
   mutate(OBSERVATION.DATE = as.Date(OBSERVATION.DATE)) %>%
+  filter(!EXOTIC.CODE %in% c("X","P")) %>%
   filter(!COMMON.NAME %in% 
            c("Band-bellied Crake","Spur-winged Lapwing","Cape Petrel","African Openbill","Levant Sparrowhawk"))
 data_past_1 = data_past %>%
@@ -225,17 +226,23 @@ deleteddata_past  = data_past_2 %>%
 
 newdata_current = newdata_current %>%
   mutate(TAXONOMIC.ORDER = "delete",
-         COMMON.NAME = "delete") %>%
+         COMMON.NAME = "delete",
+         EXOTIC.CODE = "delete",
+         NUMBER.OBSERVERS = "delete") %>%
   dplyr::select(all_of(imp_full))
 
 newdata_past = newdata_past %>%
   mutate(TAXONOMIC.ORDER = "delete",
-         COMMON.NAME = "delete") %>%
+         COMMON.NAME = "delete",
+         EXOTIC.CODE = "delete",
+         NUMBER.OBSERVERS = "delete") %>%
   dplyr::select(all_of(imp_full))
 
 deleteddata_past = deleteddata_past %>%
   mutate(TAXONOMIC.ORDER = "delete",
-         COMMON.NAME = "delete") %>%
+         COMMON.NAME = "delete",
+         EXOTIC.CODE = "delete",
+         NUMBER.OBSERVERS = "delete") %>%
   dplyr::select(all_of(imp_full))
 
 ## create S-24
@@ -255,3 +262,135 @@ write_delim(newdata_past, file = "00_data/Plus-D-23.txt", delim = "\t")
 write_delim(deleteddata_past, file = "00_data/Minus-D-23.txt", delim = "\t")
 write.csv(tax, file = "00_data/S-24.csv", row.names = F)
 write.csv(diff, file = "00_data/Minus-S-23.csv", row.names = F)
+
+
+
+###########################################################################
+#########################################################################
+
+## Haveri test case
+
+require(lubridate)
+require(tidyverse)
+
+source("00_scripts/00_functions.R")
+latest_year = soib_year_info()
+
+imp_full = c("TAXONOMIC.ORDER","CATEGORY","COMMON.NAME","SCIENTIFIC.NAME","EXOTIC.CODE",
+             "OBSERVATION.COUNT","STATE","STATE.CODE","COUNTY","COUNTY.CODE","LOCALITY",
+             "LOCALITY.ID","LOCALITY.TYPE","LATITUDE","LONGITUDE",
+             "OBSERVATION.DATE","SAMPLING.EVENT.IDENTIFIER","PROTOCOL.TYPE",
+             "PROTOCOL.CODE","DURATION.MINUTES","EFFORT.DISTANCE.KM",
+             "NUMBER.OBSERVERS","ALL.SPECIES.REPORTED","GROUP.IDENTIFIER",
+             "OBSERVER.ID")
+
+imp = c("CATEGORY","SCIENTIFIC.NAME",
+        "OBSERVATION.COUNT","STATE","STATE.CODE","COUNTY","COUNTY.CODE","LOCALITY",
+        "LOCALITY.ID","LOCALITY.TYPE","LATITUDE","LONGITUDE",
+        "OBSERVATION.DATE","SAMPLING.EVENT.IDENTIFIER","PROTOCOL.TYPE",
+        "PROTOCOL.CODE","DURATION.MINUTES","EFFORT.DISTANCE.KM",
+        "ALL.SPECIES.REPORTED","GROUP.IDENTIFIER",
+        "OBSERVER.ID")
+
+rawpath = paste("00_data/dataforMyna_",latest_year+1,".txt",sep="")
+
+data_current = read.delim(rawpath, sep = "\t", header = T)
+
+data_current_1 = data_current %>%
+  # filter for Haveri
+  filter(COUNTY.CODE == "IN-KA-HV") %>%
+  mutate(OBSERVATION.DATE = as.Date(OBSERVATION.DATE)) %>%
+  filter(!EXOTIC.CODE %in% c("X","P")) %>%
+  filter(!COMMON.NAME %in% 
+           c("Band-bellied Crake","Spur-winged Lapwing","Cape Petrel","African Openbill","Levant Sparrowhawk"))
+
+data_current_1 = data_current_1 %>%
+  mutate(OBSERVATION.DATE = as.Date(OBSERVATION.DATE), 
+         month = month(OBSERVATION.DATE),
+         cyear = year(OBSERVATION.DATE)) %>%
+  mutate(year = ifelse(month > 5, cyear, cyear-1)) %>% # from June to May
+  filter(year != latest_year+1) %>%
+  ungroup()
+
+newdata_current = data_current_1 %>%
+  dplyr::select(all_of(imp))
+
+newdata_current = newdata_current %>%
+  mutate(TAXONOMIC.ORDER = "delete",
+         COMMON.NAME = "delete",
+         EXOTIC.CODE = "delete",
+         NUMBER.OBSERVERS = "delete") %>%
+  dplyr::select(all_of(imp_full))
+
+write_delim(newdata_current, file = "00_data/Haveri_data_for_testing.txt", delim = "\t")
+
+
+
+# subsetting using the district shapefile
+
+data = data_current
+
+require(sf)
+mappath3 = "00_data/maps_sf.RData"
+load(mappath3)
+
+sf_use_s2(FALSE)
+
+data = data %>%
+  mutate(group.id = ifelse(is.na(GROUP.IDENTIFIER), 
+                           SAMPLING.EVENT.IDENTIFIER, GROUP.IDENTIFIER))
+
+temp = data %>%
+  distinct(group.id, LONGITUDE, LATITUDE) %>% 
+  distinct(group.id, .keep_all = TRUE) |> 
+  # joining map vars to EBD
+  st_as_sf(coords = c("LONGITUDE", "LATITUDE"), remove = F) %>% 
+  st_set_crs(st_crs(dists_sf)) %>%
+  st_join(dists_sf %>% dplyr::select(DISTRICT.NAME)) %>%
+  st_drop_geometry()
+
+temp = temp %>% 
+  distinct(DISTRICT.NAME, group.id) %>% 
+  distinct(group.id, .keep_all = TRUE) |> 
+  magrittr::set_colnames(c("DISTRICT.NAME","group.id"))
+
+data = data %>% 
+  left_join(temp)
+
+
+data_current_1 = data %>%
+  # filter for Haveri
+  filter(DISTRICT.NAME == "Haveri") %>%
+  mutate(OBSERVATION.DATE = as.Date(OBSERVATION.DATE)) %>%
+  filter(!EXOTIC.CODE %in% c("X","P")) %>%
+  filter(!COMMON.NAME %in% 
+           c("Band-bellied Crake","Spur-winged Lapwing","Cape Petrel","African Openbill","Levant Sparrowhawk"))
+
+data_current_1 = data_current_1 %>%
+  mutate(OBSERVATION.DATE = as.Date(OBSERVATION.DATE), 
+         month = month(OBSERVATION.DATE),
+         cyear = year(OBSERVATION.DATE)) %>%
+  mutate(year = ifelse(month > 5, cyear, cyear-1)) %>% # from June to May
+  filter(year != latest_year+1) %>%
+  ungroup()
+
+newdata_current_shp = data_current_1 %>%
+  dplyr::select(all_of(imp))
+
+newdata_current_shp = newdata_current_shp %>%
+  mutate(TAXONOMIC.ORDER = "delete",
+         COMMON.NAME = "delete",
+         EXOTIC.CODE = "delete",
+         NUMBER.OBSERVERS = "delete") %>%
+  dplyr::select(all_of(imp_full))
+
+write_delim(newdata_current_shp, file = "00_data/Haveri_data_for_testing_shp.txt", delim = "\t")
+
+diff1 = newdata_current %>%
+  setdiff(newdata_current_shp)
+
+diff2 = newdata_current_shp %>%
+  setdiff(newdata_current)
+
+write.csv(diff1, file = "00_data/Haveri_different_eBirdvsshp.csv", row.names = F)
+write.csv(diff2, file = "00_data/Haveri_different_shpvseBird.csv", row.names = F)
