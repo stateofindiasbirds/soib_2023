@@ -891,9 +891,32 @@ if (run_res_trends == FALSE) {
              lci_std_recent, mean_std_recent, rci_std_recent,
              lci_ext_std, mean_ext_std, rci_ext_std,
              lci_comb_std, mean_comb_std, rci_comb_std)
-
+  
+  
+  # in an interannual update, we want to rename the old trends.csv
+  # to archive it for future/downstream use while latest will be saved as trends.csv
+  
+  if (interannual_update == TRUE) {
+    
+    trends_cur_end_year <- trends %>% 
+      filter(!is.na(mean)) %>% # future year rows will have values in some cols but not "mean"
+      distinct(timegroups) %>% 
+      max()
+    trends_prev_end_year <- read.csv(trends_outpath) %>% 
+      filter(!is.na(mean)) %>% # future year rows will have values in some cols but not "mean"
+      distinct(timegroups) %>% 
+      max()
+    
+    # rename old trends file
+    if (trends_cur_end_year != trends_prev_end_year) {
+      trends_outpath_old <- glue("{str_remove(trends_outpath, '.csv')}_MY{trends_prev_end_year}.csv")
+      file.rename(trends_outpath, trends_outpath_old)
+    }
+    
+  }
+  
+  # save current trends to file
   write.csv(trends, file = trends_outpath, row.names = F)
-
 
 
   # joining future projected trends to main dataframe ###
