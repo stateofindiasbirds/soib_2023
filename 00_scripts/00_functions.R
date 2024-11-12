@@ -81,7 +81,8 @@ createrandomlocs = function(locs)
 soib_year_info <- function(what = "latest_year") {
 
   # catch input errors
-  valid_inputs <- c("latest_year", "timegroup_lab", "timegroup_med", "cat_years", "cat_start")
+  valid_inputs <- c("latest_year", "timegroup_lab", "timegroup_med", 
+                    "cat_years", "cat_start", "iucn_projection")
 
   if (!what %in% valid_inputs) {
     stop(paste("Choose valid info to obtain regarding current SoIB years: {", 
@@ -126,8 +127,26 @@ soib_year_info <- function(what = "latest_year") {
 
   if (what == "cat_years") return(cat_years)
     else if (what == "cat_start") return(min(cat_years))
+  
+  
+  # extra years for IUCN projection
+  if (what == "iucn_projection") {
+    extra.years = seq(latest_soib_my, length.out = 7) + 1
+    return(extra.years)
+  }
 
 }
+
+
+# get column names for IUCN projection values -----------------------------
+
+get_iucn_proj_cols <- function() {
+  map(soib_year_info("iucn_projection"), ~ {
+    c(glue("proj{.x}.lci"), glue("proj{.x}.mean"), glue("proj{.x}.rci"))
+  }) %>% 
+    list_c()
+}
+
 
 ### readcleanrawdata ########################################
 

@@ -103,13 +103,7 @@ if (run_res_trends == FALSE) {
   # list of columns that need to be created since we have skipped steps
   na_columns <- c("longtermlci", "longtermmean", "longtermrci",     
                   "currentslopelci", "currentslopemean", "currentsloperci", 
-                  "proj2023.lci", "proj2023.mean", "proj2023.rci",    
-                  "proj2024.lci", "proj2024.mean", "proj2024.rci",    
-                  "proj2025.lci", "proj2025.mean", "proj2025.rci",    
-                  "proj2026.lci", "proj2026.mean", "proj2026.rci",    
-                  "proj2027.lci", "proj2027.mean", "proj2027.rci",    
-                  "proj2028.lci", "proj2028.mean", "proj2028.rci",    
-                  "proj2029.lci", "proj2029.mean", "proj2029.rci")
+                  get_iucn_proj_cols())
   
   base = read.csv(base_path) %>% 
     # if full column has no X at all, gets read as NAs
@@ -362,7 +356,7 @@ if (run_res_trends == FALSE) {
   
   
   # Years to project for PJ's IUCN comparison
-  extra.years = seq(soib_year_info("latest_year"), length.out = 7) + 1
+  extra.years = soib_year_info("iucn_projection")
   
   trends = trends %>%
     group_by(COMMON.NAME, timegroupsf, timegroups) %>% 
