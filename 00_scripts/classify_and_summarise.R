@@ -33,9 +33,9 @@ load("00_data/vagrantdata.RData")
 
 main = read.csv(mainwocats_path) %>%
   # if full column has no X at all, gets read as NAs
-  mutate(across(c(Long.Term.Analysis, Current.Analysis, Selected.SOIB),
+  mutate(across(c(Long.Term.Analysis, Current.Analysis, Selected.SoIB),
                 ~ as.character(.))) %>%
-  mutate(across(c(Long.Term.Analysis, Current.Analysis, Selected.SOIB),
+  mutate(across(c(Long.Term.Analysis, Current.Analysis, Selected.SoIB),
                 ~ replace_na(., "")))
 
 
@@ -373,7 +373,7 @@ if (run_res_trends == TRUE) {
 
 main <- main %>%
   mutate(across(c(SoIB.Latest.Long.Term.Status, SoIB.Latest.Current.Status, SoIB.Past.Range.Status),
-                ~ if_else(Selected.SOIB != "X", NA_character_, .)))
+                ~ if_else(Selected.SoIB != "X", NA_character_, .)))
 
 # classification: assign SoIB Priority status (based on trends and occupancy) -----
 
@@ -442,7 +442,7 @@ main = main %>%
            India.Checklist.Common.Name, India.Checklist.Scientific.Name,
            BLI.Common.Name, BLI.Scientific.Name, IUCN.Category, WPA.Schedule,
            CITES.Appendix, CMS.Appendix, Onepercent.Estimates,
-           Long.Term.Analysis, Current.Analysis, Selected.SOIB,
+           Long.Term.Analysis, Current.Analysis, Selected.SoIB,
            totalrange25km, proprange25km2000, proprange25km.current, proprange25km.latestyear,
            mean5km, ci5km,
            get_iucn_proj_cols(),
@@ -512,10 +512,10 @@ if (interannual_update == TRUE){
       # SoIB.Latest to be updated to SoIB.Latest in the next annual update
       # Need to raise an issue here as the main files can't be edited
       dplyr::select(eBird.English.Name.2023,
-                    SOIB.Major.Update.Long.Term.Status = SoIB.Latest.Long.Term.Status,
-                    SOIB.Major.Update.Current.Status = SoIB.Latest.Current.Status,
-                    SOIB.Major.Update.Range.Status = SoIB.Latest.Range.Status,
-                    SOIB.Major.Update.Priority.Status = SoIB.Latest.Priority.Status)
+                    SoIB.Major.Update.Long.Term.Status = SoIB.Latest.Long.Term.Status,
+                    SoIB.Major.Update.Current.Status = SoIB.Latest.Current.Status,
+                    SoIB.Major.Update.Range.Status = SoIB.Latest.Range.Status,
+                    SoIB.Major.Update.Priority.Status = SoIB.Latest.Priority.Status)
     
     # write latest major update file
     write.csv(status_maj_upd, file = main_past_path, row.names = FALSE)
@@ -544,7 +544,7 @@ if (interannual_update == TRUE){
                India.Checklist.Common.Name, India.Checklist.Scientific.Name,
                BLI.Common.Name, BLI.Scientific.Name, IUCN.Category, WPA.Schedule,
                CITES.Appendix, CMS.Appendix, Onepercent.Estimates,
-               Long.Term.Analysis, Current.Analysis, Selected.SOIB,
+               Long.Term.Analysis, Current.Analysis, Selected.SoIB,
                totalrange25km, proprange25km2000, proprange25km.current, proprange25km.latestyear,
                mean5km, ci5km,
                get_iucn_proj_cols(),
@@ -553,8 +553,8 @@ if (interannual_update == TRUE){
                rangelci, rangemean, rangerci,
                SoIB.Latest.Long.Term.Status, SoIB.Latest.Current.Status, SoIB.Latest.Range.Status,
                SoIB.Latest.Priority.Status,
-               SOIB.Major.Update.Long.Term.Status, SOIB.Major.Update.Current.Status,
-               SOIB.Major.Update.Range.Status, SOIB.Major.Update.Priority.Status)  
+               SoIB.Major.Update.Long.Term.Status, SoIB.Major.Update.Current.Status,
+               SoIB.Major.Update.Range.Status, SoIB.Major.Update.Priority.Status)  
   
 }
 
@@ -568,7 +568,7 @@ write.csv(main, file = main_path, row.names = FALSE)
 # species qualifications
 species_qual0 <- main %>%
   mutate(Range.Analysis = if_else(is.na(SoIB.Latest.Range.Status), "", "X")) %>%
-  summarise(across(c(Selected.SOIB, Long.Term.Analysis, Current.Analysis, Range.Analysis),
+  summarise(across(c(Selected.SoIB, Long.Term.Analysis, Current.Analysis, Range.Analysis),
                    # adds up cases where condition is true
                    ~ sum(. == "X"))) %>% 
   # we don't analyse range for any habitat/CA mask
@@ -715,7 +715,7 @@ if (cur_metadata$MASK.TYPE == "country") {
     group_by(SoIB.Past.Priority.Status, SoIB.Latest.Priority.Status) %>%
     reframe(NO.SPEC = n(),
             PERC.SPEC = round(100 * (NO.SPEC / max(n)), 1)) %>%
-    magrittr::set_colnames(c("SOIB Concern Status", "SoIB.Latest Priority Status",
+    magrittr::set_colnames(c("SoIB Concern Status", "SoIB Latest Priority Status",
                              "Species (no.)", "Species (perc.)"))
   
   SoIB2_SoIB1 = main %>%
@@ -725,13 +725,13 @@ if (cur_metadata$MASK.TYPE == "country") {
     group_by(SoIB.Latest.Priority.Status, SoIB.Past.Priority.Status) %>%
     reframe(NO.SPEC = n(),
             PERC.SPEC = round(100 * (NO.SPEC / max(n)), 1)) %>%
-    magrittr::set_colnames(c("SoIB.Latest Priority Status", "SOIB Concern Status",
+    magrittr::set_colnames(c("SoIB Latest Priority Status", "SoIB Concern Status",
                              "Species (no.)", "Species (perc.)"))
   
   
   # cross-tab of SoIB and IUCN assessments
   SoIB_vs_IUCN_0 <- main %>%
-    filter(Selected.SOIB == "X") %>%
+    filter(Selected.SoIB == "X") %>%
     mutate(SoIB.Latest.Priority.Status = factor(SoIB.Latest.Priority.Status,
                                            levels = c("High", "Moderate", "Low")),
            IUCN.Category = factor(IUCN.Category, levels = c(

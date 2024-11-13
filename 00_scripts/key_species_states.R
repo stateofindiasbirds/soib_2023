@@ -13,7 +13,7 @@ india.checklist.map = main %>% select(eBird.English.Name.2023, India.Checklist.C
 
 # limiting the set of species to a set of criteria
 specs.states = main %>%
-  filter(Selected.SOIB == "X",
+  filter(Selected.SoIB == "X",
          SoIB.Latest.Range.Status != "Historical",
          ((IUCN.Category %in% c("Critically Endangered","Endangered","Vulnerable") &
              SoIB.Latest.Priority.Status == "Moderate") |

@@ -1012,7 +1012,7 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = interannual_update)
       left_join(specieslist1) %>% 
       magrittr::set_colnames(c("COMMON.NAME","SCIENTIFIC.NAME",
                                "Long.Term.Analysis","Current.Analysis",
-                               "Selected.SOIB")) %>%  
+                               "Selected.SoIB")) %>%  
       # converting to report table-style with blanks for NAs and Xs for 1s
       mutate(across(everything(), ~ as.character(.))) %>% 
       mutate(across(everything(), ~ replace_na(., replace = ""))) %>% 
@@ -1021,7 +1021,7 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = interannual_update)
       mutate(Long.Term.Analysis = if_else(COMMON.NAME %in% check1, "X", Long.Term.Analysis),
              Current.Analysis = if_else(COMMON.NAME %in% check2, "X", Current.Analysis)) %>%
       dplyr::select("COMMON.NAME","SCIENTIFIC.NAME","Long.Term.Analysis","Current.Analysis",
-                    "Selected.SOIB")
+                    "Selected.SoIB")
     
     
     # filtering for only species in certain masks ###
@@ -1030,14 +1030,14 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = interannual_update)
       dataf <- dataf %>% 
         mutate(Long.Term.Analysis = if_else(!(COMMON.NAME %in% spec_woodland), "", Long.Term.Analysis),
                Current.Analysis = if_else(!(COMMON.NAME %in% spec_woodland), "", Current.Analysis),
-               Selected.SOIB = if_else(!(COMMON.NAME %in% spec_woodland), "", Selected.SOIB))
+               Selected.SoIB = if_else(!(COMMON.NAME %in% spec_woodland), "", Selected.SoIB))
       
     } else if (cur_mask %in% c("cropland", "ONEland")) {
       
       dataf <- dataf %>% 
         mutate(Long.Term.Analysis = if_else(!(COMMON.NAME %in% spec_openland), "", Long.Term.Analysis),
                Current.Analysis = if_else(!(COMMON.NAME %in% spec_openland), "", Current.Analysis),
-               Selected.SOIB = if_else(!(COMMON.NAME %in% spec_openland), "", Selected.SOIB))
+               Selected.SoIB = if_else(!(COMMON.NAME %in% spec_openland), "", Selected.SoIB))
       
     }
     

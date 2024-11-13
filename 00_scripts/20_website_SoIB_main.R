@@ -58,7 +58,7 @@ main_db <- main_db0 %>%
   mutate(across(c("India.Endemic", "Subcontinent.Endemic", "Himalayas.Endemic"),
                 ~ case_when(. == "Yes" ~ TRUE, TRUE ~ FALSE)),
          Restricted.Islands = case_when(Restricted.Islands == 1 ~ TRUE, TRUE ~ FALSE),
-         across(c("Long.Term.Analysis", "Current.Analysis", "Selected.SOIB"), 
+         across(c("Long.Term.Analysis", "Current.Analysis", "Selected.SoIB"), 
                 ~ case_when(. == "X" ~ TRUE, TRUE ~ FALSE))) %>% 
   # remove proj columns, other unnecessary columns
   mutate(across(c(starts_with("proj20"),
@@ -100,7 +100,7 @@ main_db <- main_db0 %>%
     "Endemic.Region","India.Endemic","Subcontinent.Endemic","Himalayas.Endemic",
     "Habitat.Specialization","Migratory.Status.Within.India","Restricted.Islands",
     "IUCN.Category","WPA.Schedule","CITES.Appendix","CMS.Appendix","Onepercent.Estimates",
-    "Selected.SOIB","Long.Term.Analysis","Current.Analysis",
+    "Selected.SoIB","Long.Term.Analysis","Current.Analysis",
     "longtermlci","longtermmean","longtermrci","currentslopelci","currentslopemean",
     "currentsloperci","rangelci","rangemean","rangerci",
     "KEY",

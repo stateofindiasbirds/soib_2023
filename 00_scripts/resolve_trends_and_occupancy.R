@@ -107,9 +107,9 @@ if (run_res_trends == FALSE) {
   
   base = read.csv(base_path) %>% 
     # if full column has no X at all, gets read as NAs
-    mutate(across(c(Long.Term.Analysis, Current.Analysis, Selected.SOIB),
+    mutate(across(c(Long.Term.Analysis, Current.Analysis, Selected.SoIB),
                   ~ as.character(.))) %>%
-    mutate(across(c(Long.Term.Analysis, Current.Analysis, Selected.SOIB),
+    mutate(across(c(Long.Term.Analysis, Current.Analysis, Selected.SoIB),
                   ~ replace_na(., ""))) %>%
     dplyr::select(-SCIENTIFIC.NAME)
   
@@ -128,9 +128,9 @@ if (run_res_trends == FALSE) {
   
   base = read.csv(base_path) %>% 
     # if full column has no X at all, gets read as NAs
-    mutate(across(c(Long.Term.Analysis, Current.Analysis, Selected.SOIB),
+    mutate(across(c(Long.Term.Analysis, Current.Analysis, Selected.SoIB),
                   ~ as.character(.))) %>%
-    mutate(across(c(Long.Term.Analysis, Current.Analysis, Selected.SOIB),
+    mutate(across(c(Long.Term.Analysis, Current.Analysis, Selected.SoIB),
                   ~ replace_na(., ""))) %>%
     dplyr::select(-SCIENTIFIC.NAME)
   

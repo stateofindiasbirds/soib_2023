@@ -21,12 +21,12 @@ web_db0 <- map2(get_metadata()$SOIBMAIN.PATH, get_metadata()$MASK,
   get_latest_IUCN_status("India.Checklist.Common.Name", "IUCN.Category") %>% 
   mutate(India.Checklist.Common.Name = fct_inorder(India.Checklist.Common.Name)) %>% 
   # filtering for SoIB species
-  filter(Selected.SOIB == "X") %>%
+  filter(Selected.SoIB == "X") %>%
   # whether species is new to latest SoIB
   mutate(new_to_soib = case_when(is.na(SoIB.Past.Priority.Status) & !is.na(SoIB.Latest.Priority.Status) ~ TRUE,
                                  TRUE ~ FALSE)) %>% 
   dplyr::select(-c("eBird.English.Name.2023", "eBird.Scientific.Name.2023", "Order", "Family",
-                   starts_with("SOIB."), contains("Breeding.Activity"), "Diet.Guild",
+                   starts_with("SoIB."), contains("Breeding.Activity"), "Diet.Guild",
                    starts_with("BLI."), ends_with(".Appendix"), "Onepercent.Estimates", 
                    contains("range25km"), "mean5km", "ci5km",
                    starts_with("proj20"))) %>% 

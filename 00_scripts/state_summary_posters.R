@@ -334,7 +334,7 @@ for (i in analyses_metadata$MASK)
                         st_main$eBird.English.Name.2023[st_main$Current.Analysis == "X"])
   
   st_inc_list = st_main %>%
-    filter(Selected.SOIB == "X") %>%
+    filter(Selected.SoIB == "X") %>%
     pull(eBird.English.Name.2023)
   
   flag = "state level - 150 or more species assessed in state"
