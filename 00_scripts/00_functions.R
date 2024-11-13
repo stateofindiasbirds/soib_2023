@@ -1981,6 +1981,14 @@ get_soib_status_cats <- function(which = NULL) {
   
 }
 
+# get mapping info for eBird species names --------------------------------
+
+# species names change every year, which proves difficult when working on annual updates
+# this function helps map these different names
+
+ebird_tax_mapping <- function() {
+  read.csv("00_data/eBird_taxonomy_mapping.csv")
+}
 
 # Update specieslists during interannual SoIB updates --------------------
 
@@ -2007,7 +2015,6 @@ update_species_lists = function(species_list_data, scientific_also = FALSE) {
 
   require(tidyverse)
   
-  updatemap = read.csv("00_data/eBird_taxonomy_mapping_2022to2023.csv")
   if (!exists("fullmap")) {
     fullmap <- read.csv("00_data/SoIB_mapping_2023.csv")
   }
@@ -2016,7 +2023,7 @@ update_species_lists = function(species_list_data, scientific_also = FALSE) {
 
   # when rerunning for same year, need to return unmodified list
   # because species names already updated in prior run
-  if (any(!species_list_data$COMMON.NAME %in% updatemap$eBird.English.Name.2022)) {
+  if (any(!species_list_data$COMMON.NAME %in% ebird_tax_mapping()$eBird.English.Name.2022)) {
 
     message("Species list is already updated to latest taxonomy. Returning original list.")
     return(species_list_data)
@@ -2024,7 +2031,7 @@ update_species_lists = function(species_list_data, scientific_also = FALSE) {
   } else {
 
     list_new <- species_list_data |> 
-      left_join(updatemap, 
+      left_join(ebird_tax_mapping(), 
                 by = c("COMMON.NAME" = "eBird.English.Name.2022")) |> 
       dplyr::select(-COMMON.NAME) |> 
       relocate(eBird.English.Name.2023) |> # first column is species name

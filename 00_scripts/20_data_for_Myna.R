@@ -160,7 +160,7 @@ data_past_1 = data_past %>%
 
 # fullmap = read.csv("00_data/SoIB_mapping_2023.csv") %>%
 #   dplyr::select(eBird.English.Name.2023,eBird.Scientific.Name.2023)
-# updatemap = read.csv("00_data/eBird_taxonomy_mapping_2022to2023.csv") %>%
+# updatemap = ebird_tax_mapping() %>%
 #   left_join(fullmap) %>%
 #   rename(COMMON.NAME = eBird.English.Name.2022)
 
