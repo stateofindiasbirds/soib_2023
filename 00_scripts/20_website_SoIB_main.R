@@ -75,7 +75,7 @@ main_db <- main_db0 %>%
   # removing species that are not found in/relevant for mask
   # but for India, keeping all
   filter(MASK == "none" |
-           (MASK != "none" & !is.na(SOIBv2.Priority.Status))) %>%
+           (MASK != "none" & !is.na(SoIB.Latest.Priority.Status))) %>%
   ungroup() %>% 
   dplyr::select(-SPEC.ORDER) %>% 
   # round model estimates appropriately 
@@ -92,8 +92,8 @@ main_db <- main_db0 %>%
   # move columns
   relocate(
     "India.Checklist.Common.Name","India.Checklist.Scientific.Name",
-    "SOIBv2.Priority.Status","SOIBv2.Long.Term.Status",
-    "SOIBv2.Current.Status","SOIBv2.Range.Status",
+    "SoIB.Latest.Priority.Status","SoIB.Latest.Long.Term.Status",
+    "SoIB.Latest.Current.Status","SoIB.Latest.Range.Status",
     "eBird.English.Name.2023","eBird.Scientific.Name.2023", 
     "BLI.Common.Name", "BLI.Scientific.Name","Order","Family",
     "Breeding.Activity.Period","Non.Breeding.Activity.Period","Diet.Guild",
@@ -107,7 +107,7 @@ main_db <- main_db0 %>%
     "totalrange25km","proprange25km2000","proprange25km.current","proprange25km.latestyear",
     "mean5km","ci5km",
     "Projected % Decline in 3 Generations","Regional Red List Category",
-    "SOIB.Concern.Status","SOIB.Long.Term.Status","SOIB.Current.Status","SOIB.Range.Status"
+    "SoIB.Past.Priority.Status","SoIB.Past.Long.Term.Status","SoIB.Past.Current.Status","SoIB.Past.Range.Status"
   ) %>% 
   # rename columns
   magrittr::set_colnames(c(

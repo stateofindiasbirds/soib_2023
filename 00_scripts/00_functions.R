@@ -1697,7 +1697,7 @@ ltt_sens_class <- function(data) {
   data = data %>%
     mutate(
       
-      SOIBv2.Long.Term.Status = case_when(
+      SoIB.Latest.Long.Term.Status = case_when(
         is.na(longtermmean) ~ "Insufficient Data",
         (longtermrci-longtermmean)/longtermmean > 0.5 ~ "Trend Inconclusive", # arbitrary
         # else
@@ -1716,7 +1716,7 @@ ltt_sens_class <- function(data) {
       )
       
     ) %>% 
-    dplyr::select(COMMON.NAME, SOIBv2.Long.Term.Status)
+    dplyr::select(COMMON.NAME, SoIB.Latest.Long.Term.Status)
   
   return(data)
   
@@ -1746,114 +1746,114 @@ scale_trends_to_bands <- function(data) {
       
       # long-term
       ltt_min = case_when(
-        SOIBv2.Long.Term.Status == "Rapid Decline" ~ 0,
-        SOIBv2.Long.Term.Status == "Decline" ~ 50,
-        SOIBv2.Long.Term.Status == "Rapid Increase" ~ 150,
-        SOIBv2.Long.Term.Status == "Increase" ~ 125,
+        SoIB.Latest.Long.Term.Status == "Rapid Decline" ~ 0,
+        SoIB.Latest.Long.Term.Status == "Decline" ~ 50,
+        SoIB.Latest.Long.Term.Status == "Rapid Increase" ~ 150,
+        SoIB.Latest.Long.Term.Status == "Increase" ~ 125,
         # top Stable
-        SOIBv2.Long.Term.Status == "Stable" & longtermmean >= 100 ~ 100,
+        SoIB.Latest.Long.Term.Status == "Stable" & longtermmean >= 100 ~ 100,
         # bottom Stable
-        SOIBv2.Long.Term.Status == "Stable" & longtermmean < 100 ~ 75,
+        SoIB.Latest.Long.Term.Status == "Stable" & longtermmean < 100 ~ 75,
         TRUE ~ NA
       ),
       
       ltt_max = case_when(
-        SOIBv2.Long.Term.Status == "Rapid Decline" ~ 50,
-        SOIBv2.Long.Term.Status == "Decline" ~ 75,
+        SoIB.Latest.Long.Term.Status == "Rapid Decline" ~ 50,
+        SoIB.Latest.Long.Term.Status == "Decline" ~ 75,
         # taking 200 here (instead of inf) to mirror the delta 50 on the negative side
-        SOIBv2.Long.Term.Status == "Rapid Increase" ~ 200,
-        SOIBv2.Long.Term.Status == "Increase" ~ 150,
+        SoIB.Latest.Long.Term.Status == "Rapid Increase" ~ 200,
+        SoIB.Latest.Long.Term.Status == "Increase" ~ 150,
         # top Stable
-        SOIBv2.Long.Term.Status == "Stable" & longtermmean >= 100 ~ 125,
+        SoIB.Latest.Long.Term.Status == "Stable" & longtermmean >= 100 ~ 125,
         # bottom Stable
-        SOIBv2.Long.Term.Status == "Stable" & longtermmean < 100 ~ 100,
+        SoIB.Latest.Long.Term.Status == "Stable" & longtermmean < 100 ~ 100,
         TRUE ~ NA
       ),
       
       # here, we need to use mean, lci or rci according to which band it is in
       ltt_prop = case_when(
-        SOIBv2.Long.Term.Status == "Stable" ~ 
+        SoIB.Latest.Long.Term.Status == "Stable" ~ 
           scale_band(longtermmean, ltt_min, ltt_max),
-        SOIBv2.Long.Term.Status %in% c("Decline", "Rapid Decline") ~ 
+        SoIB.Latest.Long.Term.Status %in% c("Decline", "Rapid Decline") ~ 
           scale_band(longtermrci, ltt_min, ltt_max),
-        SOIBv2.Long.Term.Status %in% c("Increase", "Rapid Increase") ~ 
+        SoIB.Latest.Long.Term.Status %in% c("Increase", "Rapid Increase") ~ 
           scale_band(longtermlci, ltt_min, ltt_max),
         TRUE ~ NA
       ),
       
       # new band is sometimes 2 units long, so need to scale to that
       ltt_newrange = case_when(
-        SOIBv2.Long.Term.Status == "Stable" ~ 1,
-        SOIBv2.Long.Term.Status %in% c("Decline", "Rapid Decline") ~ 2,
-        SOIBv2.Long.Term.Status %in% c("Increase", "Rapid Increase") ~ 2,
+        SoIB.Latest.Long.Term.Status == "Stable" ~ 1,
+        SoIB.Latest.Long.Term.Status %in% c("Decline", "Rapid Decline") ~ 2,
+        SoIB.Latest.Long.Term.Status %in% c("Increase", "Rapid Increase") ~ 2,
         TRUE ~ NA
       ),
 
       # constant to be added to bring the scaled bands (all 0--1 now) to different levels
       ltt_k = case_when(
-        SOIBv2.Long.Term.Status == "Stable" & longtermmean >= 100 ~ 0,
-        SOIBv2.Long.Term.Status == "Stable" & longtermmean < 100 ~ -1,
-        SOIBv2.Long.Term.Status == "Decline" ~ -3,
-        SOIBv2.Long.Term.Status == "Rapid Decline" ~ -5,
-        SOIBv2.Long.Term.Status == "Increase" ~ 1,
-        SOIBv2.Long.Term.Status == "Rapid Increase" ~ 3,
+        SoIB.Latest.Long.Term.Status == "Stable" & longtermmean >= 100 ~ 0,
+        SoIB.Latest.Long.Term.Status == "Stable" & longtermmean < 100 ~ -1,
+        SoIB.Latest.Long.Term.Status == "Decline" ~ -3,
+        SoIB.Latest.Long.Term.Status == "Rapid Decline" ~ -5,
+        SoIB.Latest.Long.Term.Status == "Increase" ~ 1,
+        SoIB.Latest.Long.Term.Status == "Rapid Increase" ~ 3,
         TRUE ~ NA
       ),
 
       # current
       cat_min = case_when(
         # taking Stable range to make upper and lower limits as well
-        SOIBv2.Current.Status == "Rapid Decline" ~ -4.7, 
-        SOIBv2.Current.Status == "Decline" ~ -2.7,
-        SOIBv2.Current.Status == "Rapid Increase" ~ 1.6,
-        SOIBv2.Current.Status == "Increase" ~ 0.9,
+        SoIB.Latest.Current.Status == "Rapid Decline" ~ -4.7, 
+        SoIB.Latest.Current.Status == "Decline" ~ -2.7,
+        SoIB.Latest.Current.Status == "Rapid Increase" ~ 1.6,
+        SoIB.Latest.Current.Status == "Increase" ~ 0.9,
         # top Stable
-        SOIBv2.Current.Status == "Stable" & currentslopemean >= 0 ~ 0,
+        SoIB.Latest.Current.Status == "Stable" & currentslopemean >= 0 ~ 0,
         # bottom Stable
-        SOIBv2.Current.Status == "Stable" & currentslopemean < 0 ~ -1.1,
+        SoIB.Latest.Current.Status == "Stable" & currentslopemean < 0 ~ -1.1,
         TRUE ~ NA
       ),
       
       
       cat_max = case_when(
-        SOIBv2.Current.Status == "Rapid Decline" ~ -2.7,
-        SOIBv2.Current.Status == "Decline" ~ -1.1,
-        SOIBv2.Current.Status == "Rapid Increase" ~ 3.6,
-        SOIBv2.Current.Status == "Increase" ~ 1.6,
+        SoIB.Latest.Current.Status == "Rapid Decline" ~ -2.7,
+        SoIB.Latest.Current.Status == "Decline" ~ -1.1,
+        SoIB.Latest.Current.Status == "Rapid Increase" ~ 3.6,
+        SoIB.Latest.Current.Status == "Increase" ~ 1.6,
         # top Stable
-        SOIBv2.Current.Status == "Stable" & currentslopemean >= 0 ~ 0.9,
+        SoIB.Latest.Current.Status == "Stable" & currentslopemean >= 0 ~ 0.9,
         # bottom Stable
-        SOIBv2.Current.Status == "Stable" & currentslopemean < 0 ~ 0,
+        SoIB.Latest.Current.Status == "Stable" & currentslopemean < 0 ~ 0,
         TRUE ~ NA
       ),
       
       # here, we need to use mean, lci or rci according to which band it is in
       cat_prop = case_when(
-        SOIBv2.Current.Status == "Stable" ~ 
+        SoIB.Latest.Current.Status == "Stable" ~ 
           scale_band(currentslopemean, cat_min, cat_max),
-        SOIBv2.Current.Status %in% c("Decline", "Rapid Decline") ~ 
+        SoIB.Latest.Current.Status %in% c("Decline", "Rapid Decline") ~ 
           scale_band(currentsloperci, cat_min, cat_max),
-        SOIBv2.Current.Status %in% c("Increase", "Rapid Increase") ~ 
+        SoIB.Latest.Current.Status %in% c("Increase", "Rapid Increase") ~ 
           scale_band(currentslopelci, cat_min, cat_max),
         TRUE ~ NA
       ),
       
       # new band is sometimes 2 units long, so need to scale to that
       cat_newrange = case_when(
-        SOIBv2.Current.Status == "Stable" ~ 1,
-        SOIBv2.Current.Status %in% c("Decline", "Rapid Decline") ~ 2,
-        SOIBv2.Current.Status %in% c("Increase", "Rapid Increase") ~ 2,
+        SoIB.Latest.Current.Status == "Stable" ~ 1,
+        SoIB.Latest.Current.Status %in% c("Decline", "Rapid Decline") ~ 2,
+        SoIB.Latest.Current.Status %in% c("Increase", "Rapid Increase") ~ 2,
         TRUE ~ NA
       ),
       
       # constant to be added to bring the scaled bands (all 0--1 now) to different levels
       cat_k = case_when(
-        SOIBv2.Current.Status == "Stable" & currentslopemean >= 0 ~ 0,
-        SOIBv2.Current.Status == "Stable" & currentslopemean < 0 ~ -1,
-        SOIBv2.Current.Status == "Decline" ~ -3,
-        SOIBv2.Current.Status == "Rapid Decline" ~ -5,
-        SOIBv2.Current.Status == "Increase" ~ 1,
-        SOIBv2.Current.Status == "Rapid Increase" ~ 3,
+        SoIB.Latest.Current.Status == "Stable" & currentslopemean >= 0 ~ 0,
+        SoIB.Latest.Current.Status == "Stable" & currentslopemean < 0 ~ -1,
+        SoIB.Latest.Current.Status == "Decline" ~ -3,
+        SoIB.Latest.Current.Status == "Rapid Decline" ~ -5,
+        SoIB.Latest.Current.Status == "Increase" ~ 1,
+        SoIB.Latest.Current.Status == "Rapid Increase" ~ 3,
         TRUE ~ NA
       )
       

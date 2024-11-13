@@ -99,7 +99,7 @@ spec_vagrants <- d %>%
 main = main %>%
   mutate(
     
-    SOIBv2.Long.Term.Status = case_when(
+    SoIB.Latest.Long.Term.Status = case_when(
       is.na(longtermmean) ~ "Insufficient Data",
       (longtermrci-longtermmean)/longtermmean > 0.5 ~ "Trend Inconclusive", # arbitrary
       # else
@@ -121,7 +121,7 @@ main = main %>%
       # TRUE ~ "Trend Inconclusive"
     ),
     
-    SOIBv2.Current.Status = case_when(
+    SoIB.Latest.Current.Status = case_when(
       is.na(currentslopemean) ~ "Insufficient Data",
       (currentsloperci-currentslopelci) > 6 ~ "Trend Inconclusive", # arbitrary
       # decline and increase threshold values
@@ -136,7 +136,7 @@ main = main %>%
       TRUE ~ "Stable"
     ),
     
-    SOIBv2.Range.Status = case_when(
+    SoIB.Latest.Range.Status = case_when(
       is.na(rangemean) ~ NA_character_,
       rangemean == 0 & !(eBird.English.Name.2023 %in% spec_vagrants) ~ "Historical",
       # above is to prevent species that are not historical but classified as vagrants
@@ -165,14 +165,14 @@ main = main %>%
 
 if (cur_metadata$MASK.TYPE == "state") {
   
-  main_tokeep <- main %>% filter(is.na(SOIBv2.Range.Status) | SOIBv2.Range.Status == "Historical")
+  main_tokeep <- main %>% filter(is.na(SoIB.Latest.Range.Status) | SoIB.Latest.Range.Status == "Historical")
   
-  main_toupdate <- anti_join(main, main_tokeep) %>% dplyr::select(-SOIBv2.Range.Status)
+  main_toupdate <- anti_join(main, main_tokeep) %>% dplyr::select(-SoIB.Latest.Range.Status)
   
   main_nat <- get_metadata("none") %>%
     pull(SOIBMAIN.PATH) %>%
     read.csv() %>%
-    distinct(eBird.English.Name.2023, SOIBv2.Range.Status)
+    distinct(eBird.English.Name.2023, SoIB.Latest.Range.Status)
   
   main_update <- left_join(main_toupdate, main_nat)
   
@@ -202,33 +202,33 @@ if (run_res_trends == TRUE) {
     modtrends5 = ltt_sens_class(modtrends5)
     
     sens_ltt <- main %>%
-      dplyr::select(eBird.English.Name.2023, SOIBv2.Long.Term.Status) %>%
+      dplyr::select(eBird.English.Name.2023, SoIB.Latest.Long.Term.Status) %>%
       # the modtrendsN files only have species for which we have run LTT
-      filter(!is.na(SOIBv2.Long.Term.Status),
-             SOIBv2.Long.Term.Status != "Insufficient Data") %>%
+      filter(!is.na(SoIB.Latest.Long.Term.Status),
+             SoIB.Latest.Long.Term.Status != "Insufficient Data") %>%
       rename(COMMON.NAME = eBird.English.Name.2023) %>%
       bind_rows(modtrends1, modtrends2, modtrends3, modtrends4, modtrends5) %>%
       group_by(COMMON.NAME) %>%
       # how many different status categories have been assigned?
-      reframe(NO.STATUS = n_distinct(SOIBv2.Long.Term.Status),
+      reframe(NO.STATUS = n_distinct(SoIB.Latest.Long.Term.Status),
               
               CONSERVATIVE.STATUS = case_when(
                 
                 NO.STATUS > 2 ~ "Trend Inconclusive",
                 
-                "Trend Inconclusive" %in% SOIBv2.Long.Term.Status ~ "Trend Inconclusive",
+                "Trend Inconclusive" %in% SoIB.Latest.Long.Term.Status ~ "Trend Inconclusive",
                 
                 NO.STATUS == 2 &
                   # if all Status assignments are either of the two increases
-                  ("Rapid Increase" %in% SOIBv2.Long.Term.Status &
-                     "Increase" %in% SOIBv2.Long.Term.Status) ~ "Increase",
+                  ("Rapid Increase" %in% SoIB.Latest.Long.Term.Status &
+                     "Increase" %in% SoIB.Latest.Long.Term.Status) ~ "Increase",
                 NO.STATUS == 2 &
                   # if all Status assignments are either of the two decreases
-                  ("Rapid Decline" %in% SOIBv2.Long.Term.Status &
-                     "Decline" %in% SOIBv2.Long.Term.Status) ~ "Decline",
+                  ("Rapid Decline" %in% SoIB.Latest.Long.Term.Status &
+                     "Decline" %in% SoIB.Latest.Long.Term.Status) ~ "Decline",
                 
                 NO.STATUS == 2 ~ "Trend Inconclusive",
-                TRUE ~ min(SOIBv2.Long.Term.Status)
+                TRUE ~ min(SoIB.Latest.Long.Term.Status)
                 
               )) %>%
       mutate(ROBUST = if_else(NO.STATUS == 1, 1, 0)) %>%
@@ -238,8 +238,8 @@ if (run_res_trends == TRUE) {
     main <- main %>%
       left_join(sens_ltt, by = c("eBird.English.Name.2023" = "COMMON.NAME")) %>%
       # if Status assignment is not robust, take the most conservative one
-      mutate(SOIBv2.Long.Term.Status = case_when(ROBUST == 0 ~ CONSERVATIVE.STATUS,
-                                                 TRUE ~ SOIBv2.Long.Term.Status)) %>%
+      mutate(SoIB.Latest.Long.Term.Status = case_when(ROBUST == 0 ~ CONSERVATIVE.STATUS,
+                                                 TRUE ~ SoIB.Latest.Long.Term.Status)) %>%
       dplyr::select(-CONSERVATIVE.STATUS, -ROBUST)
     
   } else {
@@ -263,7 +263,7 @@ if (run_res_trends == TRUE) {
       mutate(currentslopelci = .[[2 + (.x - 1) * 3]],
              currentslopemean = .[[3 + (.x - 1) * 3]],
              currentsloperci = .[[4 + (.x - 1) * 3]]) %>%
-      mutate(SOIBv2.Current.Status.Sens = case_when(
+      mutate(SoIB.Latest.Current.Status.Sens = case_when(
         
         is.na(currentslopemean) ~ "Insufficient Data",
         (currentsloperci - currentslopelci) > 6 ~ "Trend Inconclusive",
@@ -276,16 +276,16 @@ if (run_res_trends == TRUE) {
         TRUE ~ "Stable"
         
       )) %>%
-      dplyr::select(eBird.English.Name.2023, SOIBv2.Current.Status.Sens) %>%
+      dplyr::select(eBird.English.Name.2023, SoIB.Latest.Current.Status.Sens) %>%
       magrittr::set_colnames(c("eBird.English.Name.2023", glue("s{.x}")))
     
   }) %>%
     reduce(full_join)
   
   sens_cat <- main %>%
-    dplyr::select(eBird.English.Name.2023, SOIBv2.Current.Status) %>%
+    dplyr::select(eBird.English.Name.2023, SoIB.Latest.Current.Status) %>%
     left_join(sens_cat) %>%
-    filter(!SOIBv2.Current.Status %in% c("Insufficient Data", "Trend Inconclusive"))
+    filter(!SoIB.Latest.Current.Status %in% c("Insufficient Data", "Trend Inconclusive"))
   
   
   # creating empty vectors that will be filled with indices of species that fall
@@ -349,12 +349,12 @@ if (run_res_trends == TRUE) {
   
   main <- main %>%
     # changing classification where needed
-    mutate(SOIBv2.Current.Status = case_when(
+    mutate(SoIB.Latest.Current.Status = case_when(
       
       eBird.English.Name.2023 %in% spec_ind.rem ~ "Trend Inconclusive",
       eBird.English.Name.2023 %in% spec_ind6 ~ "Decline",
       eBird.English.Name.2023 %in% spec_ind7 ~ "Increase",
-      TRUE ~ SOIBv2.Current.Status
+      TRUE ~ SoIB.Latest.Current.Status
       
     ))
   
@@ -372,7 +372,7 @@ if (run_res_trends == TRUE) {
 # classification: converting all non-selected to NA -----------------------
 
 main <- main %>%
-  mutate(across(c(SOIBv2.Long.Term.Status, SOIBv2.Current.Status, SOIB.Range.Status),
+  mutate(across(c(SoIB.Latest.Long.Term.Status, SoIB.Latest.Current.Status, SoIB.Past.Range.Status),
                 ~ if_else(Selected.SOIB != "X", NA_character_, .)))
 
 # classification: assign SoIB Priority status (based on trends and occupancy) -----
@@ -397,36 +397,36 @@ cats_uncertain_soib1 <- c("Data Deficient", "Uncertain")
 
 main = main %>%
   left_join(priorityrules) %>%
-  mutate(SOIBv2.Priority.Status = as.character(SOIBv2.Priority.Status)) %>%
+  mutate(SoIB.Latest.Priority.Status = as.character(SoIB.Latest.Priority.Status)) %>%
   # changing priority rules based on IUCN category (which isn't considered in rules)
-  mutate(SOIBv2.Priority.Status = case_when(
+  mutate(SoIB.Latest.Priority.Status = case_when(
     
     IUCN.Category %in% c("Extinct in the Wild", "Extinct") ~ "Low",
     
-    SOIBv2.Long.Term.Status %in% cats_uncertain &
-      SOIBv2.Current.Status %in% cats_uncertain &
+    SoIB.Latest.Long.Term.Status %in% cats_uncertain &
+      SoIB.Latest.Current.Status %in% cats_uncertain &
       IUCN.Category %in% c("Endangered", "Critically Endangered") ~ "High",
     
-    SOIBv2.Long.Term.Status %in% cats_decline &
-      SOIBv2.Current.Status %in% cats_decline &
+    SoIB.Latest.Long.Term.Status %in% cats_decline &
+      SoIB.Latest.Current.Status %in% cats_decline &
       IUCN.Category %in% c("Endangered", "Critically Endangered") ~ "High",
     
-    SOIBv2.Long.Term.Status %in% cats_uncertain &
-      SOIBv2.Current.Status %in% cats_uncertain &
-      SOIBv2.Range.Status %in% cats_restricted &
+    SoIB.Latest.Long.Term.Status %in% cats_uncertain &
+      SoIB.Latest.Current.Status %in% cats_uncertain &
+      SoIB.Latest.Range.Status %in% cats_restricted &
       IUCN.Category %in% c("Vulnerable") ~ "High",
     
-    SOIBv2.Long.Term.Status %in% cats_uncertain &
-      SOIBv2.Current.Status %in% cats_uncertain &
+    SoIB.Latest.Long.Term.Status %in% cats_uncertain &
+      SoIB.Latest.Current.Status %in% cats_uncertain &
       IUCN.Category %in% c("Near Threatened", "Vulnerable") &
-      SOIBv2.Priority.Status == "Low" ~ "Moderate",
+      SoIB.Latest.Priority.Status == "Low" ~ "Moderate",
     
-    SOIBv2.Long.Term.Status == "Insufficient Data" &
-      SOIBv2.Current.Status == "Insufficient Data" &
+    SoIB.Latest.Long.Term.Status == "Insufficient Data" &
+      SoIB.Latest.Current.Status == "Insufficient Data" &
       Endemic.Region != "Non-endemic" &
-      SOIBv2.Priority.Status == "Low" ~ "Moderate",
+      SoIB.Latest.Priority.Status == "Low" ~ "Moderate",
     
-    TRUE ~ SOIBv2.Priority.Status
+    TRUE ~ SoIB.Latest.Priority.Status
     
   )) %>%
   # converting percentage-of-year1 to percentage-change
@@ -434,7 +434,7 @@ main = main %>%
                 ~ . - 100)) %>%
   # ensuring correct order of columns
   relocate(eBird.English.Name.2023, eBird.Scientific.Name.2023, eBird.Code, Order, Family,
-           SOIB.Concern.Status, SOIB.Long.Term.Status, SOIB.Current.Status, SOIB.Range.Status,
+           SoIB.Past.Priority.Status, SoIB.Past.Long.Term.Status, SoIB.Past.Current.Status, SoIB.Past.Range.Status,
            Breeding.Activity.Period, Non.Breeding.Activity.Period,
            Diet.Guild, India.Endemic, Subcontinent.Endemic, Himalayas.Endemic, Endemic.Region,
            Habitat.Specialization, Migratory.Status.Within.India, Essential, Discard,
@@ -449,16 +449,16 @@ main = main %>%
            longtermlci, longtermmean, longtermrci,
            currentslopelci, currentslopemean, currentsloperci,
            rangelci, rangemean, rangerci,
-           SOIBv2.Long.Term.Status, SOIBv2.Current.Status, SOIBv2.Range.Status,
-           SOIBv2.Priority.Status)
+           SoIB.Latest.Long.Term.Status, SoIB.Latest.Current.Status, SoIB.Latest.Range.Status,
+           SoIB.Latest.Priority.Status)
 
 main = main %>%
   mutate(
     Long.Term.Analysis = case_when(
-      SOIBv2.Long.Term.Status == "Insufficient Data" ~ "",
+      SoIB.Latest.Long.Term.Status == "Insufficient Data" ~ "",
       TRUE ~ Long.Term.Analysis),
     Current.Analysis = case_when(
-      SOIBv2.Current.Status == "Insufficient Data" ~ "",
+      SoIB.Latest.Current.Status == "Insufficient Data" ~ "",
       TRUE ~ Current.Analysis)
   )
 
@@ -471,19 +471,19 @@ nat_priority <- get_metadata("none")$SOIBMAIN.PATH %>%
   read.csv() %>% 
   # contains() because if running national for first time, column will have previous year, 
   # else current year
-  dplyr::select(contains("eBird.English.Name.20"), SOIBv2.Priority.Status)
+  dplyr::select(contains("eBird.English.Name.20"), SoIB.Latest.Priority.Status)
 
 main <- main %>% 
   # SoIB 2020 statuses not available for habs/states
   # SoIB 2023 range status not available for habs/states
-  mutate(across(c("SOIB.Concern.Status", "SOIB.Long.Term.Status","SOIB.Current.Status","SOIB.Range.Status",
-                  "SOIBv2.Range.Status"),
+  mutate(across(c("SoIB.Past.Priority.Status", "SoIB.Past.Long.Term.Status","SoIB.Past.Current.Status","SoIB.Past.Range.Status",
+                  "SoIB.Latest.Range.Status"),
                 ~ case_when(cur_mask != "none" ~ NA, TRUE ~ .))) %>% 
   # Priority Status for subnational levels should take the national-level values
   # but only if running latest year subnational AFTER latest year national run
   {if (as.numeric(str_remove(names(nat_priority)[1], "eBird.English.Name.")) == 
        soib_year_info("latest_year")) {
-    dplyr::select(., -SOIBv2.Priority.Status) %>% 
+    dplyr::select(., -SoIB.Latest.Priority.Status) %>% 
       left_join(nat_priority, by = "eBird.English.Name.2023") 
   } else {
     .
@@ -506,14 +506,16 @@ if (interannual_update == TRUE){
     
     # update to latest taxonomy and select category columns
     status_maj_upd = main_past %>%
-      dplyr::select(maj_upd_col, SOIBv2.Long.Term.Status, SOIBv2.Current.Status,
-                    SOIBv2.Range.Status, SOIBv2.Priority.Status) %>%
+      dplyr::select(maj_upd_col, SoIB.Latest.Long.Term.Status, SoIB.Latest.Current.Status,
+                    SoIB.Latest.Range.Status, SoIB.Latest.Priority.Status) %>%
       left_join(ebird_tax_mapping(), by = maj_upd_col) %>%
+      # SoIB.Latest to be updated to SoIB.Latest in the next annual update
+      # Need to raise an issue here as the main files can't be edited
       dplyr::select(eBird.English.Name.2023,
-                    SOIB.Major.Update.Long.Term.Status = SOIBv2.Long.Term.Status,
-                    SOIB.Major.Update.Current.Status = SOIBv2.Current.Status,
-                    SOIB.Major.Update.Range.Status = SOIBv2.Range.Status,
-                    SOIB.Major.Update.Priority.Status = SOIBv2.Priority.Status)
+                    SOIB.Major.Update.Long.Term.Status = SoIB.Latest.Long.Term.Status,
+                    SOIB.Major.Update.Current.Status = SoIB.Latest.Current.Status,
+                    SOIB.Major.Update.Range.Status = SoIB.Latest.Range.Status,
+                    SOIB.Major.Update.Priority.Status = SoIB.Latest.Priority.Status)
     
     # write latest major update file
     write.csv(status_maj_upd, file = main_past_path, row.names = FALSE)
@@ -521,13 +523,38 @@ if (interannual_update == TRUE){
   } else { # this would be for reruns during the same update cycle
     
     # read csv of maj upd statuses
-    status_maj_upd = read.csv(main_past_path)
+    status_maj_upd = read.csv(main_past_path) %>%
+      left_join(ebird_tax_mapping(), by = maj_upd_col) %>%
+      # to ensure that it's brought to the correct taxonomy in the following years
+      # eventually these column names will also need to be made year agnostic
+      dplyr::select(eBird.English.Name.2023)
 
   }
     
     # add to current main data, will order with the major update columns at the end
     main = main %>%
-      left_join(status_maj_upd, by = "eBird.English.Name.2023")
+      left_join(status_maj_upd, by = "eBird.English.Name.2023") %>%
+      # ensuring correct order of columns
+      relocate(eBird.English.Name.2023, eBird.Scientific.Name.2023, eBird.Code, Order, Family,
+               SoIB.Past.Priority.Status, SoIB.Past.Long.Term.Status, SoIB.Past.Current.Status, SoIB.Past.Range.Status,
+               Breeding.Activity.Period, Non.Breeding.Activity.Period,
+               Diet.Guild, India.Endemic, Subcontinent.Endemic, Himalayas.Endemic, Endemic.Region,
+               Habitat.Specialization, Migratory.Status.Within.India, Essential, Discard,
+               Restricted.Islands,
+               India.Checklist.Common.Name, India.Checklist.Scientific.Name,
+               BLI.Common.Name, BLI.Scientific.Name, IUCN.Category, WPA.Schedule,
+               CITES.Appendix, CMS.Appendix, Onepercent.Estimates,
+               Long.Term.Analysis, Current.Analysis, Selected.SOIB,
+               totalrange25km, proprange25km2000, proprange25km.current, proprange25km.latestyear,
+               mean5km, ci5km,
+               get_iucn_proj_cols(),
+               longtermlci, longtermmean, longtermrci,
+               currentslopelci, currentslopemean, currentsloperci,
+               rangelci, rangemean, rangerci,
+               SoIB.Latest.Long.Term.Status, SoIB.Latest.Current.Status, SoIB.Latest.Range.Status,
+               SoIB.Latest.Priority.Status,
+               SOIB.Major.Update.Long.Term.Status, SOIB.Major.Update.Current.Status,
+               SOIB.Major.Update.Range.Status, SOIB.Major.Update.Priority.Status)  
   
 }
 
@@ -540,7 +567,7 @@ write.csv(main, file = main_path, row.names = FALSE)
 
 # species qualifications
 species_qual0 <- main %>%
-  mutate(Range.Analysis = if_else(is.na(SOIBv2.Range.Status), "", "X")) %>%
+  mutate(Range.Analysis = if_else(is.na(SoIB.Latest.Range.Status), "", "X")) %>%
   summarise(across(c(Selected.SOIB, Long.Term.Analysis, Current.Analysis, Range.Analysis),
                    # adds up cases where condition is true
                    ~ sum(. == "X"))) %>% 
@@ -552,10 +579,10 @@ species_qual0 <- main %>%
 nspec_trend_inconc <- data.frame(Category = cats_trend) %>%
   magrittr::set_colnames("Trend Status") %>%
   left_join(main %>%
-              count(SOIBv2.Long.Term.Status) %>%
+              count(SoIB.Latest.Long.Term.Status) %>%
               magrittr::set_colnames(c("Trend Status", "Long-term species (no.)"))) %>%
   left_join(main %>%
-              count(SOIBv2.Current.Status) %>%
+              count(SoIB.Latest.Current.Status) %>%
               magrittr::set_colnames(c("Trend Status", "Current species (no.)"))) %>%
   filter(`Trend Status` == "Trend Inconclusive") %>%
   mutate(across(everything(), ~ replace_na(., 0)))
@@ -579,10 +606,10 @@ species_qual <- species_qual0 %>%
 status_trends = data.frame(Category = cats_trend) %>%
   magrittr::set_colnames("Trend Status") %>%
   left_join(main %>%
-              count(SOIBv2.Long.Term.Status) %>%
+              count(SoIB.Latest.Long.Term.Status) %>%
               magrittr::set_colnames(c("Trend Status", "Long-term species (no.)"))) %>%
   left_join(main %>%
-              count(SOIBv2.Current.Status) %>%
+              count(SoIB.Latest.Current.Status) %>%
               magrittr::set_colnames(c("Trend Status", "Current species (no.)"))) %>%
   mutate(across(everything(), ~ replace_na(., 0))) %>%
   # percentages
@@ -605,38 +632,38 @@ status_trends = data.frame(Category = cats_trend) %>%
 status_range <- data.frame(Category = cats_range) %>%
   magrittr::set_colnames("Range Status") %>%
   left_join(main %>%
-              count(SOIBv2.Range.Status) %>%
+              count(SoIB.Latest.Range.Status) %>%
               magrittr::set_colnames(c("Range Status", "Species (no.)"))) %>%
   mutate(across(everything(), ~ replace_na(., 0))) %>%
   mutate(`Species (perc.)` = round(100 * (`Species (no.)` / sum(`Species (no.)`)), 1)) %>%
   mutate(across(everything(), ~ replace(., is.nan(.), NA_real_)))
 
 status_priority <- main %>%
-  filter(!is.na(SOIBv2.Priority.Status)) %>% # count() counts NA also
-  mutate(SOIBv2.Priority.Status = factor(SOIBv2.Priority.Status,
+  filter(!is.na(SoIB.Latest.Priority.Status)) %>% # count() counts NA also
+  mutate(SoIB.Latest.Priority.Status = factor(SoIB.Latest.Priority.Status,
                                          levels = c("High", "Moderate", "Low"))) %>%
-  count(SOIBv2.Priority.Status) %>%
-  complete(SOIBv2.Priority.Status, fill = list(n = 0)) %>%
+  count(SoIB.Latest.Priority.Status) %>%
+  complete(SoIB.Latest.Priority.Status, fill = list(n = 0)) %>%
   magrittr::set_colnames(c("Priority Status", "No. of species"))
 
 
 # break-up of how SoIB 2023 High Priority species which were not High in 2020 were attained
 high_priority_breakup_new = main %>%
-  filter(SOIBv2.Priority.Status == "High",
-         SOIB.Concern.Status != "High" | is.na(SOIB.Concern.Status)) %>%
+  filter(SoIB.Latest.Priority.Status == "High",
+         SoIB.Past.Priority.Status != "High" | is.na(SoIB.Past.Priority.Status)) %>%
   transmute(Breakup = case_when(
     
     # we have conclusive trend this time, but last time was inconclusive or NA
-    (!SOIBv2.Long.Term.Status %in% cats_uncertain | !SOIBv2.Current.Status %in% cats_uncertain) &
-      (SOIB.Long.Term.Status %in% cats_uncertain_soib1 | is.na(SOIB.Long.Term.Status) |
-         SOIB.Current.Status %in% cats_uncertain_soib1 | is.na(SOIB.Current.Status)) ~ "Trend New",
+    (!SoIB.Latest.Long.Term.Status %in% cats_uncertain | !SoIB.Latest.Current.Status %in% cats_uncertain) &
+      (SoIB.Past.Long.Term.Status %in% cats_uncertain_soib1 | is.na(SoIB.Past.Long.Term.Status) |
+         SoIB.Past.Current.Status %in% cats_uncertain_soib1 | is.na(SoIB.Past.Current.Status)) ~ "Trend New",
     
     # had conclusive trends both times, but this time trend different
-    (!SOIBv2.Long.Term.Status %in% cats_uncertain | !SOIBv2.Current.Status %in% cats_uncertain) ~
+    (!SoIB.Latest.Long.Term.Status %in% cats_uncertain | !SoIB.Latest.Current.Status %in% cats_uncertain) ~
       "Trend Different",
     
     # if trends not different or new, assigned high priority based on range
-    SOIBv2.Range.Status == "Very Restricted" ~ "Range",
+    SoIB.Latest.Range.Status == "Very Restricted" ~ "Range",
     
     # if not even by range, then assigned high priority based on IUCN category
     TRUE ~ "IUCN"
@@ -650,20 +677,20 @@ high_priority_breakup_new = main %>%
 
 # break-up of how SoIB 2023 High Priority species were attained
 high_priority_breakup = main %>%
-  filter(SOIBv2.Priority.Status == "High") %>%
+  filter(SoIB.Latest.Priority.Status == "High") %>%
   transmute(Breakup = case_when(
     
     # we have conclusive trend this time, but last time was inconclusive or NA
-    (!SOIBv2.Long.Term.Status %in% cats_uncertain | !SOIBv2.Current.Status %in% cats_uncertain) &
-      (SOIB.Long.Term.Status %in% cats_uncertain_soib1 | is.na(SOIB.Long.Term.Status) |
-         SOIB.Current.Status %in% cats_uncertain_soib1 | is.na(SOIB.Current.Status)) ~ "Trend New",
+    (!SoIB.Latest.Long.Term.Status %in% cats_uncertain | !SoIB.Latest.Current.Status %in% cats_uncertain) &
+      (SoIB.Past.Long.Term.Status %in% cats_uncertain_soib1 | is.na(SoIB.Past.Long.Term.Status) |
+         SoIB.Past.Current.Status %in% cats_uncertain_soib1 | is.na(SoIB.Past.Current.Status)) ~ "Trend New",
     
     # had conclusive trends both times, but this time trend different
-    (!SOIBv2.Long.Term.Status %in% cats_uncertain | !SOIBv2.Current.Status %in% cats_uncertain) ~
+    (!SoIB.Latest.Long.Term.Status %in% cats_uncertain | !SoIB.Latest.Current.Status %in% cats_uncertain) ~
       "Trend Different",
     
     # if trends not different or new, assigned high priority based on range
-    SOIBv2.Range.Status == "Very Restricted" ~ "Range",
+    SoIB.Latest.Range.Status == "Very Restricted" ~ "Range",
     
     # if not even by range, then assigned high priority based on IUCN category
     TRUE ~ "IUCN"
@@ -682,38 +709,38 @@ if (cur_metadata$MASK.TYPE == "country") {
   
   # comparing two SoIBs
   SoIB1_SoIB2 = main %>%
-    filter(!is.na(SOIB.Concern.Status) & SOIB.Concern.Status != "") %>%
-    group_by(SOIB.Concern.Status) %>%
+    filter(!is.na(SoIB.Past.Priority.Status) & SoIB.Past.Priority.Status != "") %>%
+    group_by(SoIB.Past.Priority.Status) %>%
     mutate(n = n()) %>%
-    group_by(SOIB.Concern.Status, SOIBv2.Priority.Status) %>%
+    group_by(SoIB.Past.Priority.Status, SoIB.Latest.Priority.Status) %>%
     reframe(NO.SPEC = n(),
             PERC.SPEC = round(100 * (NO.SPEC / max(n)), 1)) %>%
-    magrittr::set_colnames(c("SOIB Concern Status", "SOIBv2 Priority Status",
+    magrittr::set_colnames(c("SOIB Concern Status", "SoIB.Latest Priority Status",
                              "Species (no.)", "Species (perc.)"))
   
   SoIB2_SoIB1 = main %>%
-    filter(!is.na(SOIBv2.Priority.Status) & SOIBv2.Priority.Status != "") %>%
-    group_by(SOIBv2.Priority.Status) %>%
+    filter(!is.na(SoIB.Latest.Priority.Status) & SoIB.Latest.Priority.Status != "") %>%
+    group_by(SoIB.Latest.Priority.Status) %>%
     mutate(n = n()) %>%
-    group_by(SOIBv2.Priority.Status, SOIB.Concern.Status) %>%
+    group_by(SoIB.Latest.Priority.Status, SoIB.Past.Priority.Status) %>%
     reframe(NO.SPEC = n(),
             PERC.SPEC = round(100 * (NO.SPEC / max(n)), 1)) %>%
-    magrittr::set_colnames(c("SOIBv2 Priority Status", "SOIB Concern Status",
+    magrittr::set_colnames(c("SoIB.Latest Priority Status", "SOIB Concern Status",
                              "Species (no.)", "Species (perc.)"))
   
   
   # cross-tab of SoIB and IUCN assessments
   SoIB_vs_IUCN_0 <- main %>%
     filter(Selected.SOIB == "X") %>%
-    mutate(SOIBv2.Priority.Status = factor(SOIBv2.Priority.Status,
+    mutate(SoIB.Latest.Priority.Status = factor(SoIB.Latest.Priority.Status,
                                            levels = c("High", "Moderate", "Low")),
            IUCN.Category = factor(IUCN.Category, levels = c(
              "Critically Endangered", "Endangered", "Vulnerable", "Near Threatened",
              "Least Concern", "Not Recognised"
            ))) %>%
-    group_by(SOIBv2.Priority.Status, IUCN.Category) %>%
+    group_by(SoIB.Latest.Priority.Status, IUCN.Category) %>%
     tally() %>%
-    pivot_wider(names_from = SOIBv2.Priority.Status, values_from = n) %>%
+    pivot_wider(names_from = SoIB.Latest.Priority.Status, values_from = n) %>%
     replace(is.na(.), 0) %>%
     magrittr::set_colnames(c(" ", "High", "Moderate", "Low"))
   
@@ -748,54 +775,54 @@ if (cur_metadata$MASK.TYPE == "country") {
   
   # reasons for uplisting or downlisting
   reason.uplist.high = main %>%
-    filter(SOIB.Concern.Status %in% c("Low", "Moderate"),
-           SOIBv2.Priority.Status == "High") %>%
+    filter(SoIB.Past.Priority.Status %in% c("Low", "Moderate"),
+           SoIB.Latest.Priority.Status == "High") %>%
     mutate(Breakup = case_when(
       
       # LTT and CAT were uncertain in 2020 but we have some trend now
-      ((!SOIBv2.Long.Term.Status %in% cats_uncertain | !SOIBv2.Current.Status %in% cats_uncertain) &
-         SOIB.Long.Term.Status %in% cats_uncertain_soib1 &
-         SOIB.Current.Status %in% cats_uncertain_soib1)  ~ "First-time trend",
+      ((!SoIB.Latest.Long.Term.Status %in% cats_uncertain | !SoIB.Latest.Current.Status %in% cats_uncertain) &
+         SoIB.Past.Long.Term.Status %in% cats_uncertain_soib1 &
+         SoIB.Past.Current.Status %in% cats_uncertain_soib1)  ~ "First-time trend",
       
       # stronger decline this time (LTT)
-      (SOIBv2.Long.Term.Status == "Rapid Decline" &
-         SOIB.Long.Term.Status %in% cats_trend_soib1[!cats_trend_soib1 == "Strong Decline" &
+      (SoIB.Latest.Long.Term.Status == "Rapid Decline" &
+         SoIB.Past.Long.Term.Status %in% cats_trend_soib1[!cats_trend_soib1 == "Strong Decline" &
                                                        !cats_trend_soib1 %in% cats_uncertain_soib1]) |
-        (SOIBv2.Long.Term.Status %in% cats_decline &
-           SOIB.Long.Term.Status %in% cats_trend_soib1[!cats_trend_soib1 %in% cats_decline_soib1 &
+        (SoIB.Latest.Long.Term.Status %in% cats_decline &
+           SoIB.Past.Long.Term.Status %in% cats_trend_soib1[!cats_trend_soib1 %in% cats_decline_soib1 &
                                                          !cats_trend_soib1 %in% cats_uncertain_soib1])
       ~ "More decline in LTT",
       
       # stronger decline this time (CAT)
-      (SOIBv2.Current.Status == "Rapid Decline" &
-         SOIB.Current.Status %in% cats_trend_soib1[!cats_trend_soib1 == "Strong Decline" &
+      (SoIB.Latest.Current.Status == "Rapid Decline" &
+         SoIB.Past.Current.Status %in% cats_trend_soib1[!cats_trend_soib1 == "Strong Decline" &
                                                      !cats_trend_soib1 %in% cats_uncertain_soib1]) |
-        (SOIBv2.Current.Status %in% cats_decline &
-           SOIB.Current.Status %in% cats_trend_soib1[!cats_trend_soib1 %in% cats_decline_soib1 &
+        (SoIB.Latest.Current.Status %in% cats_decline &
+           SoIB.Past.Current.Status %in% cats_trend_soib1[!cats_trend_soib1 %in% cats_decline_soib1 &
                                                        !cats_trend_soib1 %in% cats_uncertain_soib1])
       ~ "More decline in CAT",
       
       # first-time LTT & first-time CAT
-      (SOIB.Long.Term.Status %in% cats_uncertain_soib1 &
-         !SOIBv2.Long.Term.Status %in% cats_uncertain) ~ "First-time LTT",
-      (SOIB.Current.Status %in% cats_uncertain_soib1 &
-         !SOIBv2.Current.Status %in% cats_uncertain) ~ "First-time CAT",
+      (SoIB.Past.Long.Term.Status %in% cats_uncertain_soib1 &
+         !SoIB.Latest.Long.Term.Status %in% cats_uncertain) ~ "First-time LTT",
+      (SoIB.Past.Current.Status %in% cats_uncertain_soib1 &
+         !SoIB.Latest.Current.Status %in% cats_uncertain) ~ "First-time CAT",
       
       # both times, had at least one of two trends
-      (!SOIB.Long.Term.Status %in% cats_uncertain_soib1 |
-         !SOIB.Current.Status %in% cats_uncertain_soib1) &
-        (!SOIBv2.Long.Term.Status %in% cats_uncertain |
-           !SOIBv2.Current.Status %in% cats_uncertain)  ~ "Other changes in trends",
+      (!SoIB.Past.Long.Term.Status %in% cats_uncertain_soib1 |
+         !SoIB.Past.Current.Status %in% cats_uncertain_soib1) &
+        (!SoIB.Latest.Long.Term.Status %in% cats_uncertain |
+           !SoIB.Latest.Current.Status %in% cats_uncertain)  ~ "Other changes in trends",
       
       # earlier had at least one trend, but this time both trends uncertain
-      (!SOIB.Long.Term.Status %in% cats_uncertain_soib1 |
-         !SOIB.Current.Status %in% cats_uncertain_soib1) &
-        (SOIBv2.Long.Term.Status %in% cats_uncertain &
-           SOIBv2.Current.Status %in% cats_uncertain) ~ "Loss of trends",
+      (!SoIB.Past.Long.Term.Status %in% cats_uncertain_soib1 |
+         !SoIB.Past.Current.Status %in% cats_uncertain_soib1) &
+        (SoIB.Latest.Long.Term.Status %in% cats_uncertain &
+           SoIB.Latest.Current.Status %in% cats_uncertain) ~ "Loss of trends",
       
-      (SOIB.Range.Status == "Restricted" & SOIBv2.Range.Status == "Very Restricted") |
-        (SOIB.Range.Status == "Moderate" & SOIBv2.Range.Status == "Restricted") |
-        (SOIB.Range.Status == "Large" & SOIBv2.Range.Status == "Moderate") ~ "Reducing range",
+      (SoIB.Past.Range.Status == "Restricted" & SoIB.Latest.Range.Status == "Very Restricted") |
+        (SoIB.Past.Range.Status == "Moderate" & SoIB.Latest.Range.Status == "Restricted") |
+        (SoIB.Past.Range.Status == "Large" & SoIB.Latest.Range.Status == "Moderate") ~ "Reducing range",
       
       TRUE ~ "Others"
       
@@ -812,63 +839,63 @@ if (cur_metadata$MASK.TYPE == "country") {
   
   
   reason.downlist.high = main %>%
-    filter(SOIBv2.Priority.Status %in% c("Low", "Moderate"),
-           SOIB.Concern.Status == "High") %>%
+    filter(SoIB.Latest.Priority.Status %in% c("Low", "Moderate"),
+           SoIB.Past.Priority.Status == "High") %>%
     mutate(Breakup = case_when(
       
       # LTT and CAT were uncertain in 2020 but we have some trend now
-      ((!SOIBv2.Long.Term.Status %in% cats_uncertain | !SOIBv2.Current.Status %in% cats_uncertain) &
-         SOIB.Long.Term.Status %in% cats_uncertain_soib1 &
-         SOIB.Current.Status %in% cats_uncertain_soib1)  ~ "First-time trend",
+      ((!SoIB.Latest.Long.Term.Status %in% cats_uncertain | !SoIB.Latest.Current.Status %in% cats_uncertain) &
+         SoIB.Past.Long.Term.Status %in% cats_uncertain_soib1 &
+         SoIB.Past.Current.Status %in% cats_uncertain_soib1)  ~ "First-time trend",
       
       # weaker decline this time (LTT)
-      (SOIB.Long.Term.Status == "Strong Decline" &
-         SOIBv2.Long.Term.Status %in% cats_trend[!cats_trend == "Rapid Decline" &
+      (SoIB.Past.Long.Term.Status == "Strong Decline" &
+         SoIB.Latest.Long.Term.Status %in% cats_trend[!cats_trend == "Rapid Decline" &
                                                    !cats_trend %in% cats_uncertain]) |
-        (SOIB.Long.Term.Status %in% cats_decline_soib1 &
-           SOIBv2.Long.Term.Status %in% cats_trend[!cats_trend %in% cats_decline &
+        (SoIB.Past.Long.Term.Status %in% cats_decline_soib1 &
+           SoIB.Latest.Long.Term.Status %in% cats_trend[!cats_trend %in% cats_decline &
                                                      !cats_trend %in% cats_uncertain]) |
-        (SOIB.Long.Term.Status %in% c(cats_decline_soib1, "Stable") &
-           SOIBv2.Long.Term.Status %in% c("Increase", "Rapid Increase")) |
-        (SOIB.Long.Term.Status %in% c(cats_decline_soib1, "Stable", "Moderate Increase") &
-           SOIBv2.Long.Term.Status == "Rapid Increase")
+        (SoIB.Past.Long.Term.Status %in% c(cats_decline_soib1, "Stable") &
+           SoIB.Latest.Long.Term.Status %in% c("Increase", "Rapid Increase")) |
+        (SoIB.Past.Long.Term.Status %in% c(cats_decline_soib1, "Stable", "Moderate Increase") &
+           SoIB.Latest.Long.Term.Status == "Rapid Increase")
       ~ "Less decline in LTT",
       
       # stronger decline this time (CAT)
-      (SOIB.Current.Status == "Strong Decline" &
-         SOIBv2.Current.Status %in% cats_trend[!cats_trend == "Rapid Decline" &
+      (SoIB.Past.Current.Status == "Strong Decline" &
+         SoIB.Latest.Current.Status %in% cats_trend[!cats_trend == "Rapid Decline" &
                                                  !cats_trend %in% cats_uncertain]) |
-        (SOIB.Current.Status %in% cats_decline_soib1 &
-           SOIBv2.Current.Status %in% cats_trend[!cats_trend %in% cats_decline &
+        (SoIB.Past.Current.Status %in% cats_decline_soib1 &
+           SoIB.Latest.Current.Status %in% cats_trend[!cats_trend %in% cats_decline &
                                                    !cats_trend %in% cats_uncertain]) |
-        (SOIB.Current.Status %in% c(cats_decline_soib1, "Stable") &
-           SOIBv2.Current.Status %in% c("Increase", "Rapid Increase")) |
-        (SOIB.Current.Status %in% c(cats_decline_soib1, "Stable", "Moderate Increase") &
-           SOIBv2.Current.Status == "Rapid Increase")
+        (SoIB.Past.Current.Status %in% c(cats_decline_soib1, "Stable") &
+           SoIB.Latest.Current.Status %in% c("Increase", "Rapid Increase")) |
+        (SoIB.Past.Current.Status %in% c(cats_decline_soib1, "Stable", "Moderate Increase") &
+           SoIB.Latest.Current.Status == "Rapid Increase")
       ~ "Less decline in CAT",
       
       # first-time LTT & first-time CAT
-      (SOIB.Long.Term.Status %in% cats_uncertain_soib1 &
-         !SOIBv2.Long.Term.Status %in% cats_uncertain) ~ "First-time LTT",
-      (SOIB.Current.Status %in% cats_uncertain_soib1 &
-         !SOIBv2.Current.Status %in% cats_uncertain) ~ "First-time CAT",
+      (SoIB.Past.Long.Term.Status %in% cats_uncertain_soib1 &
+         !SoIB.Latest.Long.Term.Status %in% cats_uncertain) ~ "First-time LTT",
+      (SoIB.Past.Current.Status %in% cats_uncertain_soib1 &
+         !SoIB.Latest.Current.Status %in% cats_uncertain) ~ "First-time CAT",
       
       # both times, had at least one of two trends
-      (!SOIB.Long.Term.Status %in% cats_uncertain_soib1 |
-         !SOIB.Current.Status %in% cats_uncertain_soib1) &
-        (!SOIBv2.Long.Term.Status %in% cats_uncertain |
-           !SOIBv2.Current.Status %in% cats_uncertain)  ~ "Other changes in trends",
+      (!SoIB.Past.Long.Term.Status %in% cats_uncertain_soib1 |
+         !SoIB.Past.Current.Status %in% cats_uncertain_soib1) &
+        (!SoIB.Latest.Long.Term.Status %in% cats_uncertain |
+           !SoIB.Latest.Current.Status %in% cats_uncertain)  ~ "Other changes in trends",
       
       # earlier had at least one trend, but this time both trends uncertain
-      (!SOIB.Long.Term.Status %in% cats_uncertain_soib1 |
-         !SOIB.Current.Status %in% cats_uncertain_soib1) &
-        (SOIBv2.Long.Term.Status %in% cats_uncertain &
-           SOIBv2.Current.Status %in% cats_uncertain) ~ "Loss of trends",
+      (!SoIB.Past.Long.Term.Status %in% cats_uncertain_soib1 |
+         !SoIB.Past.Current.Status %in% cats_uncertain_soib1) &
+        (SoIB.Latest.Long.Term.Status %in% cats_uncertain &
+           SoIB.Latest.Current.Status %in% cats_uncertain) ~ "Loss of trends",
       
-      (SOIBv2.Range.Status == "Restricted" & SOIB.Range.Status == "Very Restricted") |
-        (SOIBv2.Range.Status == "Moderate" & SOIB.Range.Status == "Restricted") |
-        (SOIBv2.Range.Status == "Large" & SOIB.Range.Status == "Moderate") |
-        (SOIBv2.Range.Status == "Very Large" & SOIB.Range.Status == "Large") ~ "Increasing range",
+      (SoIB.Latest.Range.Status == "Restricted" & SoIB.Past.Range.Status == "Very Restricted") |
+        (SoIB.Latest.Range.Status == "Moderate" & SoIB.Past.Range.Status == "Restricted") |
+        (SoIB.Latest.Range.Status == "Large" & SoIB.Past.Range.Status == "Moderate") |
+        (SoIB.Latest.Range.Status == "Very Large" & SoIB.Past.Range.Status == "Large") ~ "Increasing range",
       
       TRUE ~ "Others"
       

@@ -44,8 +44,8 @@ soib <- soib %>% select ("India.Checklist.Common.Name",
                          "proj2029.lci",
                          "proj2029.mean",
                          "proj2029.rci",
-                         "SOIBv2.Current.Status",
-                         "SOIBv2.Priority.Status")
+                         "SoIB.Latest.Current.Status",
+                         "SoIB.Latest.Priority.Status")
                          
                          
 ###################################################################
@@ -60,7 +60,7 @@ species <- soib %>%
     currentsloperci < 0, # Declining rci, which is used as a bound in redlisting
     mean5km > 8, # Atleast 1/3rd of a grid covered on an average
     1.96 * abs(currentslopemean) > abs(currentsloperci-currentslopelci), 
-    (SOIBv2.Current.Status %in% c("Stable", "Decline", "Rapid Decline"))
+    (SoIB.Latest.Current.Status %in% c("Stable", "Decline", "Rapid Decline"))
   ) %>%            
   select('India.Checklist.Common.Name', 'BLI.Scientific.Name') %>%
   as.data.frame()
@@ -123,8 +123,8 @@ redlist <- soib %>%
                                 "mean5km",
                                 "longtermmean",
                                 "currentslopemean",
-                                "SOIBv2.Current.Status",
-                                "SOIBv2.Priority.Status",
+                                "SoIB.Latest.Current.Status",
+                                "SoIB.Latest.Priority.Status",
                                 "GEN",
                                 "projected_mean_decline",
                                 "redlist_category",

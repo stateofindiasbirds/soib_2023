@@ -114,14 +114,14 @@ key_habitats$Habitat.Specialization = factor(key_habitats$Habitat.Specialization
 # important districts
 
 main_priority = main %>%
-  dplyr::select(eBird.English.Name.2023,SOIBv2.Priority.Status) %>%
+  dplyr::select(eBird.English.Name.2023,SoIB.Latest.Priority.Status) %>%
   rename(COMMON.NAME = eBird.English.Name.2023)
 
 top_districts = data0 %>%
   filter(!is.na(DISTRICT)) %>%
   left_join(main_priority) %>%
-  dplyr::select(ST_NM,DISTRICT,COMMON.NAME,SOIBv2.Priority.Status) %>%
-  filter(SOIBv2.Priority.Status == "High") %>%
+  dplyr::select(ST_NM,DISTRICT,COMMON.NAME,SoIB.Latest.Priority.Status) %>%
+  filter(SoIB.Latest.Priority.Status == "High") %>%
   group_by(ST_NM,DISTRICT) %>%
   reframe(n.high = n_distinct(COMMON.NAME)) %>%
   group_by(ST_NM) %>% arrange(desc(n.high)) %>% slice(1:3)
@@ -245,15 +245,15 @@ for (i in analyses_metadata$MASK)
                                             fp_p = par_style1))
     SoIB_state_summary = body_add_par(SoIB_state_summary, 
                                       paste("Long-term Trend = ",
-                                            main$SOIBv2.Long.Term.Status[main$eBird.English.Name.2023 == st_bird], sep = ""), 
+                                            main$SoIB.Latest.Long.Term.Status[main$eBird.English.Name.2023 == st_bird], sep = ""), 
                                       style = "Normal")
     SoIB_state_summary = body_add_par(SoIB_state_summary, 
                                       paste("Current Trend = ",
-                                            main$SOIBv2.Current.Status[main$eBird.English.Name.2023 == st_bird], sep = ""), 
+                                            main$SoIB.Latest.Current.Status[main$eBird.English.Name.2023 == st_bird], sep = ""), 
                                       style = "Normal")
     SoIB_state_summary = body_add_par(SoIB_state_summary, 
                                       paste("National Conservation Priority = ",
-                                            main$SOIBv2.Priority.Status[main$eBird.English.Name.2023 == st_bird], sep = ""), 
+                                            main$SoIB.Latest.Priority.Status[main$eBird.English.Name.2023 == st_bird], sep = ""), 
                                       style = "Normal")
     SoIB_state_summary = body_add_par(SoIB_state_summary, 
                                       paste("IUCN = ",
@@ -270,11 +270,11 @@ for (i in analyses_metadata$MASK)
                                             fp_p = par_style1))
     SoIB_state_summary = body_add_par(SoIB_state_summary, 
                                       paste("Long-term Trend = ",
-                                            st_main$SOIBv2.Long.Term.Status[st_main$eBird.English.Name.2023 == st_bird], sep = ""), 
+                                            st_main$SoIB.Latest.Long.Term.Status[st_main$eBird.English.Name.2023 == st_bird], sep = ""), 
                                       style = "Normal")
     SoIB_state_summary = body_add_par(SoIB_state_summary, 
                                       paste("Current Trend = ",
-                                            st_main$SOIBv2.Current.Status[st_main$eBird.English.Name.2023 == st_bird], sep = ""), 
+                                            st_main$SoIB.Latest.Current.Status[st_main$eBird.English.Name.2023 == st_bird], sep = ""), 
                                       style = "Normal")
     
     SoIB_state_summary = body_add_fpar(SoIB_state_summary, 
@@ -347,15 +347,15 @@ for (i in analyses_metadata$MASK)
     
   ltt = st_main %>%
     filter(eBird.English.Name.2022 %in% st_inc_list) %>%
-    group_by(SOIBv2.Long.Term.Status) %>% 
+    group_by(SoIB.Latest.Long.Term.Status) %>% 
     reframe('Long-term' = n()) %>%
-    rename('Trend Status' = SOIBv2.Long.Term.Status)
+    rename('Trend Status' = SoIB.Latest.Long.Term.Status)
   
   cat = st_main %>%
     filter(eBird.English.Name.2022 %in% st_inc_list) %>%
-    group_by(SOIBv2.Current.Status) %>% 
+    group_by(SoIB.Latest.Current.Status) %>% 
     reframe('Current Annual' = n()) %>%
-    rename('Trend Status' = SOIBv2.Current.Status)
+    rename('Trend Status' = SoIB.Latest.Current.Status)
   
   trend_summary = trend_cats %>%
     left_join(ltt) %>%
