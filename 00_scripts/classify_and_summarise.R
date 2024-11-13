@@ -71,7 +71,7 @@ if (!cur_metadata$MASK.TYPE %in% c("country", "state")) {
 if (skip_res_occu == TRUE) {
   
   # take relevant columns from wocats file of full-country
-  tojoin <- read.csv("01_analyses_full/results/SoIB_main_wocats.csv") %>%
+  tojoin <- get_metadata("none")$SOIBMAIN.WOCATS.PATH %>%
     distinct(eBird.English.Name.2023, rangelci, rangemean, rangerci)
   
   # joining to main object
@@ -445,10 +445,7 @@ main = main %>%
            Long.Term.Analysis, Current.Analysis, Selected.SOIB,
            totalrange25km, proprange25km2000, proprange25km.current, proprange25km.latestyear,
            mean5km, ci5km,
-           proj2023.lci, proj2023.mean, proj2023.rci, proj2024.lci, proj2024.mean, proj2024.rci,
-           proj2025.lci, proj2025.mean, proj2025.rci, proj2026.lci, proj2026.mean, proj2026.rci,
-           proj2027.lci, proj2027.mean, proj2027.rci, proj2028.lci, proj2028.mean, proj2028.rci,
-           proj2029.lci, proj2029.mean, proj2029.rci,
+           get_iucn_proj_cols(),
            longtermlci, longtermmean, longtermrci,
            currentslopelci, currentslopemean, currentsloperci,
            rangelci, rangemean, rangerci,
@@ -466,15 +463,31 @@ main = main %>%
   )
 
 
-# removing Status assignments where not applicable
+# removing/changing Status assignments where not applicable
+
+# get mapping of national-level species with their Priority Status categories 
+# from resolved & classified file of full-country
+nat_priority <- get_metadata("none")$SOIBMAIN.PATH %>% 
+  read.csv() %>% 
+  # contains() because if running national for first time, column will have previous year, 
+  # else current year
+  dplyr::select(contains("eBird.English.Name.20"), SOIBv2.Priority.Status)
 
 main <- main %>% 
   # SoIB 2020 statuses not available for habs/states
   # SoIB 2023 range status not available for habs/states
-  mutate(across(c("SOIB.Concern.Status",
-                  "SOIB.Long.Term.Status","SOIB.Current.Status","SOIB.Range.Status",
+  mutate(across(c("SOIB.Concern.Status", "SOIB.Long.Term.Status","SOIB.Current.Status","SOIB.Range.Status",
                   "SOIBv2.Range.Status"),
-                ~ case_when(cur_mask != "none" ~ NA, TRUE ~ .))) 
+                ~ case_when(cur_mask != "none" ~ NA, TRUE ~ .))) %>% 
+  # Priority Status for subnational levels should take the national-level values
+  # but only if running latest year subnational AFTER latest year national run
+  {if (as.numeric(str_remove(names(nat_priority)[1], "eBird.English.Name.")) == 
+       soib_year_info("latest_year")) {
+    dplyr::select(., -SOIBv2.Priority.Status) %>% 
+      left_join(nat_priority, by = "eBird.English.Name.2023") 
+  } else {
+    .
+  }} 
 
 # retaining categories from major update (only for interannual updates)
 

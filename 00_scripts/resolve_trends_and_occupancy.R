@@ -103,13 +103,7 @@ if (run_res_trends == FALSE) {
   # list of columns that need to be created since we have skipped steps
   na_columns <- c("longtermlci", "longtermmean", "longtermrci",     
                   "currentslopelci", "currentslopemean", "currentsloperci", 
-                  "proj2023.lci", "proj2023.mean", "proj2023.rci",    
-                  "proj2024.lci", "proj2024.mean", "proj2024.rci",    
-                  "proj2025.lci", "proj2025.mean", "proj2025.rci",    
-                  "proj2026.lci", "proj2026.mean", "proj2026.rci",    
-                  "proj2027.lci", "proj2027.mean", "proj2027.rci",    
-                  "proj2028.lci", "proj2028.mean", "proj2028.rci",    
-                  "proj2029.lci", "proj2029.mean", "proj2029.rci")
+                  get_iucn_proj_cols())
   
   base = read.csv(base_path) %>% 
     # if full column has no X at all, gets read as NAs
@@ -362,7 +356,7 @@ if (run_res_trends == FALSE) {
   
   
   # Years to project for PJ's IUCN comparison
-  extra.years = seq(soib_year_info("latest_year"), length.out = 7) + 1
+  extra.years = soib_year_info("iucn_projection")
   
   trends = trends %>%
     group_by(COMMON.NAME, timegroupsf, timegroups) %>% 
@@ -891,9 +885,32 @@ if (run_res_trends == FALSE) {
              lci_std_recent, mean_std_recent, rci_std_recent,
              lci_ext_std, mean_ext_std, rci_ext_std,
              lci_comb_std, mean_comb_std, rci_comb_std)
-
+  
+  
+  # in an interannual update, we want to rename the old trends.csv
+  # to archive it for future/downstream use while latest will be saved as trends.csv
+  
+  if (interannual_update == TRUE) {
+    
+    trends_cur_end_year <- trends %>% 
+      filter(!is.na(mean)) %>% # future year rows will have values in some cols but not "mean"
+      distinct(timegroups) %>% 
+      max()
+    trends_prev_end_year <- read.csv(trends_outpath) %>% 
+      filter(!is.na(mean)) %>% # future year rows will have values in some cols but not "mean"
+      distinct(timegroups) %>% 
+      max()
+    
+    # rename old trends file
+    if (trends_cur_end_year != trends_prev_end_year) {
+      trends_outpath_old <- glue("{str_remove(trends_outpath, '.csv')}_MY{trends_prev_end_year}.csv")
+      file.rename(trends_outpath, trends_outpath_old)
+    }
+    
+  }
+  
+  # save current trends to file
   write.csv(trends, file = trends_outpath, row.names = F)
-
 
 
   # joining future projected trends to main dataframe ###
