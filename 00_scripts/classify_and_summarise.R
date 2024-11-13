@@ -476,6 +476,44 @@ main <- main %>%
                   "SOIBv2.Range.Status"),
                 ~ case_when(cur_mask != "none" ~ NA, TRUE ~ .))) 
 
+# retaining categories from major update (only for interannual updates)
+
+update_file_name = "SoIB_main_status_majupd.csv"
+
+if (interannual_update == TRUE){
+  if (!file.exists(update_file_name)) {
+    # filter for 4 cols and write csv with this file name
+    main_past = read.csv(main_path)
+    
+    # update to 2023 taxonomy and select category columns
+    updatetaxmap = updatemap()
+    SoIB_main_status_majupd = main_past %>%
+      dplyr::select(eBird.English.Name.2022,SOIBv2.Long.Term.Status,SOIBv2.Current.Status,
+                    SOIBv2.Range.Status,SOIBv2.Priority.Status) %>%
+      left_join(updatetaxmap) %>%
+      dplyr::select(eBird.English.Name.2023,
+                    SOIB.Major.Update.Long.Term.Status = SOIBv2.Long.Term.Status,
+                    SOIB.Major.Update.Current.Status = SOIBv2.Current.Status,
+                    SOIB.Major.Update.Range.Status = SOIBv2.Range.Status,
+                    SOIB.Major.Update.Priority.Status = SOIBv2.Priority.Status)
+    
+    # write update file
+    write.csv(SoIB_main_status_majupd, file = update_file_name, row.names = F)
+    
+    # add major update info to main, will order with the major update columns at the end
+    main = main %>%
+      left_join(SoIB_main_status_majupd)
+      
+  } else { # this would be for reruns during the same update cycle
+    # read csv of maj upd statuses
+    SoIB_main_status_majupd = read.csv(update_file_name)
+    
+    # add major update info to main, will order with the major update columns at the end
+    main = main %>%
+      left_join(SoIB_main_status_majupd)
+  }
+}
+
 write.csv(main, file = main_path, row.names = F)
 
 
