@@ -40,9 +40,9 @@ if (plot_type == "single_mask") {
     filter(eBird.English.Name.2022 %in% cur_spec,
            MASK == "none") %>% 
     {if (cur_trend == "LTT") {
-      pull(., SoIB.Latest.Long.Term.Status)
+      pull(., SOIBv2.Long.Term.Status)
     } else if (cur_trend == "CAT") {
-      pull(., SoIB.Latest.Current.Status)
+      pull(., SOIBv2.Current.Status)
     }}
   
 }
