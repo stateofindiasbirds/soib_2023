@@ -494,67 +494,58 @@ main <- main %>%
 
 if (interannual_update == TRUE){
 
-  main_past_file = "SoIB_main_status_majupd.csv" # file to move past data to
+  status_majupd_file = "SoIB_main_status_majupd.csv" # file to move past data to
   # (if a new major update being run, it will be a different repo altogether
   # so the if conditional will work anyway)
-  main_past_path <- glue("{get_metadata(cur_mask)$RESULTS}{main_past_file}")
+  status_majupd_path <- glue("{get_metadata(cur_mask)$RESULTS}{status_majupd_file}")
   
-  if (!file.exists(main_past_path)) { # filter for the 4 cols and write csv 
-    
-    main_past = read.csv(main_path)
-    maj_upd_col <- "eBird.English.Name.2022"
+  main_past = read.csv(main_path)
+  main_past_spec_col <- names(main_past)[1]
+  
+  if (!file.exists(status_majupd_path)) { # for the 1st interannual update in one major update cycle
+
+    # filter for the 4 major update status columns and save as csv
     
     # update to latest taxonomy and select category columns
     status_maj_upd = main_past %>%
-      dplyr::select(maj_upd_col, SoIB.Latest.Long.Term.Status, SoIB.Latest.Current.Status,
-                    SoIB.Latest.Range.Status, SoIB.Latest.Priority.Status) %>%
-      left_join(ebird_tax_mapping(), by = maj_upd_col) %>%
-      # SoIB.Latest to be updated to SoIB.Latest in the next annual update
+      dplyr::select(main_past_spec_col, SOIBv2.Long.Term.Status, SOIBv2.Current.Status,
+                    SOIBv2.Range.Status, SOIBv2.Priority.Status) %>%
+      left_join(ebird_tax_mapping(), by = main_past_spec_col) %>%
+      # SOIB.v2 to be updated to SoIB.Latest in the next annual update
       # Need to raise an issue here as the main files can't be edited
       dplyr::select(eBird.English.Name.2023,
-                    SoIB.Major.Update.Long.Term.Status = SoIB.Latest.Long.Term.Status,
-                    SoIB.Major.Update.Current.Status = SoIB.Latest.Current.Status,
-                    SoIB.Major.Update.Range.Status = SoIB.Latest.Range.Status,
-                    SoIB.Major.Update.Priority.Status = SoIB.Latest.Priority.Status)
+                    SoIB.Major.Update.Long.Term.Status = SOIBv2.Long.Term.Status,
+                    SoIB.Major.Update.Current.Status = SOIBv2.Current.Status,
+                    SoIB.Major.Update.Range.Status = SOIBv2.Range.Status,
+                    SoIB.Major.Update.Priority.Status = SOIBv2.Priority.Status)
     
     # write latest major update file
-    write.csv(status_maj_upd, file = main_past_path, row.names = FALSE)
-      
-  } else { # this would be for reruns during the same update cycle
+    write.csv(status_maj_upd, file = status_majupd_path, row.names = FALSE)
+    
+  } else { 
+    
+    # this would be for reruns during the same update cycle, or
+    # for later interannual updates during the same major update cycle
     
     # read csv of maj upd statuses
-    status_maj_upd = read.csv(main_past_path) %>%
-      left_join(ebird_tax_mapping(), by = maj_upd_col) %>%
+    status_maj_upd = read.csv(status_majupd_path)
+    
+    if (file.exists(status_majupd_path) & (names(main)[1] != main_past_spec_col)) {
       # to ensure that it's brought to the correct taxonomy in the following years
-      # eventually these column names will also need to be made year agnostic
-      dplyr::select(eBird.English.Name.2023)
+      status_maj_upd <- status_maj_upd %>%
+        left_join(ebird_tax_mapping(), by = main_past_spec_col) %>% 
+        dplyr::select(names(main)[1], starts_with("SoIB.Major.Update"))
+    }
 
   }
     
-    # add to current main data, will order with the major update columns at the end
+    # add to current main data, order with the major update columns at the end
     main = main %>%
       left_join(status_maj_upd, by = "eBird.English.Name.2023") %>%
       # ensuring correct order of columns
-      relocate(eBird.English.Name.2023, eBird.Scientific.Name.2023, eBird.Code, Order, Family,
-               SoIB.Past.Priority.Status, SoIB.Past.Long.Term.Status, SoIB.Past.Current.Status, SoIB.Past.Range.Status,
-               Breeding.Activity.Period, Non.Breeding.Activity.Period,
-               Diet.Guild, India.Endemic, Subcontinent.Endemic, Himalayas.Endemic, Endemic.Region,
-               Habitat.Specialization, Migratory.Status.Within.India, Essential, Discard,
-               Restricted.Islands,
-               India.Checklist.Common.Name, India.Checklist.Scientific.Name,
-               BLI.Common.Name, BLI.Scientific.Name, IUCN.Category, WPA.Schedule,
-               CITES.Appendix, CMS.Appendix, Onepercent.Estimates,
-               Long.Term.Analysis, Current.Analysis, Selected.SoIB,
-               totalrange25km, proprange25km2000, proprange25km.current, proprange25km.latestyear,
-               mean5km, ci5km,
-               get_iucn_proj_cols(),
-               longtermlci, longtermmean, longtermrci,
-               currentslopelci, currentslopemean, currentsloperci,
-               rangelci, rangemean, rangerci,
-               SoIB.Latest.Long.Term.Status, SoIB.Latest.Current.Status, SoIB.Latest.Range.Status,
-               SoIB.Latest.Priority.Status,
-               SoIB.Major.Update.Long.Term.Status, SoIB.Major.Update.Current.Status,
-               SoIB.Major.Update.Range.Status, SoIB.Major.Update.Priority.Status)  
+      relocate(SoIB.Major.Update.Long.Term.Status, SoIB.Major.Update.Current.Status,
+               SoIB.Major.Update.Range.Status, SoIB.Major.Update.Priority.Status,
+               .after = last_col()) 
   
 }
 
@@ -715,7 +706,7 @@ if (cur_metadata$MASK.TYPE == "country") {
     group_by(SoIB.Past.Priority.Status, SoIB.Latest.Priority.Status) %>%
     reframe(NO.SPEC = n(),
             PERC.SPEC = round(100 * (NO.SPEC / max(n)), 1)) %>%
-    magrittr::set_colnames(c("SoIB Concern Status", "SoIB Latest Priority Status",
+    magrittr::set_colnames(c("SoIB Past Priority Status", "SoIB Latest Priority Status",
                              "Species (no.)", "Species (perc.)"))
   
   SoIB2_SoIB1 = main %>%
@@ -725,7 +716,7 @@ if (cur_metadata$MASK.TYPE == "country") {
     group_by(SoIB.Latest.Priority.Status, SoIB.Past.Priority.Status) %>%
     reframe(NO.SPEC = n(),
             PERC.SPEC = round(100 * (NO.SPEC / max(n)), 1)) %>%
-    magrittr::set_colnames(c("SoIB Latest Priority Status", "SoIB Concern Status",
+    magrittr::set_colnames(c("SoIB Latest Priority Status", "SoIB Past Priority Status",
                              "Species (no.)", "Species (perc.)"))
   
   
