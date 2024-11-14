@@ -617,170 +617,44 @@ if (run_res_trends == FALSE) {
       group_by(COMMON.NAME, sim) %>%
       group_modify(~ {
         
-        modelfit <- lm(val_sample ~ timegroups,
-                       # one year dropped
-                       data = .x[.x$timegroups != soib_year_info("cat_years")[1],])
+        temp_df <- .x # to refer inside the second purrr function below
         
-        pred <- predict(modelfit, se = TRUE,
-                        # one year dropped
-                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != soib_year_info("cat_years")[1]]))
-        
-        num <- pred$fit[2] - pred$fit[1]
-        den <- abs(pred$fit[1])
-        numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
-        dense <- pred$se.fit[1]
-        
-        sl1 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
-        slse1 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
-        
-        
-        modelfit <- lm(val_sample ~ timegroups,
-                       # one year dropped
-                       data = .x[.x$timegroups != soib_year_info("cat_years")[2],])
-        
-        pred <- predict(modelfit, se = TRUE,
-                        # one year dropped
-                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != soib_year_info("cat_years")[2]]))
-        
-        num <- pred$fit[2] - pred$fit[1]
-        den <- abs(pred$fit[1])
-        numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
-        dense <- pred$se.fit[1]
-        
-        sl2 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
-        slse2 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
-        
-        
-        modelfit <- lm(val_sample ~ timegroups,
-                       # one year dropped
-                       data = .x[.x$timegroups != soib_year_info("cat_years")[3],])
-        
-        pred <- predict(modelfit, se = TRUE,
-                        # one year dropped
-                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != soib_year_info("cat_years")[3]]))
-        
-        num <- pred$fit[2] - pred$fit[1]
-        den <- abs(pred$fit[1])
-        numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
-        dense <- pred$se.fit[1]
-        
-        sl3 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
-        slse3 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
-        
-        
-        modelfit <- lm(val_sample ~ timegroups,
-                       # one year dropped
-                       data = .x[.x$timegroups != soib_year_info("cat_years")[4],])
-        
-        pred <- predict(modelfit, se = TRUE,
-                        # one year dropped
-                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != soib_year_info("cat_years")[4]]))
-        
-        num <- pred$fit[2] - pred$fit[1]
-        den <- abs(pred$fit[1])
-        numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
-        dense <- pred$se.fit[1]
-        
-        sl4 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
-        slse4 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
-        
-        
-        modelfit <- lm(val_sample ~ timegroups,
-                       # one year dropped
-                       data = .x[.x$timegroups != soib_year_info("cat_years")[5],])
-        
-        pred <- predict(modelfit, se = TRUE,
-                        # one year dropped
-                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != soib_year_info("cat_years")[5]]))
-        
-        num <- pred$fit[2] - pred$fit[1]
-        den <- abs(pred$fit[1])
-        numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
-        dense <- pred$se.fit[1]
-        
-        sl5 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
-        slse5 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
-        
-        
-        modelfit <- lm(val_sample ~ timegroups,
-                       # one year dropped
-                       data = .x[.x$timegroups != soib_year_info("cat_years")[6],])
-        
-        pred <- predict(modelfit, se = TRUE,
-                        # one year dropped
-                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != soib_year_info("cat_years")[6]]))
-        
-        num <- pred$fit[2] - pred$fit[1]
-        den <- abs(pred$fit[1])
-        numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
-        dense <- pred$se.fit[1]
-        
-        sl6 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
-        slse6 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
-        
-        
-        modelfit <- lm(val_sample ~ timegroups,
-                       # one year dropped
-                       data = .x[.x$timegroups != soib_year_info("cat_years")[7],])
-        
-        pred <- predict(modelfit, se = TRUE,
-                        # one year dropped
-                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != soib_year_info("cat_years")[7]]))
-        
-        num <- pred$fit[2] - pred$fit[1]
-        den <- abs(pred$fit[1])
-        numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
-        dense <- pred$se.fit[1]
-        
-        sl7 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
-        slse7 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
-        
-        
-        modelfit <- lm(val_sample ~ timegroups,
-                       # one year dropped
-                       data = .x[.x$timegroups != soib_year_info("cat_years")[8],])
-        
-        pred <- predict(modelfit, se = TRUE,
-                        # one year dropped
-                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != soib_year_info("cat_years")[8]]))
-        
-        num <- pred$fit[2] - pred$fit[1]
-        den <- abs(pred$fit[1])
-        numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
-        dense <- pred$se.fit[1]
-        
-        sl8 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
-        slse8 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
-        
-        
-        modelfit <- lm(val_sample ~ timegroups,
-          # one year dropped
-          data = .x[.x$timegroups != soib_year_info("cat_years")[9],])
-
-        pred <- predict(modelfit, se = TRUE,
-                        # one year dropped
-                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != soib_year_info("cat_years")[9]]))
-
-        num <- pred$fit[2] - pred$fit[1]
-        den <- abs(pred$fit[1])
-        numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
-        dense <- pred$se.fit[1]
-        
-        sl9 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
-        slse9 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
-
-
         .x %>%
-          reframe(sl1 = sl1, slse1 = slse1,
-                  sl2 = sl2, slse2 = slse2,
-                  sl3 = sl3, slse3 = slse3,
-                  sl4 = sl4, slse4 = slse4,
-                  sl5 = sl5, slse5 = slse5,
-                  sl6 = sl6, slse6 = slse6,
-                  sl7 = sl7, slse7 = slse7,
-                  sl8 = sl8, slse8 = slse8,
-                  sl9 = sl9, slse9 = slse9)
-        
+          reframe(
+            
+            # produce as many iterations as no. of CAT years (that many sl and slse cols)
+            !!!imap(soib_year_info("cat_years"), ~ {
+              
+              modelfit <- lm(val_sample ~ timegroups,
+                             # one year dropped
+                             data = temp_df[temp_df$timegroups != soib_year_info("cat_years")[.y],])
+              
+              pred <- predict(
+                modelfit, se = TRUE,
+                # one year dropped
+                newdata = data.frame(
+                  timegroups = temp_df$timegroups[temp_df$timegroups != soib_year_info("cat_years")[.y]]
+                )
+              )
+              
+              num <- pred$fit[2] - pred$fit[1]
+              den <- abs(pred$fit[1])
+              numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
+              dense <- pred$se.fit[1]
+              
+              # create col names based on iteration index
+              col_name_sl <- paste0("sl", .y)
+              col_name_slse <- paste0("slse", .y)
+              
+              tibble(
+                !!col_name_sl := 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric(),
+                !!col_name_slse := errordiv(num, den, numse, dense)[2] %>% as.numeric()
+              )
+              
+            }) %>% 
+              bind_cols()
+            
+          )
         
       }) %>%
       

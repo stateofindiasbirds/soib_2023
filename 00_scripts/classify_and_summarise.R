@@ -256,13 +256,13 @@ if (run_res_trends == TRUE) {
   sens <- read.csv(cursens_path)
   
   # classifying the sens values to SoIB categories
-  sens_cat <- map(1:8, ~ {
+  sens_cat <- imap(soib_year_info("cat_years"), ~ {
     
     sens %>%
       # selecting the corresponding column each time
-      mutate(currentslopelci = .[[2 + (.x - 1) * 3]],
-             currentslopemean = .[[3 + (.x - 1) * 3]],
-             currentsloperci = .[[4 + (.x - 1) * 3]]) %>%
+      mutate(currentslopelci = .[[2 + (.y - 1) * 3]],
+             currentslopemean = .[[3 + (.y - 1) * 3]],
+             currentsloperci = .[[4 + (.y - 1) * 3]]) %>%
       mutate(SoIB.Latest.Current.Status.Sens = case_when(
         
         is.na(currentslopemean) ~ "Insufficient Data",
