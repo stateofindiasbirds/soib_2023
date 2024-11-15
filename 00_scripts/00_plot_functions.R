@@ -1,4 +1,3 @@
-
 # reference grid lines --------------------------------------------------------------
 
 # we have to manually create grid lines because we want empty space before t=1
