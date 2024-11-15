@@ -1,4 +1,3 @@
-
 # various trends plots --------------------------------------------------------------
 
 # this function has a heavy focus on plot_type, not much on cur_spec
