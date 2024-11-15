@@ -387,7 +387,7 @@ cats_uncertain = c("Insufficient Data", "Trend Inconclusive")
 cats_restricted = c("Historical", "Very Restricted", "Restricted")
 
 
-# old categories
+# old categories, has to change when past categories align with latest
 cats_trend_soib1 = c("Strong Decline", "Moderate Decline", "Data Deficient",
                      "Uncertain", "Stable", "Moderate Increase", "Strong Increase")
 
@@ -474,8 +474,8 @@ nat_priority <- get_metadata("none")$SOIBMAIN.PATH %>%
   dplyr::select(contains("eBird.English.Name.20"), SoIB.Latest.Priority.Status)
 
 main <- main %>% 
-  # SoIB 2020 statuses not available for habs/states
-  # SoIB 2023 range status not available for habs/states
+  # SoIB past statuses not available for habs/states
+  # SoIB range status not available for habs/states
   mutate(across(c("SoIB.Past.Priority.Status", "SoIB.Past.Long.Term.Status","SoIB.Past.Current.Status","SoIB.Past.Range.Status",
                   "SoIB.Latest.Range.Status"),
                 ~ case_when(cur_mask != "none" ~ NA, TRUE ~ .))) %>% 
@@ -582,7 +582,7 @@ nspec_trend_conc_ltt = species_qual0$Long.Term.Analysis - nspec_trend_inconc$`Lo
 nspec_trend_conc_cat = species_qual0$Current.Analysis - nspec_trend_inconc$`Current species (no.)`
 
 species_qual <- species_qual0 %>%
-  magrittr::set_colnames(c("SoIB 2023 Assessment", "Long-term Analysis",
+  magrittr::set_colnames(c("SoIB Assessment", "Long-term Analysis",
                            "Current Analysis", "Range Analysis")) %>%
   pivot_longer(everything(),
                names_to = "No. of species in:",
@@ -638,8 +638,21 @@ status_priority <- main %>%
   magrittr::set_colnames(c("Priority Status", "No. of species"))
 
 
-# break-up of how SoIB 2023 High Priority species which were not High in 2020 were attained
-high_priority_breakup_new = main %>%
+# From the last major update, break-up of how High Priority species which
+# were not High in the past were attained - this is basically a comparison of 
+# major updates
+
+high_priority_breakup_major_update_new = main
+
+if (interannual_update == TRUE) {
+  high_priority_breakup_major_update_new = high_priority_breakup_major_update_new %>%
+    mutate(SoIB.Latest.Priority.Status = SoIB.Major.Update.Priority.Status,
+           SoIB.Latest.Long.Term.Status = SoIB.Major.Update.Long.Term.Status,
+           SoIB.Latest.Current.Status = SoIB.Major.Update.Current.Status,
+           SoIB.Latest.Range.Status = SoIB.Major.Update.Range.Status)
+}
+
+high_priority_breakup_major_update_new = high_priority_breakup_major_update_new %>%
   filter(SoIB.Latest.Priority.Status == "High",
          SoIB.Past.Priority.Status != "High" | is.na(SoIB.Past.Priority.Status)) %>%
   transmute(Breakup = case_when(
@@ -666,8 +679,18 @@ high_priority_breakup_new = main %>%
   mutate(Perc = round(100 * (n / sum(n)), 1)) %>%
   magrittr::set_colnames(c("Break-up", "New High Species (no.)", "New High Species (perc.)"))
 
-# break-up of how SoIB 2023 High Priority species were attained
-high_priority_breakup = main %>%
+# changes in the major update - summary of high priority species, not just new changes
+high_priority_breakup_major_update = main
+
+if (interannual_update == TRUE) {
+  high_priority_breakup_major_update = high_priority_breakup_major_update %>%
+    mutate(SoIB.Latest.Priority.Status = SoIB.Major.Update.Priority.Status,
+           SoIB.Latest.Long.Term.Status = SoIB.Major.Update.Long.Term.Status,
+           SoIB.Latest.Current.Status = SoIB.Major.Update.Current.Status,
+           SoIB.Latest.Range.Status = SoIB.Major.Update.Range.Status)
+}
+
+high_priority_breakup_major_update = high_priority_breakup_major_update %>%
   filter(SoIB.Latest.Priority.Status == "High") %>%
   transmute(Breakup = case_when(
     
@@ -692,36 +715,144 @@ high_priority_breakup = main %>%
   count(Breakup) %>%
   mutate(Perc = round(100 * (n / sum(n)), 1)) %>%
   magrittr::set_colnames(c("Break-up", "High Species (no.)", "High Species (perc.)")) %>%
-  left_join(high_priority_breakup_new)
+  left_join(high_priority_breakup_major_update_new)
 
 
+# break-up of how latest High Priority species which were not High in the last
+# major update were attained - this a comparison of the latest interannual update with major
+# only applicable for an interannual update
+
+if (interannual_update == TRUE) {
+  
+  high_priority_breakup_interannual_update_new = main %>%
+    filter(SoIB.Latest.Priority.Status == "High",
+           SoIB.Major.Update.Priority.Status != "High" | is.na(SoIB.Major.Update.Priority.Status)) %>%
+    transmute(Breakup = case_when(
+      
+      # we have conclusive trend this time, but last time was inconclusive or NA
+      (!SoIB.Latest.Long.Term.Status %in% cats_uncertain | !SoIB.Latest.Current.Status %in% cats_uncertain) &
+        (SoIB.Major.Update.Long.Term.Status %in% cats_uncertain | is.na(SoIB.Major.Update.Long.Term.Status) |
+           SoIB.Major.Update.Current.Status %in% cats_uncertain | is.na(SoIB.Major.Update.Current.Status)) ~ "Trend New",
+      
+      # had conclusive trends both times, but this time trend different
+      (!SoIB.Latest.Long.Term.Status %in% cats_uncertain | !SoIB.Latest.Current.Status %in% cats_uncertain) ~
+        "Trend Different",
+      
+      # if trends not different or new, assigned high priority based on range
+      SoIB.Latest.Range.Status == "Very Restricted" ~ "Range",
+      
+      # if not even by range, then assigned high priority based on IUCN category
+      TRUE ~ "IUCN"
+      
+    )) %>%
+    mutate(Breakup = factor(Breakup,
+                            levels = c("Trend New", "Trend Different", "Range", "IUCN"))) %>%
+    count(Breakup) %>%
+    mutate(Perc = round(100 * (n / sum(n)), 1)) %>%
+    magrittr::set_colnames(c("Break-up", "New High Species (no.)", "New High Species (perc.)"))
+  
+  # changes in the interannual update - summary of high priority species, not just new changes
+  
+  high_priority_breakup_interannual_update = main %>%
+    filter(SoIB.Latest.Priority.Status == "High") %>%
+    transmute(Breakup = case_when(
+      
+      # we have conclusive trend this time, but last time was inconclusive or NA
+      (!SoIB.Latest.Long.Term.Status %in% cats_uncertain | !SoIB.Latest.Current.Status %in% cats_uncertain) &
+        (SoIB.Major.Update.Long.Term.Status %in% cats_uncertain | is.na(SoIB.Major.Update.Long.Term.Status) |
+           SoIB.Major.Update.Current.Status %in% cats_uncertain | is.na(SoIB.Major.Update.Current.Status)) ~ "Trend New",
+      
+      # had conclusive trends both times, but this time trend different
+      (!SoIB.Latest.Long.Term.Status %in% cats_uncertain | !SoIB.Latest.Current.Status %in% cats_uncertain) ~
+        "Trend Different",
+      
+      # if trends not different or new, assigned high priority based on range
+      SoIB.Latest.Range.Status == "Very Restricted" ~ "Range",
+      
+      # if not even by range, then assigned high priority based on IUCN category
+      TRUE ~ "IUCN"
+      
+    )) %>%
+    mutate(Breakup = factor(Breakup,
+                            levels = c("Trend New", "Trend Different", "Range", "IUCN"))) %>%
+    count(Breakup) %>%
+    mutate(Perc = round(100 * (n / sum(n)), 1)) %>%
+    magrittr::set_colnames(c("Break-up", "High Species (no.)", "High Species (perc.)")) %>%
+    left_join(high_priority_breakup_interannual_update_new)
+  
+}
 
 if (cur_metadata$MASK.TYPE == "country") {
   
-  # comparing two SoIBs
-  SoIB1_SoIB2 = main %>%
+  # comparing SoIB major updates
+  
+  SoIB1_SoIB2_major_update = main
+  SoIB2_SoIB1_major_update = main
+  
+  if (interannual_update == TRUE) {
+    SoIB1_SoIB2_major_update = SoIB1_SoIB2_major_update %>%
+      mutate(SoIB.Latest.Priority.Status = SoIB.Major.Update.Priority.Status)
+    SoIB2_SoIB1_major_update = SoIB2_SoIB1_major_update %>%
+      mutate(SoIB.Latest.Priority.Status = SoIB.Major.Update.Priority.Status)
+  }
+    
+  SoIB1_SoIB2_major_update = SoIB1_SoIB2_major_update %>%
     filter(!is.na(SoIB.Past.Priority.Status) & SoIB.Past.Priority.Status != "") %>%
     group_by(SoIB.Past.Priority.Status) %>%
     mutate(n = n()) %>%
     group_by(SoIB.Past.Priority.Status, SoIB.Latest.Priority.Status) %>%
     reframe(NO.SPEC = n(),
             PERC.SPEC = round(100 * (NO.SPEC / max(n)), 1)) %>%
-    magrittr::set_colnames(c("SoIB Past Priority Status", "SoIB Latest Priority Status",
+    magrittr::set_colnames(c("SoIB Past Priority Status", "SoIB Major Update Priority Status",
                              "Species (no.)", "Species (perc.)"))
   
-  SoIB2_SoIB1 = main %>%
+  SoIB2_SoIB1_major_update = SoIB2_SoIB1_major_update %>%
     filter(!is.na(SoIB.Latest.Priority.Status) & SoIB.Latest.Priority.Status != "") %>%
     group_by(SoIB.Latest.Priority.Status) %>%
     mutate(n = n()) %>%
     group_by(SoIB.Latest.Priority.Status, SoIB.Past.Priority.Status) %>%
     reframe(NO.SPEC = n(),
             PERC.SPEC = round(100 * (NO.SPEC / max(n)), 1)) %>%
-    magrittr::set_colnames(c("SoIB Latest Priority Status", "SoIB Past Priority Status",
+    magrittr::set_colnames(c("SoIB Major Update Priority Status", "SoIB Past Priority Status",
                              "Species (no.)", "Species (perc.)"))
   
+  # comparing an SoIB interannual update
   
-  # cross-tab of SoIB and IUCN assessments
-  SoIB_vs_IUCN_0 <- main %>%
+  if (interannual_update == TRUE) {
+    SoIB1_SoIB2_interannual_update = main %>%
+      filter(!is.na(SoIB.Major.Update.Priority.Status) & SoIB.Major.Update.Priority.Status != "") %>%
+      group_by(SoIB.Major.Update.Priority.Status) %>%
+      mutate(n = n()) %>%
+      group_by(SoIB.Major.Update.Priority.Status, SoIB.Latest.Priority.Status) %>%
+      reframe(NO.SPEC = n(),
+              PERC.SPEC = round(100 * (NO.SPEC / max(n)), 1)) %>%
+      magrittr::set_colnames(c("SoIB Major Update Priority Status", "SoIB Latest Priority Status",
+                               "Species (no.)", "Species (perc.)"))
+    
+    SoIB2_SoIB1_interannual_update = main %>%
+      filter(!is.na(SoIB.Latest.Priority.Status) & SoIB.Latest.Priority.Status != "") %>%
+      group_by(SoIB.Latest.Priority.Status) %>%
+      mutate(n = n()) %>%
+      group_by(SoIB.Latest.Priority.Status, SoIB.Major.Update.Priority.Status) %>%
+      reframe(NO.SPEC = n(),
+              PERC.SPEC = round(100 * (NO.SPEC / max(n)), 1)) %>%
+      magrittr::set_colnames(c("SoIB Latest Priority Status", "SoIB Major Update Priority Status",
+                               "Species (no.)", "Species (perc.)"))
+  }
+  
+  
+  
+  # cross-tab of SoIB and IUCN assessments - major update
+  
+  SoIB_vs_IUCN_0 = main
+  
+  if (interannual_update == TRUE) {
+    SoIB_vs_IUCN_0 = SoIB_vs_IUCN_0 %>%
+      mutate(SoIB.Latest.Priority.Status = SoIB.Major.Update.Priority.Status)
+  }
+  
+  
+  SoIB_vs_IUCN_0 <- SoIB_vs_IUCN_0 %>%
     filter(Selected.SoIB == "X") %>%
     mutate(SoIB.Latest.Priority.Status = factor(SoIB.Latest.Priority.Status,
                                            levels = c("High", "Moderate", "Low")),
@@ -741,17 +872,17 @@ if (cur_metadata$MASK.TYPE == "country") {
     relocate(new, High, Moderate, Low) %>%
     magrittr::set_colnames(c(" ", "High", "Moderate", "Low"))
   
-  SoIB_vs_IUCN <- SoIB_vs_IUCN_0 %>%
+  SoIB_vs_IUCN_major_update <- SoIB_vs_IUCN_0 %>%
     bind_rows(temp) %>%
     mutate(Sum = High + Low + Moderate)
   
-  SoIB_vs_IUCN_percIUCN = SoIB_vs_IUCN_0 %>%
+  SoIB_vs_IUCN_percIUCN_major_update = SoIB_vs_IUCN_0 %>%
     mutate(Sum = High + Low + Moderate) %>%
     mutate(across(c("High", "Moderate", "Low"),
                   ~ round(100 * (. / Sum), 1))) %>%
     mutate(Sum = NULL)
   
-  SoIB_vs_IUCN_percSoIB = SoIB_vs_IUCN_0 %>%
+  SoIB_vs_IUCN_percSoIB_major_update = SoIB_vs_IUCN_0 %>%
     column_to_rownames(" ") %>%
     t() %>%
     as.data.frame() %>%
@@ -764,13 +895,81 @@ if (cur_metadata$MASK.TYPE == "country") {
     rename(` ` = SoIB)
   
   
-  # reasons for uplisting or downlisting
-  reason.uplist.high = main %>%
+  
+  
+  if (interannual_update == TRUE) {
+    
+    # cross-tab of SoIB and IUCN assessments - interannual update
+    SoIB_vs_IUCN_0 <- main %>%
+      filter(Selected.SoIB == "X") %>%
+      mutate(SoIB.Latest.Priority.Status = factor(SoIB.Latest.Priority.Status,
+                                                  levels = c("High", "Moderate", "Low")),
+             IUCN.Category = factor(IUCN.Category, levels = c(
+               "Critically Endangered", "Endangered", "Vulnerable", "Near Threatened",
+               "Least Concern", "Not Recognised"
+             ))) %>%
+      group_by(SoIB.Latest.Priority.Status, IUCN.Category) %>%
+      tally() %>%
+      pivot_wider(names_from = SoIB.Latest.Priority.Status, values_from = n) %>%
+      replace(is.na(.), 0) %>%
+      magrittr::set_colnames(c(" ", "High", "Moderate", "Low"))
+    
+    temp <- SoIB_vs_IUCN_0 %>%
+      reframe(across(c("High", "Moderate", "Low"), sum)) %>%
+      mutate(new = "Sum") %>%
+      relocate(new, High, Moderate, Low) %>%
+      magrittr::set_colnames(c(" ", "High", "Moderate", "Low"))
+    
+    SoIB_vs_IUCN_interannual_update <- SoIB_vs_IUCN_0 %>%
+      bind_rows(temp) %>%
+      mutate(Sum = High + Low + Moderate)
+    
+    SoIB_vs_IUCN_percIUCN_interannual_update = SoIB_vs_IUCN_0 %>%
+      mutate(Sum = High + Low + Moderate) %>%
+      mutate(across(c("High", "Moderate", "Low"),
+                    ~ round(100 * (. / Sum), 1))) %>%
+      mutate(Sum = NULL)
+    
+    SoIB_vs_IUCN_percSoIB_interannual_update = SoIB_vs_IUCN_0 %>%
+      column_to_rownames(" ") %>%
+      t() %>%
+      as.data.frame() %>%
+      rownames_to_column("SoIB") %>%
+      rowwise() %>%
+      mutate(Sum = sum(c_across(c(everything(), - SoIB)))) %>%
+      mutate(across(c(everything(), - SoIB),
+                    ~ round(100 * (. / Sum), 1))) %>%
+      mutate(Sum = NULL) %>%
+      rename(` ` = SoIB)
+    
+  }
+  
+  
+  # reasons for uplisting or downlisting - major update
+  
+  reason_uplist_high_major_update = main
+  reason_downlist_high_major_update = main
+  
+  if (interannual_update == TRUE) {
+    reason_uplist_high_major_update = reason_uplist_high_major_update %>%
+      mutate(SoIB.Latest.Priority.Status = SoIB.Major.Update.Priority.Status,
+             SoIB.Latest.Long.Term.Status = SoIB.Major.Update.Long.Term.Status,
+             SoIB.Latest.Current.Status = SoIB.Major.Update.Current.Status,
+             SoIB.Latest.Range.Status = SoIB.Major.Update.Range.Status)
+    
+    reason_downlist_high_major_update = reason_downlist_high_major_update %>%
+      mutate(SoIB.Latest.Priority.Status = SoIB.Major.Update.Priority.Status,
+             SoIB.Latest.Long.Term.Status = SoIB.Major.Update.Long.Term.Status,
+             SoIB.Latest.Current.Status = SoIB.Major.Update.Current.Status,
+             SoIB.Latest.Range.Status = SoIB.Major.Update.Range.Status)
+  }
+  
+  reason_uplist_high_major_update = reason_uplist_high_major_update %>%
     filter(SoIB.Past.Priority.Status %in% c("Low", "Moderate"),
            SoIB.Latest.Priority.Status == "High") %>%
     mutate(Breakup = case_when(
       
-      # LTT and CAT were uncertain in 2020 but we have some trend now
+      # LTT and CAT were uncertain in the past but we have some trend now
       ((!SoIB.Latest.Long.Term.Status %in% cats_uncertain | !SoIB.Latest.Current.Status %in% cats_uncertain) &
          SoIB.Past.Long.Term.Status %in% cats_uncertain_soib1 &
          SoIB.Past.Current.Status %in% cats_uncertain_soib1)  ~ "First-time trend",
@@ -829,12 +1028,12 @@ if (cur_metadata$MASK.TYPE == "country") {
     magrittr::set_colnames(c("Break-up", "Species (no.)", "Species (perc.)"))
   
   
-  reason.downlist.high = main %>%
+  reason_downlist_high_major_update = reason_downlist_high_major_update %>%
     filter(SoIB.Latest.Priority.Status %in% c("Low", "Moderate"),
            SoIB.Past.Priority.Status == "High") %>%
     mutate(Breakup = case_when(
       
-      # LTT and CAT were uncertain in 2020 but we have some trend now
+      # LTT and CAT were uncertain in the past but we have some trend now
       ((!SoIB.Latest.Long.Term.Status %in% cats_uncertain | !SoIB.Latest.Current.Status %in% cats_uncertain) &
          SoIB.Past.Long.Term.Status %in% cats_uncertain_soib1 &
          SoIB.Past.Current.Status %in% cats_uncertain_soib1)  ~ "First-time trend",
@@ -901,28 +1100,216 @@ if (cur_metadata$MASK.TYPE == "country") {
     complete(Breakup, fill = list(n = 0, Perc = 0)) %>%
     magrittr::set_colnames(c("Break-up", "Species (no.)", "Species (perc.)"))
   
+  
+  if (interannual_update == TRUE) {
+    
+    reason_uplist_high_interannual_update = main %>%
+      filter(SoIB.Major.Update.Priority.Status %in% c("Low", "Moderate"),
+             SoIB.Latest.Priority.Status == "High") %>%
+      mutate(Breakup = case_when(
+        
+        # LTT and CAT were uncertain in the major update but we have some trend now
+        ((!SoIB.Latest.Long.Term.Status %in% cats_uncertain | !SoIB.Latest.Current.Status %in% cats_uncertain) &
+           SoIB.Major.Update.Long.Term.Status %in% cats_uncertain &
+           SoIB.Major.Update.Current.Status %in% cats_uncertain)  ~ "First-time trend",
+        
+        # stronger decline this time (LTT)
+        (SoIB.Latest.Long.Term.Status == "Rapid Decline" &
+           SoIB.Major.Update.Long.Term.Status %in% cats_trend[!cats_trend == "Rapid Decline" &
+                                                              !cats_trend %in% cats_uncertain]) |
+          (SoIB.Latest.Long.Term.Status %in% cats_decline &
+             SoIB.Major.Update.Long.Term.Status %in% cats_trend[!cats_trend %in% cats_decline &
+                                                                !cats_trend %in% cats_uncertain])
+        ~ "More decline in LTT",
+        
+        # stronger decline this time (CAT)
+        (SoIB.Latest.Current.Status == "Rapid Decline" &
+           SoIB.Major.Update.Current.Status %in% cats_trend[!cats_trend == "Rapid Decline" &
+                                                            !cats_trend %in% cats_uncertain]) |
+          (SoIB.Latest.Current.Status %in% cats_decline &
+             SoIB.Major.Update.Current.Status %in% cats_trend[!cats_trend %in% cats_decline &
+                                                              !cats_trend %in% cats_uncertain])
+        ~ "More decline in CAT",
+        
+        # first-time LTT & first-time CAT
+        (SoIB.Major.Update.Long.Term.Status %in% cats_uncertain &
+           !SoIB.Latest.Long.Term.Status %in% cats_uncertain) ~ "First-time LTT",
+        (SoIB.Major.Update.Current.Status %in% cats_uncertain &
+           !SoIB.Latest.Current.Status %in% cats_uncertain) ~ "First-time CAT",
+        
+        # both times, had at least one of two trends
+        (!SoIB.Major.Update.Long.Term.Status %in% cats_uncertain |
+           !SoIB.Major.Update.Current.Status %in% cats_uncertain) &
+          (!SoIB.Latest.Long.Term.Status %in% cats_uncertain |
+             !SoIB.Latest.Current.Status %in% cats_uncertain)  ~ "Other changes in trends",
+        
+        # earlier had at least one trend, but this time both trends uncertain
+        (!SoIB.Major.Update.Long.Term.Status %in% cats_uncertain |
+           !SoIB.Major.Update.Current.Status %in% cats_uncertain) &
+          (SoIB.Latest.Long.Term.Status %in% cats_uncertain &
+             SoIB.Latest.Current.Status %in% cats_uncertain) ~ "Loss of trends",
+        
+        (SoIB.Major.Update.Range.Status == "Restricted" & SoIB.Latest.Range.Status == "Very Restricted") |
+          (SoIB.Major.Update.Range.Status == "Moderate" & SoIB.Latest.Range.Status == "Restricted") |
+          (SoIB.Major.Update.Range.Status == "Large" & SoIB.Latest.Range.Status == "Moderate") ~ "Reducing range",
+        
+        TRUE ~ "Others"
+        
+      )) %>%
+      mutate(Breakup = factor(Breakup,
+                              levels = c("More decline in LTT", "More decline in CAT",
+                                         "First-time trend", "First-time LTT", "First-time CAT",
+                                         "Other changes in trends", "Loss of trends",
+                                         "Reducing range", "Others"))) %>%
+      count(Breakup) %>%
+      mutate(Perc = round(100 * (n / sum(n)), 1)) %>%
+      complete(Breakup, fill = list(n = 0, Perc = 0)) %>%
+      magrittr::set_colnames(c("Break-up", "Species (no.)", "Species (perc.)"))
+    
+    
+    reason_downlist_high_interannual_update = main %>%
+      filter(SoIB.Latest.Priority.Status %in% c("Low", "Moderate"),
+             SoIB.Major.Update.Priority.Status == "High") %>%
+      mutate(Breakup = case_when(
+        
+        # LTT and CAT were uncertain in the major update but we have some trend now
+        ((!SoIB.Latest.Long.Term.Status %in% cats_uncertain | !SoIB.Latest.Current.Status %in% cats_uncertain) &
+           SoIB.Major.Update.Long.Term.Status %in% cats_uncertain &
+           SoIB.Major.Update.Current.Status %in% cats_uncertain)  ~ "First-time trend",
+        
+        # weaker decline this time (LTT)
+        (SoIB.Major.Update.Long.Term.Status == "Rapid Decline" &
+           SoIB.Latest.Long.Term.Status %in% cats_trend[!cats_trend == "Rapid Decline" &
+                                                          !cats_trend %in% cats_uncertain]) |
+          (SoIB.Major.Update.Long.Term.Status %in% cats_decline &
+             SoIB.Latest.Long.Term.Status %in% cats_trend[!cats_trend %in% cats_decline &
+                                                            !cats_trend %in% cats_uncertain]) |
+          (SoIB.Major.Update.Long.Term.Status %in% c(cats_decline, "Stable") &
+             SoIB.Latest.Long.Term.Status %in% c("Increase", "Rapid Increase")) |
+          (SoIB.Major.Update.Long.Term.Status %in% c(cats_decline, "Stable", "Increase") &
+             SoIB.Latest.Long.Term.Status == "Rapid Increase")
+        ~ "Less decline in LTT",
+        
+        # stronger decline this time (CAT)
+        (SoIB.Major.Update.Current.Status == "Rapid Decline" &
+           SoIB.Latest.Current.Status %in% cats_trend[!cats_trend == "Rapid Decline" &
+                                                        !cats_trend %in% cats_uncertain]) |
+          (SoIB.Major.Update.Current.Status %in% cats_decline &
+             SoIB.Latest.Current.Status %in% cats_trend[!cats_trend %in% cats_decline &
+                                                          !cats_trend %in% cats_uncertain]) |
+          (SoIB.Major.Update.Current.Status %in% c(cats_decline, "Stable") &
+             SoIB.Latest.Current.Status %in% c("Increase", "Rapid Increase")) |
+          (SoIB.Major.Update.Current.Status %in% c(cats_decline, "Stable", "Increase") &
+             SoIB.Latest.Current.Status == "Rapid Increase")
+        ~ "Less decline in CAT",
+        
+        # first-time LTT & first-time CAT
+        (SoIB.Major.Update.Long.Term.Status %in% cats_uncertain &
+           !SoIB.Latest.Long.Term.Status %in% cats_uncertain) ~ "First-time LTT",
+        (SoIB.Major.Update.Current.Status %in% cats_uncertain &
+           !SoIB.Latest.Current.Status %in% cats_uncertain) ~ "First-time CAT",
+        
+        # both times, had at least one of two trends
+        (!SoIB.Major.Update.Long.Term.Status %in% cats_uncertain |
+           !SoIB.Major.Update.Current.Status %in% cats_uncertain) &
+          (!SoIB.Latest.Long.Term.Status %in% cats_uncertain |
+             !SoIB.Latest.Current.Status %in% cats_uncertain)  ~ "Other changes in trends",
+        
+        # earlier had at least one trend, but this time both trends uncertain
+        (!SoIB.Major.Update.Long.Term.Status %in% cats_uncertain |
+           !SoIB.Major.Update.Current.Status %in% cats_uncertain) &
+          (SoIB.Latest.Long.Term.Status %in% cats_uncertain &
+             SoIB.Latest.Current.Status %in% cats_uncertain) ~ "Loss of trends",
+        
+        (SoIB.Latest.Range.Status == "Restricted" & SoIB.Major.Update.Range.Status == "Very Restricted") |
+          (SoIB.Latest.Range.Status == "Moderate" & SoIB.Major.Update.Range.Status == "Restricted") |
+          (SoIB.Latest.Range.Status == "Large" & SoIB.Major.Update.Range.Status == "Moderate") |
+          (SoIB.Latest.Range.Status == "Very Large" & SoIB.Major.Update.Range.Status == "Large") ~ "Increasing range",
+        
+        TRUE ~ "Others"
+        
+      )) %>%
+      mutate(Breakup = factor(Breakup,
+                              levels = c("Less decline in LTT", "Less decline in CAT",
+                                         "First-time trend", "First-time LTT", "First-time CAT",
+                                         "Other changes in trends", "Loss of trends",
+                                         "Increasing range", "Others"))) %>%
+      count(Breakup) %>%
+      mutate(Perc = round(100 * (n / sum(n)), 1)) %>%
+      complete(Breakup, fill = list(n = 0, Perc = 0)) %>%
+      magrittr::set_colnames(c("Break-up", "Species (no.)", "Species (perc.)"))
+    
+  }
+  
 }
 
+
+
+# put all summaries together and write an excel
 
 if (cur_metadata$MASK.TYPE == "country") {
-  write_xlsx(path = summaries_path,
-             list("Trends Status" = status_trends,
-                  "Range Status" = status_range,
-                  "Priority Status" = status_priority,
-                  "Species qualification" = species_qual,
-                  "High Priority break-up" = high_priority_breakup,
-                  "SoIB 2020 vs 2023" = SoIB1_SoIB2,
-                  "SoIB 2023 vs 2020" = SoIB2_SoIB1,
-                  "SoIB vs IUCN (no.)" = SoIB_vs_IUCN,
-                  "SoIB vs IUCN (IUCN %)" = SoIB_vs_IUCN_percIUCN,
-                  "SoIB vs IUCN (SoIB %)" = SoIB_vs_IUCN_percSoIB,
-                  "Reason for uplisting" = reason.uplist.high,
-                  "Reason for downlisting" = reason.downlist.high))
+  
+  if (interannual_update == TRUE) {
+    summaries_data = list("Trends Status" = status_trends,
+                          "Range Status" = status_range,
+                          "Priority Status" = status_priority,
+                          "Species qualification" = species_qual,
+                          "Interannual update: High Priority break-up" = high_priority_breakup_interannual_update,
+                          "SoIB major vs interannual update" = SoIB1_SoIB2_interannual_update,
+                          "SoIB interannual vs major update" = SoIB2_SoIB1_interannual_update,
+                          "SoIB interannual update vs IUCN (no.)" = SoIB_vs_IUCN_interannual_update,
+                          "SoIB interannual update vs IUCN (IUCN %)" = SoIB_vs_IUCN_percIUCN_interannual_update,
+                          "SoIB interannual update vs IUCN (SoIB %)" = SoIB_vs_IUCN_percSoIB_interannual_update,
+                          "Interannual update: Reason for uplisting" = reason_uplist_high_interannual_update,
+                          "Interannual update: Reason for downlisting" = reason_downlist_high_interannual_update,
+                          "Major update: High Priority break-up" = high_priority_breakup_major_update,
+                          "SoIB past vs major update" = SoIB1_SoIB2_major_update,
+                          "SoIB major update vs past" = SoIB2_SoIB1_major_update,
+                          "SoIB major update vs IUCN (no.)" = SoIB_vs_IUCN_major_update,
+                          "SoIB major update vs IUCN (IUCN %)" = SoIB_vs_IUCN_percIUCN_major_update,
+                          "SoIB major update vs IUCN (SoIB %)" = SoIB_vs_IUCN_percSoIB_major_update,
+                          "Major update: Reason for uplisting" = reason_uplist_high_major_update,
+                          "Major update: Reason for downlisting" = reason_downlist_high_major_update)
+  } else {
+    
+    summaries_data = list("Trends Status" = status_trends,
+                          "Range Status" = status_range,
+                          "Priority Status" = status_priority,
+                          "Species qualification" = species_qual,
+                          "Major update: High Priority break-up" = high_priority_breakup_major_update,
+                          "SoIB past vs major update" = SoIB1_SoIB2_major_update,
+                          "SoIB major update vs past" = SoIB2_SoIB1_major_update,
+                          "SoIB major update vs IUCN (no.)" = SoIB_vs_IUCN_major_update,
+                          "SoIB major update vs IUCN (IUCN %)" = SoIB_vs_IUCN_percIUCN_major_update,
+                          "SoIB major update vs IUCN (SoIB %)" = SoIB_vs_IUCN_percSoIB_major_update,
+                          "Major update: Reason for uplisting" = reason_uplist_high_major_update,
+                          "Major update: Reason for downlisting" = reason_downlist_high_major_update)
+    
+  }
+  
+  
+  
 } else {
-  write_xlsx(path = summaries_path,
-             list("Trends Status" = status_trends,
-                  "Range Status" = status_range,
-                  "Priority Status" = status_priority,
-                  "Species qualification" = species_qual,
-                  "High Priority break-up" = high_priority_breakup))
+  
+  if (interannual_update == TRUE) {
+    
+    summaries_data = list("Trends Status" = status_trends,
+                          "Range Status" = status_range,
+                          "Priority Status" = status_priority,
+                          "Species qualification" = species_qual,
+                          "Interannual update: High Priority break-up" = high_priority_breakup_interannual_update,
+                          "Major update: High Priority break-up" = high_priority_breakup_major_update)
+    
+  } else {
+    
+    summaries_data = list("Trends Status" = status_trends,
+                          "Range Status" = status_range,
+                          "Priority Status" = status_priority,
+                          "Species qualification" = species_qual,
+                          "Major update: High Priority break-up" = high_priority_breakup_major_update)
+    
+  }
+  
 }
+
+write_xlsx(path = summaries_path, summaries_data)
