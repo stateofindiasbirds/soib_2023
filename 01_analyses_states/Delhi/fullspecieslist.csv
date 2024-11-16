@@ -1,4 +1,4 @@
-"COMMON.NAME","SCIENTIFIC.NAME","Long.Term.Analysis","Current.Analysis","Selected.SOIB","totalrange25km","proprange25km2000","proprange25km.current","proprange25km2022","mean5km","ci5km"
+"COMMON.NAME","SCIENTIFIC.NAME","Long.Term.Analysis","Current.Analysis","Selected.SoIB","totalrange25km","proprange25km2000","proprange25km.current","proprange25km2022","mean5km","ci5km"
 "Fulvous Whistling-Duck","Dendrocygna bicolor","","","",NA,NA,NA,NA,NA,NA
 "Lesser Whistling-Duck","Dendrocygna javanica","","","X",8,0.375,0.578125,0.375,10.125,5.01673449566548
 "Bar-headed Goose","Anser indicus","","","X",6,0.5,0.708333333333333,0.5,11.6666666666667,6.29374009984877
