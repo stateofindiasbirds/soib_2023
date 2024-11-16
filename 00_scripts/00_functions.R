@@ -81,7 +81,8 @@ createrandomlocs = function(locs)
 soib_year_info <- function(what = "latest_year") {
 
   # catch input errors
-  valid_inputs <- c("latest_year", "timegroup_lab", "timegroup_med", "cat_years", "cat_start")
+  valid_inputs <- c("latest_year", "timegroup_lab", "timegroup_med", 
+                    "cat_years", "cat_start", "iucn_projection")
 
   if (!what %in% valid_inputs) {
     stop(paste("Choose valid info to obtain regarding current SoIB years: {", 
@@ -126,8 +127,26 @@ soib_year_info <- function(what = "latest_year") {
 
   if (what == "cat_years") return(cat_years)
     else if (what == "cat_start") return(min(cat_years))
+  
+  
+  # extra years for IUCN projection
+  if (what == "iucn_projection") {
+    extra.years = seq(latest_soib_my, length.out = 7) + 1
+    return(extra.years)
+  }
 
 }
+
+
+# get column names for IUCN projection values -----------------------------
+
+get_iucn_proj_cols <- function() {
+  map(soib_year_info("iucn_projection"), ~ {
+    c(glue("proj{.x}.lci"), glue("proj{.x}.mean"), glue("proj{.x}.rci"))
+  }) %>% 
+    list_c()
+}
+
 
 ### readcleanrawdata ########################################
 
@@ -993,7 +1012,7 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = interannual_update)
       left_join(specieslist1) %>% 
       magrittr::set_colnames(c("COMMON.NAME","SCIENTIFIC.NAME",
                                "Long.Term.Analysis","Current.Analysis",
-                               "Selected.SOIB")) %>%  
+                               "Selected.SoIB")) %>%  
       # converting to report table-style with blanks for NAs and Xs for 1s
       mutate(across(everything(), ~ as.character(.))) %>% 
       mutate(across(everything(), ~ replace_na(., replace = ""))) %>% 
@@ -1002,7 +1021,7 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = interannual_update)
       mutate(Long.Term.Analysis = if_else(COMMON.NAME %in% check1, "X", Long.Term.Analysis),
              Current.Analysis = if_else(COMMON.NAME %in% check2, "X", Current.Analysis)) %>%
       dplyr::select("COMMON.NAME","SCIENTIFIC.NAME","Long.Term.Analysis","Current.Analysis",
-                    "Selected.SOIB")
+                    "Selected.SoIB")
     
     
     # filtering for only species in certain masks ###
@@ -1011,14 +1030,14 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = interannual_update)
       dataf <- dataf %>% 
         mutate(Long.Term.Analysis = if_else(!(COMMON.NAME %in% spec_woodland), "", Long.Term.Analysis),
                Current.Analysis = if_else(!(COMMON.NAME %in% spec_woodland), "", Current.Analysis),
-               Selected.SOIB = if_else(!(COMMON.NAME %in% spec_woodland), "", Selected.SOIB))
+               Selected.SoIB = if_else(!(COMMON.NAME %in% spec_woodland), "", Selected.SoIB))
       
     } else if (cur_mask %in% c("cropland", "ONEland")) {
       
       dataf <- dataf %>% 
         mutate(Long.Term.Analysis = if_else(!(COMMON.NAME %in% spec_openland), "", Long.Term.Analysis),
                Current.Analysis = if_else(!(COMMON.NAME %in% spec_openland), "", Current.Analysis),
-               Selected.SOIB = if_else(!(COMMON.NAME %in% spec_openland), "", Selected.SOIB))
+               Selected.SoIB = if_else(!(COMMON.NAME %in% spec_openland), "", Selected.SoIB))
       
     }
     
@@ -1678,7 +1697,7 @@ ltt_sens_class <- function(data) {
   data = data %>%
     mutate(
       
-      SOIBv2.Long.Term.Status = case_when(
+      SoIB.Latest.Long.Term.Status = case_when(
         is.na(longtermmean) ~ "Insufficient Data",
         (longtermrci-longtermmean)/longtermmean > 0.5 ~ "Trend Inconclusive", # arbitrary
         # else
@@ -1697,7 +1716,7 @@ ltt_sens_class <- function(data) {
       )
       
     ) %>% 
-    dplyr::select(COMMON.NAME, SOIBv2.Long.Term.Status)
+    dplyr::select(COMMON.NAME, SoIB.Latest.Long.Term.Status)
   
   return(data)
   
@@ -1727,114 +1746,114 @@ scale_trends_to_bands <- function(data) {
       
       # long-term
       ltt_min = case_when(
-        SOIBv2.Long.Term.Status == "Rapid Decline" ~ 0,
-        SOIBv2.Long.Term.Status == "Decline" ~ 50,
-        SOIBv2.Long.Term.Status == "Rapid Increase" ~ 150,
-        SOIBv2.Long.Term.Status == "Increase" ~ 125,
+        SoIB.Latest.Long.Term.Status == "Rapid Decline" ~ 0,
+        SoIB.Latest.Long.Term.Status == "Decline" ~ 50,
+        SoIB.Latest.Long.Term.Status == "Rapid Increase" ~ 150,
+        SoIB.Latest.Long.Term.Status == "Increase" ~ 125,
         # top Stable
-        SOIBv2.Long.Term.Status == "Stable" & longtermmean >= 100 ~ 100,
+        SoIB.Latest.Long.Term.Status == "Stable" & longtermmean >= 100 ~ 100,
         # bottom Stable
-        SOIBv2.Long.Term.Status == "Stable" & longtermmean < 100 ~ 75,
+        SoIB.Latest.Long.Term.Status == "Stable" & longtermmean < 100 ~ 75,
         TRUE ~ NA
       ),
       
       ltt_max = case_when(
-        SOIBv2.Long.Term.Status == "Rapid Decline" ~ 50,
-        SOIBv2.Long.Term.Status == "Decline" ~ 75,
+        SoIB.Latest.Long.Term.Status == "Rapid Decline" ~ 50,
+        SoIB.Latest.Long.Term.Status == "Decline" ~ 75,
         # taking 200 here (instead of inf) to mirror the delta 50 on the negative side
-        SOIBv2.Long.Term.Status == "Rapid Increase" ~ 200,
-        SOIBv2.Long.Term.Status == "Increase" ~ 150,
+        SoIB.Latest.Long.Term.Status == "Rapid Increase" ~ 200,
+        SoIB.Latest.Long.Term.Status == "Increase" ~ 150,
         # top Stable
-        SOIBv2.Long.Term.Status == "Stable" & longtermmean >= 100 ~ 125,
+        SoIB.Latest.Long.Term.Status == "Stable" & longtermmean >= 100 ~ 125,
         # bottom Stable
-        SOIBv2.Long.Term.Status == "Stable" & longtermmean < 100 ~ 100,
+        SoIB.Latest.Long.Term.Status == "Stable" & longtermmean < 100 ~ 100,
         TRUE ~ NA
       ),
       
       # here, we need to use mean, lci or rci according to which band it is in
       ltt_prop = case_when(
-        SOIBv2.Long.Term.Status == "Stable" ~ 
+        SoIB.Latest.Long.Term.Status == "Stable" ~ 
           scale_band(longtermmean, ltt_min, ltt_max),
-        SOIBv2.Long.Term.Status %in% c("Decline", "Rapid Decline") ~ 
+        SoIB.Latest.Long.Term.Status %in% c("Decline", "Rapid Decline") ~ 
           scale_band(longtermrci, ltt_min, ltt_max),
-        SOIBv2.Long.Term.Status %in% c("Increase", "Rapid Increase") ~ 
+        SoIB.Latest.Long.Term.Status %in% c("Increase", "Rapid Increase") ~ 
           scale_band(longtermlci, ltt_min, ltt_max),
         TRUE ~ NA
       ),
       
       # new band is sometimes 2 units long, so need to scale to that
       ltt_newrange = case_when(
-        SOIBv2.Long.Term.Status == "Stable" ~ 1,
-        SOIBv2.Long.Term.Status %in% c("Decline", "Rapid Decline") ~ 2,
-        SOIBv2.Long.Term.Status %in% c("Increase", "Rapid Increase") ~ 2,
+        SoIB.Latest.Long.Term.Status == "Stable" ~ 1,
+        SoIB.Latest.Long.Term.Status %in% c("Decline", "Rapid Decline") ~ 2,
+        SoIB.Latest.Long.Term.Status %in% c("Increase", "Rapid Increase") ~ 2,
         TRUE ~ NA
       ),
 
       # constant to be added to bring the scaled bands (all 0--1 now) to different levels
       ltt_k = case_when(
-        SOIBv2.Long.Term.Status == "Stable" & longtermmean >= 100 ~ 0,
-        SOIBv2.Long.Term.Status == "Stable" & longtermmean < 100 ~ -1,
-        SOIBv2.Long.Term.Status == "Decline" ~ -3,
-        SOIBv2.Long.Term.Status == "Rapid Decline" ~ -5,
-        SOIBv2.Long.Term.Status == "Increase" ~ 1,
-        SOIBv2.Long.Term.Status == "Rapid Increase" ~ 3,
+        SoIB.Latest.Long.Term.Status == "Stable" & longtermmean >= 100 ~ 0,
+        SoIB.Latest.Long.Term.Status == "Stable" & longtermmean < 100 ~ -1,
+        SoIB.Latest.Long.Term.Status == "Decline" ~ -3,
+        SoIB.Latest.Long.Term.Status == "Rapid Decline" ~ -5,
+        SoIB.Latest.Long.Term.Status == "Increase" ~ 1,
+        SoIB.Latest.Long.Term.Status == "Rapid Increase" ~ 3,
         TRUE ~ NA
       ),
 
       # current
       cat_min = case_when(
         # taking Stable range to make upper and lower limits as well
-        SOIBv2.Current.Status == "Rapid Decline" ~ -4.7, 
-        SOIBv2.Current.Status == "Decline" ~ -2.7,
-        SOIBv2.Current.Status == "Rapid Increase" ~ 1.6,
-        SOIBv2.Current.Status == "Increase" ~ 0.9,
+        SoIB.Latest.Current.Status == "Rapid Decline" ~ -4.7, 
+        SoIB.Latest.Current.Status == "Decline" ~ -2.7,
+        SoIB.Latest.Current.Status == "Rapid Increase" ~ 1.6,
+        SoIB.Latest.Current.Status == "Increase" ~ 0.9,
         # top Stable
-        SOIBv2.Current.Status == "Stable" & currentslopemean >= 0 ~ 0,
+        SoIB.Latest.Current.Status == "Stable" & currentslopemean >= 0 ~ 0,
         # bottom Stable
-        SOIBv2.Current.Status == "Stable" & currentslopemean < 0 ~ -1.1,
+        SoIB.Latest.Current.Status == "Stable" & currentslopemean < 0 ~ -1.1,
         TRUE ~ NA
       ),
       
       
       cat_max = case_when(
-        SOIBv2.Current.Status == "Rapid Decline" ~ -2.7,
-        SOIBv2.Current.Status == "Decline" ~ -1.1,
-        SOIBv2.Current.Status == "Rapid Increase" ~ 3.6,
-        SOIBv2.Current.Status == "Increase" ~ 1.6,
+        SoIB.Latest.Current.Status == "Rapid Decline" ~ -2.7,
+        SoIB.Latest.Current.Status == "Decline" ~ -1.1,
+        SoIB.Latest.Current.Status == "Rapid Increase" ~ 3.6,
+        SoIB.Latest.Current.Status == "Increase" ~ 1.6,
         # top Stable
-        SOIBv2.Current.Status == "Stable" & currentslopemean >= 0 ~ 0.9,
+        SoIB.Latest.Current.Status == "Stable" & currentslopemean >= 0 ~ 0.9,
         # bottom Stable
-        SOIBv2.Current.Status == "Stable" & currentslopemean < 0 ~ 0,
+        SoIB.Latest.Current.Status == "Stable" & currentslopemean < 0 ~ 0,
         TRUE ~ NA
       ),
       
       # here, we need to use mean, lci or rci according to which band it is in
       cat_prop = case_when(
-        SOIBv2.Current.Status == "Stable" ~ 
+        SoIB.Latest.Current.Status == "Stable" ~ 
           scale_band(currentslopemean, cat_min, cat_max),
-        SOIBv2.Current.Status %in% c("Decline", "Rapid Decline") ~ 
+        SoIB.Latest.Current.Status %in% c("Decline", "Rapid Decline") ~ 
           scale_band(currentsloperci, cat_min, cat_max),
-        SOIBv2.Current.Status %in% c("Increase", "Rapid Increase") ~ 
+        SoIB.Latest.Current.Status %in% c("Increase", "Rapid Increase") ~ 
           scale_band(currentslopelci, cat_min, cat_max),
         TRUE ~ NA
       ),
       
       # new band is sometimes 2 units long, so need to scale to that
       cat_newrange = case_when(
-        SOIBv2.Current.Status == "Stable" ~ 1,
-        SOIBv2.Current.Status %in% c("Decline", "Rapid Decline") ~ 2,
-        SOIBv2.Current.Status %in% c("Increase", "Rapid Increase") ~ 2,
+        SoIB.Latest.Current.Status == "Stable" ~ 1,
+        SoIB.Latest.Current.Status %in% c("Decline", "Rapid Decline") ~ 2,
+        SoIB.Latest.Current.Status %in% c("Increase", "Rapid Increase") ~ 2,
         TRUE ~ NA
       ),
       
       # constant to be added to bring the scaled bands (all 0--1 now) to different levels
       cat_k = case_when(
-        SOIBv2.Current.Status == "Stable" & currentslopemean >= 0 ~ 0,
-        SOIBv2.Current.Status == "Stable" & currentslopemean < 0 ~ -1,
-        SOIBv2.Current.Status == "Decline" ~ -3,
-        SOIBv2.Current.Status == "Rapid Decline" ~ -5,
-        SOIBv2.Current.Status == "Increase" ~ 1,
-        SOIBv2.Current.Status == "Rapid Increase" ~ 3,
+        SoIB.Latest.Current.Status == "Stable" & currentslopemean >= 0 ~ 0,
+        SoIB.Latest.Current.Status == "Stable" & currentslopemean < 0 ~ -1,
+        SoIB.Latest.Current.Status == "Decline" ~ -3,
+        SoIB.Latest.Current.Status == "Rapid Decline" ~ -5,
+        SoIB.Latest.Current.Status == "Increase" ~ 1,
+        SoIB.Latest.Current.Status == "Rapid Increase" ~ 3,
         TRUE ~ NA
       )
       
@@ -1962,6 +1981,14 @@ get_soib_status_cats <- function(which = NULL) {
   
 }
 
+# get mapping info for eBird species names --------------------------------
+
+# species names change every year, which proves difficult when working on annual updates
+# this function helps map these different names
+
+ebird_tax_mapping <- function() {
+  read.csv("00_data/eBird_taxonomy_mapping.csv")
+}
 
 # Update specieslists during interannual SoIB updates --------------------
 
@@ -1988,7 +2015,6 @@ update_species_lists = function(species_list_data, scientific_also = FALSE) {
 
   require(tidyverse)
   
-  updatemap = read.csv("00_data/eBird_taxonomy_mapping_2022to2023.csv")
   if (!exists("fullmap")) {
     fullmap <- read.csv("00_data/SoIB_mapping_2023.csv")
   }
@@ -1997,7 +2023,7 @@ update_species_lists = function(species_list_data, scientific_also = FALSE) {
 
   # when rerunning for same year, need to return unmodified list
   # because species names already updated in prior run
-  if (any(!species_list_data$COMMON.NAME %in% updatemap$eBird.English.Name.2022)) {
+  if (any(!species_list_data$COMMON.NAME %in% ebird_tax_mapping()$eBird.English.Name.2022)) {
 
     message("Species list is already updated to latest taxonomy. Returning original list.")
     return(species_list_data)
@@ -2005,7 +2031,7 @@ update_species_lists = function(species_list_data, scientific_also = FALSE) {
   } else {
 
     list_new <- species_list_data |> 
-      left_join(updatemap, 
+      left_join(ebird_tax_mapping(), 
                 by = c("COMMON.NAME" = "eBird.English.Name.2022")) |> 
       dplyr::select(-COMMON.NAME) |> 
       relocate(eBird.English.Name.2023) |> # first column is species name

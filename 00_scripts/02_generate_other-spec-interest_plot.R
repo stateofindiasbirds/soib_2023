@@ -48,7 +48,7 @@ plot_fn <- function(main_data) {
 main_data0 <- read.csv("01_analyses_full/results/SoIB_main.csv") %>% 
   dplyr::select(India.Checklist.Common.Name, 
                 contains("longterm"), contains("currentslope"),
-                SOIBv2.Long.Term.Status, SOIBv2.Current.Status) %>% 
+                SoIB.Latest.Long.Term.Status, SoIB.Latest.Current.Status) %>% 
   # we want to use the original scale itself, without negatives and positives
   # (so that we can use the original thresholds)
   mutate(across(contains("longterm"), ~ . + 100)) %>% 

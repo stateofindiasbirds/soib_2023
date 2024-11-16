@@ -7,10 +7,10 @@ temp_priority_correction <- function(db) {
   
   mapping <- db %>% 
     filter(MASK == "none") %>% 
-    distinct(India.Checklist.Common.Name, SOIBv2.Priority.Status)
+    distinct(India.Checklist.Common.Name, SoIB.Latest.Priority.Status)
   
   db %>% 
-    dplyr::select(-SOIBv2.Priority.Status) %>% 
+    dplyr::select(-SoIB.Latest.Priority.Status) %>% 
     left_join(mapping)
   
 }
