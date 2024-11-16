@@ -268,7 +268,10 @@ write.csv(diff, file = "00_data/Minus-S-23.csv", row.names = F)
 ###########################################################################
 #########################################################################
 
-## Haveri test case
+## District test case
+
+dist = "Nizamabad"
+dist.code = "IN-TS-NI"
 
 require(lubridate)
 require(tidyverse)
@@ -297,8 +300,8 @@ rawpath = paste("00_data/dataforMyna_",latest_year+1,".txt",sep="")
 data_current = read.delim(rawpath, sep = "\t", header = T)
 
 data_current_1 = data_current %>%
-  # filter for Haveri
-  filter(COUNTY.CODE == "IN-KA-HV") %>%
+  # filter for district
+  filter(COUNTY.CODE == dist.code) %>%
   mutate(OBSERVATION.DATE = as.Date(OBSERVATION.DATE)) %>%
   filter(!EXOTIC.CODE %in% c("X","P")) %>%
   filter(!COMMON.NAME %in% 
@@ -322,7 +325,9 @@ newdata_current = newdata_current %>%
          NUMBER.OBSERVERS = "delete") %>%
   dplyr::select(all_of(imp_full))
 
-write_delim(newdata_current, file = "00_data/Haveri_data_for_testing.txt", delim = "\t")
+name = paste("00_data/",dist,"_data_for_testing.txt",sep="")
+
+write_delim(newdata_current, file = name, delim = "\t")
 
 
 
@@ -359,8 +364,8 @@ data = data %>%
 
 
 data_current_1 = data %>%
-  # filter for Haveri
-  filter(DISTRICT.NAME == "Haveri") %>%
+  # filter for district
+  filter(DISTRICT.NAME == dist) %>%
   mutate(OBSERVATION.DATE = as.Date(OBSERVATION.DATE)) %>%
   filter(!EXOTIC.CODE %in% c("X","P")) %>%
   filter(!COMMON.NAME %in% 
@@ -384,7 +389,9 @@ newdata_current_shp = newdata_current_shp %>%
          NUMBER.OBSERVERS = "delete") %>%
   dplyr::select(all_of(imp_full))
 
-write_delim(newdata_current_shp, file = "00_data/Haveri_data_for_testing_shp.txt", delim = "\t")
+name = paste("00_data/",dist,"_data_for_testing_shp.txt",sep="")
+
+write_delim(newdata_current_shp, file = name, delim = "\t")
 
 diff1 = newdata_current %>%
   setdiff(newdata_current_shp)
@@ -392,5 +399,9 @@ diff1 = newdata_current %>%
 diff2 = newdata_current_shp %>%
   setdiff(newdata_current)
 
-write.csv(diff1, file = "00_data/Haveri_different_eBirdvsshp.csv", row.names = F)
-write.csv(diff2, file = "00_data/Haveri_different_shpvseBird.csv", row.names = F)
+name1 = paste("00_data/",dist,"_different_eBirdvsshp.csv",sep="")
+name2 = paste("00_data/",dist,"_different_shpvseBird.csv",sep="")
+
+
+write.csv(diff1, file = name1, row.names = F)
+write.csv(diff2, file = name2, row.names = F)
