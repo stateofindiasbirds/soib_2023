@@ -5,6 +5,7 @@ library(VGAM)
 library(sf)
 library(writexl)
 
+source('00_scripts/00_functions.R')
 
 # setup -------------------------------------------------------------------
 
@@ -45,8 +46,6 @@ if (interannual_update == TRUE) {
 
 
 ###
-
-source('00_scripts/00_functions.R')
 
 recentcutoff = soib_year_info("cat_start")
 
