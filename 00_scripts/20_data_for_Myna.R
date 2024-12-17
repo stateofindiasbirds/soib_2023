@@ -247,11 +247,36 @@ deleteddata_past = deleteddata_past %>%
 
 ## create S-24
 
+source("00_scripts/00_functions.R")
+
+main = read.csv("01_analyses_full/results/SoIB_main.csv") %>%
+  dplyr::select(eBird.English.Name.2022,SOIBv2.Priority.Status,
+                SOIBv2.Long.Term.Status,SOIBv2.Current.Status,SOIBv2.Range.Status) %>%
+  left_join(ebird_tax_mapping()) %>%
+  dplyr::select(-eBird.English.Name.2022) %>%
+  rename(SOIB.Concern.Status = SOIBv2.Priority.Status,
+         SOIB.Long.Term.Status = SOIBv2.Long.Term.Status,
+         SOIB.Current.Status = SOIBv2.Current.Status,
+         SOIB.Range.Status = SOIBv2.Range.Status)
+
+  
+
+tax_base = read.csv("00_data/SoIB_mapping_2023.csv") %>%
+  rename(SOIB.Concern.Status = SoIB.Past.Priority.Status,
+                SOIB.Long.Term.Status = SoIB.Past.Long.Term.Status,
+                SOIB.Current.Status = SoIB.Past.Current.Status,
+                SOIB.Range.Status = SoIB.Past.Range.Status)
+
 tax = read.csv("00_data/SoIB_mapping_2023.csv") %>%
+  dplyr::select(-SoIB.Past.Priority.Status,-SoIB.Past.Long.Term.Status,
+                -SoIB.Past.Current.Status,-SoIB.Past.Range.Status) %>%
   filter(!eBird.English.Name.2023 %in% 
            c("Band-bellied Crake","Spur-winged Lapwing","Cape Petrel","African Openbill","Levant Sparrowhawk")) %>%
+  left_join(main) %>%
+  dplyr::select(names(tax_base)) %>%
   rename(eBird.English.Name.2022 = eBird.English.Name.2023,
          eBird.Scientific.Name.2022 = eBird.Scientific.Name.2023)
+
 
 
 ## write all files
