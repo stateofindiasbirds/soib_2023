@@ -639,22 +639,22 @@ status_priority <- main %>%
 
 
 # From the last major update, break-up of how High Priority species which
-# were not High in the past were attained - this is basically a comparison of 
+# were not High in the past ("new") were attained - this is basically a comparison of 
 # major updates
 
-high_priority_breakup_major_update_new = main
-
-if (interannual_update == TRUE) {
-  high_priority_breakup_major_update_new = high_priority_breakup_major_update_new %>%
-    mutate(SoIB.Latest.Priority.Status = SoIB.Major.Update.Priority.Status,
+high_priority_new_breakup_major_update = main %>% 
+  {if (interannual_update == TRUE) {
+    mutate(.,
+           SoIB.Latest.Priority.Status = SoIB.Major.Update.Priority.Status,
            SoIB.Latest.Long.Term.Status = SoIB.Major.Update.Long.Term.Status,
            SoIB.Latest.Current.Status = SoIB.Major.Update.Current.Status,
            SoIB.Latest.Range.Status = SoIB.Major.Update.Range.Status)
-}
-
-high_priority_breakup_major_update_new = high_priority_breakup_major_update_new %>%
+  } else {
+    .
+  }} %>% 
   filter(SoIB.Latest.Priority.Status == "High",
          SoIB.Past.Priority.Status != "High" | is.na(SoIB.Past.Priority.Status)) %>%
+  ### below needs to be functionised because the rules stay the same ###
   transmute(Breakup = case_when(
     
     # we have conclusive trend this time, but last time was inconclusive or NA
@@ -679,18 +679,18 @@ high_priority_breakup_major_update_new = high_priority_breakup_major_update_new 
   mutate(Perc = round(100 * (n / sum(n)), 1)) %>%
   magrittr::set_colnames(c("Break-up", "New High Species (no.)", "New High Species (perc.)"))
 
-# changes in the major update - summary of high priority species, not just new changes
-high_priority_breakup_major_update = main
 
-if (interannual_update == TRUE) {
-  high_priority_breakup_major_update = high_priority_breakup_major_update %>%
-    mutate(SoIB.Latest.Priority.Status = SoIB.Major.Update.Priority.Status,
+# changes in the major update - summary of high priority species, not just new changes
+high_priority_breakup_major_update = main %>% 
+  {if (interannual_update == TRUE) {
+    mutate(.,
+           SoIB.Latest.Priority.Status = SoIB.Major.Update.Priority.Status,
            SoIB.Latest.Long.Term.Status = SoIB.Major.Update.Long.Term.Status,
            SoIB.Latest.Current.Status = SoIB.Major.Update.Current.Status,
            SoIB.Latest.Range.Status = SoIB.Major.Update.Range.Status)
-}
-
-high_priority_breakup_major_update = high_priority_breakup_major_update %>%
+  } else {
+    .
+  }} %>% 
   filter(SoIB.Latest.Priority.Status == "High") %>%
   transmute(Breakup = case_when(
     
@@ -715,7 +715,7 @@ high_priority_breakup_major_update = high_priority_breakup_major_update %>%
   count(Breakup) %>%
   mutate(Perc = round(100 * (n / sum(n)), 1)) %>%
   magrittr::set_colnames(c("Break-up", "High Species (no.)", "High Species (perc.)")) %>%
-  left_join(high_priority_breakup_major_update_new)
+  left_join(high_priority_new_breakup_major_update)
 
 
 # break-up of how latest High Priority species which were not High in the last
@@ -724,7 +724,7 @@ high_priority_breakup_major_update = high_priority_breakup_major_update %>%
 
 if (interannual_update == TRUE) {
   
-  high_priority_breakup_interannual_update_new = main %>%
+  high_priority_new_breakup_interannual_update = main %>%
     filter(SoIB.Latest.Priority.Status == "High",
            SoIB.Major.Update.Priority.Status != "High" | is.na(SoIB.Major.Update.Priority.Status)) %>%
     transmute(Breakup = case_when(
@@ -750,6 +750,7 @@ if (interannual_update == TRUE) {
     count(Breakup) %>%
     mutate(Perc = round(100 * (n / sum(n)), 1)) %>%
     magrittr::set_colnames(c("Break-up", "New High Species (no.)", "New High Species (perc.)"))
+  
   
   # changes in the interannual update - summary of high priority species, not just new changes
   
@@ -778,9 +779,10 @@ if (interannual_update == TRUE) {
     count(Breakup) %>%
     mutate(Perc = round(100 * (n / sum(n)), 1)) %>%
     magrittr::set_colnames(c("Break-up", "High Species (no.)", "High Species (perc.)")) %>%
-    left_join(high_priority_breakup_interannual_update_new)
+    left_join(high_priority_new_breakup_interannual_update)
   
 }
+
 
 if (cur_metadata$MASK.TYPE == "country") {
   
@@ -844,15 +846,12 @@ if (cur_metadata$MASK.TYPE == "country") {
   
   # cross-tab of SoIB and IUCN assessments - major update
   
-  SoIB_vs_IUCN_0 = main
-  
-  if (interannual_update == TRUE) {
-    SoIB_vs_IUCN_0 = SoIB_vs_IUCN_0 %>%
-      mutate(SoIB.Latest.Priority.Status = SoIB.Major.Update.Priority.Status)
-  }
-  
-  
-  SoIB_vs_IUCN_0 <- SoIB_vs_IUCN_0 %>%
+  SoIB_vs_IUCN_0 = main %>% 
+    {if (interannual_update == TRUE) {
+      mutate(., SoIB.Latest.Priority.Status = SoIB.Major.Update.Priority.Status)
+    } else {
+      .
+    }} %>% 
     filter(Selected.SoIB == "X") %>%
     mutate(SoIB.Latest.Priority.Status = factor(SoIB.Latest.Priority.Status,
                                            levels = c("High", "Moderate", "Low")),
@@ -893,7 +892,6 @@ if (cur_metadata$MASK.TYPE == "country") {
                   ~ round(100 * (. / Sum), 1))) %>%
     mutate(Sum = NULL) %>%
     rename(` ` = SoIB)
-  
   
   
   
