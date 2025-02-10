@@ -13,12 +13,31 @@ source('00_scripts/00_plot_functions.R')
 data_trends = read.csv("01_analyses_full/results/trends.csv")
 data_main = read.csv("01_analyses_full/results/SoIB_main.csv")
 
-cur_spec = c("Indian Vulture","White-rumped Vulture","Egyptian Vulture",
-             "Red-headed Vulture","Bearded Vulture","Eurasian Griffon")
-plot_type = "multi"
-nm = "Fig. 5.jpg"
+groups = data_main %>%
+  mutate(GROUP = case_when(
+    Habitat.Specialization == "Grassland" ~ "Grassland & Scrub",
+    Habitat.Specialization == "Alpine & Cold Desert" ~ "Open Habitat",
+    Habitat.Specialization == "Non-specialized" ~ "No Specialisation",
+    TRUE ~ Habitat.Specialization
+  )) %>% 
+  filter(!is.na(GROUP)) %>%
+  dplyr::select(eBird.English.Name.2022,GROUP,
+                SOIBv2.Long.Term.Status) %>%
+  rename(COMMON.NAME = eBird.English.Name.2022)
+data_trends = data_trends %>% left_join(groups) %>% 
+  filter(!SOIBv2.Long.Term.Status %in% c("Trend Inconclusive","Insufficient Data"))
+
+data_trends <- data_trends %>%
+  dplyr::select(GROUP,timegroups, timegroupsf, lci_std, mean_std, rci_std) %>%
+  group_by(GROUP, timegroups, timegroupsf) %>%
+  reframe(across(ends_with("_std"), ~ mean(.)))
+
+
+cur_spec <- data_trends %>% distinct(GROUP) %>% pull(GROUP)
+plot_type = "composite"
+nm = "Fig. 6.jpg"
 path_write_file = paste("40_manuscripts/01_blueprint/figs/",nm,sep="")
-cur_trend = "CAT"
+cur_trend = "LTT"
 analysis_type <- "ebird"
 
 if (plot_type != "composite") {
@@ -159,7 +178,6 @@ plot_xmin <- cur_data_trends %>%
   ungroup() %>%
   pull(timegroups) %>%
   max() # when multi-species, we take the latest year ### ###
-plot_xmin = 2016
 
 
 # saving non-rounded values for later use in plotting

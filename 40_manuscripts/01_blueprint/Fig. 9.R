@@ -13,12 +13,65 @@ source('00_scripts/00_plot_functions.R')
 data_trends = read.csv("01_analyses_full/results/trends.csv")
 data_main = read.csv("01_analyses_full/results/SoIB_main.csv")
 
-cur_spec = c("Indian Vulture","White-rumped Vulture","Egyptian Vulture",
-             "Red-headed Vulture","Bearded Vulture","Eurasian Griffon")
-plot_type = "multi"
-nm = "Fig. 3.png"
+groups = data_main %>%
+  mutate(GROUP = fct_collapse(
+    
+    eBird.English.Name.2022,
+    
+    "Near Resident or Palearctic Migrant" = c(
+      "Indian Thick-knee","Great Thick-knee","Beach Thick-knee","Black-winged Stilt",
+      "Red-wattled Lapwing","Little Ringed Plover","Greater Painted-Snipe",
+      "Pheasant-tailed Jacana","Bronze-winged Jacana","Solitary Snipe",
+      "Barred Buttonquail","Indian Courser","Jerdon's Courser","Small Pratincole"
+    ),
+    
+    "Near Resident or Palearctic Migrant" = c(
+      "Pied Avocet","Ibisbill","Eurasian Oystercatcher","Northern Lapwing",
+      "Gray-headed Lapwing","Sociable Lapwing","White-tailed Lapwing",
+      "Lesser Sand-Plover","Greater Sand-Plover","Caspian Plover",
+      "Kentish Plover","Common Ringed Plover","Long-billed Plover",
+      "Oriental Plover","Eurasian Curlew","Black-tailed Godwit","Ruff",
+      "Jack Snipe","Eurasian Woodcock","Wood Snipe","Great Snipe","Common Snipe",
+      "Pin-tailed Snipe","Swinhoe's Snipe","Common Sandpiper","Green Sandpiper",
+      "Spotted Redshank","Common Greenshank","Nordmann's Greenshank",
+      "Marsh Sandpiper","Wood Sandpiper","Common Redshank","Small Buttonquail",
+      "Yellow-legged Buttonquail","Crab-Plover","Cream-colored Courser",
+      "Collared Pratincole","Oriental Pratincole"
+    ),
+    
+    "Arctic Migrant" = c(
+      "Black-bellied Plover","European Golden-Plover","American Golden-Plover",
+      "Pacific Golden-Plover","Whimbrel","Bar-tailed Godwit","Ruddy Turnstone",
+      "Great Knot","Red Knot","Broad-billed Sandpiper","Sharp-tailed Sandpiper",
+      "Curlew Sandpiper","Temminck's Stint","Long-toed Stint",
+      "Spoon-billed Sandpiper","Red-necked Stint","Sanderling","Dunlin",
+      "Little Stint","Buff-breasted Sandpiper","Pectoral Sandpiper",
+      "Asian Dowitcher","Long-billed Dowitcher","Terek Sandpiper",
+      "Red-necked Phalarope","Red Phalarope","Gray-tailed Tattler"
+    )
+    
+  )) %>% 
+  mutate(GROUP = case_when(!GROUP %in% c("Near Resident or Palearctic Migrant",
+                                         "Arctic Migrant") ~ NA_character_,
+                           TRUE ~ GROUP)) %>% 
+  filter(!is.na(GROUP)) %>%
+  dplyr::select(eBird.English.Name.2022,GROUP,
+                SOIBv2.Long.Term.Status) %>%
+  rename(COMMON.NAME = eBird.English.Name.2022)
+data_trends = data_trends %>% left_join(groups) %>% 
+  filter(!SOIBv2.Long.Term.Status %in% c("Trend Inconclusive","Insufficient Data"))
+
+data_trends <- data_trends %>%
+  dplyr::select(GROUP,timegroups, timegroupsf, lci_std, mean_std, rci_std) %>%
+  group_by(GROUP, timegroups, timegroupsf) %>%
+  reframe(across(ends_with("_std"), ~ mean(.)))
+
+
+cur_spec <- data_trends %>% distinct(GROUP) %>% pull(GROUP)
+plot_type = "composite"
+nm = "Fig. 9.jpg"
 path_write_file = paste("40_manuscripts/01_blueprint/figs/",nm,sep="")
-cur_trend = "CAT"
+cur_trend = "LTT"
 analysis_type <- "ebird"
 
 if (plot_type != "composite") {
@@ -48,6 +101,7 @@ if (plot_type == "single_mask") {
 }
 
 palette_plot_elem <- "#56697B"
+palette_plot_elem <- "black"
 palette_plot_title <- "#A13E2B"
 palette_trend_groups <- c("#869B27", "#E49B36", "#436b74", "#CC6666", 
                           "#B69AC9", "#319cc0","#31954E","#493F3D",
@@ -158,7 +212,6 @@ plot_xmin <- cur_data_trends %>%
   ungroup() %>%
   pull(timegroups) %>%
   max() # when multi-species, we take the latest year ### ###
-plot_xmin = 2016
 
 
 # saving non-rounded values for later use in plotting
@@ -438,6 +491,6 @@ cur_plot <- plot_base +
   # theme
   ggtheme_soibtrend()
 
-ggsave(filename = path_write_file, plot = cur_plot,
-       dpi = 500, bg = "transparent",
-       width = 11, height = 7.5, units = "in")
+jpeg(path_write_file, units="in", width=11, height=7.5, res=600)
+grid::grid.draw(cur_plot)
+dev.off()
