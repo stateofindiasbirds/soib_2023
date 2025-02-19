@@ -6,18 +6,18 @@ library(tidyverse)
 load("00_data/dataforanalyses_extra.RData")
 main <- read.csv("01_analyses_full/results/SoIB_main.csv")
 
-range.status = main %>% select(eBird.English.Name.2023, SOIBv2.Range.Status)
+range.status = main %>% select(eBird.English.Name.2023, SoIB.Latest.Range.Status)
 india.checklist.map = main %>% select(eBird.English.Name.2023, India.Checklist.Common.Name)
 
 ###
 
 # limiting the set of species to a set of criteria
 specs.states = main %>%
-  filter(Selected.SOIB == "X",
-         SOIBv2.Range.Status != "Historical",
+  filter(Selected.SoIB == "X",
+         SoIB.Latest.Range.Status != "Historical",
          ((IUCN.Category %in% c("Critically Endangered","Endangered","Vulnerable") &
-             SOIBv2.Priority.Status == "Moderate") |
-            (SOIBv2.Priority.Status == "High"))) %>%
+             SoIB.Latest.Priority.Status == "Moderate") |
+            (SoIB.Latest.Priority.Status == "High"))) %>%
   distinct(eBird.English.Name.2023) %>% 
   pull(eBird.English.Name.2023)
 
@@ -39,15 +39,15 @@ key.state.species0 = data0 %>%
   reframe(prop.range = n_distinct(gridg1)/max(tot.range)) %>%
   left_join(main, by = c("COMMON.NAME" = "eBird.English.Name.2023")) %>%
   mutate(
-    Current.Sort = case_when(SOIBv2.Current.Status %in% c("Insufficient Data","Trend Inconclusive") ~ 1,
+    Current.Sort = case_when(SoIB.Latest.Current.Status %in% c("Insufficient Data","Trend Inconclusive") ~ 1,
                              TRUE ~ 0),
-    Long.Term.Sort = case_when(SOIBv2.Long.Term.Status %in% c("Insufficient Data","Trend Inconclusive") ~ 1,
+    Long.Term.Sort = case_when(SoIB.Latest.Long.Term.Status %in% c("Insufficient Data","Trend Inconclusive") ~ 1,
                                TRUE ~ 0)
   ) %>%
   group_by(ST_NM) %>% 
   arrange(ST_NM, desc(prop.range), Current.Sort, Long.Term.Sort, rangemean) %>%
-  dplyr::select(ST_NM, COMMON.NAME, prop.range, SOIBv2.Current.Status, Current.Sort, 
-                SOIBv2.Long.Term.Status, Long.Term.Sort, rangemean)
+  dplyr::select(ST_NM, COMMON.NAME, prop.range, SoIB.Latest.Current.Status, Current.Sort, 
+                SoIB.Latest.Long.Term.Status, Long.Term.Sort, rangemean)
 
 key.state.species = key.state.species0
 
@@ -298,8 +298,8 @@ state.species = key.state.species.report %>%
 # high proportional contributions to range - only for species that don't figure in
 # the latest list
 initial.report.range = initial.report %>%
-  filter(SOIBv2.Current.Status %in% c("Insufficient Data","Trend Inconclusive"),
-         SOIBv2.Long.Term.Status %in% c("Insufficient Data","Trend Inconclusive")) %>%
+  filter(SoIB.Latest.Current.Status %in% c("Insufficient Data","Trend Inconclusive"),
+         SoIB.Latest.Long.Term.Status %in% c("Insufficient Data","Trend Inconclusive")) %>%
   anti_join(state.species) %>%
   filter(prop.range > 0.05)
 
@@ -384,7 +384,7 @@ add.final = main %>%
   )) %>%
   left_join(miss.spec) %>%
   dplyr::select(ST_NM, eBird.English.Name.2023, 
-                SOIBv2.Current.Status, SOIBv2.Long.Term.Status, SOIBv2.Range.Status)
+                SoIB.Latest.Current.Status, SoIB.Latest.Long.Term.Status, SoIB.Latest.Range.Status)
 
 key.state.temp = key.state.species %>% 
   dplyr::select(ST_NM, COMMON.NAME, prop.range) %>%
@@ -393,7 +393,7 @@ key.state.temp = key.state.species %>%
 prop.to.add = add.final %>%
   left_join(key.state.temp) %>%
   dplyr::select(ST_NM, eBird.English.Name.2023, prop.range,
-                SOIBv2.Current.Status, SOIBv2.Long.Term.Status, SOIBv2.Range.Status)
+                SoIB.Latest.Current.Status, SoIB.Latest.Long.Term.Status, SoIB.Latest.Range.Status)
 
 key.state.species.report = key.state.species.report %>%
   filter((ST_NM != "Manipur" | eBird.English.Name.2023 != "Yellow-breasted Bunting") &
@@ -438,7 +438,7 @@ key.state.species.report = key.state.species.report %>%
 key.state.species.report.final = key.state.species.report %>%
   left_join(india.checklist.map) %>%
   mutate(India.Checklist.Common.Name = factor(India.Checklist.Common.Name, levels = unique(india.checklist.map$India.Checklist.Common.Name))) %>%
-  select(ST_NM,India.Checklist.Common.Name,prop.range,SOIBv2.Long.Term.Status,SOIBv2.Current.Status,SOIBv2.Range.Status) %>%
+  select(ST_NM,India.Checklist.Common.Name,prop.range,SoIB.Latest.Long.Term.Status,SoIB.Latest.Current.Status,SoIB.Latest.Range.Status) %>%
   group_by(ST_NM) %>% arrange(India.Checklist.Common.Name, .by_group = T)
 
 # write

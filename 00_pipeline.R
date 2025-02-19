@@ -417,6 +417,7 @@ analyses_metadata %>%
     # new environment for each parallel iteration
     cur_env <- new.env()
     assign("cur_mask", .x, envir = cur_env)
+    assign("interannual_update", interannual_update, envir = cur_env)
     
     tic(glue("Resolved trends & occupancy for {.x}"))
     source("00_scripts/resolve_trends_and_occupancy.R", local = cur_env)

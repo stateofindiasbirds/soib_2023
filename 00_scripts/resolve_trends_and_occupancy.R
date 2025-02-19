@@ -5,6 +5,7 @@ library(VGAM)
 library(sf)
 library(writexl)
 
+source('00_scripts/00_functions.R')
 
 # setup -------------------------------------------------------------------
 
@@ -27,9 +28,24 @@ occu_outpath <- cur_metadata$OCCU.OUTPATH
 
 mainwocats_path <- cur_metadata$SOIBMAIN.WOCATS.PATH
 
-###
 
-source('00_scripts/00_functions.R')
+# in interannual updates, we need to delete all past-year output files
+# because species names change every year with taxonomy updates.
+# hence, although most species' files will simply get overwritten, for many
+# species we will end up with multiple files, one for each taxonomy update
+# (if not interannual update, everything will be in a new repo so no need for this.)
+if (interannual_update == TRUE) {
+  
+  files_to_del <- list.files(occu_outpath, full.names = TRUE)
+  
+  if (length(files_to_del) != 0) {
+    file.remove(files_to_del)
+  }
+  
+}
+
+
+###
 
 recentcutoff = soib_year_info("cat_start")
 
@@ -86,19 +102,13 @@ if (run_res_trends == FALSE) {
   # list of columns that need to be created since we have skipped steps
   na_columns <- c("longtermlci", "longtermmean", "longtermrci",     
                   "currentslopelci", "currentslopemean", "currentsloperci", 
-                  "proj2023.lci", "proj2023.mean", "proj2023.rci",    
-                  "proj2024.lci", "proj2024.mean", "proj2024.rci",    
-                  "proj2025.lci", "proj2025.mean", "proj2025.rci",    
-                  "proj2026.lci", "proj2026.mean", "proj2026.rci",    
-                  "proj2027.lci", "proj2027.mean", "proj2027.rci",    
-                  "proj2028.lci", "proj2028.mean", "proj2028.rci",    
-                  "proj2029.lci", "proj2029.mean", "proj2029.rci")
+                  get_iucn_proj_cols())
   
   base = read.csv(base_path) %>% 
     # if full column has no X at all, gets read as NAs
-    mutate(across(c(Long.Term.Analysis, Current.Analysis, Selected.SOIB),
+    mutate(across(c(Long.Term.Analysis, Current.Analysis, Selected.SoIB),
                   ~ as.character(.))) %>%
-    mutate(across(c(Long.Term.Analysis, Current.Analysis, Selected.SOIB),
+    mutate(across(c(Long.Term.Analysis, Current.Analysis, Selected.SoIB),
                   ~ replace_na(., ""))) %>%
     dplyr::select(-SCIENTIFIC.NAME)
   
@@ -117,9 +127,9 @@ if (run_res_trends == FALSE) {
   
   base = read.csv(base_path) %>% 
     # if full column has no X at all, gets read as NAs
-    mutate(across(c(Long.Term.Analysis, Current.Analysis, Selected.SOIB),
+    mutate(across(c(Long.Term.Analysis, Current.Analysis, Selected.SoIB),
                   ~ as.character(.))) %>%
-    mutate(across(c(Long.Term.Analysis, Current.Analysis, Selected.SOIB),
+    mutate(across(c(Long.Term.Analysis, Current.Analysis, Selected.SoIB),
                   ~ replace_na(., ""))) %>%
     dplyr::select(-SCIENTIFIC.NAME)
   
@@ -345,7 +355,7 @@ if (run_res_trends == FALSE) {
   
   
   # Years to project for PJ's IUCN comparison
-  extra.years = seq(soib_year_info("latest_year"), length.out = 7) + 1
+  extra.years = soib_year_info("iucn_projection")
   
   trends = trends %>%
     group_by(COMMON.NAME, timegroupsf, timegroups) %>% 
@@ -606,170 +616,44 @@ if (run_res_trends == FALSE) {
       group_by(COMMON.NAME, sim) %>%
       group_modify(~ {
         
-        modelfit <- lm(val_sample ~ timegroups,
-                       # one year dropped
-                       data = .x[.x$timegroups != soib_year_info("cat_years")[1],])
+        temp_df <- .x # to refer inside the second purrr function below
         
-        pred <- predict(modelfit, se = TRUE,
-                        # one year dropped
-                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != soib_year_info("cat_years")[1]]))
-        
-        num <- pred$fit[2] - pred$fit[1]
-        den <- abs(pred$fit[1])
-        numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
-        dense <- pred$se.fit[1]
-        
-        sl1 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
-        slse1 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
-        
-        
-        modelfit <- lm(val_sample ~ timegroups,
-                       # one year dropped
-                       data = .x[.x$timegroups != soib_year_info("cat_years")[2],])
-        
-        pred <- predict(modelfit, se = TRUE,
-                        # one year dropped
-                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != soib_year_info("cat_years")[2]]))
-        
-        num <- pred$fit[2] - pred$fit[1]
-        den <- abs(pred$fit[1])
-        numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
-        dense <- pred$se.fit[1]
-        
-        sl2 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
-        slse2 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
-        
-        
-        modelfit <- lm(val_sample ~ timegroups,
-                       # one year dropped
-                       data = .x[.x$timegroups != soib_year_info("cat_years")[3],])
-        
-        pred <- predict(modelfit, se = TRUE,
-                        # one year dropped
-                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != soib_year_info("cat_years")[3]]))
-        
-        num <- pred$fit[2] - pred$fit[1]
-        den <- abs(pred$fit[1])
-        numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
-        dense <- pred$se.fit[1]
-        
-        sl3 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
-        slse3 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
-        
-        
-        modelfit <- lm(val_sample ~ timegroups,
-                       # one year dropped
-                       data = .x[.x$timegroups != soib_year_info("cat_years")[4],])
-        
-        pred <- predict(modelfit, se = TRUE,
-                        # one year dropped
-                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != soib_year_info("cat_years")[4]]))
-        
-        num <- pred$fit[2] - pred$fit[1]
-        den <- abs(pred$fit[1])
-        numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
-        dense <- pred$se.fit[1]
-        
-        sl4 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
-        slse4 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
-        
-        
-        modelfit <- lm(val_sample ~ timegroups,
-                       # one year dropped
-                       data = .x[.x$timegroups != soib_year_info("cat_years")[5],])
-        
-        pred <- predict(modelfit, se = TRUE,
-                        # one year dropped
-                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != soib_year_info("cat_years")[5]]))
-        
-        num <- pred$fit[2] - pred$fit[1]
-        den <- abs(pred$fit[1])
-        numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
-        dense <- pred$se.fit[1]
-        
-        sl5 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
-        slse5 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
-        
-        
-        modelfit <- lm(val_sample ~ timegroups,
-                       # one year dropped
-                       data = .x[.x$timegroups != soib_year_info("cat_years")[6],])
-        
-        pred <- predict(modelfit, se = TRUE,
-                        # one year dropped
-                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != soib_year_info("cat_years")[6]]))
-        
-        num <- pred$fit[2] - pred$fit[1]
-        den <- abs(pred$fit[1])
-        numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
-        dense <- pred$se.fit[1]
-        
-        sl6 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
-        slse6 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
-        
-        
-        modelfit <- lm(val_sample ~ timegroups,
-                       # one year dropped
-                       data = .x[.x$timegroups != soib_year_info("cat_years")[7],])
-        
-        pred <- predict(modelfit, se = TRUE,
-                        # one year dropped
-                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != soib_year_info("cat_years")[7]]))
-        
-        num <- pred$fit[2] - pred$fit[1]
-        den <- abs(pred$fit[1])
-        numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
-        dense <- pred$se.fit[1]
-        
-        sl7 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
-        slse7 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
-        
-        
-        modelfit <- lm(val_sample ~ timegroups,
-                       # one year dropped
-                       data = .x[.x$timegroups != soib_year_info("cat_years")[8],])
-        
-        pred <- predict(modelfit, se = TRUE,
-                        # one year dropped
-                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != soib_year_info("cat_years")[8]]))
-        
-        num <- pred$fit[2] - pred$fit[1]
-        den <- abs(pred$fit[1])
-        numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
-        dense <- pred$se.fit[1]
-        
-        sl8 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
-        slse8 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
-        
-        
-        modelfit <- lm(val_sample ~ timegroups,
-          # one year dropped
-          data = .x[.x$timegroups != soib_year_info("cat_years")[9],])
-
-        pred <- predict(modelfit, se = TRUE,
-                        # one year dropped
-                        newdata = data.frame(timegroups = .x$timegroups[.x$timegroups != soib_year_info("cat_years")[9]]))
-
-        num <- pred$fit[2] - pred$fit[1]
-        den <- abs(pred$fit[1])
-        numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
-        dense <- pred$se.fit[1]
-        
-        sl9 = 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric()
-        slse9 = errordiv(num, den, numse, dense)[2] %>% as.numeric()
-
-
         .x %>%
-          reframe(sl1 = sl1, slse1 = slse1,
-                  sl2 = sl2, slse2 = slse2,
-                  sl3 = sl3, slse3 = slse3,
-                  sl4 = sl4, slse4 = slse4,
-                  sl5 = sl5, slse5 = slse5,
-                  sl6 = sl6, slse6 = slse6,
-                  sl7 = sl7, slse7 = slse7,
-                  sl8 = sl8, slse8 = slse8,
-                  sl9 = sl9, slse9 = slse9)
-        
+          reframe(
+            
+            # produce as many iterations as no. of CAT years (that many sl and slse cols)
+            !!!imap(soib_year_info("cat_years"), ~ {
+              
+              modelfit <- lm(val_sample ~ timegroups,
+                             # one year dropped
+                             data = temp_df[temp_df$timegroups != soib_year_info("cat_years")[.y],])
+              
+              pred <- predict(
+                modelfit, se = TRUE,
+                # one year dropped
+                newdata = data.frame(
+                  timegroups = temp_df$timegroups[temp_df$timegroups != soib_year_info("cat_years")[.y]]
+                )
+              )
+              
+              num <- pred$fit[2] - pred$fit[1]
+              den <- abs(pred$fit[1])
+              numse <- sqrt(pred$se.fit[1]^2 + pred$se.fit[2]^2)
+              dense <- pred$se.fit[1]
+              
+              # create col names based on iteration index
+              col_name_sl <- paste0("sl", .y)
+              col_name_slse <- paste0("slse", .y)
+              
+              tibble(
+                !!col_name_sl := 100 * errordiv(num, den, numse, dense)[1] %>% as.numeric(),
+                !!col_name_slse := errordiv(num, den, numse, dense)[2] %>% as.numeric()
+              )
+              
+            }) %>% 
+              bind_cols()
+            
+          )
         
       }) %>%
       
@@ -874,9 +758,32 @@ if (run_res_trends == FALSE) {
              lci_std_recent, mean_std_recent, rci_std_recent,
              lci_ext_std, mean_ext_std, rci_ext_std,
              lci_comb_std, mean_comb_std, rci_comb_std)
-
+  
+  
+  # in an interannual update, we want to rename the old trends.csv
+  # to archive it for future/downstream use while latest will be saved as trends.csv
+  
+  if (interannual_update == TRUE) {
+    
+    trends_cur_end_year <- trends %>% 
+      filter(!is.na(mean)) %>% # future year rows will have values in some cols but not "mean"
+      distinct(timegroups) %>% 
+      max()
+    trends_prev_end_year <- read.csv(trends_outpath) %>% 
+      filter(!is.na(mean)) %>% # future year rows will have values in some cols but not "mean"
+      distinct(timegroups) %>% 
+      max()
+    
+    # rename old trends file
+    if (trends_cur_end_year != trends_prev_end_year) {
+      trends_outpath_old <- glue("{str_remove(trends_outpath, '.csv')}_MY{trends_prev_end_year}.csv")
+      file.rename(trends_outpath, trends_outpath_old)
+    }
+    
+  }
+  
+  # save current trends to file
   write.csv(trends, file = trends_outpath, row.names = F)
-
 
 
   # joining future projected trends to main dataframe ###

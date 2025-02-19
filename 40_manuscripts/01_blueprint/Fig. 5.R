@@ -13,25 +13,12 @@ source('00_scripts/00_plot_functions.R')
 data_trends = read.csv("01_analyses_full/results/trends.csv")
 data_main = read.csv("01_analyses_full/results/SoIB_main.csv")
 
-groups = data_main %>%
-  dplyr::select(eBird.English.Name.2022,Migratory.Status.Within.India,
-                SOIBv2.Long.Term.Status) %>%
-  rename(COMMON.NAME = eBird.English.Name.2022, GROUP = Migratory.Status.Within.India)
-data_trends = data_trends %>% left_join(groups) %>% 
-  filter(GROUP %in% c("Resident","Winter Migrant"),
-         !SOIBv2.Long.Term.Status %in% c("Trend Inconclusive","Insufficient Data"))
-
-data_trends <- data_trends %>%
-  dplyr::select(GROUP,timegroups, timegroupsf, lci_std, mean_std, rci_std) %>%
-  group_by(GROUP, timegroups, timegroupsf) %>%
-  reframe(across(ends_with("_std"), ~ mean(.)))
-
-
-cur_spec <- data_trends %>% distinct(GROUP) %>% pull(GROUP)
-plot_type = "composite"
-nm = "Fig. 5.png"
+cur_spec = c("Indian Vulture","White-rumped Vulture","Egyptian Vulture",
+             "Red-headed Vulture","Bearded Vulture","Eurasian Griffon")
+plot_type = "multi"
+nm = "Fig. 5.jpg"
 path_write_file = paste("40_manuscripts/01_blueprint/figs/",nm,sep="")
-cur_trend = "LTT"
+cur_trend = "CAT"
 analysis_type <- "ebird"
 
 if (plot_type != "composite") {
@@ -61,6 +48,7 @@ if (plot_type == "single_mask") {
 }
 
 palette_plot_elem <- "#56697B"
+palette_plot_elem <- "black"
 palette_plot_title <- "#A13E2B"
 palette_trend_groups <- c("#869B27", "#E49B36", "#436b74", "#CC6666", 
                           "#B69AC9", "#319cc0","#31954E","#493F3D",
@@ -171,6 +159,7 @@ plot_xmin <- cur_data_trends %>%
   ungroup() %>%
   pull(timegroups) %>%
   max() # when multi-species, we take the latest year ### ###
+plot_xmin = 2016
 
 
 # saving non-rounded values for later use in plotting
@@ -450,6 +439,6 @@ cur_plot <- plot_base +
   # theme
   ggtheme_soibtrend()
 
-ggsave(filename = path_write_file, plot = cur_plot,
-       dpi = 500, bg = "transparent",
-       width = 11, height = 7.5, units = "in")
+jpeg(path_write_file, units="in", width=11, height=7.5, res=600)
+grid::grid.draw(cur_plot)
+dev.off()

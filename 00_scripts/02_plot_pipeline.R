@@ -24,18 +24,6 @@ gen_trend_plots("multi") # 30 sec
 
 gen_trend_plots("composite") # 15 sec
 
-# systematic monitoring plots -------------------------------------------------------
-
-fetch_sysmon_metadata("full")
-
-# 2 mins
-sysmon_metadata %>% 
-  filter(CASE != "eaglenest") %>% 
-  # filter(CASE == "nannaj") %>% 
-  pull(CASE) %>% 
-  walk(., ~ gen_trend_plots_sysmon(.x))
-
-
 # range maps -------------------------------------------------------------------------
 
 # only for full country and states

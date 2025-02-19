@@ -21,12 +21,12 @@ web_db0 <- map2(get_metadata()$SOIBMAIN.PATH, get_metadata()$MASK,
   get_latest_IUCN_status("India.Checklist.Common.Name", "IUCN.Category") %>% 
   mutate(India.Checklist.Common.Name = fct_inorder(India.Checklist.Common.Name)) %>% 
   # filtering for SoIB species
-  filter(Selected.SOIB == "X") %>%
+  filter(Selected.SoIB == "X") %>%
   # whether species is new to latest SoIB
-  mutate(new_to_soib = case_when(is.na(SOIB.Concern.Status) & !is.na(SOIBv2.Priority.Status) ~ TRUE,
+  mutate(new_to_soib = case_when(is.na(SoIB.Past.Priority.Status) & !is.na(SoIB.Latest.Priority.Status) ~ TRUE,
                                  TRUE ~ FALSE)) %>% 
   dplyr::select(-c("eBird.English.Name.2023", "eBird.Scientific.Name.2023", "Order", "Family",
-                   starts_with("SOIB."), contains("Breeding.Activity"), "Diet.Guild",
+                   starts_with("SoIB."), contains("Breeding.Activity"), "Diet.Guild",
                    starts_with("BLI."), ends_with(".Appendix"), "Onepercent.Estimates", 
                    contains("range25km"), "mean5km", "ci5km",
                    starts_with("proj20"))) %>% 
@@ -57,12 +57,12 @@ web_db <- web_db0 %>%
   rename(`long-term_trend` = longtermmean,
          current_annual_change = currentslopemean,
          distribution_range_size = rangemean,
-         current_status = SOIBv2.Current.Status,
-         distribution_status = SOIBv2.Range.Status,
+         current_status = SoIB.Latest.Current.Status,
+         distribution_status = SoIB.Latest.Range.Status,
          iucn_status = IUCN.Category,
-         long_term_status = SOIBv2.Long.Term.Status,
+         long_term_status = SoIB.Latest.Long.Term.Status,
          migratory_status = Migratory.Status.Within.India,
-         status_of_conservation_concern = SOIBv2.Priority.Status,
+         status_of_conservation_concern = SoIB.Latest.Priority.Status,
          wlpa_schedule = WPA.Schedule,
          habitat_specialization = Habitat.Specialization,
          endemicity = Endemic.Region,

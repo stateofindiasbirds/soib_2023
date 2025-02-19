@@ -52,12 +52,12 @@ create_state_prioritygrids_plot <- function(state,
     filter(ST_NM == state) %>% 
     distinct(gridg1, COMMON.NAME) %>% 
     # add priority status
-    left_join(data_priority %>% distinct(eBird.English.Name.2023, SOIBv2.Priority.Status), 
+    left_join(data_priority %>% distinct(eBird.English.Name.2023, SoIB.Latest.Priority.Status), 
               by = c("COMMON.NAME" = "eBird.English.Name.2023")) %>% 
     # get top 5 grid cells by number of high priority species
-    group_by(gridg1, SOIBv2.Priority.Status) %>% 
+    group_by(gridg1, SoIB.Latest.Priority.Status) %>% 
     reframe(NO.SP = n_distinct(COMMON.NAME)) %>% 
-    filter(SOIBv2.Priority.Status == "High") %>% 
+    filter(SoIB.Latest.Priority.Status == "High") %>% 
     arrange(desc(NO.SP)) %>% 
     slice(1:5) %>% 
     distinct(gridg1, NO.SP) %>% 

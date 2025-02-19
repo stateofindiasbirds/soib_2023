@@ -1,4 +1,3 @@
-
 # various trends plots --------------------------------------------------------------
 
 # this function has a heavy focus on plot_type, not much on cur_spec
@@ -251,7 +250,7 @@ gen_trend_plots <- function(plot_type = "single",
                # joining species or species groups for current composite
                left_join(data_main) %>% 
                dplyr::select(starts_with("PLOT."), FILE.NAME, GROUP,
-                             eBird.English.Name.2023, SOIBv2.Priority.Status) %>% 
+                             eBird.English.Name.2023, SoIB.Latest.Priority.Status) %>% 
                filter(eBird.English.Name.2023 %in% spec_qual) %>% 
                rename(PLOT.SPEC = eBird.English.Name.2023)
              

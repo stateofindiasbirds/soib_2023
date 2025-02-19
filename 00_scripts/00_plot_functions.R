@@ -1,4 +1,3 @@
-
 # reference grid lines --------------------------------------------------------------
 
 # we have to manually create grid lines because we want empty space before t=1
@@ -314,29 +313,32 @@ plot_import_data <- function(mask, import_trend = fn_cur_trend, import_plot_type
       c("Insufficient Data", "Trend Inconclusive") 
     }
     
+    
+    # here, we want to use the original "major" SoIB statuses to determine
+    # which species get plotted, so column names stay the same in interannual update
     if (import_trend == "LTT") {
       
       spec_qual <- data_main %>% 
-        filter(!(SOIBv2.Long.Term.Status %in% status_to_filter),
+        filter(!(SoIB.Latest.Long.Term.Status %in% status_to_filter),
                Long.Term.Analysis == "X") %>% 
         dplyr::select(eBird.English.Name.2023) %>% 
         add_mask_titles(mask)
       
       data_trends <- data_trends %>% 
         filter(COMMON.NAME %in% spec_qual$eBird.English.Name.2023,
-               timegroups <= 2022)
+               timegroups <= soib_year_info("latest_year"))
       
     } else if (import_trend == "CAT") {
       
       spec_qual <- data_main %>% 
-        filter(!(SOIBv2.Current.Status %in% status_to_filter),
+        filter(!(SoIB.Latest.Current.Status %in% status_to_filter),
                Current.Analysis == "X") %>% 
         dplyr::select(eBird.English.Name.2023) %>% 
       add_mask_titles(mask)
       
       data_trends <- data_trends %>% 
         filter(COMMON.NAME %in% spec_qual$eBird.English.Name.2023,
-               timegroups >= 2015 & timegroups <= 2022)
+               timegroups >= soib_year_info("cat_start") & timegroups <= soib_year_info("latest_year"))
       
     }
     
@@ -745,11 +747,11 @@ create_composite_summary <- function(metadata, init_obj) {
     rename(COMPOSITE.NO = PLOT.NO, COMPOSITE.NAME = PLOT.NAME) %>% 
     # converting to India Checklist names
     mutate(PLOT.SPEC = specname_to_india_checklist(PLOT.SPEC),
-           SOIBv2.Priority.Status = case_when(SOIBv2.Priority.Status == "Moderate" ~ "MOD",
-                                              TRUE ~ str_to_upper(SOIBv2.Priority.Status))) %>% 
-    mutate(SOIBv2.Priority.Status = factor(SOIBv2.Priority.Status,
+           SoIB.Latest.Priority.Status = case_when(SoIB.Latest.Priority.Status == "Moderate" ~ "MOD",
+                                              TRUE ~ str_to_upper(SoIB.Latest.Priority.Status))) %>% 
+    mutate(SoIB.Latest.Priority.Status = factor(SoIB.Latest.Priority.Status,
                                            levels = c("HIGH", "MOD", "LOW"))) %>% 
-    group_by(COMPOSITE.NO, COMPOSITE.NAME, GROUP, SOIBv2.Priority.Status) %>% 
+    group_by(COMPOSITE.NO, COMPOSITE.NAME, GROUP, SoIB.Latest.Priority.Status) %>% 
     dplyr::summarise(NO.SPEC = n_distinct(PLOT.SPEC),
                      LIST.SPEC = str_flatten_comma(PLOT.SPEC)) %>% 
     ungroup()
@@ -793,11 +795,6 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     data_trends <- data_trends %>% 
       mutate(COMMON.NAME = specname_to_india_checklist(COMMON.NAME, already_show = FALSE))
     data_main <- data_main %>% 
-      # species name changed in between
-      mutate(eBird.English.Name.2023 = case_when(
-        eBird.English.Name.2023 == "Common Grasshopper-Warbler" ~ "Common Grasshopper Warbler",
-        TRUE ~ eBird.English.Name.2023
-      )) %>% 
       mutate(eBird.English.Name.2023 = specname_to_india_checklist(eBird.English.Name.2023, already_show = FALSE))
     cur_spec <- cur_spec %>% 
       specname_to_india_checklist(already_show = FALSE)
@@ -859,9 +856,9 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
         filter(eBird.English.Name.2023 %in% cur_spec,
                MASK == "none") %>% 
         {if (cur_trend == "LTT") {
-          pull(., SOIBv2.Long.Term.Status)
+          pull(., SoIB.Latest.Long.Term.Status)
         } else if (cur_trend == "CAT") {
-          pull(., SOIBv2.Current.Status)
+          pull(., SoIB.Latest.Current.Status)
         }}
       
     }
@@ -933,7 +930,7 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     # for each species, arranging different (latest) mask trend values in desc. order
     # (mainly useful for mask comparison graphs)
     mask_order <- cur_data_trends %>%
-      filter(timegroups == 2022) %>%
+      filter(timegroups == soib_year_info("latest_year")) %>%
       arrange(desc(mean_std)) %>% 
       distinct(MASK, MASK.TITLE.WRAP)
     
@@ -1145,7 +1142,7 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     # grid line to act as a reference for the Status threshold.
     
     ref_line <- cur_data_trends %>%
-      filter(timegroups == 2022) %>%
+      filter(timegroups == soib_year_info("latest_year")) %>%
       {if (plot_type == "single_mask") {
         filter(., MASK != "none")
       } else {
