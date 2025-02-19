@@ -9,7 +9,6 @@
 *.zip
 *.rar
 
-20_website/website_database.csv
 */data_rangemap_vagrants.csv
 00_data/BOW_image_list.csv
 00_data/state_summary_image_list.csv
