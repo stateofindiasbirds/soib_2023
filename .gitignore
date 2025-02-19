@@ -8,8 +8,8 @@
 *.txt
 *.zip
 *.rar
+40_manuscripts/01_blueprint/dataforanalyses_extra_2023.RData
 
-20_website/website_database.csv
 */data_rangemap_vagrants.csv
 00_data/BOW_image_list.csv
 00_data/state_summary_image_list.csv
