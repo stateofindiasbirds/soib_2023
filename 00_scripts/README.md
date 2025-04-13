@@ -5,8 +5,10 @@ The SoIB codebase contains several functions relevant for the main
 analytical workflow but also many helper functions for both inside and
 outside this main pipeline. All these are outlined below.
 
-All individual scripts are housed in `00_scripts/`. Numerical prefixes
-in filenames indicate where in the pipeline the scripts fall:
+All individual scripts are housed in `00_scripts/` (this might not be
+ideal, and can consider splitting them up into corresponding directories
+for pipeline steps). Numerical prefixes in filenames indicate where in
+the pipeline the scripts fall:
 
 -   `00_*.R` Setup & helper functions
 -   `01_*.R` Main analysis
@@ -21,6 +23,13 @@ from the main analyses steps to auxiliary outputs. The primary scripts
 for the main analysis are the ones referred to in order in
 `00_pipeline.R`.
 
+## Setup functions
+
+`00_functions.R` and `00_plot_functions.R` contain setup functions for
+the main analyses and plotting steps respectively. `00_functions.R`
+contains several fundamental functions that would make more sense being
+moved out into `01_*.R` scripts.
+
 ## Helper functions
 
 Helper functions are stored in the script `00_soisauce.R`.
@@ -30,16 +39,16 @@ Helper functions are stored in the script `00_soisauce.R`.
 This sets up the folder structure for the analytical workflow that spans
 multiple spatial scales (national, states, habitats) and analysis steps
 (and therefore folders and files). The main use of this feature is
-seamless operation of file paths. Therefore, the script
+seamless handling of file paths. Therefore, the script
 `01_create_metadata.R` need only be run *when there is any change* to
-any folder/path structure. It also ensures the folder structures are
-matched, by creating the necessary folders that do not already exist
+any folder/path structure. The script also ensures the folder structures
+are matched, by creating the necessary folders that do not already exist
 (though it will not delete old folders). This script saves the metadata
 as `analyses_metadata.RData`.
 
 All other times, the helper function `pathfinder()` can be used to
-obtain either the entire metadata base `pathfinder()` or the metadata
-for the spatial unit/mask of interest `pathfinder(mask)`. The metadata
+obtain either the entire metadata base (`pathfinder()`) or the metadata
+for the spatial unit/mask of interest (`pathfinder(mask)`). The metadata
 contains 26 columns of paths, which each correspond to a specific folder
 or file path, and 3 columns relating to the mask itself. It is best to
 simply select the required path directly from the output using `$`, like
@@ -58,21 +67,6 @@ based on underlying eBird data!
 
 Usage: `soib_year_info("latest_year")`
 
-### `get_iucn_proj_cols`
-
-Programmatically obtain list of column names for all IUCN projection
-years.
-
-### `specname_to_india_checklist`
-
-Convert eBird names to India Checklist names. Uses manually curated
-mapping sheet (`SoIB_mapping_2023.csv`).
-
-### `get_latest_IUCN_status`
-
-Add or update column with IUCN status of bird species. Uses manually
-curated mapping sheet (`SoIB_mapping_2023.csv`).
-
 ### `get_soib_status_cats`
 
 SoIB status categories have changed since the first iteration in 2020.
@@ -82,6 +76,11 @@ time.
 
 Usage: `get_soib_status_cats("trend")`
 
+### `specname_to_india_checklist`
+
+Convert eBird names to India Checklist names. Uses manually curated
+mapping sheet (`SoIB_mapping_2023.csv`).
+
 ### `ebird_tax_mapping`
 
 eBird species names change every year, which proves difficult when
@@ -89,12 +88,15 @@ working on annual updates. This function helps map these different
 names, using a single mapping file—and avoids having to read in the
 specific file every time (also minimising chances of error).
 
-## Setup functions
+### `get_iucn_proj_cols`
 
-`00_functions.R` and `00_plot_functions.R` contain setup functions for
-the main analyses and plotting steps respectively. `00_functions.R`
-contains several fundamental functions that would make more sense being
-moved out into `01_*.R` scripts.
+Programmatically obtain list of column names for all IUCN projection
+years.
+
+### `get_latest_IUCN_status`
+
+Add or update column with IUCN status of bird species. Uses manually
+curated mapping sheet (`SoIB_mapping_2023.csv`).
 
 ## Plotting functions
 
@@ -111,8 +113,8 @@ Plotting functions are structured at multiple levels.
 2.  Enter `gen_trend_plots()`, `gen_trend_plots_sysmon()` and
     `gen_range_maps()` in `02_generate_plots.R`. These functions are to
     be thought of as the go-to to generate any figure, whereas those in
-    #1 can be considered as just setting up the plot settings, theme,
-    etc. For instance, `gen_trend_plots()` lets you specify trend type
+    #1 can be considered as just applying the plot settings, theme, etc.
+    For instance, `gen_trend_plots()` lets you specify trend type
     (long-term vs current annual), species (one or more specific
     species, vs all qualifying species), and even “plot type” which
     refers to single-species plots, single-species comparison plots
