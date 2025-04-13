@@ -3,8 +3,9 @@
 get_metadata <- function(mask = NULL) {
 
   require(tidyverse)
+  require(here)
   
-  load("00_data/analyses_metadata.RData")
+  load(here("00_data/analyses_metadata.RData"))
 
   if(is.null(mask)) {
     return(analyses_metadata)
