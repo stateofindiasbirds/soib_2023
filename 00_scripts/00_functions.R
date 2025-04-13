@@ -1,6 +1,9 @@
 # get analyses metadata -------------------------------------------------
 
-get_metadata <- function(mask = NULL) {
+# maybe add an argument which allows to view the list of available columns
+# could just add manual text output grouping similar-function-columns together
+
+pathfinder <- function(mask = NULL) {
 
   require(tidyverse)
   require(here)
@@ -554,12 +557,12 @@ removevagrants = function(data)
 dataspeciesfilter = function(cur_mask = "none", singleyear = interannual_update) {
   
   # ensuring only valid cur_mask names are provided
-  if (!(cur_mask %in% unique(get_metadata()$MASK))) {
+  if (!(cur_mask %in% unique(pathfinder()$MASK))) {
     return('Invalid mask! Please provide valid mask name, one of: c("none","woodland","cropland","ONEland","PA").')
   }
   
   # metadata
-  cur_metadata <- get_metadata(cur_mask)
+  cur_metadata <- pathfinder(cur_mask)
   
 
   # processing data filter (updates every time) -------------------------------
@@ -820,7 +823,7 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = interannual_update)
     
     # we need country specieslist to derive specieslist for states
     if (cur_metadata$MASK.TYPE == "state") {
-      load(file = get_metadata("none") %>% pull(SPECLISTDATA.PATH))
+      load(file = pathfinder("none") %>% pull(SPECLISTDATA.PATH))
       
       specieslist_nat <- specieslist
       rm(specieslist, restrictedspecieslist)

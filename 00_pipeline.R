@@ -147,7 +147,7 @@ toc() # 543 sec (9 min)
 tic.clearlog()
 tic("generated random group IDs for all states") # 91 min
 
-get_metadata() %>% 
+pathfinder() %>% 
   filter(MASK.TYPE == "state") %>% 
   distinct(MASK) %>% 
   pull(MASK) %>% 
@@ -216,7 +216,7 @@ not_my_states <- c(
 tic.clearlog()
 tic("Generated subsampled data for all states") # 4 hours for 21 states
 
-get_metadata() %>% 
+pathfinder() %>% 
   filter(MASK.TYPE == "state") %>% 
   distinct(MASK) %>% 
   filter(!MASK %in% not_my_states) %>% 
@@ -289,7 +289,7 @@ tic.clearlog()
 tic("Ran species trends for all states")
 # Karnataka takes 4.5 min per 1 sim
 
-get_metadata() %>% 
+pathfinder() %>% 
   filter(MASK.TYPE == "state") %>% 
   distinct(MASK) %>% 
   filter(!MASK %in% not_my_states) %>% 
@@ -354,7 +354,7 @@ tic.clearlog()
 tic("Ran species occupancy for all states") # 5 h 25 min
 # Karnataka took ~13 min
 
-get_metadata() %>% 
+pathfinder() %>% 
   filter(MASK.TYPE == "state") %>% 
   distinct(MASK) %>% 
   # slice(1) %>% 
@@ -401,7 +401,7 @@ print(glue("Activated future-walking using advanced Kenbunshoku Haki!"))
 # start multiworker parallel session
 plan(multisession, workers = parallel::detectCores()/2)
 
-get_metadata() %>% 
+pathfinder() %>% 
   pull(MASK) %>% 
   # future-walking over each mask
   future_walk(.progress = TRUE, .options = furrr_options(seed = TRUE), ~ {
@@ -439,7 +439,7 @@ tic.log()
 tic.clearlog()
 tic("Finished classifying and summarising for all masks") # 2 min
 
-get_metadata() %>% 
+pathfinder() %>% 
   pull(MASK) %>% 
   # walking over each mask
   walk(., ~ {

@@ -144,7 +144,7 @@ toc()
 tic.clearlog()
 tic("dataspeciesfilter for all states")
 
-get_metadata() %>% 
+pathfinder() %>% 
   filter(MASK.TYPE == "state") %>% 
   distinct(MASK) %>% 
   pull(MASK) %>% 

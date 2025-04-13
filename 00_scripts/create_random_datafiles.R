@@ -1,7 +1,7 @@
 require(tidyverse)
 
 # preparing data for specific mask (this is the only part that changes, but automatically)
-cur_metadata <- get_metadata(cur_mask)
+cur_metadata <- pathfinder(cur_mask)
 read_path_data <- cur_metadata$DATA.PATH
 read_path_groupids <- cur_metadata$RAND.GROUP.IDS.PATH
 speclist_path <- cur_metadata$SPECLISTDATA.PATH

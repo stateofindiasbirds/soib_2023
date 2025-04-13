@@ -6,7 +6,7 @@ load("00_data/dataforanalyses_extra.RData")
 load("01_analyses_full/specieslists.RData")
 load("00_data/maps_sf.RData")
 
-analyses_metadata = get_metadata() %>% filter(MASK.TYPE == "state")
+analyses_metadata = pathfinder() %>% filter(MASK.TYPE == "state")
 
 
 dataM <- read.delim("00_data/dataforMyna.txt", 

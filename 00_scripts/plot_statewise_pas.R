@@ -8,7 +8,7 @@ load("00_data/maps_sf.RData")
 load("00_data/maps_pa_sf.RData")
 
 
-states_to_walk <- get_metadata() %>% 
+states_to_walk <- pathfinder() %>% 
   filter(MASK.TYPE == "state") %>% 
   # temp. exclude AR due to issue with admin boundary
   filter(MASK != "Arunachal Pradesh") %>% 

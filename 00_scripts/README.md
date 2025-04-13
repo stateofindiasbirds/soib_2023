@@ -35,13 +35,13 @@ matched, by creating the necessary folders that do not already exist
 (though it will not delete old folders). This script saves the metadata
 as `analyses_metadata.RData`.
 
-All other times, the helper function `get_metadata()` can be used to
-obtain either the entire metadata base `get_metadata()` or the metadata
-for the spatial unit/mask of interest `get_metadata(mask)`. The metadata
+All other times, the helper function `pathfinder()` can be used to
+obtain either the entire metadata base `pathfinder()` or the metadata
+for the spatial unit/mask of interest `pathfinder(mask)`. The metadata
 contains 26 columns of paths, which each correspond to a specific folder
 or file path, and 3 columns relating to the mask itself. It is best to
 simply select the required path directly from the output using `$`, like
-`get_metadata("none")$SOIBMAIN.PATH`.
+`pathfinder("none")$SOIBMAIN.PATH`.
 
 ## Main analysis scripts
 
