@@ -1,0 +1,8 @@
+# Codebase documentation
+
+
+The SoIB codebase scripts contain several functions relevant for the
+main analytical workflow but also many helper functions for both inside
+and outside this main pipeline. All these are outlined below.
+
+## Helper functions
