@@ -89,6 +89,76 @@ working on annual updates. This function helps map these different
 names, using a single mapping file—and avoids having to read in the
 specific file every time (also minimising chances of error).
 
+## Setup functions
+
+`00_functions.R` and `00_plot_functions.R` contain setup functions for
+the main analyses and plotting steps respectively. `00_functions.R`
+contains several fundamental functions that would make more sense being
+moved out into `01_*.R` scripts.
+
+## Plotting functions
+
+Plotting functions are structured at multiple levels.
+
+1.  At the finest grain, individual trend plots and range maps can be
+    generated using `soib_trend_plot()`, `soib_trend_plot_sysmon()` and
+    `soib_rangemap()` in `00_plot_functions.R`. This will most likely be
+    done just for testing. Since the input data for all of these figures
+    depends on several factors such as spatial unit (mask, for range
+    maps) and trend type (long-term vs current annual, for trend plots),
+    this kind of setup needs to happen before the figures can be
+    generated.
+2.  Enter `gen_trend_plots()`, `gen_trend_plots_sysmon()` and
+    `gen_range_maps()` in `02_generate_plots.R`. These functions are to
+    be thought of as the go-to to generate any figure, whereas those in
+    #1 can be considered as just setting up the plot settings, theme,
+    etc. For instance, `gen_trend_plots()` lets you specify trend type
+    (long-term vs current annual), species (one or more specific
+    species, vs all qualifying species), and even “plot type” which
+    refers to single-species plots, single-species comparison plots
+    (comparing mask with national), multispecies plots, and composite
+    plots.
+3.  At the highest level, `02_plot_pipeline.R` does for figure plotting
+    what `00_pipeline.R` does for the main analysis, where one has to
+    only run the different sections in order after the results have been
+    generated.
+
+The other four `02_generate_*.R` scripts generate figures specific to
+the SoIB 2023 report, like the eBird list point map and the other
+species of interest plot.
+
 ## Main analysis scripts
 
-## One-time run scripts
+These major scripts are typically run in the following order (refer
+`00_pipeline.R`):
+
+-   Data analysis
+    -   *some functions directly from `00_functions.R`*
+        -   `rm_prob_mistakes.R` (from within `readcleanrawdata()`)
+    -   `filter_data_for_species.R`
+    -   `create_random_groupids.R`
+    -   `create_random_datafiles.R`
+    -   `run_species_trends.R`
+    -   Occupancy analysis
+        -   `run_species_occupancy-setup.R`
+        -   `run_species_occupancy-presence.R`
+        -   `run_species_occupancy-model.R`
+    -   `resolve_trends_and_occupancy.R`
+    -   `classify_and_summarise.R`
+-   Post-analysis steps
+    -   `redlist.R`
+    -   `key_species_states.R`
+    -   `plot_statewise_pas.R`
+    -   `plot_statewise_prioritygrids.R`
+    -   `state_summary_posters.R`
+
+## One-time runs
+
+These are run just once, typically before the analysis steps.
+
+-   `create_india_DEM.R`: Create DEM object of India from TIF file.
+-   `create_habitat_masks_dataframe.R`: Create sf objects of habitat
+    masks from geojson file.
+-   `validation_model_specifications.R`: Testing statistical validity of
+    model specified with interaction of two variables without individual
+    effects of each variable.
