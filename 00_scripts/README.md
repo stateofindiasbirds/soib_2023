@@ -43,8 +43,47 @@ or file path, and 3 columns relating to the mask itself. It is best to
 simply select the required path directly from the output using `$`, like
 `pathfinder("none")$SOIBMAIN.PATH`.
 
+### `soib_year_info`
+
+Get year-related info for different SoIB contexts. e.g., get list of
+labels for time periods used in figures; get list of years considered
+for Current Annual Trends; get list of years for IUCN projection.
+Updated each time `readcleanrawdata()` run, i.e., `soib_year_info` is
+based on underlying eBird data!
+
+Usage: `soib_year_info("latest_year")`
+
+### `get_iucn_proj_cols`
+
+Programmatically obtain list of column names for all IUCN projection
+years.
+
+### `specname_to_india_checklist`
+
+Convert eBird names to India Checklist names. Uses manually curated
+mapping sheet (`SoIB_mapping_2023.csv`).
+
+### `get_latest_IUCN_status`
+
+Add or update column with IUCN status of bird species. Uses manually
+curated mapping sheet (`SoIB_mapping_2023.csv`).
+
+### `get_soib_status_cats`
+
+SoIB status categories have changed since the first iteration in 2020.
+This function helps easily get the various status categories
+functionally, preventing the need to copy paste several strings every
+time.
+
+Usage: `get_soib_status_cats("trend")`
+
+### `ebird_tax_mapping`
+
+eBird species names change every year, which proves difficult when
+working on annual updates. This function helps map these different
+names, using a single mapping file—and avoids having to read in the
+specific file every time (also minimising chances of error).
+
 ## Main analysis scripts
 
 ## One-time run scripts
-
-Sysmon self-explanatory
