@@ -7,7 +7,8 @@ data_path <- cur_metadata$DATA.PATH
 
 require(tidyverse)
 
-source('00_scripts/00_functions.R')
+source("00_scripts/00_soisauce.R")
+source("00_scripts/00_functions.R")
 
 load(data_path)
 load(speclist_path)

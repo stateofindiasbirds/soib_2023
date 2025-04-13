@@ -48,7 +48,8 @@ gen_trend_plots <- function(plot_type = "single",
   require(furrr)
   require(parallel)
   
-  source('00_scripts/00_functions.R')
+  source("00_scripts/00_soisauce.R")
+  source("00_scripts/00_functions.R")
   source('00_scripts/00_plot_functions.R')
   
   # assigning objects to environment --------------------------------------------------
@@ -321,7 +322,8 @@ gen_trend_plots_sysmon <- function(cur_case) {
   require(ggrepel) # text repel
   require(tictoc)
   
-  source('00_scripts/00_functions.R')
+  source("00_scripts/00_soisauce.R")
+  source("00_scripts/00_functions.R")
   source('00_scripts/00_plot_functions.R')
   
   # import and prepare data for plot --------------------------------------------------
@@ -463,7 +465,8 @@ gen_range_maps <- function(mask_type = "country", which_mask = NULL, which_spec 
   require(glue)
   require(tictoc)
 
-  source('00_scripts/00_functions.R')
+  source("00_scripts/00_soisauce.R")
+  source("00_scripts/00_functions.R")
   source('00_scripts/00_plot_functions.R')
 
       

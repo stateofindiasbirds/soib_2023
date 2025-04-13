@@ -20,7 +20,8 @@ if (to_run == TRUE) {
   require(foreach)
   require(doParallel)
   
-  source('00_scripts/00_functions.R')
+  source("00_scripts/00_soisauce.R")
+  source("00_scripts/00_functions.R")
   
   
   

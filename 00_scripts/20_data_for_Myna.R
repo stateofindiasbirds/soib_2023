@@ -3,6 +3,7 @@
 require(lubridate)
 require(tidyverse)
 
+source("00_scripts/00_soisauce.R")
 source("00_scripts/00_functions.R")
 latest_year = soib_year_info()
 rawpath = paste("00_data/ebd_IN_relJun-",latest_year+1,".txt",sep="")
@@ -95,7 +96,6 @@ data = data %>%
     TRUE ~ COMMON.NAME
   ))
 
-source('00_scripts/00_functions.R')
 # removing false complete lists
 data = completelistcheck(data)
 
@@ -127,6 +127,7 @@ write_delim(data, file = writepath, delim = "\t")
 require(lubridate)
 require(tidyverse)
 
+source("00_scripts/00_soisauce.R")
 source("00_scripts/00_functions.R")
 latest_year = soib_year_info()
 
@@ -247,6 +248,7 @@ deleteddata_past = deleteddata_past %>%
 
 ## create S-24
 
+source("00_scripts/00_soisauce.R")
 source("00_scripts/00_functions.R")
 
 main = read.csv("01_analyses_full/results/SoIB_main.csv") %>%
@@ -301,6 +303,7 @@ dist.code = "IN-TS-NI"
 require(lubridate)
 require(tidyverse)
 
+source("00_scripts/00_soisauce.R")
 source("00_scripts/00_functions.R")
 latest_year = soib_year_info()
 

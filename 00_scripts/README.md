@@ -23,6 +23,8 @@ for the main analysis are the ones referred to in order in
 
 ## Helper functions
 
+Helper functions are stored in the script `00_soisauce.R`.
+
 ### `analyses_metadata`
 
 This sets up the folder structure for the analytical workflow that spans
@@ -42,6 +44,9 @@ contains 26 columns of paths, which each correspond to a specific folder
 or file path, and 3 columns relating to the mask itself. It is best to
 simply select the required path directly from the output using `$`, like
 `pathfinder("none")$SOIBMAIN.PATH`.
+
+**Note that the idea here is to avoid manually coding file paths
+whenever possible!**
 
 ### `soib_year_info`
 

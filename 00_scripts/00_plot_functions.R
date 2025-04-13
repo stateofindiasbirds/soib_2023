@@ -1775,6 +1775,7 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
   tic(glue("Finished creating range map [mask: {cur_mask}] for [species: {str_flatten_comma(which_spec)}]"))
   
   
+  source("00_scripts/00_soisauce.R")
   source("00_scripts/00_functions.R")
   source("00_scripts/20_functions.R")
   

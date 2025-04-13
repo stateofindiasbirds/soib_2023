@@ -47,7 +47,8 @@ require(tictoc)
 require(furrr)
 require(parallel)
 
-source('00_scripts/00_functions.R')
+source("00_scripts/00_soisauce.R")
+source("00_scripts/00_functions.R")
 source('00_scripts/00_plot_functions.R')
 
 load("00_data/analyses_metadata.RData")

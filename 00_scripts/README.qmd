@@ -24,10 +24,12 @@ Scripts without prefixes may fall in multiple steps of the pipeline, from the ma
 
 ## Helper functions
 
+Helper functions are stored in the script `00_soisauce.R`.
+
 ### `analyses_metadata`
 
 ```{r}
-source(here::here("00_scripts/00_functions.R"))
+source(here::here("00_scripts/00_soisauce.R"))
 
 n_col <- dim(pathfinder())[2]
 n_mask <- dim(pathfinder() %>% select(contains("MASK")))[2]
@@ -36,6 +38,8 @@ n_mask <- dim(pathfinder() %>% select(contains("MASK")))[2]
 This sets up the folder structure for the analytical workflow that spans multiple spatial scales (national, states, habitats) and analysis steps (and therefore folders and files). The main use of this feature is seamless operation of file paths. Therefore, the script `01_create_metadata.R` need only be run *when there is any change* to any folder/path structure. It also ensures the folder structures are matched, by creating the necessary folders that do not already exist (though it will not delete old folders). This script saves the metadata as `analyses_metadata.RData`.
 
 All other times, the helper function `pathfinder()` can be used to obtain either the entire metadata base `pathfinder()` or the metadata for the spatial unit/mask of interest `pathfinder(mask)`. The metadata contains `{r} n_col - n_mask` columns of paths, which each correspond to a specific folder or file path, and `{r} n_mask` columns relating to the mask itself. It is best to simply select the required path directly from the output using `$`, like `pathfinder("none")$SOIBMAIN.PATH`.
+
+**Note that the idea here is to avoid manually coding file paths whenever possible!**
 
 ### `soib_year_info`
 

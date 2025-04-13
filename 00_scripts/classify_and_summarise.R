@@ -23,7 +23,8 @@ summaries_path <- cur_metadata$SUMMARY.PATH
 
 ###
 
-source('00_scripts/00_functions.R')
+source("00_scripts/00_soisauce.R")
+source("00_scripts/00_functions.R")
 
 # for classification
 priorityrules = read.csv("00_data/priorityclassificationrules.csv") 
