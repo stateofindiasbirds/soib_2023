@@ -14,12 +14,12 @@ source("00_scripts/20_functions.R")
 sf_use_s2(FALSE)
 
 # importing SoIB results data
-main0 <- get_metadata("none") %>% 
+main0 <- pathfinder("none") %>% 
   pull(SOIBMAIN.PATH) %>% 
   read_csv()
 
 
-states_to_walk <- get_metadata() %>% 
+states_to_walk <- pathfinder() %>% 
   filter(MASK.TYPE == "state") %>% 
   # temp. exclude AR due to issue with admin boundary
   filter(MASK != "Arunachal Pradesh") %>% 

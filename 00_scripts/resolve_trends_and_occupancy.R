@@ -5,12 +5,13 @@ library(VGAM)
 library(sf)
 library(writexl)
 
-source('00_scripts/00_functions.R')
+source("00_scripts/00_soisauce.R")
+source("00_scripts/00_functions.R")
 
 # setup -------------------------------------------------------------------
 
 # preparing data for specific mask (this is the only part that changes, but automatically)
-cur_metadata <- get_metadata(cur_mask)
+cur_metadata <- pathfinder(cur_mask)
 
 # read paths
 base_path <- cur_metadata$FULLSPECLIST.PATH
