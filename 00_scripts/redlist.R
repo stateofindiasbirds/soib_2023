@@ -26,7 +26,7 @@ get_proj_decline_col <- function(data, gen) {
 
 # Read latest BLI 3gen values
 threegen <- read.csv("00_data/3genbli.csv") # No in repository. Contact paintedstork@gmail.com
-soib <- read.csv(get_metadata("none")$SOIBMAIN.PATH)   # Available in rep. after SoIB2 runs
+soib <- read.csv(pathfinder("none")$SOIBMAIN.PATH)   # Available in rep. after SoIB2 runs
 
 # Remove unwanted fields from freq
 soib <- soib %>% 

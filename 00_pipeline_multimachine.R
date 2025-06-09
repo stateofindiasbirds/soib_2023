@@ -3,8 +3,8 @@ library(tidyverse)
 library(glue)
 library(tictoc)
 
+source("00_scripts/00_soisauce.R")
 source("00_scripts/00_functions.R")
-load("00_data/analyses_metadata.RData")
 
 
 # full country runs -------------------------------------------------------
@@ -72,7 +72,7 @@ my_states <- c("Tamil Nadu")
 tic.clearlog()
 tic("Generated subsampled data for all assigned states") 
 
-analyses_metadata %>% 
+pathfinder() %>% 
   filter(MASK.TYPE == "state") %>% 
   distinct(MASK) %>% 
   filter(MASK %in% my_states) %>% 
@@ -95,7 +95,7 @@ tic.log()
 tic.clearlog()
 tic("Ran species trends for all assigned states")
 
-analyses_metadata %>% 
+pathfinder() %>% 
   filter(MASK.TYPE == "state") %>% 
   distinct(MASK) %>% 
   filter(MASK %in% my_states) %>% 

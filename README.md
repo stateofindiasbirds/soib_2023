@@ -19,7 +19,7 @@ The broad-level structure and workflow for the analysis is outlined below. Howev
 
 The control centre for the main SoIB 2023 analysis (once necessary files have been procured and put in place) is `00_pipeline.R` located in the main level of the repo. This lists all the steps in the pipeline in order, calling on corresponding scripts and functions, and covers the entire process from importing the raw EBD `.txt` data file till running the SoIB classification algorithm and summarising the results. 
 
-The script is structured into parts and steps, with ample annotation at each step. Although the pipeline is comprehensive and steps are ordered, due to the complexity and associated overheads, each step is best run individually; this has been enabled: aside from the [lines outside section headers](https://github.com/stateofindiasbirds/soib_2023/blob/master/00_pipeline.R#L1-L8), one need only run the lines specified at each specific step. For example, the call `load("00_data/analyses_metadata.RData")` has been repeated at multiple points in the script so as to reduce dependencies across steps. 
+The script is structured into parts and steps, with ample annotation at each step. Although the pipeline is comprehensive and steps are ordered, due to the complexity and associated overheads, each step is best run individually; this has been enabled: aside from the [lines outside section headers](https://github.com/stateofindiasbirds/soib_2023/blob/master/00_pipeline.R#L1-L8), one need only run the lines specified at each specific step. 
 
 Certain steps were required to be run on multiple machines. For this, the code pertaining to the relevant steps alone is copied in `00_pipeline_multimachine.R`. Similar to the main pipeline, loading of dependencies happens in a few lines of code at the start, and the steps can be run in order or individually by commenting out whatever is not of interest.
 
@@ -29,7 +29,7 @@ All input and many intermediary data are located in `00_data/`. Aside from the m
 
 ## Scripts (`00_scripts/`)
 
-Individual scripts, some of which are collections of functions, are located in `00_scripts/`. Numerical prefixes indicate where in the pipeline the scripts fall: `00_` refers to setup scripts, `01_` refers to the main analyses, `02_` to various plotting steps, `10_` to analyses from the Systematic Monitoring chapter of the report[^1], `20_` to website-specific steps and outputs, `30_` to mass communication like acknowledgement certificates; scripts without prefixes also fall in various steps, from the main analyses steps to auxiliary outputs. The primary scripts for the main analysis are the ones referred to in order in `00_pipeline.R`.
+All individual scripts aside from the high-level script (`00_pipeline.R` and `00_pipeline_multimachine.R`) are located in `00_scripts/`. They include several functions relevant for the main analytical workflow but also many helper functions for both inside and outside this main pipeline. These are all outlined in [the corresponding README](00_scripts/README.md).
 
 ## Main outputs
 

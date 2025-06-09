@@ -5,6 +5,7 @@ library(tictoc)
 library(furrr)
 library(parallel)
 
+source("00_scripts/00_soisauce.R")
 source("00_scripts/00_functions.R")
 
 
@@ -92,7 +93,6 @@ toc() # 11 min
 #   - data
 # - "specieslists.RData" for whole country and individual mask versions
 
-load("00_data/analyses_metadata.RData")
 
 tic("Processing and filtering data for analyses")
 source("00_scripts/filter_data_for_species.R")
@@ -117,7 +117,6 @@ toc()
 # Outputs:
 # - "randomgroupids.RData" for whole country and individual mask versions
 
-load("00_data/analyses_metadata.RData")
 
 # not functionising because parallelisation doesn't work inside functions
 cur_mask <- "none"
@@ -149,7 +148,7 @@ toc() # 543 sec (9 min)
 tic.clearlog()
 tic("generated random group IDs for all states") # 91 min
 
-analyses_metadata %>% 
+pathfinder() %>% 
   filter(MASK.TYPE == "state") %>% 
   distinct(MASK) %>% 
   pull(MASK) %>% 
@@ -178,8 +177,6 @@ tic.log()
 #   - "randomgroupids.RData" for whole country and individual mask versions
 # Outputs:
 # - "dataforsim/dataX.RData" for whole country and individual mask versions
-
-load("00_data/analyses_metadata.RData")
 
 
 cur_mask <- "none"
@@ -220,7 +217,7 @@ not_my_states <- c(
 tic.clearlog()
 tic("Generated subsampled data for all states") # 4 hours for 21 states
 
-analyses_metadata %>% 
+pathfinder() %>% 
   filter(MASK.TYPE == "state") %>% 
   distinct(MASK) %>% 
   filter(!MASK %in% not_my_states) %>% 
@@ -254,7 +251,6 @@ rm(not_my_states)
 # Outputs:
 # - "trends/trendsX.csv" for whole country and individual mask versions
 
-load("00_data/analyses_metadata.RData")
 
 cur_mask <- "none"
 my_assignment <- 1:200 # CHANGE FOR YOUR SUBSET
@@ -294,7 +290,7 @@ tic.clearlog()
 tic("Ran species trends for all states")
 # Karnataka takes 4.5 min per 1 sim
 
-analyses_metadata %>% 
+pathfinder() %>% 
   filter(MASK.TYPE == "state") %>% 
   distinct(MASK) %>% 
   filter(!MASK %in% not_my_states) %>% 
@@ -338,7 +334,6 @@ rm(not_my_states)
 # Outputs: 
 # - csv files in occupancy-presence/ 
 # - "occupancy-model/chunk_X.csv" for whole country and individual states
-load("00_data/analyses_metadata.RData")
 
 
 # full country
@@ -360,7 +355,7 @@ tic.clearlog()
 tic("Ran species occupancy for all states") # 5 h 25 min
 # Karnataka took ~13 min
 
-analyses_metadata %>% 
+pathfinder() %>% 
   filter(MASK.TYPE == "state") %>% 
   distinct(MASK) %>% 
   # slice(1) %>% 
@@ -397,8 +392,6 @@ tic.log()
 #   - trends/trendsX.csv for whole country and individual mask versions
 # Outputs: several
 
-load("00_data/analyses_metadata.RData")
-
 
 tic.clearlog()
 tic("Resolved trends & occupancy for all 42 masks")
@@ -409,7 +402,7 @@ print(glue("Activated future-walking using advanced Kenbunshoku Haki!"))
 # start multiworker parallel session
 plan(multisession, workers = parallel::detectCores()/2)
 
-analyses_metadata %>% 
+pathfinder() %>% 
   pull(MASK) %>% 
   # future-walking over each mask
   future_walk(.progress = TRUE, .options = furrr_options(seed = TRUE), ~ {
@@ -447,7 +440,7 @@ tic.log()
 tic.clearlog()
 tic("Finished classifying and summarising for all masks") # 2 min
 
-analyses_metadata %>% 
+pathfinder() %>% 
   pull(MASK) %>% 
   # walking over each mask
   walk(., ~ {

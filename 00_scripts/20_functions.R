@@ -141,7 +141,7 @@ is_curspec_key4state <- function(data) {
     mutate(KEY = TRUE)
   
   data <- data %>% 
-    left_join(get_metadata() %>% distinct(MASK, MASK.TYPE)) %>% 
+    left_join(pathfinder() %>% distinct(MASK, MASK.TYPE)) %>% 
     join_mask_codes() %>% 
     left_join(key_db, 
               by = c("MASK.LABEL" = "ST_NM", "India.Checklist.Common.Name")) %>% 

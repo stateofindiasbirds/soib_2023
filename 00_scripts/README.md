@@ -1,0 +1,208 @@
+# Codebase documentation
+
+
+The SoIB codebase contains several functions relevant for the main
+analytical workflow but also many helper functions for both inside and
+outside this main pipeline. All these are outlined below.
+
+All individual scripts are housed in `00_scripts/` (this might not be
+ideal, and can consider splitting them up into corresponding directories
+for pipeline steps). Numerical prefixes in filenames indicate where in
+the pipeline the scripts fall:
+
+-   `00_*.R` Setup & helper functions
+-   `01_*.R` Main analysis
+-   `02_*.R` Plotting
+-   `10_*.R` Analyses from the Systematic Monitoring chapter of the
+    report
+-   `20_*.R` Website-specific steps and outputs
+-   `30_*.R` Mass communication like acknowledgement certificates
+
+Scripts without prefixes may fall in multiple steps of the pipeline,
+from the main analyses steps to auxiliary outputs. The primary scripts
+for the main analysis are the ones referred to in order in
+`00_pipeline.R`.
+
+## Setup functions
+
+`00_functions.R` and `00_plot_functions.R` contain setup functions for
+the main analyses and plotting steps respectively. `00_functions.R`
+contains several fundamental functions that would make more sense being
+moved out into `01_*.R` scripts.
+
+## Helper functions
+
+Helper functions are stored in the script `00_soisauce.R`.
+
+### `analyses_metadata`
+
+This sets up the folder structure for the analytical workflow that spans
+multiple spatial scales (national, states, habitats) and analysis steps
+(and therefore folders and files). The main use of this feature is
+seamless handling of file paths. Therefore, the script
+`01_create_metadata.R` need only be run *when there is any change* to
+any folder/path structure. The script also ensures the folder structures
+are matched, by creating the necessary folders that do not already exist
+(though it will not delete old folders). This script saves the metadata
+as `analyses_metadata.RData`.
+
+All other times, the helper function `pathfinder()` can be used to
+obtain either the entire metadata base (`pathfinder()`) or the metadata
+for the spatial unit/mask of interest (`pathfinder(mask)`). The metadata
+contains 26 columns of paths, which each correspond to a specific folder
+or file path, and 3 columns relating to the mask itself. It is best to
+simply select the required path directly from the output using `$`, like
+`pathfinder("none")$SOIBMAIN.PATH`.
+
+**Note that the idea here is to avoid manually coding file paths
+whenever possible!**
+
+### `soib_year_info`
+
+Get year-related info for different SoIB contexts. e.g., get list of
+labels for time periods used in figures; get list of years considered
+for Current Annual Trends; get list of years for IUCN projection.
+Updated each time `readcleanrawdata()` run, i.e., `soib_year_info` is
+based on underlying eBird data!
+
+Usage: `soib_year_info("latest_year")`
+
+### `get_soib_status_cats`
+
+SoIB status categories have changed since the first iteration in 2020.
+This function helps easily get the various status categories
+functionally, preventing the need to copy paste several strings every
+time.
+
+Usage: `get_soib_status_cats("trend")`
+
+### `specname_to_india_checklist`
+
+Convert eBird names to India Checklist names. Uses manually curated
+mapping sheet (`SoIB_mapping_2023.csv`).
+
+### `ebird_tax_mapping`
+
+eBird species names change every year, which proves difficult when
+working on annual updates. This function helps map these different
+names, using a single mapping file—and avoids having to read in the
+specific file every time (also minimising chances of error).
+
+### `get_iucn_proj_cols`
+
+Programmatically obtain list of column names for all IUCN projection
+years.
+
+### `get_latest_IUCN_status`
+
+Add or update column with IUCN status of bird species. Uses manually
+curated mapping sheet (`SoIB_mapping_2023.csv`).
+
+## Plotting functions
+
+Plotting functions are structured at multiple levels.
+
+1.  At the finest grain, individual trend plots and range maps can be
+    generated using `soib_trend_plot()`, `soib_trend_plot_sysmon()` and
+    `soib_rangemap()` in `00_plot_functions.R`. This will most likely be
+    done just for testing. Since the input data for all of these figures
+    depends on several factors such as spatial unit (mask, for range
+    maps) and trend type (long-term vs current annual, for trend plots),
+    this kind of setup needs to happen before the figures can be
+    generated.
+2.  Enter `gen_trend_plots()`, `gen_trend_plots_sysmon()` and
+    `gen_range_maps()` in `02_generate_plots.R`. These functions are to
+    be thought of as the go-to to generate any figure, whereas those in
+    #1 can be considered as just applying the plot settings, theme, etc.
+    For instance, `gen_trend_plots()` lets you specify trend type
+    (long-term vs current annual), species (one or more specific
+    species, vs all qualifying species), and even “plot type” which
+    refers to single-species plots, single-species comparison plots
+    (comparing mask with national), multispecies plots, and composite
+    plots.
+3.  At the highest level, `02_plot_pipeline.R` does for figure plotting
+    what `00_pipeline.R` does for the main analysis, where one has to
+    only run the different sections in order after the results have been
+    generated.
+
+The other four `02_generate_*.R` scripts generate figures specific to
+the SoIB 2023 report, like the eBird list point map and the other
+species of interest plot.
+
+## Main analysis scripts
+
+These major scripts are typically run in the following order (refer
+`00_pipeline.R`):
+
+-   Data analysis
+    -   *some functions directly from `00_functions.R`*
+        -   `rm_prob_mistakes.R` (from within `readcleanrawdata()`)
+    -   `filter_data_for_species.R`
+    -   `create_random_groupids.R`
+    -   `create_random_datafiles.R`
+    -   `run_species_trends.R`
+    -   Occupancy analysis
+        -   `run_species_occupancy-setup.R`
+        -   `run_species_occupancy-presence.R`
+        -   `run_species_occupancy-model.R`
+    -   `resolve_trends_and_occupancy.R`
+    -   `classify_and_summarise.R`
+-   Post-analysis steps
+    -   `redlist.R`
+    -   `key_species_states.R`
+    -   `plot_statewise_pas.R`
+    -   `plot_statewise_prioritygrids.R`
+    -   `state_summary_posters.R`
+
+## One-time runs
+
+These are run just once, typically before the analysis steps.
+
+-   `create_india_DEM.R`: Create DEM object of India from TIF file.
+-   `create_habitat_masks_dataframe.R`: Create sf objects of habitat
+    masks from geojson file.
+-   `validation_model_specifications.R`: Testing statistical validity of
+    model specified with interaction of two variables without individual
+    effects of each variable.
+
+## Website scripts
+
+`20_data_for_Myna.R` produces the data file required for MYNA.
+`20_functions.R` contains setup and helper functions for the following
+scripts.
+
+### SoIB data for website
+
+The main analysis produces barebones results for each spatial unit/mask
+separately, but we want to refine them to make them useful when archived
+and we also want to host a single “main results” file on the website
+which users can download.
+
+So, `20_website_SoIB_main.R` compiles all `SoIB_main` files into a
+single `.xlsx` file as well as saves each individual mask file
+separately for Zenodo archive—after several refinements, such as
+converting certain column values into more intuitive versions, making
+column names verbose and descriptive, removing unnecessary columns,
+arranging columns in a useful order, and programmatically adding a
+README detailing the metadata for the data sheets.
+
+### Website database
+
+The massive amount of data generated in each SoIB run needs to be boiled
+into a consumable form on the website. While several data-based
+functionalities have been implemented directly in the website code, the
+website requires the outputs in a different flavour than generated from
+the main analysis.
+
+`20_website_database.R` does several things that indirectly control how
+the website looks. It collates the several different kinds of results
+and outputs generated in the analysis; removes unnecessary information;
+adds certain website-specific information; translates column names and
+values into intuitive forms for display; links textual/numerical data
+for each species to corresponding media outputs such as trend plots and
+range maps; sorts species taxonomically; etc.
+
+### One-time runs
+
+`20_boundaries_icons.R`: Generates PNG and SVG icons of states and
+country outlines to use on each species page on the website.

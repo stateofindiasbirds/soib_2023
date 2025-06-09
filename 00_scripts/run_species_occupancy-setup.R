@@ -1,5 +1,5 @@
 # preparing data for specific mask (this is the only part that changes, but automatically)
-cur_metadata <- get_metadata(cur_mask)
+cur_metadata <- pathfinder(cur_mask)
 speclist_path <- cur_metadata$SPECLISTDATA.PATH
 data_path <- cur_metadata$DATA.PATH
 
@@ -7,7 +7,8 @@ data_path <- cur_metadata$DATA.PATH
 
 require(tidyverse)
 
-source('00_scripts/00_functions.R')
+source("00_scripts/00_soisauce.R")
+source("00_scripts/00_functions.R")
 
 load(data_path)
 load(speclist_path)
