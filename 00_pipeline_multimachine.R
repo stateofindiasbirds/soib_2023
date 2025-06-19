@@ -9,7 +9,7 @@ load("00_data/analyses_metadata.RData")
 
 # full country runs -------------------------------------------------------
 
-my_assignment <- 1:1000 # CHANGE FOR YOUR SUBSET
+my_assignment <- 1:100 # CHANGE FOR YOUR SUBSET
 
 
 # STEP 1: Create subsampled data files using subsampled GROUP.IDs
@@ -47,7 +47,7 @@ rm(my_assigment)
 
 # mask runs -------------------------------------------------------------------
 
-cur_mask <- "woodland" # CHANGE FOR YOUR MASK {woodland, cropland, ONEland}
+cur_mask <- "cropland" # CHANGE FOR YOUR MASK {woodland, cropland, ONEland}
 
 # STEP 1: Create subsampled data files using subsampled GROUP.IDs
 tic(glue("Generated subsampled data for {cur_mask}"))

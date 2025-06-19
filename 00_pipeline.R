@@ -10,6 +10,7 @@ source("00_scripts/00_functions.R")
 
 # Is the current run for a new major SoIB version (every 3-4 years), 
 # or for an interannual update (every year between major versions)?
+# ungreying the Git push
 interannual_update = TRUE
 
 
@@ -257,7 +258,7 @@ rm(not_my_states)
 load("00_data/analyses_metadata.RData")
 
 cur_mask <- "none"
-my_assignment <- 1:200 # CHANGE FOR YOUR SUBSET
+my_assignment <- 28:100 # CHANGE FOR YOUR SUBSET
 tic(glue("Species trends for full country (sims {min(my_assignment)}--{max(my_assignment)})"))
 source("00_scripts/run_species_trends.R")
 toc() # 102 hours

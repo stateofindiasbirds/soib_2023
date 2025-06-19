@@ -31,7 +31,7 @@ geom_gridline <- function(index_y = NULL, baseline = FALSE) {
   if (analysis_type == "sysmon") {
     line_end <- tail(timegroups_num, 1)
   } else {
-    line_end <- 2022
+    line_end <- soib_year_info("latest_year")
   }
   
   # provide both the grid line and its label
@@ -69,8 +69,8 @@ geom_axisbracket <- function(bracket_type = "time", bracket_trend = cur_trend) {
       return("Current Trend bracket should not be plotted in the CAT plot!")
     }
     
-    bracket_min <- 2015 - 0.5
-    bracket_max <- 2022 + 0.5
+    bracket_min <- soib_year_info("cat_start") - 0.5
+    bracket_max <- soib_year_info("latest_year") + 0.5
     bracket_ypos <- plot_ymin0 - 0.065 * plot_range_max
     bracket_lab <- "Current Trend"
     bracket_tiplength <- -0.017
@@ -302,7 +302,7 @@ plot_import_data <- function(mask, import_trend = fn_cur_trend, import_plot_type
     
     # - not plotting data deficient; inconclusive will be plotted in single-species
     # - only species sel. for that trend; 
-    # - only till MY 2022
+    # - only till latest MY
     
     # inconclusive should only be plotted when we have CI bands
     # since single-mask has band only for mask, we remove Inconclusive for country in plotting step
@@ -315,12 +315,21 @@ plot_import_data <- function(mask, import_trend = fn_cur_trend, import_plot_type
     
     
     # here, we want to use the original "major" SoIB statuses to determine
-    # which species get plotted, so column names stay the same in interannual update
+    # which species get plotted
+    # so in interannual update we use Major.Update column, 
+    # while in major we use Latest (because no Major.Update created there)
     if (import_trend == "LTT") {
       
       spec_qual <- data_main %>% 
-        filter(!(SoIB.Latest.Long.Term.Status %in% status_to_filter),
-               Long.Term.Analysis == "X") %>% 
+        {if (interannual_update == TRUE) {
+          filter(.,
+                 !(SoIB.Major.Update.Long.Term.Status %in% status_to_filter),
+                 Long.Term.Analysis == "X") 
+        } else {
+          filter(.,
+                 !(SoIB.Latest.Long.Term.Status %in% status_to_filter),
+                 Long.Term.Analysis == "X")  
+        }} %>% 
         dplyr::select(eBird.English.Name.2023) %>% 
         add_mask_titles(mask)
       
@@ -331,10 +340,17 @@ plot_import_data <- function(mask, import_trend = fn_cur_trend, import_plot_type
     } else if (import_trend == "CAT") {
       
       spec_qual <- data_main %>% 
-        filter(!(SoIB.Latest.Current.Status %in% status_to_filter),
-               Current.Analysis == "X") %>% 
+        {if (interannual_update == TRUE) {
+          filter(.,
+                 !(SoIB.Major.Update.Current.Status %in% status_to_filter),
+                 Current.Analysis == "X")
+        } else {
+          filter(.,
+                 !(SoIB.Latest.Current.Status %in% status_to_filter),
+                 Current.Analysis == "X")
+        }} %>% 
         dplyr::select(eBird.English.Name.2023) %>% 
-      add_mask_titles(mask)
+        add_mask_titles(mask)
       
       data_trends <- data_trends %>% 
         filter(COMMON.NAME %in% spec_qual$eBird.English.Name.2023,
@@ -348,7 +364,7 @@ plot_import_data <- function(mask, import_trend = fn_cur_trend, import_plot_type
     return(list(spec_qual = spec_qual, data_trends = data_trends, data_main = data_main))
 
   }
-  
+    
 }
 
 # load appropriate data and filter for species qualified for plotting ------------------
