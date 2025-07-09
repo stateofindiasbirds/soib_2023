@@ -372,7 +372,7 @@ if (run_res_trends == TRUE) {
 # classification: converting all non-selected to NA -----------------------
 
 main <- main %>%
-  mutate(across(c(SoIB.Latest.Long.Term.Status, SoIB.Latest.Current.Status, SoIB.Past.Range.Status),
+  mutate(across(c(SoIB.Latest.Long.Term.Status, SoIB.Latest.Current.Status, SoIB.Latest.Range.Status),
                 ~ if_else(Selected.SoIB != "X", NA_character_, .)))
 
 # classification: assign SoIB Priority status (based on trends and occupancy) -----
