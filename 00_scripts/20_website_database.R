@@ -2,6 +2,7 @@ require(tidyverse)
 require(glue)
 require(scales)
 
+source("00_scripts/00_soisauce.R")
 source("00_scripts/00_functions.R")
 source("00_scripts/20_functions.R")
 
@@ -14,7 +15,7 @@ keystates <- read.csv("01_analyses_full/results/key_state_species_full.csv") %>%
 # import ----------------------------------------------------------------------------
 
 # importing all data and setting up
-web_db0 <- map2(get_metadata()$SOIBMAIN.PATH, get_metadata()$MASK, 
+web_db0 <- map2(pathfinder()$SOIBMAIN.PATH, pathfinder()$MASK, 
               ~ read_fn(.x) %>% bind_cols(tibble(MASK = .y))) %>% 
   list_rbind() %>% 
   # updating with latest IUCN Status
@@ -31,7 +32,7 @@ web_db0 <- map2(get_metadata()$SOIBMAIN.PATH, get_metadata()$MASK,
                    contains("range25km"), "mean5km", "ci5km",
                    starts_with("proj20"))) %>% 
   # joining MASK.TYPE
-  left_join(get_metadata() %>% distinct(MASK, MASK.TYPE)) %>% 
+  left_join(pathfinder() %>% distinct(MASK, MASK.TYPE)) %>% 
   # changing "country" mask type to "national"
   mutate(MASK.TYPE = if_else(MASK.TYPE == "country", "national", MASK.TYPE)) %>% 
   relocate(India.Checklist.Common.Name, MASK) %>% 

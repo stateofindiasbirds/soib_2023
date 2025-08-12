@@ -7,7 +7,7 @@ library(writexl)
 # setup -------------------------------------------------------------------
 
 # preparing data for specific mask (this is the only part that changes, but automatically)
-cur_metadata <- get_metadata(cur_mask)
+cur_metadata <- pathfinder(cur_mask)
 
 # read paths
 speclist_path <- cur_metadata$SPECLISTDATA.PATH
@@ -23,7 +23,8 @@ summaries_path <- cur_metadata$SUMMARY.PATH
 
 ###
 
-source('00_scripts/00_functions.R')
+source("00_scripts/00_soisauce.R")
+source("00_scripts/00_functions.R")
 
 # for classification
 priorityrules = read.csv("00_data/priorityclassificationrules.csv") 
@@ -71,7 +72,7 @@ if (!cur_metadata$MASK.TYPE %in% c("country", "state")) {
 if (skip_res_occu == TRUE) {
   
   # take relevant columns from wocats file of full-country
-  tojoin <- get_metadata("none")$SOIBMAIN.WOCATS.PATH %>%
+  tojoin <- pathfinder("none")$SOIBMAIN.WOCATS.PATH %>%
     distinct(eBird.English.Name.2023, rangelci, rangemean, rangerci)
   
   # joining to main object
@@ -169,7 +170,7 @@ if (cur_metadata$MASK.TYPE == "state") {
   
   main_toupdate <- anti_join(main, main_tokeep) %>% dplyr::select(-SoIB.Latest.Range.Status)
   
-  main_nat <- get_metadata("none") %>%
+  main_nat <- pathfinder("none") %>%
     pull(SOIBMAIN.PATH) %>%
     read.csv() %>%
     distinct(eBird.English.Name.2023, SoIB.Latest.Range.Status)
@@ -467,7 +468,7 @@ main = main %>%
 
 # get mapping of national-level species with their Priority Status categories 
 # from resolved & classified file of full-country
-nat_priority <- get_metadata("none")$SOIBMAIN.PATH %>% 
+nat_priority <- pathfinder("none")$SOIBMAIN.PATH %>% 
   read.csv() %>% 
   # contains() because if running national for first time, column will have previous year, 
   # else current year
@@ -497,7 +498,7 @@ if (interannual_update == TRUE){
   status_majupd_file = "SoIB_main_status_majupd.csv" # file to move past data to
   # (if a new major update being run, it will be a different repo altogether
   # so the if conditional will work anyway)
-  status_majupd_path <- glue("{get_metadata(cur_mask)$RESULTS}{status_majupd_file}")
+  status_majupd_path <- glue("{pathfinder(cur_mask)$RESULTS}{status_majupd_file}")
   
   main_past = read.csv(main_path)
   main_past_spec_col <- names(main_past)[1]

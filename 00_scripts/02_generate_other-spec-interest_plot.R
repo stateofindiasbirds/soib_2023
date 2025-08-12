@@ -2,6 +2,7 @@ library(tidyverse)
 library(glue)
 library(ggpattern)
 
+source("00_scripts/00_soisauce.R")
 source("00_scripts/00_functions.R")
 
 out_path <- "02_graphs/other_species_of_interest/"

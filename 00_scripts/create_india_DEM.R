@@ -1,3 +1,5 @@
+# create DEM object from TIF file
+
 library(tidyverse)
 library(raster)
 library(tictoc)

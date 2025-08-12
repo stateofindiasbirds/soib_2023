@@ -48,7 +48,8 @@ gen_trend_plots <- function(plot_type = "single",
   require(furrr)
   require(parallel)
   
-  source('00_scripts/00_functions.R')
+  source("00_scripts/00_soisauce.R")
+  source("00_scripts/00_functions.R")
   source('00_scripts/00_plot_functions.R')
   
   # assigning objects to environment --------------------------------------------------
@@ -57,10 +58,10 @@ gen_trend_plots <- function(plot_type = "single",
     obj_list <- list(plot_type = plot_type, 
                      cur_trend = cur_trend,
                      cur_spec = cur_spec,
-                     analyses_metadata = get_metadata())
+                     analyses_metadata = pathfinder())
   } else {
     obj_list <- list(plot_type = plot_type, 
-                     analyses_metadata = get_metadata())
+                     analyses_metadata = pathfinder())
   }
   
   list2env(obj_list, envir = .GlobalEnv)
@@ -321,7 +322,8 @@ gen_trend_plots_sysmon <- function(cur_case) {
   require(ggrepel) # text repel
   require(tictoc)
   
-  source('00_scripts/00_functions.R')
+  source("00_scripts/00_soisauce.R")
+  source("00_scripts/00_functions.R")
   source('00_scripts/00_plot_functions.R')
   
   # import and prepare data for plot --------------------------------------------------
@@ -463,13 +465,14 @@ gen_range_maps <- function(mask_type = "country", which_mask = NULL, which_spec 
   require(glue)
   require(tictoc)
 
-  source('00_scripts/00_functions.R')
+  source("00_scripts/00_soisauce.R")
+  source("00_scripts/00_functions.R")
   source('00_scripts/00_plot_functions.R')
 
       
   # error checks ----------------------------------------------------------------------
   
-  which_metadata <- get_metadata() %>% filter(MASK.TYPE == mask_type)
+  which_metadata <- pathfinder() %>% filter(MASK.TYPE == mask_type)
   
   if (!mask_type %in% c("country", "state")) {
     return("Select either a country or a state! Range maps cannot be created for habitat or CA masks.")
@@ -478,7 +481,7 @@ gen_range_maps <- function(mask_type = "country", which_mask = NULL, which_spec 
   # if both mask type and mask specified, avoid mismatches
   if (!is.null(which_mask)) {
     
-    list_states <- get_metadata() %>% filter(MASK.TYPE == "state") %>% pull(MASK)
+    list_states <- pathfinder() %>% filter(MASK.TYPE == "state") %>% pull(MASK)
     
     if ((mask_type == "country" & which_mask != "none") |
         (mask_type == "state" & !(which_mask %in% list_states))) {
@@ -511,7 +514,7 @@ gen_range_maps <- function(mask_type = "country", which_mask = NULL, which_spec 
     # setting up data for range maps 
     # (this only runs when the output CSVs don't already exist!)
     
-    which_metadata <- get_metadata(.x)
+    which_metadata <- pathfinder(.x)
     
     # input paths
     path_speclists <- which_metadata$SPECLISTDATA.PATH

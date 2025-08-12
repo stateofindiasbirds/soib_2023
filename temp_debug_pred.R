@@ -3,7 +3,7 @@ cur_mask <- "none"
 my_assignment <- 1
 
 
-cur_metadata <- get_metadata(cur_mask)
+cur_metadata <- pathfinder(cur_mask)
 speclist_path <- cur_metadata$SPECLISTDATA.PATH
 databins_path <- cur_metadata$DATA.PATH # for databins
 
@@ -26,7 +26,8 @@ require(VGAM)
 require(foreach)
 
 
-source('00_scripts/00_functions.R')
+source("00_scripts/00_soisauce.R")
+source("00_scripts/00_functions.R")
 
 
 load(speclist_path)
