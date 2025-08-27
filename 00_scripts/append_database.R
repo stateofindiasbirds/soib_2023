@@ -1,16 +1,16 @@
 library(tidyverse)
 
-past_map = read.csv("00_data/SoIB_mapping_2022.csv")
-map = read.csv("00_data/SoIB_mapping_2023.csv")
+past_map = read.csv("00_data/SoIB_mapping_2023.csv")
+map = read.csv("00_data/SoIB_mapping_2024.csv")
 taxmap = read.csv("00_data/eBird_taxonomy_mapping.csv")
 
 past_database = read.csv("20_website/website_database.csv")
 
 past_map = past_map %>%
-  dplyr::select(eBird.English.Name.2022,India.Checklist.Common.Name) %>%
+  dplyr::select(eBird.English.Name.2023,India.Checklist.Common.Name) %>%
   group_by(India.Checklist.Common.Name) %>% slice(1)
 map = map %>%
-  dplyr::select(eBird.English.Name.2023,
+  dplyr::select(eBird.English.Name.2024,
                 IUCN.Category)
 
 past_database = past_database %>%
@@ -24,6 +24,6 @@ test = past_database %>%
 
 new_database = past_database %>%
   mutate(iucn_status = IUCN.Category) %>%
-  dplyr::select(-eBird.English.Name.2022,-eBird.English.Name.2023,-IUCN.Category)
+  dplyr::select(-eBird.English.Name.2023,-eBird.English.Name.2024,-IUCN.Category)
 
-write.csv(new_database,"20_website/website_database_2024.csv",row.names=F)
+write.csv(new_database,"20_website/website_database_2025.csv",row.names=F)

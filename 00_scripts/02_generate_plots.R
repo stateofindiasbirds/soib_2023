@@ -250,9 +250,9 @@ gen_trend_plots <- function(plot_type = "single",
                # joining species or species groups for current composite
                left_join(data_main) %>% 
                dplyr::select(starts_with("PLOT."), FILE.NAME, GROUP,
-                             eBird.English.Name.2023, SoIB.Latest.Priority.Status) %>% 
-               filter(eBird.English.Name.2023 %in% spec_qual) %>% 
-               rename(PLOT.SPEC = eBird.English.Name.2023)
+                             eBird.English.Name.2024, SoIB.Latest.Priority.Status) %>% 
+               filter(eBird.English.Name.2024 %in% spec_qual) %>% 
+               rename(PLOT.SPEC = eBird.English.Name.2024)
              
              # saving summary of current composite groups
              cur_summary <- init_summary %>% filter(COMPOSITE.NO == .x)
@@ -539,11 +539,11 @@ gen_range_maps <- function(mask_type = "country", which_mask = NULL, which_spec 
       
       
       list_mig = read.csv(path_main) %>% 
-        dplyr::select(eBird.English.Name.2023, Migratory.Status.Within.India) %>%
+        dplyr::select(eBird.English.Name.2024, Migratory.Status.Within.India) %>%
         filter(Migratory.Status.Within.India != "Resident", 
-               eBird.English.Name.2023 %in% specieslist$COMMON.NAME) %>%
-        distinct(eBird.English.Name.2023) %>% 
-        pull(eBird.English.Name.2023)
+               eBird.English.Name.2024 %in% specieslist$COMMON.NAME) %>%
+        distinct(eBird.English.Name.2024) %>% 
+        pull(eBird.English.Name.2024)
       
       
       # setup -----------------------------------------------------------------------------

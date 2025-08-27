@@ -38,8 +38,8 @@ source("00_scripts/01_create_metadata.R")
 # - "rawdata.RData"
 
 tic("Reading and cleaning raw data")
-readcleanrawdata(rawpath = "00_data/ebd_IN_relJun-2024.txt", 
-                 sensitivepath = "00_data/ebd_sensitive_relJun-2024_IN.txt")
+readcleanrawdata(rawpath = "00_data/ebd_IN_relJul-2025.txt", 
+                 sensitivepath = "00_data/ebd_sensitive_relJun-2025_IN.txt")
 toc() # 42 min
 
 
@@ -81,7 +81,7 @@ toc() # 11 min
 # - data files (ALL in 00_data/):
 #   - "data.RData"
 #   - "indiaspecieslist.csv" (common and scientific names of all species)
-#   - "SoIB_mapping_2023.csv"
+#   - "SoIB_mapping_2024.csv"
 # Outputs:
 # - "dataforanalyses_extra.RData"
 # - "fullspecieslist.csv" for whole country and individual mask versions
@@ -100,6 +100,7 @@ source("00_scripts/filter_data_for_species.R")
 toc() 
 # 51 min (SoIB 2023)
 # 21 min (2024 annual update)
+# ? (2025 annual update)
 
 # PART 2 (subsample) ------------------------------------------------------------------
 
@@ -334,7 +335,7 @@ rm(not_my_states)
 # - data files:
 #   - "dataforanalyses.RData" for whole country and individual states
 #   - "specieslists.RData" for whole country and individual states
-#   - "00_data/SoIB_mapping_2023.csv"
+#   - "00_data/SoIB_mapping_2024.csv"
 #   - "00_data/grids_sf_nb.RData"
 # Outputs: 
 # - csv files in occupancy-presence/ 

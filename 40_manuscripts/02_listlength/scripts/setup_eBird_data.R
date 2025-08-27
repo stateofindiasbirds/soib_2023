@@ -7,7 +7,7 @@ source('00_scripts/00_functions.R')
 
 imp = c("CATEGORY","COMMON.NAME","OBSERVATION.COUNT",
         "LOCALITY.ID","ST_NM","DISTRICT",
-        "PROTOCOL.TYPE","DURATION.MINUTES","EFFORT.DISTANCE.KM",
+        "PROTOCOL.NAME","DURATION.MINUTES","EFFORT.DISTANCE.KM",
         "ALL.SPECIES.REPORTED","group.id",
         "month","year","no.sp","gridg1","gridg2","gridg3","gridg4")
 

@@ -31,7 +31,7 @@ species <- obsv$COMMON.NAME %>% unique() %>% grep(pattern = "[()/\\\\.]", value 
 species <- readRDS("eoo.RDS") %>% select(Species) %>% pull()
 
 obsv    <- obsv %>% 
-              filter (PROTOCOL.TYPE == 'Stationary' | PROTOCOL.TYPE == 'Traveling') %>%
+              filter (PROTOCOL.NAME == 'Stationary' | PROTOCOL.NAME == 'Traveling') %>%
               filter (EFFORT.DISTANCE.KM <= MaxDistanceThresholdforAOO)
 
 master_grid_list_with_species <- readRDS("grids.RDS")
@@ -52,9 +52,9 @@ proc_aoo <- function (obsv, targetSpeciesObsv)
   Checklist2Grid <- obsv %>%
                       distinct(GROUP.ID, .keep_all = TRUE) %>%
                         mutate (
-                          Grid_2km = compute_grid_number(LATITUDE, LONGITUDE, EFFORT.DISTANCE.KM, PROTOCOL.TYPE, 2),
-                          Grid_4km = compute_grid_number(LATITUDE, LONGITUDE, EFFORT.DISTANCE.KM, PROTOCOL.TYPE, 4),
-                          Grid_8km = compute_grid_number(LATITUDE, LONGITUDE, EFFORT.DISTANCE.KM, PROTOCOL.TYPE, 8)
+                          Grid_2km = compute_grid_number(LATITUDE, LONGITUDE, EFFORT.DISTANCE.KM, PROTOCOL.NAME, 2),
+                          Grid_4km = compute_grid_number(LATITUDE, LONGITUDE, EFFORT.DISTANCE.KM, PROTOCOL.NAME, 4),
+                          Grid_8km = compute_grid_number(LATITUDE, LONGITUDE, EFFORT.DISTANCE.KM, PROTOCOL.NAME, 8)
                           ) %>% 
                             select ('GROUP.ID', 'Grid_2km', 'Grid_4km', 'Grid_8km', 'ALL.SPECIES.REPORTED')
 
@@ -212,7 +212,7 @@ AOOEstimates      <- proc_aoo(obsv, targetSpeciesObsv)
 
 # Observations made in a constrained manner
 obsv_2km <- obsv %>% 
-              filter (PROTOCOL.TYPE == 'Stationary' | PROTOCOL.TYPE == 'Traveling') %>%
+              filter (PROTOCOL.NAME == 'Stationary' | PROTOCOL.NAME == 'Traveling') %>%
               filter (EFFORT.DISTANCE.KM <= 2)
 
 targetSpeciesObsv <- obsv_2km %>% 

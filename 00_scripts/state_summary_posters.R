@@ -23,7 +23,7 @@ dataM <- read.delim("00_data/dataforMyna.txt",
 
 
 main = read.csv("01_analyses_full/results/SoIB_main.csv")
-india_checklist_map = main %>% dplyr::select(India.Checklist.Common.Name,eBird.English.Name.2023)
+india_checklist_map = main %>% dplyr::select(India.Checklist.Common.Name,eBird.English.Name.2024)
 district_mapping = read.csv("00_data/eBird_district_mapping.csv") %>%
   distinct()
 photos = read.csv("00_data/BOW_image_list.csv")
@@ -31,8 +31,8 @@ photos = read.csv("00_data/BOW_image_list.csv")
 state_birds = read.csv("00_data/state_birds.csv")
 top4 = read.csv("01_analyses_full/results/key_state_species_top4.csv") %>%
   left_join(india_checklist_map) %>%
-  dplyr::select(ST_NM,eBird.English.Name.2023) %>%
-  rename(COMMON.NAME = eBird.English.Name.2023)
+  dplyr::select(ST_NM,eBird.English.Name.2024) %>%
+  rename(COMMON.NAME = eBird.English.Name.2024)
   
 key_species = read.csv("01_analyses_full/results/key_state_species_full.csv")
 
@@ -70,7 +70,7 @@ key_districts = data0 %>%
 # key habitats for top 20    
 
 habitats = main %>% 
-  dplyr::select(eBird.English.Name.2023,Habitat.Specialization,
+  dplyr::select(eBird.English.Name.2024,Habitat.Specialization,
                 India.Checklist.Common.Name) %>%
   mutate(Habitat.Specialization = 
            case_when(Habitat.Specialization == "Forest" ~ "Woodland",
@@ -86,7 +86,7 @@ key_habitats_1 = key_species %>%
   filter(!Habitat.Specialization %in% c("Non-specialized")) %>%
   dplyr::select(-India.Checklist.Common.Name) %>%
   group_by(ST_NM,Habitat.Specialization) %>%
-  rename(COMMON.NAME = eBird.English.Name.2023) %>%
+  rename(COMMON.NAME = eBird.English.Name.2024) %>%
   mutate(n = n_distinct(COMMON.NAME)) %>%
   filter(prop.range == 1)
 
@@ -95,7 +95,7 @@ key_habitats = key_species %>%
   filter(!Habitat.Specialization %in% c("Non-specialized")) %>%
   dplyr::select(-India.Checklist.Common.Name) %>%
   group_by(ST_NM,Habitat.Specialization) %>%
-  rename(COMMON.NAME = eBird.English.Name.2023) %>%
+  rename(COMMON.NAME = eBird.English.Name.2024) %>%
   mutate(n = n_distinct(COMMON.NAME)) %>%
   group_by(ST_NM) %>%
   arrange(ST_NM,desc(n),Habitat.Specialization,desc(prop.range)) %>% ungroup() %>%
@@ -114,8 +114,8 @@ key_habitats$Habitat.Specialization = factor(key_habitats$Habitat.Specialization
 # important districts
 
 main_priority = main %>%
-  dplyr::select(eBird.English.Name.2023,SoIB.Latest.Priority.Status) %>%
-  rename(COMMON.NAME = eBird.English.Name.2023)
+  dplyr::select(eBird.English.Name.2024,SoIB.Latest.Priority.Status) %>%
+  rename(COMMON.NAME = eBird.English.Name.2024)
 
 top_districts = data0 %>%
   filter(!is.na(DISTRICT)) %>%
@@ -195,7 +195,7 @@ for (i in analyses_metadata$MASK)
                                           fp_p = par_style1))
   
   delim.key.list = key_districts %>% filter(ST_NM == i) %>%
-    rename(eBird.English.Name.2023 = COMMON.NAME) %>%
+    rename(eBird.English.Name.2024 = COMMON.NAME) %>%
     left_join(india_checklist_map) %>%
     group_by(India.Checklist.Common.Name) %>%
     reframe(DISTRICT = toString(DISTRICT)) %>%
@@ -204,7 +204,7 @@ for (i in analyses_metadata$MASK)
   delim.key.list = top4 %>%
     filter(ST_NM == i) %>%
     left_join(photos) %>%
-    rename(eBird.English.Name.2023 = COMMON.NAME) %>%
+    rename(eBird.English.Name.2024 = COMMON.NAME) %>%
     left_join(india_checklist_map) %>%
     dplyr::select(India.Checklist.Common.Name,URL) %>%
     left_join(delim.key.list) %>%
@@ -222,7 +222,7 @@ for (i in analyses_metadata$MASK)
   if (!is.na(st_bird))
   {
     st_bird_India = india_checklist_map$India.Checklist.Common.Name[
-      india_checklist_map$eBird.English.Name.2023 == st_bird]
+      india_checklist_map$eBird.English.Name.2024 == st_bird]
   }
 
   
@@ -245,23 +245,23 @@ for (i in analyses_metadata$MASK)
                                             fp_p = par_style1))
     SoIB_state_summary = body_add_par(SoIB_state_summary, 
                                       paste("Long-term Trend = ",
-                                            main$SoIB.Latest.Long.Term.Status[main$eBird.English.Name.2023 == st_bird], sep = ""), 
+                                            main$SoIB.Latest.Long.Term.Status[main$eBird.English.Name.2024 == st_bird], sep = ""), 
                                       style = "Normal")
     SoIB_state_summary = body_add_par(SoIB_state_summary, 
                                       paste("Current Trend = ",
-                                            main$SoIB.Latest.Current.Status[main$eBird.English.Name.2023 == st_bird], sep = ""), 
+                                            main$SoIB.Latest.Current.Status[main$eBird.English.Name.2024 == st_bird], sep = ""), 
                                       style = "Normal")
     SoIB_state_summary = body_add_par(SoIB_state_summary, 
                                       paste("National Conservation Priority = ",
-                                            main$SoIB.Latest.Priority.Status[main$eBird.English.Name.2023 == st_bird], sep = ""), 
+                                            main$SoIB.Latest.Priority.Status[main$eBird.English.Name.2024 == st_bird], sep = ""), 
                                       style = "Normal")
     SoIB_state_summary = body_add_par(SoIB_state_summary, 
                                       paste("IUCN = ",
-                                            main$IUCN.Category[main$eBird.English.Name.2023 == st_bird], sep = ""), 
+                                            main$IUCN.Category[main$eBird.English.Name.2024 == st_bird], sep = ""), 
                                       style = "Normal")
     SoIB_state_summary = body_add_par(SoIB_state_summary, 
                                       paste("WPA = ",
-                                            main$WPA.Schedule[main$eBird.English.Name.2023 == st_bird], sep = ""), 
+                                            main$WPA.Schedule[main$eBird.English.Name.2024 == st_bird], sep = ""), 
                                       style = "Normal")
     
     SoIB_state_summary = body_add_fpar(SoIB_state_summary, 
@@ -270,11 +270,11 @@ for (i in analyses_metadata$MASK)
                                             fp_p = par_style1))
     SoIB_state_summary = body_add_par(SoIB_state_summary, 
                                       paste("Long-term Trend = ",
-                                            st_main$SoIB.Latest.Long.Term.Status[st_main$eBird.English.Name.2023 == st_bird], sep = ""), 
+                                            st_main$SoIB.Latest.Long.Term.Status[st_main$eBird.English.Name.2024 == st_bird], sep = ""), 
                                       style = "Normal")
     SoIB_state_summary = body_add_par(SoIB_state_summary, 
                                       paste("Current Trend = ",
-                                            st_main$SoIB.Latest.Current.Status[st_main$eBird.English.Name.2023 == st_bird], sep = ""), 
+                                            st_main$SoIB.Latest.Current.Status[st_main$eBird.English.Name.2024 == st_bird], sep = ""), 
                                       style = "Normal")
     
     SoIB_state_summary = body_add_fpar(SoIB_state_summary, 
@@ -286,7 +286,7 @@ for (i in analyses_metadata$MASK)
                                             state_birds$abb[state_birds$COMMON.NAME == st_bird &
                                                               state_birds$ST_NM == i],
                                             "-",
-                                            main$eBird.Code[main$eBird.English.Name.2023 == st_bird],
+                                            main$eBird.Code[main$eBird.English.Name.2024 == st_bird],
                                             "/",sep = ""),
                                       style = "Normal")
   }
@@ -313,7 +313,7 @@ for (i in analyses_metadata$MASK)
   
   delim.habitat.list = key_habitats %>%
     filter(ST_NM == i) %>%
-    rename(eBird.English.Name.2023 = COMMON.NAME) %>%
+    rename(eBird.English.Name.2024 = COMMON.NAME) %>%
     left_join(india_checklist_map) %>%
     group_by(Habitat.Specialization) %>%
     reframe(India.Checklist.Common.Name = toString(India.Checklist.Common.Name)) %>%
@@ -330,12 +330,12 @@ for (i in analyses_metadata$MASK)
   
   # trend summary
   
-  st_trend_list = union(st_main$eBird.English.Name.2023[st_main$Long.Term.Analysis == "X"],
-                        st_main$eBird.English.Name.2023[st_main$Current.Analysis == "X"])
+  st_trend_list = union(st_main$eBird.English.Name.2024[st_main$Long.Term.Analysis == "X"],
+                        st_main$eBird.English.Name.2024[st_main$Current.Analysis == "X"])
   
   st_inc_list = st_main %>%
     filter(Selected.SoIB == "X") %>%
-    pull(eBird.English.Name.2023)
+    pull(eBird.English.Name.2024)
   
   flag = "state level - 150 or more species assessed in state"
   

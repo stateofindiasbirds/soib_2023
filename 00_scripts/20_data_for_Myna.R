@@ -11,7 +11,7 @@ rawpath = paste("00_data/ebd_IN_relJun-",latest_year+1,".txt",sep="")
 preimp = c("TAXONOMIC.ORDER","CATEGORY","COMMON.NAME","SCIENTIFIC.NAME","EXOTIC.CODE",
            "OBSERVATION.COUNT","STATE","STATE.CODE","COUNTY","COUNTY.CODE","LOCALITY",
            "LOCALITY.ID","LOCALITY.TYPE","REVIEWED","APPROVED","LATITUDE","LONGITUDE",
-           "OBSERVATION.DATE","SAMPLING.EVENT.IDENTIFIER","PROTOCOL.TYPE",
+           "OBSERVATION.DATE","SAMPLING.EVENT.IDENTIFIER","PROTOCOL.NAME",
            "PROTOCOL.CODE","DURATION.MINUTES","EFFORT.DISTANCE.KM",
            "NUMBER.OBSERVERS","ALL.SPECIES.REPORTED","GROUP.IDENTIFIER",
            "TIME.OBSERVATIONS.STARTED","OBSERVER.ID")
@@ -104,7 +104,7 @@ data = completelistcheck(data)
 imp = c("TAXONOMIC.ORDER","CATEGORY","COMMON.NAME","SCIENTIFIC.NAME","EXOTIC.CODE",
         "OBSERVATION.COUNT","STATE","STATE.CODE","COUNTY","COUNTY.CODE","LOCALITY",
         "LOCALITY.ID","LOCALITY.TYPE","LATITUDE","LONGITUDE",
-        "OBSERVATION.DATE","SAMPLING.EVENT.IDENTIFIER","PROTOCOL.TYPE",
+        "OBSERVATION.DATE","SAMPLING.EVENT.IDENTIFIER","PROTOCOL.NAME",
         "PROTOCOL.CODE","DURATION.MINUTES","EFFORT.DISTANCE.KM",
         "NUMBER.OBSERVERS","ALL.SPECIES.REPORTED","GROUP.IDENTIFIER",
         "OBSERVER.ID")
@@ -133,7 +133,7 @@ latest_year = soib_year_info()
 imp_full = c("TAXONOMIC.ORDER","CATEGORY","COMMON.NAME","SCIENTIFIC.NAME","EXOTIC.CODE",
         "OBSERVATION.COUNT","STATE","STATE.CODE","COUNTY","COUNTY.CODE","LOCALITY",
         "LOCALITY.ID","LOCALITY.TYPE","LATITUDE","LONGITUDE",
-        "OBSERVATION.DATE","SAMPLING.EVENT.IDENTIFIER","PROTOCOL.TYPE",
+        "OBSERVATION.DATE","SAMPLING.EVENT.IDENTIFIER","PROTOCOL.NAME",
         "PROTOCOL.CODE","DURATION.MINUTES","EFFORT.DISTANCE.KM",
         "NUMBER.OBSERVERS","ALL.SPECIES.REPORTED","GROUP.IDENTIFIER",
         "OBSERVER.ID")
@@ -141,7 +141,7 @@ imp_full = c("TAXONOMIC.ORDER","CATEGORY","COMMON.NAME","SCIENTIFIC.NAME","EXOTI
 imp = c("CATEGORY","SCIENTIFIC.NAME",
         "OBSERVATION.COUNT","STATE","STATE.CODE","COUNTY","COUNTY.CODE","LOCALITY",
         "LOCALITY.ID","LOCALITY.TYPE","LATITUDE","LONGITUDE",
-        "OBSERVATION.DATE","SAMPLING.EVENT.IDENTIFIER","PROTOCOL.TYPE",
+        "OBSERVATION.DATE","SAMPLING.EVENT.IDENTIFIER","PROTOCOL.NAME",
         "PROTOCOL.CODE","DURATION.MINUTES","EFFORT.DISTANCE.KM",
         "ALL.SPECIES.REPORTED","GROUP.IDENTIFIER",
         "OBSERVER.ID")
@@ -158,11 +158,11 @@ data_current_1 = data_current %>%
 data_past_1 = data_past %>%
   mutate(OBSERVATION.DATE = as.Date(OBSERVATION.DATE))
 
-# fullmap = read.csv("00_data/SoIB_mapping_2023.csv") %>%
-#   dplyr::select(eBird.English.Name.2023,eBird.Scientific.Name.2023)
+# fullmap = read.csv("00_data/SoIB_mapping_2024.csv") %>%
+#   dplyr::select(eBird.English.Name.2024,eBird.Scientific.Name.2024)
 # updatemap = ebird_tax_mapping() %>%
 #   left_join(fullmap) %>%
-#   rename(COMMON.NAME = eBird.English.Name.2022)
+#   rename(COMMON.NAME = eBird.English.Name.2023)
 
 data_current_1 = data_current_1 %>%
   mutate(OBSERVATION.DATE = as.Date(OBSERVATION.DATE), 
@@ -261,21 +261,21 @@ main = read.csv("01_analyses_full/results/SoIB_main.csv") %>%
 
   
 
-tax_base = read.csv("00_data/SoIB_mapping_2023.csv") %>%
+tax_base = read.csv("00_data/SoIB_mapping_2024.csv") %>%
   rename(SOIB.Concern.Status = SoIB.Past.Priority.Status,
                 SOIB.Long.Term.Status = SoIB.Past.Long.Term.Status,
                 SOIB.Current.Status = SoIB.Past.Current.Status,
                 SOIB.Range.Status = SoIB.Past.Range.Status)
 
-tax = read.csv("00_data/SoIB_mapping_2023.csv") %>%
+tax = read.csv("00_data/SoIB_mapping_2024.csv") %>%
   dplyr::select(-SoIB.Past.Priority.Status,-SoIB.Past.Long.Term.Status,
                 -SoIB.Past.Current.Status,-SoIB.Past.Range.Status) %>%
-  filter(!eBird.English.Name.2023 %in% 
-           c("Band-bellied Crake","Spur-winged Lapwing","Cape Petrel","African Openbill","Levant Sparrowhawk")) %>%
+  filter(!eBird.English.Name.2024 %in% 
+           c("Band-bellied Crake","Spur-winged Lapwing","Cape Petrel")) %>%
   left_join(main) %>%
   dplyr::select(names(tax_base)) %>%
-  rename(eBird.English.Name.2022 = eBird.English.Name.2023,
-         eBird.Scientific.Name.2022 = eBird.Scientific.Name.2023)
+  rename(eBird.English.Name.2023 = eBird.English.Name.2024,
+         eBird.Scientific.Name.2023 = eBird.Scientific.Name.2024)
 
 
 
@@ -307,7 +307,7 @@ latest_year = soib_year_info()
 imp_full = c("TAXONOMIC.ORDER","CATEGORY","COMMON.NAME","SCIENTIFIC.NAME","EXOTIC.CODE",
              "OBSERVATION.COUNT","STATE","STATE.CODE","COUNTY","COUNTY.CODE","LOCALITY",
              "LOCALITY.ID","LOCALITY.TYPE","LATITUDE","LONGITUDE",
-             "OBSERVATION.DATE","SAMPLING.EVENT.IDENTIFIER","PROTOCOL.TYPE",
+             "OBSERVATION.DATE","SAMPLING.EVENT.IDENTIFIER","PROTOCOL.NAME",
              "PROTOCOL.CODE","DURATION.MINUTES","EFFORT.DISTANCE.KM",
              "NUMBER.OBSERVERS","ALL.SPECIES.REPORTED","GROUP.IDENTIFIER",
              "OBSERVER.ID")
@@ -315,7 +315,7 @@ imp_full = c("TAXONOMIC.ORDER","CATEGORY","COMMON.NAME","SCIENTIFIC.NAME","EXOTI
 imp = c("CATEGORY","SCIENTIFIC.NAME",
         "OBSERVATION.COUNT","STATE","STATE.CODE","COUNTY","COUNTY.CODE","LOCALITY",
         "LOCALITY.ID","LOCALITY.TYPE","LATITUDE","LONGITUDE",
-        "OBSERVATION.DATE","SAMPLING.EVENT.IDENTIFIER","PROTOCOL.TYPE",
+        "OBSERVATION.DATE","SAMPLING.EVENT.IDENTIFIER","PROTOCOL.NAME",
         "PROTOCOL.CODE","DURATION.MINUTES","EFFORT.DISTANCE.KM",
         "ALL.SPECIES.REPORTED","GROUP.IDENTIFIER",
         "OBSERVER.ID")

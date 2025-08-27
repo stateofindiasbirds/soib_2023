@@ -119,7 +119,7 @@ soib_year_info <- function(what = "latest_year") {
 
 
   # cutoff year for CAT
-  # 2015 was cutoff in SoIB 2023. So 8 years for CAT.
+  # 2015 was cutoff in SoIB 2023. So in 2025, this will now be 10 years for CAT.
   # We eventually want 10 years for CAT
   cat_years <- full_soib_my[full_soib_my >= 2015] |> 
     sort() |> 
@@ -153,8 +153,8 @@ get_iucn_proj_cols <- function() {
 ## read and clean raw data and add important columns like group id, seasonality variables
 ## place raw txt file (India download) in working directory 
 
-readcleanrawdata = function(rawpath = "00_data/ebd_IN_relJun-2024.txt", 
-                            sensitivepath = "00_data/ebd_sensitive_relJun-2024_IN.txt")
+readcleanrawdata = function(rawpath = "00_data/ebd_IN_relJul-2025.txt", 
+                            sensitivepath = "00_data/ebd_sensitive_relJun-2025_IN.txt")
 {
   require(lubridate)
   require(tidyverse)
@@ -163,7 +163,7 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_relJun-2024.txt",
   preimp = c("CATEGORY","COMMON.NAME","SCIENTIFIC.NAME","OBSERVATION.COUNT",
              "LOCALITY.ID","LOCALITY.TYPE","REVIEWED","APPROVED","STATE","COUNTY",
              "LATITUDE","LONGITUDE","OBSERVATION.DATE","TIME.OBSERVATIONS.STARTED","OBSERVER.ID",
-             "PROTOCOL.TYPE","DURATION.MINUTES","EFFORT.DISTANCE.KM","EXOTIC.CODE",
+             "PROTOCOL.NAME","DURATION.MINUTES","EFFORT.DISTANCE.KM","EXOTIC.CODE",
              "NUMBER.OBSERVERS","ALL.SPECIES.REPORTED","GROUP.IDENTIFIER","SAMPLING.EVENT.IDENTIFIER")
   
   # CATEGORY - species, subspecies, hybrid, etc.; COMMON.NAME - common name of species;
@@ -214,7 +214,7 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_relJun-2024.txt",
           "LOCALITY.ID", "REVIEWED","APPROVED","EXOTIC.CODE",
           "LOCALITY.TYPE","STATE","COUNTY",
           "LATITUDE","LONGITUDE","OBSERVATION.DATE","TIME.OBSERVATIONS.STARTED",
-          "OBSERVER.ID","PROTOCOL.TYPE",
+          "OBSERVER.ID","PROTOCOL.NAME",
           "DURATION.MINUTES","EFFORT.DISTANCE.KM",
           "ALL.SPECIES.REPORTED","group.id","SAMPLING.EVENT.IDENTIFIER")
   
@@ -269,10 +269,12 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_relJun-2024.txt",
       "Green/Greenish Warbler", "Siberian/Amur Stonechat", "Red-necked/Little Stint",
       "Western/Eastern Yellow Wagtail", "Common/Himalayan Buzzard",
       "Western/Eastern Marsh Harrier", "Tibetan/Greater Sand-Plover", "Baikal/Spotted Bush Warbler",
-      "Lemon-rumped/Sichuan Leaf Warbler", "Red-rumped/Striated Swallow",
+      "Lemon-rumped/Sichuan Leaf Warbler",
       "Bank Swallow/Pale Martin", "Riparia sp.", "Greater/Mongolian Short-toed Lark",
       "Taiga/Red-breasted Flycatcher", "Tricolored x Chestnut Munia (hybrid)", "Little/House Swift", 
-      "Pin-tailed/Swinhoe's Snipe", "Booted/Sykes's Warbler", "Iduna sp.", "Greater/Malabar Flameback"
+      "Pin-tailed/Swinhoe's Snipe", "Booted/Sykes's Warbler", "Iduna sp.", "Greater/Malabar Flameback",
+      "Indian/Oriental Cuckooshrike","European/Eastern Red-rumped Swallow",
+      "Hainan Blue/Blue-throated/Chinese Blue Flycatcher"
       ) ~ "species",
       TRUE ~ CATEGORY)) %>%
     # combining species, slashes and spuhs
@@ -292,8 +294,6 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_relJun-2024.txt",
                          "Baikal/Spotted Bush Warbler") ~ "Spotted Bush Warbler",
       COMMON.NAME %in% c("Sichuan Leaf Warbler", 
                          "Lemon-rumped/Sichuan Leaf Warbler") ~ "Lemon-rumped Warbler",
-      COMMON.NAME %in% c("Striated Swallow", 
-                         "Red-rumped/Striated Swallow") ~ "Red-rumped Swallow",
       COMMON.NAME %in% c("Pale Martin", "Bank Swallow/Pale Martin", 
                           "Riparia sp.") ~ "Gray-throated Martin",
       COMMON.NAME %in% c("Mongolian Short-toed Lark", 
@@ -309,6 +309,12 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_relJun-2024.txt",
                          "Iduna sp.") ~ "Booted Warbler",
       COMMON.NAME %in% c("Malabar Flameback", 
                          "Greater/Malabar Flameback") ~ "Greater Flameback",
+      COMMON.NAME %in% c("Oriental Cuckooshrike", 
+                         "Indian/Oriental Cuckooshrike") ~ "Indian Cuckooshrike",
+      COMMON.NAME %in% c("European Red-rumped Swallow", 
+                         "European/Eastern Red-rumped Swallow") ~ "Eastern Red-rumped Swallow",
+      COMMON.NAME %in% c("Hainan Blue Flycatcher", 
+                         "Hainan Blue/Blue-throated/Chinese Blue Flycatcher") ~ "Blue-throated Flycatcher",
       TRUE ~ COMMON.NAME
     ))
   
@@ -475,7 +481,7 @@ completelistcheck = function(data) {
     # only need checklist metadata
     distinct(group.id, .keep_all = TRUE) |> 
     # list of on-paper complete lists
-    filter(ALL.SPECIES.REPORTED == 1, PROTOCOL.TYPE != "Incidental") %>%
+    filter(ALL.SPECIES.REPORTED == 1, PROTOCOL.NAME != "Incidental") %>%
     # choose checklists without info on duration with 3 or fewer species
     filter(no.sp <= 3, is.na(DURATION.MINUTES)) %>%
     pull(group.id)
@@ -490,7 +496,7 @@ completelistcheck = function(data) {
            speed > vel | # too fast
            (DURATION.MINUTES < 3) | # too short
            (sut < time & no.sp <= 3) | # species per unit time too slow
-           PROTOCOL.TYPE == "Incidental" | # incidental
+           PROTOCOL.NAME == "Incidental" | # incidental
            (!is.na(hr) & ((hr <= 4 & end <= 4) | # nocturnal filter
                             (hr >= 20 & end <= 28)))) ~ 0, 
       # true incomplete lists
@@ -513,7 +519,7 @@ removevagrants = function(data)
 {
   # mapping of SoIB-species-of-interest to a range of variables/classifications
   # (manually created)
-  fullmap = read.csv("00_data/SoIB_mapping_2023.csv")
+  fullmap = read.csv("00_data/SoIB_mapping_2024.csv")
   
   migspecies = fullmap %>%
     filter(!Migratory.Status.Within.India %in% c("Resident",
@@ -522,7 +528,7 @@ removevagrants = function(data)
                                                  "Resident & Localized Summer Migrant",
                                                  "Altitudinal Migrant",
                                                  "Resident (Extirpated)")) %>%
-    pull(eBird.English.Name.2023)
+    pull(eBird.English.Name.2024)
   
   d = data %>%
     filter(COMMON.NAME %in% migspecies) %>%
@@ -594,7 +600,7 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = interannual_update)
   data = data0 %>% 
     dplyr::select(-CATEGORY,-REVIEWED,-APPROVED,-ST_NM,-DISTRICT,
                   -LOCALITY.TYPE,-LOCALITY.ID,-pa.name,-maskWdl,-maskCrp,-maskOne,
-                  -LATITUDE,-LONGITUDE,-PROTOCOL.TYPE,-EXOTIC.CODE,-day,-cyear,
+                  -LATITUDE,-LONGITUDE,-PROTOCOL.NAME,-EXOTIC.CODE,-day,-cyear,
                   -DURATION.MINUTES,-TIME.OBSERVATIONS.STARTED,-EFFORT.DISTANCE.KM)
   
   stats7 = paste(nrow(data[data$ALL.SPECIES.REPORTED == 1,]),
@@ -1480,7 +1486,7 @@ occupancyrun = function(data, i, speciesforocc, queen_neighbours)
   require(tictoc)
   require(glue)  
 
-  species = speciesforocc$eBird.English.Name.2023[i]
+  species = speciesforocc$eBird.English.Name.2024[i]
   status = speciesforocc$status[i]
 
   tic(glue("Modelled occupancy of {species}"))
@@ -1872,8 +1878,8 @@ scale_trends_to_bands <- function(data) {
 
 specname_to_india_checklist <- function(spec_names, already_show = TRUE) {
   
-  names_map <- read.csv("00_data/SoIB_mapping_2023.csv") %>% 
-    distinct(eBird.English.Name.2023, India.Checklist.Common.Name)
+  names_map <- read.csv("00_data/SoIB_mapping_2024.csv") %>% 
+    distinct(eBird.English.Name.2024, India.Checklist.Common.Name)
   
   df_names <- data.frame(OLD = spec_names)
   
@@ -1888,7 +1894,7 @@ specname_to_india_checklist <- function(spec_names, already_show = TRUE) {
   }
   
   df_names <- df_names %>% 
-    left_join(names_map, by = c("OLD" = "eBird.English.Name.2023")) %>% 
+    left_join(names_map, by = c("OLD" = "eBird.English.Name.2024")) %>% 
     rename(NEW = India.Checklist.Common.Name)
   
   if (any(is.na(df_names$NEW))) {
@@ -1903,13 +1909,13 @@ specname_to_india_checklist <- function(spec_names, already_show = TRUE) {
 # update IUCN Status based on latest updated in mapping sheet ---------------------------------------
 
 # input dataframe can be any mapping/main type object with list of species along with IUCN status
-# mutates IUCN Status column based on latest Status updated in SoIB_mapping_2023.csv
+# mutates IUCN Status column based on latest Status updated in SoIB_mapping_2024.csv
 # preserves column order in input data
 
 # col_specname must be eBird checklist species names
 
 get_latest_IUCN_status <- function(data, col_specname, col_iucn = NULL,
-                                     path_mapping = "00_data/SoIB_mapping_2023.csv") {
+                                     path_mapping = "00_data/SoIB_mapping_2024.csv") {
   
   if (!(is.character(col_specname) & 
         (is.character(col_iucn)) | is.null(col_iucn))) {
@@ -1929,7 +1935,7 @@ get_latest_IUCN_status <- function(data, col_specname, col_iucn = NULL,
   col_order <- names(data)
   
   mapping <- read_csv(path_mapping) %>% 
-    dplyr::select("eBird.English.Name.2023", "IUCN.Category") %>% 
+    dplyr::select("eBird.English.Name.2024", "IUCN.Category") %>% 
     magrittr::set_colnames(col_newnames)
   
   data_upd <- data %>% 
@@ -2017,14 +2023,14 @@ update_species_lists = function(species_list_data, scientific_also = FALSE) {
   require(tidyverse)
   
   if (!exists("fullmap")) {
-    fullmap <- read.csv("00_data/SoIB_mapping_2023.csv")
+    fullmap <- read.csv("00_data/SoIB_mapping_2024.csv")
   }
   
   
 
   # when rerunning for same year, need to return unmodified list
   # because species names already updated in prior run
-  if (any(!species_list_data$COMMON.NAME %in% ebird_tax_mapping()$eBird.English.Name.2022)) {
+  if (any(!species_list_data$COMMON.NAME %in% ebird_tax_mapping()$eBird.English.Name.2023)) {
 
     message("Species list is already updated to latest taxonomy. Returning original list.")
     return(species_list_data)
@@ -2033,19 +2039,19 @@ update_species_lists = function(species_list_data, scientific_also = FALSE) {
 
     list_new <- species_list_data |> 
       left_join(ebird_tax_mapping(), 
-                by = c("COMMON.NAME" = "eBird.English.Name.2022")) |> 
+                by = c("COMMON.NAME" = "eBird.English.Name.2023")) |> 
       dplyr::select(-COMMON.NAME) |> 
-      relocate(eBird.English.Name.2023) |> # first column is species name
-      rename(COMMON.NAME = eBird.English.Name.2023)
+      relocate(eBird.English.Name.2024) |> # first column is species name
+      rename(COMMON.NAME = eBird.English.Name.2024)
     
     if (scientific_also == TRUE) {
       
       list_new <- list_new %>% 
         left_join(fullmap %>% 
-                    distinct(eBird.English.Name.2023, eBird.Scientific.Name.2023),
-                  by = c("COMMON.NAME" = "eBird.English.Name.2023")) %>% 
+                    distinct(eBird.English.Name.2024, eBird.Scientific.Name.2024),
+                  by = c("COMMON.NAME" = "eBird.English.Name.2024")) %>% 
         dplyr::select(-SCIENTIFIC.NAME) %>% 
-        rename(SCIENTIFIC.NAME = eBird.Scientific.Name.2023) %>% 
+        rename(SCIENTIFIC.NAME = eBird.Scientific.Name.2024) %>% 
         relocate(COMMON.NAME, SCIENTIFIC.NAME)
 
     }
