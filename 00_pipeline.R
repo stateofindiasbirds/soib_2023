@@ -38,7 +38,7 @@ source("00_scripts/01_create_metadata.R")
 # - "rawdata.RData"
 
 tic("Reading and cleaning raw data")
-readcleanrawdata(rawpath = "00_data/ebd_IN_relJul-2025.txt", 
+readcleanrawdata(rawpath = "00_data/ebd_IN_unv_smp_relAug-2025.txt", 
                  sensitivepath = "00_data/ebd_sensitive_relJun-2025_IN.txt")
 toc() # 42 min
 
@@ -100,7 +100,7 @@ source("00_scripts/filter_data_for_species.R")
 toc() 
 # 51 min (SoIB 2023)
 # 21 min (2024 annual update)
-# ? (2025 annual update)
+# 12 min (2025 annual update)
 
 # PART 2 (subsample) ------------------------------------------------------------------
 

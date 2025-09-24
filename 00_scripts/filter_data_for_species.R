@@ -101,7 +101,7 @@ dataspeciesfilter(cur_mask = "none")
 toc() 
 # 495 sec (2023)
 # 185 sec (2024)
-# ? (2025)
+# 104 sec (2025)
 
 
 # 2. processing: woodland mask ----------------------------------------------
@@ -111,7 +111,7 @@ dataspeciesfilter(cur_mask = "woodland")
 toc() 
 # 240 sec (2023)
 # 86 sec (2024)
-# ? (2025)
+# 46 sec (2025)
 
 
 # 3. processing: cropland mask ----------------------------------------------
@@ -121,7 +121,7 @@ dataspeciesfilter(cur_mask = "cropland")
 toc() 
 # 60 sec (2023)
 # 42 sec (2024)
-# ? (2025)
+# 22 sec (2025)
 
 
 # 4. processing: ONEland mask -----------------------------------------------
@@ -131,7 +131,7 @@ dataspeciesfilter(cur_mask = "ONEland")
 toc() 
 # 60 sec (2023)
 # 20 sec (2024)
-# ? (2025)
+# 10 sec (2025)
 
 
 # 5. processing: PA mask ----------------------------------------------------
@@ -141,7 +141,7 @@ dataspeciesfilter(cur_mask = "PA")
 toc() 
 # 80 sec (2023)
 # 24 sec (2024)
-# ? (2025)
+# 13 sec (2025)
 
 
 # 6. processing: states ---------------------------------------------
@@ -165,4 +165,4 @@ get_metadata() %>%
 toc(log = TRUE, quiet = TRUE) 
 tic.log()
 # 253 sec (2024)
-# ? (2025)
+# 121 sec (2025)

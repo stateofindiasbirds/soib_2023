@@ -153,7 +153,7 @@ get_iucn_proj_cols <- function() {
 ## read and clean raw data and add important columns like group id, seasonality variables
 ## place raw txt file (India download) in working directory 
 
-readcleanrawdata = function(rawpath = "00_data/ebd_IN_relJul-2025.txt", 
+readcleanrawdata = function(rawpath = "00_data/ebd_IN_unv_smp_relAug-2025.txt", 
                             sensitivepath = "00_data/ebd_sensitive_relJun-2025_IN.txt")
 {
   require(lubridate)
@@ -309,6 +309,7 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_relJul-2025.txt",
                          "Iduna sp.") ~ "Booted Warbler",
       COMMON.NAME %in% c("Malabar Flameback", 
                          "Greater/Malabar Flameback") ~ "Greater Flameback",
+      COMMON.NAME %in% c("Nicobar Hooded Pitta") ~ "Western Hooded Pitta",
       COMMON.NAME %in% c("Oriental Cuckooshrike", 
                          "Indian/Oriental Cuckooshrike") ~ "Indian Cuckooshrike",
       COMMON.NAME %in% c("European Red-rumped Swallow", 
@@ -556,7 +557,9 @@ removevagrants = function(data)
 # followed by all diurnal endemics (endemicity) and essential species (SelectSpecies)
 # followed by assigning some species from within the previous set for 'restricted' trend analyses
 
-dataspeciesfilter = function(cur_mask = "none", singleyear = interannual_update) {
+# Change singleyear = TRUE to singleyear = interannual_update for the major update
+# This is to prevent mistakes during reruns
+dataspeciesfilter = function(cur_mask = "none", singleyear = TRUE) {
   
   # ensuring only valid cur_mask names are provided
   if (!(cur_mask %in% unique(get_metadata()$MASK))) {
@@ -655,7 +658,7 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = interannual_update)
     specieslist <- update_species_lists(specieslist, scientific_also = FALSE)
     restrictedspecieslist <- update_species_lists(restrictedspecieslist, scientific_also = FALSE)
     
-    dataf <- read.csv(file = cur_metadata$FULLSPECLIST.PATH) %>% 
+    dataf <- read.csv(file = cur_metadata$FULLSPECLIST.PATH) %>%
       update_species_lists(scientific_also = TRUE)
     
     
@@ -2030,30 +2033,76 @@ update_species_lists = function(species_list_data, scientific_also = FALSE) {
 
   # when rerunning for same year, need to return unmodified list
   # because species names already updated in prior run
-  if (any(!species_list_data$COMMON.NAME %in% ebird_tax_mapping()$eBird.English.Name.2023)) {
+  if (length(setdiff(species_list_data$COMMON.NAME,ebird_tax_mapping()$eBird.English.Name.2024)) == 0) {
 
     message("Species list is already updated to latest taxonomy. Returning original list.")
+    
+    if (scientific_also == TRUE)
+    {
+      species_list_data <- species_list_data |>
+        dplyr::select(COMMON.NAME,SCIENTIFIC.NAME,Long.Term.Analysis,Current.Analysis,Selected.SoIB,
+                      totalrange25km,proprange25km2000,proprange25km.current,proprange25km.latestyear,
+                      mean5km,ci5km)
+    } else {
+      species_list_data <- species_list_data |>
+        dplyr::select(COMMON.NAME,ht,rt,any_of("mixed"))
+    }
+
     return(species_list_data)
 
   } else {
 
-    list_new <- species_list_data |> 
-      left_join(ebird_tax_mapping(), 
-                by = c("COMMON.NAME" = "eBird.English.Name.2023")) |> 
-      dplyr::select(-COMMON.NAME) |> 
-      relocate(eBird.English.Name.2024) |> # first column is species name
-      rename(COMMON.NAME = eBird.English.Name.2024)
-    
     if (scientific_also == TRUE) {
       
-      list_new <- list_new %>% 
+      list_new <- species_list_data %>%
+        dplyr::select(COMMON.NAME,SCIENTIFIC.NAME,Long.Term.Analysis,Current.Analysis,Selected.SoIB,
+                      totalrange25km,proprange25km2000,proprange25km.current,proprange25km.latestyear,
+                      mean5km,ci5km) %>%
+        # to remove next time when taxonomies are properly aligned
+        mutate(COMMON.NAME = recode(COMMON.NAME,
+                          "Indian Cuckooshrike" = "Large Cuckooshrike",
+                          "Southern Nutcracker" = "Eurasian Nutcracker",
+                          "Eastern Red-rumped Swallow" = "Red-rumped Swallow",
+                          "Rufous-fronted Babbler" = "Buff-chested Babbler",
+                          "Gray-crowned Goldfinch" = "European Goldfinch",
+                          "Mongolian Gull" = "Herring Gull",
+                          "Siberian Pipit" = "American Pipit",
+                          "Asian Houbara" = "Macqueen's Bustard",
+                          "Eurasian Bittern" = "Great Bittern",
+                          "Eastern Cattle-Egret" = "Eastern Cattle Egret",
+                          "Eastern Barn Owl" = "Barn Owl",
+                          "Asian Tit" = "Cinereous Tit")
+               ) %>%
+        left_join(ebird_tax_mapping(), 
+                  by = c("COMMON.NAME" = "eBird.English.Name.2023")) |>
         left_join(fullmap %>% 
-                    distinct(eBird.English.Name.2024, eBird.Scientific.Name.2024),
-                  by = c("COMMON.NAME" = "eBird.English.Name.2024")) %>% 
-        dplyr::select(-SCIENTIFIC.NAME) %>% 
-        rename(SCIENTIFIC.NAME = eBird.Scientific.Name.2024) %>% 
-        relocate(COMMON.NAME, SCIENTIFIC.NAME)
+                    distinct(eBird.English.Name.2024, eBird.Scientific.Name.2024)) %>% 
+        dplyr::select(-COMMON.NAME,-SCIENTIFIC.NAME) %>% 
+        rename(COMMON.NAME = eBird.English.Name.2024,
+               SCIENTIFIC.NAME = eBird.Scientific.Name.2024) %>% 
+        relocate(COMMON.NAME, SCIENTIFIC.NAME) %>%
+        dplyr::select(COMMON.NAME,SCIENTIFIC.NAME,Long.Term.Analysis,Current.Analysis,Selected.SoIB,
+                      totalrange25km,proprange25km2000,proprange25km.current,proprange25km.latestyear,
+                      mean5km,ci5km)
 
+    } else {
+      
+      list_new <- species_list_data |>
+        dplyr::select(COMMON.NAME,ht,rt) |>
+        # to remove next time when taxonomies are properly aligned
+        mutate(COMMON.NAME = recode(COMMON.NAME,
+                                    "Indian Cuckooshrike" = "Large Cuckooshrike",
+                                    "Southern Nutcracker" = "Eurasian Nutcracker",
+                                    "Eastern Red-rumped Swallow" = "Red-rumped Swallow",
+                                    "Rufous-fronted Babbler" = "Buff-chested Babbler",
+                                    "Gray-crowned Goldfinch" = "European Goldfinch")) %>%
+        left_join(ebird_tax_mapping(), 
+                  by = c("COMMON.NAME" = "eBird.English.Name.2023")) |> 
+        dplyr::select(-COMMON.NAME) |> 
+        relocate(eBird.English.Name.2024) |> # first column is species name
+        rename(COMMON.NAME = eBird.English.Name.2024) |>
+        dplyr::select(COMMON.NAME,ht,rt)
+      
     }
       
     return(list_new)
@@ -2061,5 +2110,3 @@ update_species_lists = function(species_list_data, scientific_also = FALSE) {
   }
 
 }
-
-
