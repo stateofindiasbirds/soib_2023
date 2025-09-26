@@ -154,7 +154,7 @@ get_iucn_proj_cols <- function() {
 ## place raw txt file (India download) in working directory 
 
 readcleanrawdata = function(rawpath = "00_data/ebd_IN_unv_smp_relAug-2025.txt", 
-                            sensitivepath = "00_data/ebd_sensitive_relJun-2025_IN.txt")
+                            sensitivepath = "00_data/ebd_sensitive_relAug-2025_IN.txt")
 {
   require(lubridate)
   require(tidyverse)
@@ -1316,6 +1316,8 @@ singlespeciesrun = function(data, species, specieslist, restrictedspecieslist,
   require(glue)
   
   data1 = data
+  
+  set.seed(0)
   
   # get information for the species of interest 
   specieslist2 = specieslist %>% filter(COMMON.NAME == species)

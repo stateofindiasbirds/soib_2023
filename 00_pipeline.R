@@ -39,7 +39,7 @@ source("00_scripts/01_create_metadata.R")
 
 tic("Reading and cleaning raw data")
 readcleanrawdata(rawpath = "00_data/ebd_IN_unv_smp_relAug-2025.txt", 
-                 sensitivepath = "00_data/ebd_sensitive_relJun-2025_IN.txt")
+                 sensitivepath = "00_data/ebd_sensitive_relAug-2025_IN.txt")
 toc() # 42 min
 
 
@@ -185,7 +185,7 @@ load("00_data/analyses_metadata.RData")
 
 
 cur_mask <- "none"
-my_assignment <- 1:200 # CHANGE FOR YOUR SUBSET
+my_assignment <- 1:1 # CHANGE FOR YOUR SUBSET
 tic(glue("Generated subsampled data for full country (# {min(my_assignment)}:{max(my_assignment)})"))
 source("00_scripts/create_random_datafiles.R")
 toc() # 124 min (~ 2 h) for 100
@@ -259,7 +259,7 @@ rm(not_my_states)
 load("00_data/analyses_metadata.RData")
 
 cur_mask <- "none"
-my_assignment <- 28:100 # CHANGE FOR YOUR SUBSET
+my_assignment <- 1:1 # CHANGE FOR YOUR SUBSET
 tic(glue("Species trends for full country (sims {min(my_assignment)}--{max(my_assignment)})"))
 source("00_scripts/run_species_trends.R")
 toc() # 102 hours
