@@ -946,7 +946,8 @@ if (skip_res_occu == FALSE) {
 
 
   # joining to main object
-  main <- main %>% left_join(tojoin)
+  main <- main %>%
+    left_join(tojoin)
 
   # checkpoint-object "main"
   main5_postoccu <- main
@@ -956,5 +957,3 @@ if (skip_res_occu == FALSE) {
 }
 
 toc()
-
-
