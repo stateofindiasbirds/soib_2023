@@ -1,0 +1,414 @@
+# Config file for cluster
+#
+# Headnode : x86_64 (D4s_v3 - 4 core/16GB RAM)
+# Compute Nodes : ARM64 (aarch64) (D96ps_v6 - 96 core/384GB RAM)
+#
+# Note images differ for head node and compute nodes due to
+# arch differences
+#
+# Head Node:
+#    offer     = "ubuntu-24_04-lts"
+#    sku       = "server"
+#    version   = "latest"
+#
+# Compute Nodes:
+#    publisher = "Canonical"
+#    offer     = "ubuntu-24_04-lts"
+#    sku       = "server-arm64"
+#    version   = "latest"
+#
+# FIXME in x86 we're using the minimal image in the compute
+# nodes. Do the same here?
+#
+# Configure the Azure Provider
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~>3.0"
+    }
+  }
+}
+
+# Configure the Microsoft Azure Provider
+provider "azurerm" {
+  features {}
+  skip_provider_registration = true
+}
+
+# Variable to control number of compute nodes
+variable "compute_node_count" {
+  description = "Number of compute nodes to create (0 for head node only)"
+  type        = number
+  default     = 0
+}
+
+# Create a resource group
+data "azurerm_resource_group" "cluster_rg" {
+  name     = "SoIBAnalysis"
+}
+
+# Create a virtual network
+resource "azurerm_virtual_network" "cluster_vnet" {
+  name                = "vnet-cluster"
+  address_space       = ["10.0.0.0/16"]
+  location            = data.azurerm_resource_group.cluster_rg.location
+  resource_group_name = data.azurerm_resource_group.cluster_rg.name
+  tags = {
+    Environment = "SoIBAnalysis"
+  }
+}
+
+# Create a subnet
+resource "azurerm_subnet" "cluster_subnet" {
+  name                 = "subnet-cluster"
+  resource_group_name  = data.azurerm_resource_group.cluster_rg.name
+  virtual_network_name = azurerm_virtual_network.cluster_vnet.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
+# Create Network Security Group and rules
+resource "azurerm_network_security_group" "cluster_nsg" {
+  name                = "nsg-cluster"
+  location            = data.azurerm_resource_group.cluster_rg.location
+  resource_group_name = data.azurerm_resource_group.cluster_rg.name
+
+  # Allow SSH from internet to head node
+  security_rule {
+    name                       = "SSH"
+    priority                   = 1001
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  # Allow all traffic within the subnet (for inter-node communication)
+  security_rule {
+    name                       = "AllowVnetInBound"
+    priority                   = 1002
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "*"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "10.0.1.0/24"
+    destination_address_prefix = "10.0.1.0/24"
+  }
+
+  # Allow NFS traffic (ports 111, 2049, 20048 for NFSv4)
+  security_rule {
+    name                       = "NFS"
+    priority                   = 1003
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_ranges    = ["111", "2049", "20048"]
+    source_address_prefix      = "10.0.1.0/24"
+    destination_address_prefix = "10.0.1.0/24"
+  }
+
+  # Allow NFS UDP traffic
+  security_rule {
+    name                       = "NFS_UDP"
+    priority                   = 1004
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Udp"
+    source_port_range          = "*"
+    destination_port_ranges    = ["111", "2049"]
+    source_address_prefix      = "10.0.1.0/24"
+    destination_address_prefix = "10.0.1.0/24"
+  }
+}
+
+# Create public IP for head node
+resource "azurerm_public_ip" "head_node_public_ip" {
+  name                = "pip-head-node"
+  resource_group_name = data.azurerm_resource_group.cluster_rg.name
+  location            = data.azurerm_resource_group.cluster_rg.location
+  allocation_method   = "Static"
+  sku                = "Standard"
+}
+
+# Create Network Interface for head node
+resource "azurerm_network_interface" "head_node_nic" {
+  name                = "nic-head-node"
+  location            = data.azurerm_resource_group.cluster_rg.location
+  resource_group_name = data.azurerm_resource_group.cluster_rg.name
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.cluster_subnet.id
+    private_ip_address_allocation = "Static"
+    private_ip_address            = "10.0.1.4"
+    public_ip_address_id          = azurerm_public_ip.head_node_public_ip.id
+  }
+  tags = {
+    Environment = "SoIBAnalysis"
+  }  
+}
+
+# Create Network Interfaces for compute nodes (only if compute_node_count > 0)
+resource "azurerm_network_interface" "compute_node_nic" {
+  count               = var.compute_node_count
+  name                = "nic-compute-node-${count.index + 1}"
+  location            = data.azurerm_resource_group.cluster_rg.location
+  resource_group_name = data.azurerm_resource_group.cluster_rg.name
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.cluster_subnet.id
+    private_ip_address_allocation = "Static"
+    private_ip_address            = "10.0.1.${5 + count.index}"
+  }
+}
+
+# Associate Network Security Group to all NICs
+resource "azurerm_network_interface_security_group_association" "head_node_nsg_association" {
+  network_interface_id      = azurerm_network_interface.head_node_nic.id
+  network_security_group_id = azurerm_network_security_group.cluster_nsg.id
+}
+
+resource "azurerm_network_interface_security_group_association" "compute_node_nsg_association" {
+  count                     = var.compute_node_count
+  network_interface_id      = azurerm_network_interface.compute_node_nic[count.index].id
+  network_security_group_id = azurerm_network_security_group.cluster_nsg.id
+}
+
+# Create head node VM
+resource "azurerm_linux_virtual_machine" "head_node" {
+  name                = "vm-head-node"
+  resource_group_name = data.azurerm_resource_group.cluster_rg.name
+  location            = data.azurerm_resource_group.cluster_rg.location
+  size                = "Standard_D4s_v3"
+  admin_username      = "azureuser"
+
+  disable_password_authentication = true
+
+  network_interface_ids = [
+    azurerm_network_interface.head_node_nic.id,
+  ]
+
+  # Use your existing SSH public key (reference existing key or specify path)
+  admin_ssh_key {
+    username   = "azureuser"
+    public_key = file("~/.ssh/id_rsa.pub")  # Use your existing SSH key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Premium_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "ubuntu-24_04-lts"
+    sku       = "server"
+    version   = "latest"
+  }
+
+  custom_data = base64encode(<<-EOF
+    #!/bin/bash
+    apt-get update
+    apt-get install -y htop vim curl wget nfs-kernel-server
+    
+    # Create shared directory
+    mkdir -p /shared
+    chown nobody:nogroup /shared
+    chmod 777 /shared
+    
+    # Always configure NFS exports for the subnet
+    echo "/shared 10.0.1.0/24(rw,sync,no_subtree_check,no_root_squash)" >> /etc/exports
+    
+    # Start and enable NFS services
+    systemctl enable nfs-kernel-server
+    systemctl start nfs-kernel-server
+    systemctl enable rpcbind
+    systemctl start rpcbind
+    
+    # Export the shared directory
+    exportfs -a
+    
+    # Create a status file
+    echo "Head node with NFS server ready at $(date)" > /shared/head_node_ready.txt
+    echo "NFS server is running and ready for compute nodes" >> /shared/head_node_ready.txt
+    
+    # Restart NFS to ensure everything is properly configured
+    systemctl restart nfs-kernel-server
+  EOF
+  )
+}
+
+# Create compute node VMs (only if compute_node_count > 0)
+resource "azurerm_linux_virtual_machine" "compute_nodes" {
+  count               = var.compute_node_count
+  name                = "vm-compute-node-${count.index + 1}"
+  resource_group_name = data.azurerm_resource_group.cluster_rg.name
+  location            = data.azurerm_resource_group.cluster_rg.location
+  size                = "Standard_D96ps_v6"
+  admin_username      = "azureuser"
+
+  disable_password_authentication = true
+
+  network_interface_ids = [
+    azurerm_network_interface.compute_node_nic[count.index].id,
+  ]
+
+  # Use the same SSH public key as head node
+  admin_ssh_key {
+    username   = "azureuser"
+    public_key = file("~/.ssh/id_rsa.pub")  # Use your existing SSH key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "ubuntu-24_04-lts"
+    sku       = "server-arm64"
+    version   = "latest"
+  }
+
+  custom_data = base64encode(<<-EOF
+    #!/bin/bash
+    apt-get update
+    apt-get install -y openssh-server nfs-common
+    systemctl enable ssh
+    systemctl start ssh
+    
+    # Create mount point for shared directory
+    mkdir -p /shared
+    
+    # Wait for head node NFS service to be ready
+    while ! showmount -e 10.0.1.4 >/dev/null 2>&1; do
+        echo "Waiting for NFS server on head node..."
+        sleep 10
+    done
+    
+    # Mount the NFS share
+    mount -t nfs4 10.0.1.4:/shared /shared
+    
+    # Add to fstab for persistent mounting
+    echo "10.0.1.4:/shared /shared nfs4 defaults,_netdev 0 0" >> /etc/fstab
+    
+    # Create a test file to verify NFS access
+    echo "NFS client $(hostname) connected at $(date)" >> /shared/$(hostname)_connected.txt
+  EOF
+  )
+}
+
+# Output values
+output "head_node_public_ip" {
+  value = azurerm_public_ip.head_node_public_ip.ip_address
+  description = "Public IP address of the head node"
+}
+
+output "head_node_private_ip" {
+  value = azurerm_network_interface.head_node_nic.private_ip_address
+  description = "Private IP address of the head node"
+}
+
+output "compute_node_private_ips" {
+  value = length(azurerm_network_interface.compute_node_nic) > 0 ? azurerm_network_interface.compute_node_nic[*].private_ip_address : []
+  description = "Private IP addresses of the compute nodes"
+}
+
+output "deployment_phase" {
+  value = var.compute_node_count == 0 ? "HEAD NODE ONLY - Ready for manual setup" : "FULL CLUSTER - Head node + ${var.compute_node_count} compute nodes"
+  description = "Current deployment phase"
+}
+
+output "ssh_connection_command" {
+  value = "ssh azureuser@${azurerm_public_ip.head_node_public_ip.ip_address}"
+  description = "Command to SSH into the head node"
+}
+
+output "nfs_shared_directory_info" {
+  value = <<-EOT
+    NFS Shared Directory Setup:
+    ==========================
+    
+    Shared directory: /shared
+    - Location: Available at /shared (head node always has NFS running)
+    - Server: Head node (10.0.1.4:/shared)
+    - Status: NFS server is always running and ready
+    
+    When compute nodes are deployed, they will automatically:
+    - Mount /shared from head node
+    - Have read/write access to shared directory
+    - Auto-mount on boot via /etc/fstab
+    
+    Manual mount command for testing:
+    mount -t nfs4 10.0.1.4:/shared /mnt/test
+  EOT
+  description = "Information about the NFS shared directory"
+}
+
+output "next_steps" {
+/*
+  value = var.compute_node_count == 0 ? <<-EOT
+    PHASE 1 COMPLETE - Head Node Only:
+    =================================
+    
+    1. SSH to head node: ssh azureuser@${azurerm_public_ip.head_node_public_ip.ip_address}
+    2. Configure your head node manually
+    3. NFS server is already running and ready at /shared
+    4. When ready to add compute nodes, run:
+       terraform apply -var="compute_node_count=2"
+    
+    Available compute node IPs (when deployed):
+    - Compute Node 1: 10.0.1.5
+    - Compute Node 2: 10.0.1.6
+    
+    EOT : <<-EOT
+    PHASE 2 COMPLETE - Full Cluster:
+    ===============================
+    
+    Head node: ${azurerm_public_ip.head_node_public_ip.ip_address} (10.0.1.4)
+    Compute nodes: ${join(", ", [for i in range(var.compute_node_count) : "10.0.1.${5 + i}"])}
+    
+    SSH Access:
+    - ssh -A azureuser@${azurerm_public_ip.head_node_public_ip.ip_address}
+    - From head node: ssh azureuser@10.0.1.5, ssh azureuser@10.0.1.6
+    
+    NFS shared directory /shared is mounted on all nodes.
+    
+    EOT
+  description = "Next steps based on current deployment phase"
+  */
+  value = var.compute_node_count == 0 ? "Head Node Only":"Head Node+Compute"
+}
+
+output "ssh_setup_instructions" {
+  value = <<-EOT
+    SSH Access Instructions:
+    =======================
+    
+    1. SSH to head node with agent forwarding:
+       ssh -A azureuser@${azurerm_public_ip.head_node_public_ip.ip_address}
+    
+    2. From head node, SSH to compute nodes:
+       ssh azureuser@10.0.1.5
+       ssh azureuser@10.0.1.6
+    
+    Alternative methods:
+    A) Use SSH agent forwarding (recommended):
+       - Add key to agent: ssh-add ~/.ssh/id_rsa
+       - SSH with -A flag: ssh -A azureuser@<head-node-ip>
+    
+    B) Copy private key to head node:
+       scp ~/.ssh/id_rsa azureuser@${azurerm_public_ip.head_node_public_ip.ip_address}:~/.ssh/
+    
+    C) Use ProxyJump to connect directly:
+       ssh -J azureuser@${azurerm_public_ip.head_node_public_ip.ip_address} azureuser@10.0.1.5
+  EOT
+  description = "Instructions for SSH access"
+}
