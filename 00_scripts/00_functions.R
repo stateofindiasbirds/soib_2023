@@ -1,10 +1,25 @@
+library(peakRAM)
+library(tidyverse)
+library(lme4)
+library(merTools)
+library(glue)
+library(dtplyr)
+library(data.table)
+library(lubridate)
+library(sf)
+library(reshape2)
+library(unmarked)
+library(tictoc)
+
 # get analyses metadata -------------------------------------------------
 
-get_metadata <- function(mask = NULL) {
+get_metadata <- function(mask = NULL, container=FALSE) {
 
-  require(tidyverse)
-  
-  load("00_data/analyses_metadata.RData")
+  if(container) {
+    load("data/00_data/analyses_metadata.RData")
+  } else {
+    load("00_data/analyses_metadata.RData")
+  }
 
   if(is.null(mask)) {
     return(analyses_metadata)
@@ -68,17 +83,15 @@ simerrordiv = function(x1, x2, se1, se2)
 createrandomlocs = function(locs)
 {
   require(tidyverse)
-  
   locs1 = locs %>% 
     group_by(LOCALITY.ID, month, timegroups) %>% sample_n(1)
   
   return(locs1$group.id)
 }
 
-
 # what are the latest migratory years under consideration? -----------------
 
-soib_year_info <- function(what = "latest_year") {
+soib_year_info <- function(what = "latest_year", container=FALSE) {
 
   # catch input errors
   valid_inputs <- c("latest_year", "timegroup_lab", "timegroup_med", 
@@ -92,8 +105,11 @@ soib_year_info <- function(what = "latest_year") {
 
 
   # load latest year data
-  load("00_data/current_soib_migyears.RData")
-
+  if(container) {
+    load("data/00_data/current_soib_migyears.RData")
+  } else {
+    load("00_data/current_soib_migyears.RData")
+  }
 
   # latest year
   if (what == "latest_year") {
@@ -156,9 +172,6 @@ get_iucn_proj_cols <- function() {
 readcleanrawdata = function(rawpath = "00_data/ebd_IN_unv_smp_relAug-2025.txt", 
                             sensitivepath = "00_data/ebd_sensitive_relAug-2025_IN.txt")
 {
-  require(lubridate)
-  require(tidyverse)
-  
   # select only necessary columns
   preimp = c("CATEGORY","COMMON.NAME","SCIENTIFIC.NAME","OBSERVATION.COUNT",
              "LOCALITY.ID","LOCALITY.TYPE","REVIEWED","APPROVED","STATE","COUNTY",
@@ -387,9 +400,6 @@ addmapvars = function(datapath = "00_data/rawdata.RData",
                       papath = "00_data/maps_pa_sf.RData",
                       maskspath = "00_data/habmasks_sf.RData")
 {
-  require(tidyverse)
-  require(sf)
-  
   load(datapath)
   
   # map details to add to eBird data
@@ -455,10 +465,6 @@ addmapvars = function(datapath = "00_data/rawdata.RData",
 ## to use in dataspeciesfilter()
 
 completelistcheck = function(data) {
-
-  require(tidyverse)
-  require(lubridate)
-
   data = data %>% 
     # create 2 columns from the "TIME.OBSERVATIONS.STARTED' column
     mutate(DATETIME = as_datetime(paste("2023-06-01", # any date, we just need the time
@@ -1143,8 +1149,6 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = TRUE) {
 
 expandbyspecies = function(data, species)
 {
-  require(tidyverse)
-  
   data <- data %>% 
     mutate(across(contains("gridg"), ~ as.factor(.))) %>% 
     mutate(timegroups = as.factor(timegroups))
@@ -1179,24 +1183,7 @@ expandbyspecies = function(data, species)
 # previous expandbyspecies() to be retired entirely in next annual update
 expand_dt = function(data, species, singleyear = FALSE) {
 
-  require(tidyverse)
-  require(dtplyr)
-  require(data.table)
-  
-
   setDT(data)
-  
-  
-    data <- data %>% 
-      lazy_dt(immutable = FALSE) |> 
-      mutate(across(contains("gridg"), ~ as.factor(.))) %>% 
-      {if (singleyear == FALSE) {
-        mutate(., timegroups = as.factor(timegroups))
-      } else if (singleyear == TRUE) {
-        .
-      }} |> 
-      as.data.table()
-
 
   # Get distinct rows and filter based on a condition
   # (using base data.table because lazy_dt with immutable == FALSE would
@@ -1207,7 +1194,7 @@ expand_dt = function(data, species, singleyear = FALSE) {
   if (singleyear == FALSE) {
 
     checklistinfo <- unique(data[, 
-                                 .(gridg1, gridg2, gridg3, gridg4, ALL.SPECIES.REPORTED, OBSERVER.ID, 
+                                 .(gridg1, gridg3, ALL.SPECIES.REPORTED,
                                    group.id, month, year, no.sp, timegroups)
     ])[
       # filter
@@ -1217,7 +1204,7 @@ expand_dt = function(data, species, singleyear = FALSE) {
   } else if (singleyear == TRUE) {
 
     checklistinfo <- unique(data[, 
-                                 .(gridg1, gridg2, gridg3, gridg4, ALL.SPECIES.REPORTED, OBSERVER.ID, 
+                                 .(gridg2, gridg3, ALL.SPECIES.REPORTED,
                                    group.id, month, year, no.sp)
     ])[
       # filter
@@ -1238,12 +1225,12 @@ expand_dt = function(data, species, singleyear = FALSE) {
   # expand data frame to include the bird species in every list
   
   join_by_temp <- if (singleyear == FALSE) {
-    c("group.id", "gridg1", "gridg2", "gridg3", "gridg4",
-      "ALL.SPECIES.REPORTED", "OBSERVER.ID", "month", "year", 
+    c("group.id", "gridg1", "gridg3",
+      "ALL.SPECIES.REPORTED", "month", "year",
       "no.sp", "timegroups", "COMMON.NAME")
   } else if (singleyear == TRUE) {
-    c("group.id", "gridg1", "gridg2", "gridg3", "gridg4",
-      "ALL.SPECIES.REPORTED", "OBSERVER.ID", "month", "year", 
+    c("group.id", "gridg1", "gridg3",
+      "ALL.SPECIES.REPORTED", "month", "year",
       "no.sp","COMMON.NAME")
   }
 
@@ -1252,11 +1239,11 @@ expand_dt = function(data, species, singleyear = FALSE) {
       mutate(COMMON.NAME = species) %>% 
       left_join(data |> lazy_dt(immutable = FALSE),
                 by = join_by_temp) %>%
-      dplyr::select(-c("COMMON.NAME","gridg2","gridg4","OBSERVER.ID",
-                       "ALL.SPECIES.REPORTED","group.id","year","gridg0")) %>% 
+      dplyr::select(-c("COMMON.NAME",
+                       "ALL.SPECIES.REPORTED","group.id","year")) %>%
       # deal with NAs (column is character)
       mutate(OBSERVATION.COUNT = case_when(is.na(OBSERVATION.COUNT) ~ 0,
-                                           OBSERVATION.COUNT != "0" ~ 1, 
+                                           OBSERVATION.COUNT != 0 ~ 1,
                                            TRUE ~ as.numeric(OBSERVATION.COUNT))) |> 
       as_tibble()
   
@@ -1307,18 +1294,18 @@ filt_data_for_mig <- function(data, species_var, status_var) {
 ### run models ########################################
 
 # trends
-singlespeciesrun = function(data, species, specieslist, restrictedspecieslist, 
+singlespeciesrun_internal = function(container, reproducible, data, species_index, species, specieslist, restrictedspecieslist,
                             singleyear = FALSE)
 {
-  require(tidyverse)
-  require(lme4)
-  require(merTools)
-  require(glue)
-  
+
   data1 = data
-  
-  set.seed(0)
-  
+  rm(data)
+
+  if(reproducible) {
+    message("Setting seed to 0 to ensure reproducible runs")
+    set.seed(0)
+  }
+
   # get information for the species of interest 
   specieslist2 = specieslist %>% filter(COMMON.NAME == species)
   
@@ -1345,20 +1332,23 @@ singlespeciesrun = function(data, species, specieslist, restrictedspecieslist,
   if (singleyear == FALSE) {
 
     if (is.na(specieslist2$ht) & !is.na(specieslist2$rt)) {
-      data1 = data1 %>% filter(year >= soib_year_info("cat_start"))
+      data1 = data1 %>% filter(year >= soib_year_info("cat_start", container))
     }
   
   } else if (singleyear == TRUE) {
 
-    data1 = data1 %>% filter(year == soib_year_info("latest_year"))
+    data1 = data1 %>% filter(year == soib_year_info("latest_year", container))
   }
 
   
   data1 = data1 %>%
-    filter(COMMON.NAME == species) %>%
+    filter(COMMON.NAME == species_index) %>%
     distinct(gridg3, month) %>% 
-    left_join(data1)
-  
+    left_join(data1) %>%
+    suppressMessages()
+
+  dataset_size = nrow(data1)
+
   tm = data1 %>% distinct(timegroups)
   #rm(data, pos = ".GlobalEnv")
   
@@ -1372,9 +1362,8 @@ singlespeciesrun = function(data, species, specieslist, restrictedspecieslist,
   
   medianlla = datay$medianlla
   
-  
   # expand dataframe to include absences as well
-  ed = expand_dt(data1, species) %>% 
+  ed = expand_dt(data1, species_index) %>%
     # converting months to seasons
     mutate(month = as.numeric(month)) %>% 
     mutate(month = case_when(month %in% c(12,1,2) ~ "Win",
@@ -1383,6 +1372,10 @@ singlespeciesrun = function(data, species, specieslist, restrictedspecieslist,
                              month %in% c(9,10,11) ~ "Aut")) %>% 
     mutate(month = as.factor(month))
 
+  # save some values referenced later so we can get rid of memory hog data1
+  gg1 <- data1$gridg1[1]
+  gg3 <- data1$gridg3[1]
+  rm(data1)
 
   # the model ---------------------------------------------------------------
   
@@ -1419,8 +1412,8 @@ singlespeciesrun = function(data, species, specieslist, restrictedspecieslist,
     mutate(no.sp = medianlla,
            # taking the first value but any random value will do because we do not
            # intend to predict random variation across grids
-           gridg1 = data1$gridg1[1], 
-           gridg3 = data1$gridg3[1])
+           gridg1 = gg1,
+           gridg3 = gg3)
   
   f2 <- ltemp %>% 
     {if (singleyear == FALSE) {
@@ -1465,32 +1458,44 @@ singlespeciesrun = function(data, species, specieslist, restrictedspecieslist,
       rename(timegroupsf = timegroups,
              timegroups = year) %>% 
       mutate(timegroupsf = factor(timegroupsf, 
-                                  levels = soib_year_info("timegroup_lab"))) %>% 
+                                  levels = soib_year_info("timegroup_lab", container))) %>%
       complete(timegroupsf) %>% 
-      arrange(timegroupsf)
+      arrange(timegroupsf) %>%
+      suppressMessages()
     } else if (singleyear == TRUE) {
       reframe(., freq = mean(freqt), se = mean(set))
     }}
   
   
 
-  tocomb = c(species, f1$freq, f1$se)
+  tocomb = c(dataset_size, species, f1$freq, f1$se)
   return(tocomb)
   # each species's tocomb becomes one column in final trends0 output object
   
+}
+
+singlespeciesrun = function(container, reproducible, stats_dir, species_dir, data, species_index, species,
+			    specieslist, restrictedspecieslist, singleyear = FALSE)
+{
+  ram <- peakRAM(retval <- singlespeciesrun_internal(container, reproducible, data, species_index, species,
+						     specieslist, restrictedspecieslist, singleyear))
+  run_stats <- data.frame(data_rows = retval[1],
+                          time = ram$Elapsed_Time_sec,
+                          max_ram = ram$Peak_RAM_Used_MiB,
+                          pid = Sys.getpid())
+
+  save_file = paste0(stats_dir, "/",species,".RData")
+  save(run_stats, file=save_file)
+  species_result = paste0(species_dir, "/",species,".RData")
+  result <- retval[-1]
+  save(result, file=species_result)
+  return(result)
 }
 
 
 # occupancy
 occupancyrun = function(data, i, speciesforocc, queen_neighbours)
 {
-  require(tidyverse)
-  require(reshape2)
-  require(data.table)
-  require(unmarked)
-  require(tictoc)
-  require(glue)  
-
   species = speciesforocc$eBird.English.Name.2024[i]
   status = speciesforocc$status[i]
 
@@ -1927,8 +1932,6 @@ get_latest_IUCN_status <- function(data, col_specname, col_iucn = NULL,
     stop("Arguments col_specname and col_iucn can only be character values.")
   }
   
-  require(tidyverse)
-  
   # col_iucn is the name we want for newly mutated IUCN column
   # (not necessarily name of IUCN column in mapping sheet)
   col_newnames <- if (is.null(col_iucn)) {
@@ -2025,8 +2028,6 @@ update_species_lists = function(species_list_data, scientific_also = FALSE) {
     stop("Currently running 'major' SoIB update, so specieslists needs to be rerun properly!")
   }
 
-  require(tidyverse)
-  
   if (!exists("fullmap")) {
     fullmap <- read.csv("00_data/SoIB_mapping_2024.csv")
   }
