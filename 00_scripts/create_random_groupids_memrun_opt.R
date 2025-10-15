@@ -59,13 +59,6 @@ write_rgids_xz <- function(write_path, rgids) {
   }
 }
 
-generate_random_values <- function(df, size) {
-  result <- df %>%
-    slice_sample(n = size, replace = TRUE) %>%
-    ungroup()
-  return(result)
-}
-
 if (to_run == TRUE) {
 
   # create the set of random locations (doesn't work inside a function)
