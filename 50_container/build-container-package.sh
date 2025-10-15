@@ -33,8 +33,13 @@ cp 01_analyses_full/rgids-*.RData soib-container/data/01_analyses_full/
 # Stats to guide scheduling
 cp 01_analyses_full/species_run_stats.RData soib-container/data/01_analyses_full
 
+# Copy container installation scripts
+cp 50_container/soib-container/install-arm64-container.sh soib-container
+cp 50_container/soib-container/install-x86_64-container.sh soib-container
+
 # copy container from appropriate arch dir
 #
+mkdir soib-container/`uname -m`
 cp 50_container/soib-container/`uname -m`/soib.tar soib-container/`uname -m`
 rm -f soib-container.zip
 echo "soib-container directory has contiainer package contents, with data"
