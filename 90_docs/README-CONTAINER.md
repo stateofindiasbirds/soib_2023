@@ -233,8 +233,182 @@ in a subdirectory of output. The find command can help locate the output
 
 # Additional Usage Notes
 
-The output directory has a file config.R, using which you can configure the
+The config directory has a file config.R, using which you can configure the
 number of threads, as well as which species to run trends calculation for.
+
+You may modify config/localhost/config.R, or create a separate configuration
+file in config/localhost. To use a different configuration file, run
+
+    $ sh run_container.sh config-mod.R
+
+This will look for config file config/localhost/config-mod.R (first) and then
+config/hostname/config-mod.R (in that order).
+
+To get the version of the software in the container, run:
+
+    $ sh run_container.sh -version
+    Version: 20251015
+
+To dump the versions of all the dependent software in the container, run:
+
+    $ sh run_container.sh -dep-versions
+
+Dependency report will include version of R, all R packages installed (with
+their version), and base linux (Alpine linux) version information, like:
+
+    R version: x86_64-pc-linux-muslx86_64linux-muslx86_64, linux-musl45.02025041188135RR version 4.5.0 (2025-04-11)How About a Twenty-Six
+    Installed packages are:
+           Package   Version
+             abind     1.4-8
+               arm    1.14-4
+           askpass     1.2.1
+         backports     1.5.0
+         base64enc     0.1-3
+               bit     4.6.0
+             bit64   4.6.0-1
+              blme     1.0-6
+              blob     1.2.4
+             broom     1.0.9
+       broom.mixed   0.2.9.6
+             bslib     0.9.0
+            cachem     1.1.0
+             callr     3.7.6
+        cellranger     1.1.0
+          classInt    0.4-11
+               cli     3.6.5
+             clipr     0.8.0
+              coda  0.19-4.1
+        commonmark     2.0.0
+        conflicted     1.2.0
+             cpp11     0.5.2
+            crayon     1.5.3
+              curl     7.0.0
+        data.table    1.17.8
+               DBI     1.2.3
+            dbplyr     2.5.0
+            digest    0.6.37
+             dplyr     1.1.4
+            dtplyr     1.3.1
+             e1071    1.7-16
+          evaluate     1.0.4
+            farver     2.1.2
+           fastmap     1.2.0
+       fontawesome     0.5.3
+           forcats     1.0.0
+           foreach     1.5.2
+                fs     1.6.6
+             furrr     0.3.1
+            future    1.67.0
+            gargle     1.5.2
+          generics     0.1.4
+           ggplot2     3.5.2
+           globals    0.18.0
+              glue     1.8.0
+       googledrive     2.1.1
+     googlesheets4     1.1.1
+            gtable     0.3.6
+             haven     2.5.5
+             highr      0.11
+               hms     1.1.3
+         htmltools   0.5.8.1
+            httpuv    1.6.16
+              httr     1.4.7
+               ids     1.0.1
+           isoband     0.2.7
+         iterators    1.0.14
+         jquerylib     0.1.4
+          jsonlite     2.0.0
+             knitr      1.50
+          labeling     0.4.3
+             later     1.4.3
+         lifecycle     1.0.4
+           listenv     0.9.1
+              lme4    1.1-37
+         lubridate     1.9.4
+          magrittr     2.0.3
+           memoise     2.0.1
+          merTools     0.6.2
+              mime      0.13
+             minqa     1.2.8
+            modelr    0.1.11
+           mvtnorm     1.3-3
+            nloptr     2.2.1
+           openssl     2.3.3
+               pak     0.9.0
+        parallelly    1.45.1
+           peakRAM     1.0.2
+            pillar    1.11.0
+         pkgconfig     2.0.3
+              plyr     1.8.9
+       prettyunits     1.2.0
+          processx     3.8.6
+          progress     1.2.3
+          promises     1.3.3
+             proxy    0.4-27
+                ps     1.9.1
+             purrr     1.1.0
+                R6     2.6.1
+              ragg     1.4.0
+          rappdirs     0.3.3
+         rbibutils       2.3
+      RColorBrewer     1.1-3
+              Rcpp     1.1.0
+     RcppArmadillo  14.6.3-1
+         RcppEigen 0.3.4.0.2
+            Rdpack     2.6.4
+             readr     2.1.5
+            readxl     1.4.5
+        reformulas     0.4.1
+           rematch     2.0.0
+          rematch2     2.1.2
+            reprex     2.1.1
+          reshape2     1.4.4
+             rlang     1.1.6
+         rmarkdown      2.29
+        rstudioapi    0.17.1
+             rvest     1.0.4
+                s2     1.1.9
+              sass    0.4.10
+            scales     1.4.0
+           selectr     0.4-2
+                sf    1.0-21
+             shiny    1.11.1
+       sourcetools   0.1.7-1
+           stringi     1.8.7
+           stringr     1.5.1
+               sys     3.4.3
+       systemfonts     1.2.3
+       textshaping     1.0.1
+            tibble     3.3.0
+            tictoc     1.2.1
+             tidyr     1.3.1
+        tidyselect     1.2.1
+         tidyverse     2.0.0
+        timechange     0.3.0
+           tinytex      0.57
+               TMB    1.9.17
+              tzdb     0.5.0
+             units     0.8-7
+          unmarked     1.5.0
+              utf8     1.2.6
+              uuid     1.2-1
+             vctrs     0.6.5
+              VGAM    1.1-13
+       viridisLite     0.4.2
+             vroom     1.6.5
+             withr     3.0.2
+                wk     0.9.4
+              xfun      0.53
+              xml2     1.4.0
+            xtable     1.8-4
+              yaml    2.3.10
+    Alpine linux (container) info:
+    NAME="Alpine Linux"
+    ID=alpine
+    VERSION_ID=3.22.1
+    PRETTY_NAME="Alpine Linux v3.22"
+    HOME_URL="https://alpinelinux.org/"
+    BUG_REPORT_URL="https://gitlab.alpinelinux.org/alpine/aports/-/issues"
 
 ## Threads
 

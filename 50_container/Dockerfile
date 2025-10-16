@@ -74,6 +74,7 @@ RUN rm -rf /tmp/*
 COPY p3s1a.R /app/p3s1a.R
 COPY 00_scripts/run_species_trends_container.R /app/00_scripts/
 COPY 00_scripts/00_functions.R /app/00_scripts/
+COPY 50_container/VERSION /app/VERSION
 
 # Set working directory
 WORKDIR /app
