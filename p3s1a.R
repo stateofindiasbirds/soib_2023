@@ -28,11 +28,57 @@ suppressPackageStartupMessages({
 
 hostname <- paste0(Sys.info()["nodename"],"")
 
+show_help <- function() {
+  message("Supported arguments:")
+  message("-h            : show help")
+  message("-version      : show version of scripts")
+  message("-dep-versions : show version of dependencies (packaged in container)")
+  quit()
+}
+
+show_version <- function() {
+  fileName <- "VERSION"
+  if(file.exists(fileName)) {
+    version <- readChar(fileName, file.info(fileName)$size)
+  } else {
+    version <- "(check source tree)"
+  }
+  message("Version: ", version)
+  quit()
+}
+
+show_dep_versions <- function() {
+  message("R version: ", version)
+  message("Installed packages are:")
+  ip <- as.data.frame(installed.packages()[,c(1,3:4)])
+  rownames(ip) <- NULL
+  ip <- ip[is.na(ip$Priority),1:2,drop=FALSE]
+  print(ip, row.names=FALSE)
+  if(file.exists('/etc/alpine-release')) {
+    message("Alpine linux (container) info:")
+    file_content <- readLines("/etc/os-release", warn = FALSE) # Reads lines from the file
+    cat(file_content, sep = "\n") # Prints each line to the console, separated by newlines
+  }
+  quit()
+}
+
 config_filename <- 'config.R'
 args = commandArgs(trailingOnly=TRUE)
-if(length(args)>=1) {
-  config_filename <- args[1]
+if(length(args)==1) {
+  arg1 <- args[1]
+  if(arg1 == "-h") {
+    show_help()
+  } else if(arg1 == "-version") {
+    show_version()
+  } else if(arg1 == "-dep-versions") {
+    show_dep_versions()
+  }
+  # else !
+  config_filename <- arg1
   message("Using config file: ", config_filename)
+} else if (length(args)>1) {
+  message("Bad number of parameters")
+  show_help()
 }
 
 # If localhost config file exists, pick that first
