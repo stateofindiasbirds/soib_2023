@@ -24,7 +24,7 @@ expandbyspecies_KL = function(data, species)
     left_join(data) %>%
     dplyr::select(-c("COMMON.NAME","gridg2","gridg4",
                      "ALL.SPECIES.REPORTED","group.id",
-                     "LOCALITY.ID","ST_NM","DISTRICT","PROTOCOL.TYPE",
+                     "LOCALITY.ID","ST_NM","DISTRICT","PROTOCOL.NAME",
                      "year","month")) %>% 
     # deal with NAs (column is character)
     mutate(OBSERVATION.COUNT = case_when(is.na(OBSERVATION.COUNT) ~ 0,

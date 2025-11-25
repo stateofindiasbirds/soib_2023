@@ -1,4 +1,4 @@
-SOIBv2.Long.Term.Status,SOIBv2.Current.Status,SOIBv2.Range.Status,SOIBv2.Priority.Status
+SoIB.Latest.Long.Term.Status,SoIB.Latest.Current.Status,SoIB.Latest.Range.Status,SoIB.Latest.Priority.Status
 Rapid Decline,Rapid Decline,Very Restricted,High
 Decline,Rapid Decline,Very Restricted,High
 Insufficient Data,Rapid Decline,Very Restricted,High

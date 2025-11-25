@@ -32,7 +32,7 @@ if (!dir.exists(cur_metadata$OCCU.PRES.PATHONLY)) {
 # get the set of 25 km grids with confirmed presence for each species during each season
 
 speciesforocc %>% 
-  {walk2(.$eBird.English.Name.2023, .$status, ~ {
+  {walk2(.$eBird.English.Name.2024, .$status, ~ {
     
     tic(glue("Presence-based occupancy for {.x}"))
     

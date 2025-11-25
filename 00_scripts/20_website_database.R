@@ -198,3 +198,19 @@ web_db <- web_db %>%
 
 write_csv(web_db, file = "20_website/website_database.csv")
 
+
+# add photographer credits and remove NAs
+
+library(tidyverse)
+
+web_db = read.csv("20_website/website_database_2024.csv")
+credits = read.csv("20_website/photo_credits.csv")
+
+web_db = web_db %>% left_join(credits)
+web_db$featured_image <- paste(web_db$scientific_name,".jpg",sep="")
+web_db$featured_image <- gsub(" ", "_", web_db$featured_image)
+web_db[is.na(web_db)] <- ""
+
+web_db = data.frame(lapply(web_db, function(x) gsub("https://wordpress-1024190-3615983.cloudwaysapps.com/", "https://stateofindiasbirds.in/", x)), stringsAsFactors = FALSE)
+
+write_csv(web_db, file = "20_website/website_database_credits_2024.csv")

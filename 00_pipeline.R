@@ -10,6 +10,7 @@ source("00_scripts/00_functions.R")
 
 # Is the current run for a new major SoIB version (every 3-4 years), 
 # or for an interannual update (every year between major versions)?
+# testing git
 interannual_update = TRUE
 
 
@@ -37,8 +38,8 @@ source("00_scripts/01_create_metadata.R")
 # - "rawdata.RData"
 
 tic("Reading and cleaning raw data")
-readcleanrawdata(rawpath = "00_data/ebd_IN_relJun-2024.txt", 
-                 sensitivepath = "00_data/ebd_sensitive_relJun-2024_IN.txt")
+readcleanrawdata(rawpath = "00_data/ebd_IN_unv_smp_relAug-2025.txt", 
+                 sensitivepath = "00_data/ebd_sensitive_relAug-2025_IN.txt")
 toc() # 42 min
 
 
@@ -80,7 +81,7 @@ toc() # 11 min
 # - data files (ALL in 00_data/):
 #   - "data.RData"
 #   - "indiaspecieslist.csv" (common and scientific names of all species)
-#   - "SoIB_mapping_2023.csv"
+#   - "SoIB_mapping_2024.csv"
 # Outputs:
 # - "dataforanalyses_extra.RData"
 # - "fullspecieslist.csv" for whole country and individual mask versions
@@ -99,6 +100,7 @@ source("00_scripts/filter_data_for_species.R")
 toc() 
 # 51 min (SoIB 2023)
 # 21 min (2024 annual update)
+# 12 min (2025 annual update)
 
 # PART 2 (subsample) ------------------------------------------------------------------
 
@@ -183,7 +185,7 @@ load("00_data/analyses_metadata.RData")
 
 
 cur_mask <- "none"
-my_assignment <- 1:200 # CHANGE FOR YOUR SUBSET
+my_assignment <- 1:1 # CHANGE FOR YOUR SUBSET
 tic(glue("Generated subsampled data for full country (# {min(my_assignment)}:{max(my_assignment)})"))
 source("00_scripts/create_random_datafiles.R")
 toc() # 124 min (~ 2 h) for 100
@@ -257,7 +259,7 @@ rm(not_my_states)
 load("00_data/analyses_metadata.RData")
 
 cur_mask <- "none"
-my_assignment <- 1:200 # CHANGE FOR YOUR SUBSET
+my_assignment <- 1:1 # CHANGE FOR YOUR SUBSET
 tic(glue("Species trends for full country (sims {min(my_assignment)}--{max(my_assignment)})"))
 source("00_scripts/run_species_trends.R")
 toc() # 102 hours
@@ -333,7 +335,7 @@ rm(not_my_states)
 # - data files:
 #   - "dataforanalyses.RData" for whole country and individual states
 #   - "specieslists.RData" for whole country and individual states
-#   - "00_data/SoIB_mapping_2023.csv"
+#   - "00_data/SoIB_mapping_2024.csv"
 #   - "00_data/grids_sf_nb.RData"
 # Outputs: 
 # - csv files in occupancy-presence/ 
@@ -462,4 +464,3 @@ analyses_metadata %>%
 
 toc(log = TRUE, quiet = TRUE) 
 tic.log()
-

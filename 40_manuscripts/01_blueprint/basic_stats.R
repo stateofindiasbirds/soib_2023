@@ -11,7 +11,7 @@ sensitivepath = "00_data/ebd_sensitive_relMay-2023_IN.txt"
 # select only necessary columns
 preimp = c("COMMON.NAME","REVIEWED","APPROVED","STATE","COUNTY",
            "OBSERVATION.DATE","OBSERVER.ID",
-           "PROTOCOL.TYPE","DURATION.MINUTES","EFFORT.DISTANCE.KM","EXOTIC.CODE",
+           "PROTOCOL.NAME","DURATION.MINUTES","EFFORT.DISTANCE.KM","EXOTIC.CODE",
            "ALL.SPECIES.REPORTED","GROUP.IDENTIFIER","SAMPLING.EVENT.IDENTIFIER")
 
 nms = read.delim(rawpath, nrows = 1, sep = "\t", header = T, quote = "", stringsAsFactors = F, 

@@ -3,6 +3,7 @@
 .Rapp.history
 .Rproj.user
 *.Rproj
+.DS_Store
 
 # raw data files
 *.txt

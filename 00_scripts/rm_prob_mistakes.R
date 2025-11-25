@@ -69,7 +69,14 @@ rm_prob_mistakes <- function(data) {
       "S60463868", "S42404882", "S57128626", "S102555332", "S102555331", "S102553432",
       "S102588931", "S140652379", "S144136494", "S131847722", "S137292902", "S96350924",
       "S158932326", "S128858614","S155990759", "S168762040", "S110551334", "S96309948",
-      "S166042324", "S69830303", "S83259822",  "S50278569"
+      "S166042324", "S69830303", "S83259822",  "S50278569", "S190617478", "S223379925", 
+      "S228828401", "S241120405", "S241120407", "S241120406", "S53926928", "S54200727", 
+      "S207144740", "S154494302", "S205976384", "S159663564", "S213070309", "S271206220", 
+      "S50462648", "S50462365", "S19421967", "S183468809", "S59786035", "S96350862", 
+      "S203495170", "S111316155", "S169416018", "S169399895", "S155771635", "S214011504", 
+      "S153867893", "S253072001", "S198075026", "S228864870", "S208463601", "S222067580", 
+      "S98830317", "S225576061", "S223003481", "S229210207", "S243742726", "S202877624", 
+      "S229209773"
       )) %>% 
     distinct(SAMPLING.EVENT.IDENTIFIER)
   
@@ -80,11 +87,11 @@ rm_prob_mistakes <- function(data) {
     filter(
       (COMMON.NAME == "Blyth’s Tragopan" & SAMPLING.EVENT.IDENTIFIER == "S21274851") |
         (COMMON.NAME == "Himalayan Monal" & SAMPLING.EVENT.IDENTIFIER %in% c(
-          "S36449309","S110202874"
+          "S36449309","S110202874","S198638491", "S240802971", "S122584895", "S47832112"
         )) |
         (COMMON.NAME == "Kalij Pheasant" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S63416231","S64856967", "S95988801", "S98429186", "S116473453", "S35789952",
-          "S162601883", "S105375119", "S56304149", "S56297816"
+          "S162601883", "S105375119", "S56304149", "S56297816","S85506145"
         )) |
         (COMMON.NAME == "Red Spurfowl" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S76110147", "S132265895", "S98984072", "S25573488", "S25762331", "S122211593", 
@@ -92,21 +99,35 @@ rm_prob_mistakes <- function(data) {
           "S121904493", "S72249154", "S20388830", "S20388995", "S20840289", "S12275556", 
           "S31592561", "S21501918", "S20437175", "S20399293", "S34358305", "S156985482",
           "S187651578", "S187626520", "S153880734", "S153887305", "S187794499", "S146957211",
-          "S146956664", "S130432226", "S53121054", "S129651439"
+          "S146956664", "S130432226", "S53121054", "S129651439","S213679344", "S208617430"
         )) |
-        (COMMON.NAME == "Painted Spurfowl" & SAMPLING.EVENT.IDENTIFIER == c("S134340928",
+        (COMMON.NAME == "Painted Spurfowl" & SAMPLING.EVENT.IDENTIFIER %in% c("S134340928",
          "S42696454", "S188588052", "S80680772", "S133479192", "S133022415", "S42127790",
-         "S129418458", "S128838955", "S65035483", "S51110638"
+         "S129418458", "S128838955", "S65035483", "S51110638","S217492306", "S242519243"
          )) |
         (COMMON.NAME == "Mountain Bamboo-Partridge" & SAMPLING.EVENT.IDENTIFIER == "S21274851") |
         (COMMON.NAME == "Red Junglefowl" & SAMPLING.EVENT.IDENTIFIER %in% c(
-          "S108982385","S67570561", "S96326847", "S162343047"
+          "S108982385","S67570561", "S96326847", "S162343047","S34064035", "S230749136", 
+          "S104278268", "S272403274"
         )) |
         (COMMON.NAME == "Gray Junglefowl" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S98615153", "S127159840", "S34661870", "S23066272", "S41125176", 
           "S132825863", "S26634409", "S65035598", "S63037541", "S41925375",
           "S32220102", "S52865402", "S52862671", "S52862343", "S52862310", "S163657500",
-          "S57750280", "S57750279", "S79692080"
+          "S57750280", "S57750279", "S79692080","S165895807", "S150869340", "S42041639", 
+          "S42176432", "S42115557", "S41925537", "S217995097", "S122127321", "S190422063", 
+          "S162963914", "S105186721", "S35003467", "S34999556", "S100969823", "S100930631", 
+          "S100969824", "S100929595", "S59417865", "S68865318", "S185744440", "S243518434", 
+          "S137611497", "S206473942", "S206404971", "S206313843", "S206187393", "S206169075", 
+          "S219769069", "S111065870", "S110923186", "S209692115", "S268160859", "S268160852", 
+          "S215049559", "S269765984"
+        )) |
+        (COMMON.NAME == "Indian Peafowl" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S42984291", "S57251085", "S128625978", "S105943611", "S216674168", "S216673945", 
+          "S39905592", "S28528620", "S198984346"
+        )) |
+        (COMMON.NAME == "Gray Francolin" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S169579496", "S197733824", "S133175886", "S212715394", "S214218763", "S123939813"
         )) |
         (COMMON.NAME == "Black Francolin" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S60933821", "S73761265", "S57264267"
@@ -117,13 +138,17 @@ rm_prob_mistakes <- function(data) {
         )) |
         (COMMON.NAME == "Jungle Bush-Quail" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S76962924", "S89878061", "S65125519", "S107023768", "S110734417", "S151685910",
-          "S139272060"
+          "S139272060","S32816193", "S152525270", "S54574710", "S52013216", "S190979805", 
+          "S191006169"
         )) |
         (COMMON.NAME == "Rock Bush-Quail" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S24991930", "S32453722", "S103366454"
         )) |
         (COMMON.NAME == "Lesser Flamingo" & SAMPLING.EVENT.IDENTIFIER == "S126888465") |
         (COMMON.NAME == "Ashy Wood-Pigeon" & SAMPLING.EVENT.IDENTIFIER == "S93699607") |
+        (COMMON.NAME == "Speckled Wood-Pigeon" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S60823965", "S50144384", "S177481971", "S179003994"
+        )) |
         (COMMON.NAME == "Spotted Dove" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S113162586", "S70796689"
         )) |
@@ -134,18 +159,29 @@ rm_prob_mistakes <- function(data) {
         (COMMON.NAME == "Asian Emerald Dove" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S126183847", "S126488688", "S57072080"
         )) |
-        (COMMON.NAME == "Green Imperial-Pigeon" & SAMPLING.EVENT.IDENTIFIER == "S20639077") |
+        (COMMON.NAME == "Green Imperial-Pigeon" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S20639077","S50386265"
+          )) |
+        (COMMON.NAME == "Thick-billed Green-Pigeon" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S22228639"
+        )) |
         (COMMON.NAME == "Malabar Imperial-Pigeon" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S21879421", "S96866144", "S84526237"
         )) |
         (COMMON.NAME == "Mountain Imperial-Pigeon" & SAMPLING.EVENT.IDENTIFIER %in% c(
-          "S55422829", "S137655719"
+          "S55422829", "S137655719", "S219155239", "S214951539", "S27957329"
         )) |
         (COMMON.NAME == "Chestnut-bellied Sandgrouse" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S137616888", "S64845421", "S52092547"
         )) |
+        (COMMON.NAME == "Painted Sandgrouse" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S156143652"
+        )) |
         (COMMON.NAME == "Greater Coucal" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S42608784", "S43386229"
+        )) |
+        (COMMON.NAME == "Sirkeer Malkoha" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S108266195", "S119313865", "S42765215", "S247182818", "S216156798"
         )) |
         (COMMON.NAME == "Green-billed Malkoha" & SAMPLING.EVENT.IDENTIFIER == "S125158253") |
         (COMMON.NAME == "Plaintive Cuckoo" & SAMPLING.EVENT.IDENTIFIER == "S90844755") |
@@ -156,7 +192,8 @@ rm_prob_mistakes <- function(data) {
         (COMMON.NAME == "Common Hawk-Cuckoo" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S139777248", "S28823684", "S20984093", "S55301209", "S46323372", "S67672676",
           "S28600623", "S37961563", "S31420463", "S68225437", "S66660738", "S137374061",
-          "S120036857", "S155409626", "S136116430", "S134050724"
+          "S120036857", "S155409626", "S136116430", "S134050724", "S164398953", "S138214996", 
+          "S138207547", "S275209769", "S114509762", "S138197810"
         )) |
         (COMMON.NAME == "Hodgson’s Hawk-Cuckoo" & SAMPLING.EVENT.IDENTIFIER == "S55246155") |
         (COMMON.NAME == "Indian Cuckoo" & SAMPLING.EVENT.IDENTIFIER %in% c(
@@ -169,16 +206,17 @@ rm_prob_mistakes <- function(data) {
         )) |
         (COMMON.NAME == "White-rumped Spinetail" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S17625842", "S81990142", "S88790248", "S24265685", "S24265700", 
-          "S24868786", "S59681703", "S156717090"
+          "S24868786", "S59681703", "S156717090", "S62834658", "S100271189", "S269371889"
         )) |
         (COMMON.NAME == "Silver-backed Needletail" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S57135779", "S68120528", "S55463823", "S55463822", "S55463821"
         )) |
         (COMMON.NAME == "Indian Swiftlet" & SAMPLING.EVENT.IDENTIFIER %in% c(
-          "S21877776", "S22141232", "S23966644", "S23511550", "S22149290", "S82135536"
+          "S21877776", "S22141232", "S23966644", "S23511550", "S22149290", "S82135536",
+          "S104145314", "S104131509", "S158326274", "S158422813", "S153867893"
         )) |
         (COMMON.NAME == "Alpine Swift" & SAMPLING.EVENT.IDENTIFIER %in% c(
-          "S58044659", "S40781715", "S22508834", "S63166306", "S50709313"
+          "S58044659", "S40781715", "S22508834", "S63166306", "S50709313", "S67889573"
         )) |
         (COMMON.NAME == "Dark-rumped Swift" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S136596908", "S133953587"
@@ -186,7 +224,8 @@ rm_prob_mistakes <- function(data) {
         (COMMON.NAME == "Crested Treeswift" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S35120686", "S39356909", "S54124046", "S42608562", "S53287943", "S79257174", 
           "S103353216", "S103348496", "S86148123", "S46655701", "S32263134", "S48844071",
-          "S91979068", "S97804418", "S156982485"
+          "S91979068", "S97804418", "S156982485", "S267090077", "S267162826", "S240772156",
+          "S105003117"
         )) |
         (COMMON.NAME == "Slaty-breasted Rail" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S70765821", "S54062383"
@@ -194,7 +233,7 @@ rm_prob_mistakes <- function(data) {
         (COMMON.NAME == "Brown Crake" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S64000111", "S83604984", "S122810982", "S41982536", "S96928236", "S49771153", 
           "S55009673", "S52121764", "S80442160", "S96270389", "S63661563", "S64807222", 
-          "S63667366"
+          "S63667366", "S75013832"
         )) |
         (COMMON.NAME == "Sarus Crane" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S83259843", "S118940543", "S99553961", "S115854941"
@@ -216,6 +255,9 @@ rm_prob_mistakes <- function(data) {
           "S126692010", "S41864652", "S68908985", "S101336692", "S26976203", "S72989252", 
           "S99684662", "S78454227", "S79001575", "S87147483", "S102669179", "S77475777", 
           "S61442808"
+        )) |
+        (COMMON.NAME == "Yellow-wattled Lapwing" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S70420882", "S187211302"
         )) |
         (COMMON.NAME == "Greater Sand-Plover" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S125365793", "S88961247", "S128664706", "S128643701", "S128638685", "S32109548", 
@@ -248,7 +290,8 @@ rm_prob_mistakes <- function(data) {
           "S129764356", "S35631022", "S127566274", "S127020270", "S126907180", "S125011091", 
           "S99310300", "S115052000", "S98061800", "S123772783", "S131060622", "S125927262", 
           "S121977813", "S158005811", "S156538982", "S126907180", "S127566274", "S127020270",
-          "S156524955", "S165783960", "S31602582", "S157322491"
+          "S156524955", "S165783960", "S31602582", "S157322491", "S159881054", "S235836962", 
+          "S264130055", "S262049792", "S192923712", "S217692622", "S217686090", "S196313998"
         )) |
         (COMMON.NAME == "Ruddy Turnstone" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S125365793", "S94207453", "S95259238", "S35271945", "S34754628", "S34754627", 
@@ -331,11 +374,15 @@ rm_prob_mistakes <- function(data) {
           "S85741691", "S42965305", "S42919344", "S102965818", "S75244233", "S35784656", 
           "S63893280", "S62261189", "S54608475", "S29668389", "S133737611", "S91478425", 
           "S79623482", "S68917585", "S53078026", "S56297908", "S43974086", "S70196805", 
-          "S21930328", "S126123586", "S96938135", "S104264106", "S35105786"
+          "S21930328", "S126123586", "S96938135", "S104264106", "S35105786", "S215380353", 
+          "S214225659", "S213997636", "S213997635"
         )) |
         (COMMON.NAME == "Changeable Hawk-Eagle" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S32263134", "S26605014", "S127071945", "S127072092", "S40389585", "S117494023", 
-          "S65809077", "S102965818"
+          "S65809077", "S102965818", "S212592580", "S179850544", "S86318491"
+        )) |
+        (COMMON.NAME == "Legge's Hawk-Eagle" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S61792617"
         )) |
         (COMMON.NAME == "Rufous-bellied Eagle" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S119816069", "S36134519", "S32915515", "S127982412", "S99308861", "S40436853", 
@@ -343,6 +390,9 @@ rm_prob_mistakes <- function(data) {
         )) |
         (COMMON.NAME == "Black Eagle" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S70196805", "S81052731", "S123237920", "S88725142"
+        )) |
+        (COMMON.NAME == "Brahminy Kite" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S24653060", "S24652834"
         )) |
         (COMMON.NAME == "Tawny Eagle" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S82783539", "S82782788", "S17179271", "S34181478", "S29112916", "S49247113", 
@@ -398,6 +448,9 @@ rm_prob_mistakes <- function(data) {
         (COMMON.NAME == "Pied Kingfisher" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S133152448", "S60861397", "S32263134", "S40436817", "S43901685"
         )) |
+        (COMMON.NAME == "Crested Kingfisher" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S13170105", "S80498494"
+        )) |
         (COMMON.NAME == "Blue-bearded Bee-eater" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S89331436", "S124557737", "S82921722", "S75126616", "S84162145", "S50709313", 
           "S100929109", "S78548564", "S75182711", "S98691616", "S98687754", "S98647715", 
@@ -438,7 +491,8 @@ rm_prob_mistakes <- function(data) {
           "S52712813", "S121546319", "S130282859", "S130231121", "S52805385", "S52748459", 
           "S101178759", "S30930898", "S30930703", "S132909191", "S103807161", "S129231807", 
           "S56951326", "S100534882", "S37107888", "S34414768", "S34414722", "S33739562", 
-          "S68832065", "S68831930", "S60353723", "S52221282", "S84322084"
+          "S68832065", "S68831930", "S60353723", "S52221282", "S84322084", "S120633099", 
+          "S155771635", "S32080693", "S223587004", "S272349380"
         )) |
         (COMMON.NAME == "White-cheeked Barbet" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S118056305", "S119172285", "S126123586", "S133737611", "S73239345", "S103311867", 
@@ -453,7 +507,7 @@ rm_prob_mistakes <- function(data) {
           "S46901537", "S21879421", "S20696568", "S26236367", "S26236366", "S26236245", 
           "S31600753", "S27956979", "S22944765", "S21575072", "S32182472"
         )) |
-        (COMMON.NAME == "Brown-capped Pygmy-Woodpecker" & SAMPLING.EVENT.IDENTIFIER %in% c(
+        (COMMON.NAME == "Brown-capped Pygmy Woodpecker" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S96339622", "S120985041", "S47856017", "S59145632", "S121887740", "S83292854", 
           "S50914799", "S33712604", "S128884747", "S52591787", "S52547308", "S44866903", 
           "S33852812", "S121998498", "S62987078", "S91149108", "S38429008", "S52289960", 
@@ -461,7 +515,7 @@ rm_prob_mistakes <- function(data) {
           "S23316254", "S100847433", "S146897877", "S147283785", "S160769898", "S121729991",
           "S121731531", "S150260661", "S25850944", "S110553930", "S63694216", "S35661362"
         )) |
-        (COMMON.NAME == "Gray-capped Pygmy-Woodpecker" & SAMPLING.EVENT.IDENTIFIER %in% c(
+        (COMMON.NAME == "Gray-capped Pygmy Woodpecker" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S41837249", "S123481885", "S123481763"
         )) |
         (COMMON.NAME == "Yellow-crowned Woodpecker" & SAMPLING.EVENT.IDENTIFIER %in% c(
@@ -483,9 +537,12 @@ rm_prob_mistakes <- function(data) {
         (COMMON.NAME == "Bay Woodpecker" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S100839555", "S87608823"
         )) |
+        (COMMON.NAME == "Black-rumped Flameback" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S61243685", "S215049559", "S160578069", "S62240573", "S62246762", "S62263154"
+        )) |
         (COMMON.NAME == "Greater Flameback" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S83806959", "S83782788", "S120435273", "S99313952", "S160170160", "S156519181",
-          "S155571787","S158979121"
+          "S155571787","S158979121", "S160393686"
         )) |
         (COMMON.NAME == "Malabar Flameback" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S120819355", "S102367046", "S77256887", "S78045857", "S102469878" 
@@ -495,7 +552,8 @@ rm_prob_mistakes <- function(data) {
           "S76831815", "S39121313", "S55543325", "S126182052", "S99322453", "S62562356", 
           "S83372753", "S83375929", "S83602975", "S83377660", "S124180452", "S78300659",
           "S53080073", "S22920069", "S44109834", "S126520371", "S101258273", "S97548325",
-          "S116834034", "S20984124", "S125666345", "S50413848", "S26660708", "S177279232"
+          "S116834034", "S20984124", "S125666345", "S50413848", "S26660708", "S177279232",
+          "S271687922", "S124503869"
         )) |
         (COMMON.NAME == "Rufous Woodpecker" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S102862595", "S135552666", "S52618192", "S41985865", "S125503701", "S27617577", 
@@ -525,7 +583,9 @@ rm_prob_mistakes <- function(data) {
         (COMMON.NAME == "White-bellied Woodpecker" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S106844194", "S16090713", "S130286134"
         )) |
-        (COMMON.NAME == "Collared Falconet" & SAMPLING.EVENT.IDENTIFIER == "S124956105") |
+        (COMMON.NAME == "Collared Falconet" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S124956105", "S71507705", "S54427114", "S54357518"
+        )) |
         (COMMON.NAME == "Red-necked Falcon" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S61667394", "S30889132", "S24845657", "S67613914", "S124606828", "S131351201", 
           "S56299773", "S101255652", "S101255651", "S18715550"
@@ -538,6 +598,9 @@ rm_prob_mistakes <- function(data) {
         (COMMON.NAME == "Slaty-headed Parakeet" & SAMPLING.EVENT.IDENTIFIER == "S64034484") |
         (COMMON.NAME == "Plum-headed Parakeet" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S22061181", "S48587838", "S21547689"
+        )) |
+        (COMMON.NAME == "Red-breasted Parakeet" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S176882899", "S138310207", "S204623802", "S97503566", "S217046466", "S228539514"
         )) |
         (COMMON.NAME == "Blossom-headed Parakeet" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S19462836"
@@ -583,6 +646,16 @@ rm_prob_mistakes <- function(data) {
           "S124403544", "S17292810", "S34404766", "S47558584", "S128913450", "S128898295",
           "S128898293", "S33795508"
         )) |
+        (COMMON.NAME == "White-bellied Blue Flycatcher" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S54773107", "S54607644", "S63753942", "S34290554", "S214797415", "S214420685", 
+          "S213968503", "S161210339", "S95082929", "S22178409", "S207611942", "S207284732"
+        )) |
+        (COMMON.NAME == "Tickell's Blue Flycatcher" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S212255977", "S126890797"
+        )) |
+        (COMMON.NAME == "Little Pied Flycatcher" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S26786694", "S177734039", "S29860152", "S47344614"
+        )) |
         (COMMON.NAME == "Common Iora" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S52642341", "S16124855", "S98773744", "S162217491"
         )) |
@@ -604,7 +677,17 @@ rm_prob_mistakes <- function(data) {
           "S92840208", "S93041164", "S27517847", "S27512427"
         )) |
         (COMMON.NAME == "Bronzed Drongo" & SAMPLING.EVENT.IDENTIFIER %in% c(
-          "S88043265", "S90416035", "S90557840", "S61947440", "S61947301", "S20464313"
+          "S88043265", "S90416035", "S90557840", "S61947440", "S61947301", "S20464313",
+          "S267531039"
+        )) |
+        (COMMON.NAME == "Black Drongo" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S88043265", "S70456395", "S70518299", "S107159932", "S153778220", "S129825316", 
+          "S62529980", "S47204143"
+        )) |
+        (COMMON.NAME == "Greater Racket-tailed Drongo" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S250506467", "S21134157", "S40876331", "S114718257", "S109795787", "S57357949", 
+          "S69997167", "S106766781", "S169254139", "S169254176", "S169255572", "S169274777", 
+          "S206848686"
         )) |
         (COMMON.NAME == "Black-naped Monarch" & SAMPLING.EVENT.IDENTIFIER == "S86865465") |
         (COMMON.NAME == "Great Gray Shrike" & SAMPLING.EVENT.IDENTIFIER %in% c(
@@ -619,11 +702,23 @@ rm_prob_mistakes <- function(data) {
         (COMMON.NAME == "Rufous Treepie" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S87882669", "S56829699"
         )) |
+        (COMMON.NAME == "Collared Treepie" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S96832718"
+        )) |
         (COMMON.NAME == "White-bellied Treepie" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S109953938", "S121385589", "S130983796", "S21813213", "S27618515", "S16980402", 
           "S80498709", "S35146441", "S35123971", "S35123428", "S39065044", "S39065041", 
           "S20923304", "S21500829", "S36041144", "S128678704", "S155939031", "S82506439",
-          "S35662237", "S145869980", "S61978891"
+          "S35662237", "S145869980", "S61978891", "S251889725", "S259478141"
+        )) |
+        (COMMON.NAME == "Green-crowned Warbler" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S96832718"
+        )) |
+        (COMMON.NAME == "Western Crowned Warbler" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S123279462"
+        )) |
+        (COMMON.NAME == "Cotton Pygmy-Goose" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S213991059"
         )) |
         (COMMON.NAME == "Yellow-browed Tit" & SAMPLING.EVENT.IDENTIFIER == "S133374588") |
         (COMMON.NAME == "Coal Tit" & SAMPLING.EVENT.IDENTIFIER == "S70479302") |
@@ -639,7 +734,7 @@ rm_prob_mistakes <- function(data) {
         (COMMON.NAME == "Green-backed Tit" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S136623384", "S135417379", "S133266359", "S123726147"
         )) |
-        (COMMON.NAME == "Cinereous Tit" & SAMPLING.EVENT.IDENTIFIER %in% c(
+        (COMMON.NAME == "Asian Tit" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S130947715", "S65033280", "S43682404", "S61442808", "S49119922", "S49093664", 
           "S110182246", "S115590881", "S63534618", "S135552666", "S139267283", "S69919833",
           "S69935183", "S176664334", "S147124977", "S145734305", "S78813996", "S72334091",
@@ -650,7 +745,7 @@ rm_prob_mistakes <- function(data) {
           "S153449506", "S160780711", "S154826011"
         )) |
         (COMMON.NAME == "Himalayan Black-lored Tit" & SAMPLING.EVENT.IDENTIFIER %in% c(
-          "S107671228", "S16732117"
+          "S107671228", "S16732117", "S223304290"
         )) |
         (COMMON.NAME == "Yellow-cheeked Tit" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S56276867", "S133374588", "S15540706", "S107666748", "S121616358", "S125581322", 
@@ -666,7 +761,9 @@ rm_prob_mistakes <- function(data) {
         (COMMON.NAME == "Ashy-crowned Sparrow-Lark" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S48733255", "S42084963", "S21931059", "S23940017", "S122721113"
         )) |
-        (COMMON.NAME == "Indian Bushlark" & SAMPLING.EVENT.IDENTIFIER == "S56339903") |
+        (COMMON.NAME == "Indian Bushlark" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S56339903", "S218379015", "S216815916", "S218379012", "S216813532"
+        )) |
         (COMMON.NAME == "Malabar Lark" & SAMPLING.EVENT.IDENTIFIER == "S127650933") |
         (COMMON.NAME == "Tawny Lark" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S105594774", "S69882445", "S117991143", "S20983951", "S63416339", "S161760227",
@@ -681,12 +778,15 @@ rm_prob_mistakes <- function(data) {
           "S95202169", "S26078099", "S26078097", "S26025714", "S62412029", "S62357358",
           "S51205076", "S51204971", "S51073460"
         )) |
+        (COMMON.NAME == "Rufous-fronted Prinia" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S208214900", "S65413996", "S33596917", "S262314568"
+        )) |
         (COMMON.NAME == "Gray-crowned Prinia" & SAMPLING.EVENT.IDENTIFIER == "S133477189") |
         (COMMON.NAME == "Gray-breasted Prinia" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S98085783", "S164177293"
           )) |
         (COMMON.NAME == "Yellow-bellied Prinia" & SAMPLING.EVENT.IDENTIFIER %in% c(
-          "S27505650", "S36134523"
+          "S27505650", "S36134523", "S211197428", "S163710900", "S163403533"
         )) |
         (COMMON.NAME == "Delicate Prinia" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S125760186"
@@ -716,6 +816,9 @@ rm_prob_mistakes <- function(data) {
         (COMMON.NAME == "Gray-headed Bulbul" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S115990120", "S125156375"
         )) |
+        (COMMON.NAME == "Himalayan Black Bulbul" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S211677706", "S215482323", "S211666042"
+        )) |
         (COMMON.NAME == "Flame-throated Bulbul" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S63153406", "S131759102", "S94858613", "S95706893", "S77943421"
         )) |
@@ -737,7 +840,22 @@ rm_prob_mistakes <- function(data) {
           "S60495815", "S119466814", "S99741122", "S99995648", "S132485480", "S88517343"
         )) |
         (COMMON.NAME == "Rufous-headed Parrotbill" & SAMPLING.EVENT.IDENTIFIER == "S96353715") |
-        (COMMON.NAME == "Black-breasted Parrotbill" & SAMPLING.EVENT.IDENTIFIER == "S140323520") |
+        (COMMON.NAME == "Black-breasted Parrotbill" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S140323520", "S238170942", "S236244498", "S222067580", "S219218119", "S206389570"
+        )) |
+        (COMMON.NAME == "Black-throated Parrotbill" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S232527353", "S230448198", "S230445482", "S229209773", "S228437070", "S231217313", 
+          "S242767891"
+        )) |
+        (COMMON.NAME == "Red-billed Scimitar-Babbler" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S153932368", "S50411496", "S50375876", "S245079907"
+        )) |
+        (COMMON.NAME == "Indian Scimitar-Babbler" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S152370466"
+        )) |
+        (COMMON.NAME == "Cachar Wedge-billed Babbler" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S200055599", "S106696665"
+        )) |
         (COMMON.NAME == "Indian White-eye" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S89062027", "S95744434", "S32109548", "S135552666", "S154826522", "S145239055",
           "S52678662", "S74072101", "S27441517", "S27371218", "S38011141", "S33502561",
@@ -749,11 +867,25 @@ rm_prob_mistakes <- function(data) {
         (COMMON.NAME == "Dark-fronted Babbler" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S20674830", "S39375109", "S131759102"
         )) |
+        (COMMON.NAME == "Rufous-fronted Babbler" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S175224256", "S58198260", "S55496792"
+        )) |
+        (COMMON.NAME == "Rufous-capped Babbler" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S208380485", "S22206312", "S202471429"
+        )) |
         (COMMON.NAME == "Puff-throated Babbler" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S126458598", "S37396464", "S126279017", "S33961803", "S33957763", "S33926497", 
           "S102183970", "S71921299", "S71008464", "S71008443", "S130439565", "S186052911",
           "S162159725", "S161967561", "S130098045", "S130136466", "S101624807", "S132197014",
-          "S111383227", "S101933980", "S101460875"
+          "S111383227", "S101933980", "S101460875", "S225454845", "S224924963", "S224903197", 
+          "S224870018", "S122260618", "S121660455", "S32563849", "S32563845", "S228981396", 
+          "S225577410", "S225538598", "S225502951"
+        )) |
+        (COMMON.NAME == "Rufous-throated Fulvetta" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S38284251"
+        )) |
+        (COMMON.NAME == "Wayanad Laughingthrush" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S163672011", "S107366091", "S81406207", "S181741749"
         )) |
         (COMMON.NAME == "Assam Laughingthrush" & SAMPLING.EVENT.IDENTIFIER == "S102041329") |
         (COMMON.NAME == "Chestnut-crowned Laughingthrush" & SAMPLING.EVENT.IDENTIFIER %in% c(
@@ -771,7 +903,10 @@ rm_prob_mistakes <- function(data) {
           "S40093296", "S97660764", "S131350602", "S177171349", "S177171350", "S67028268"
         )) |
         (COMMON.NAME == "Jungle Babbler" & SAMPLING.EVENT.IDENTIFIER %in% c(
-          "S127918651", "S126522627"
+          "S127918651", "S126522627", "S33778701", "S162157543"
+        )) |
+        (COMMON.NAME == "Common Babbler" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S21721434"
         )) |
         (COMMON.NAME == "Rufous Babbler" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S40513074", "S40512932", "S27524743", "S44980390", "S44980390", "S27524743",
@@ -782,11 +917,22 @@ rm_prob_mistakes <- function(data) {
         (COMMON.NAME == "Golden-fronted Leafbird" & SAMPLING.EVENT.IDENTIFIER == "S20859862") |
         (COMMON.NAME == "Indian Robin" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S105282347", "S54772905", "S126272057"
-          )) |
+        )) |
+        (COMMON.NAME == "White-tailed Stonechat" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S133260914"
+        )) |
+        (COMMON.NAME == "Brown Rock Chat" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S70146769"
+        )) |
+        (COMMON.NAME == "Pale-billed Flowerpecker" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S208363605", "S40587325", "S254162820", "S249728960"
+        )) |
+        (COMMON.NAME == "Plain Flowerpecker" & SAMPLING.EVENT.IDENTIFIER %in% c(
+          "S96532466", "S210703681"
+        )) |
         (COMMON.NAME == "Common Hill Myna" & SAMPLING.EVENT.IDENTIFIER == "S116961493") |
         (COMMON.NAME == "Crimson Sunbird" & SAMPLING.EVENT.IDENTIFIER == "S24091153") |
         (COMMON.NAME == "Nilgiri Flowerpecker" & SAMPLING.EVENT.IDENTIFIER == "S71620639") |
-        (COMMON.NAME == "Plain Flowerpecker" & SAMPLING.EVENT.IDENTIFIER == "S96532466") |
         (COMMON.NAME == "Loten’s Sunbird" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S131759647", "S129292698", "S129077407", "S103800034"
         ))
@@ -818,12 +964,24 @@ rm_prob_mistakes <- function(data) {
             STATE == "Ladakh"
         )) |
         (COMMON.NAME == "Himalayan Monal" & COUNTY == "Nainital") |
-        (COMMON.NAME == "Red Spurfowl" & COUNTY == "Dharmapuri") |
+        (COMMON.NAME == "Red Spurfowl" & COUNTY %in% c(
+          "Dharmapuri", "Kota"
+        )) |
         (COMMON.NAME == "Red Junglefowl" & COUNTY %in% c(
-          "North 24 Parganas", "Purba Bardhaman", "Chandrapur"
+          "North 24 Parganas", "Purba Bardhaman", "Chandrapur",
+          "Pithoragarh", "Bageshwar", "Chamoli", "Rudraprayag", "Uttarkashi"
+        )) |
+        (COMMON.NAME == "Indian Peafowl" & COUNTY %in% c(
+          "Pithoragarh", "Chamoli", "Rudraprayag"
         )) |
         (COMMON.NAME == "Gray Junglefowl" & COUNTY %in% c(
           "Sri Potti Sriramulu Nellore", "East Godavari"
+        )) |
+        (COMMON.NAME == "Gray Francolin" & COUNTY %in% c(
+          "Wayanad"
+        )) |
+        (COMMON.NAME == "Black Francolin" & COUNTY %in% c(
+          "Jaisalmer"
         )) |
         (COMMON.NAME == "Rain Quail" & COUNTY == "Jaisalmer") |
         (COMMON.NAME == "Jungle Bush-Quail" & (
@@ -832,7 +990,9 @@ rm_prob_mistakes <- function(data) {
               "Rampur", "Lakhimpur Kheri", "Shrawasti", "Lucknow", "Ambedkar Nagar"
             ))
         )) |
-        (COMMON.NAME == "Rock Bush-Quail" & COUNTY == "Jaisalmer") |
+        (COMMON.NAME == "Rock Bush-Quail" & COUNTY %in% c(
+          "Jaisalmer", "Chandrapur"
+          )) |
         (COMMON.NAME == "Hill Pigeon" & (
           COUNTY %in% c("Bageshwar", "Nainital", "Tehri Garhwal", "Pithoragarh") |
             (STATE == "Jammu and Kashmir" & COUNTY %in% c(
@@ -855,7 +1015,11 @@ rm_prob_mistakes <- function(data) {
         (COMMON.NAME == "Sirkeer Malkoha" & COUNTY == "Jaisalmer") |
         (COMMON.NAME == "Gray-bellied Cuckoo" & COUNTY == "Sonitpur") |
         (COMMON.NAME == "Common Hawk-Cuckoo" & COUNTY %in% c(
-          "Bageshwar", "Pithoragarh", "Rudraprayag", "Almora"
+          "Pithoragarh", "Tehri Garhwal", "Rudraprayag", "Jorhat", "Majuli", 
+          "Lakhimpur", "Tinsukia", "Dibrugarh"
+        )) |
+        (COMMON.NAME == "Square-tailed Drongo-Cuckoo" & COUNTY %in% c(
+          "Kullu"
         )) |
         (COMMON.NAME == "Indian Cuckoo" & COUNTY %in% c(
           "Darbhanga", "Madhubani", "Patna", "Bhagalpur"
@@ -869,7 +1033,12 @@ rm_prob_mistakes <- function(data) {
         (COMMON.NAME == "Brown Crake" & STATE %in% c("Bihar", "Jharkhand")) |
         (COMMON.NAME == "Sarus Crane" & COUNTY %in% c("Jaisalmer", "Churu")) |
         (COMMON.NAME == "Great Thick-knee" & COUNTY == "Churu") |
-        (COMMON.NAME == "Tibetan Sand-Plover" & COUNTY %in% c("Jalpaiguri", "Nashik")) |
+        (COMMON.NAME == "Yellow-wattled Lapwing" & COUNTY %in% c(
+          "Churu", "Bikaner", "Jodhpur", "Jaisalmer", "Barmer"
+        )) |
+        (COMMON.NAME == "Tibetan Sand-Plover" & COUNTY %in% c(
+          "Jalpaiguri", "Nashik"
+          )) |
         (COMMON.NAME == "Bronze-winged Jacana" & (
           COUNTY %in% c(
             "Tiruchirappalli", "Ariyalur", "Karur", "Thiruvarur", "Thanjavur", "Nagapattinam", 
@@ -899,6 +1068,15 @@ rm_prob_mistakes <- function(data) {
           "Barmer", "Bikaner", "Churu", "Jaisalmer", "Solapur", "Parbhani", "Nanded", 
           "Osmanabad", "Beed", "Bhagalpur", "Darbhanga", "Gaya", "Gopalganj", "Katihar", 
           "Nalanda", "Munger", "Saharsa"
+        )) |
+        (COMMON.NAME == "Indian Gray Hornbill" & COUNTY %in% c(
+          "Bikaner"
+        )) |
+        (COMMON.NAME == "Indian Roller" & (
+          COUNTY %in% c(
+            "Cooch Behar"
+          ) |
+            STATE == "Assam"
         )) |
         (COMMON.NAME == "Changeable Hawk-Eagle" & (
           COUNTY %in% c(
@@ -970,7 +1148,7 @@ rm_prob_mistakes <- function(data) {
           "Moradabad", "Latehar", "Ranchi", "West Singhbhum", "Palamu"
         )) |
         (COMMON.NAME == "Speckled Piculet" & COUNTY == "Gadchiroli") |
-        (COMMON.NAME == "Brown-capped Pygmy-Woodpecker" & COUNTY %in% c(
+        (COMMON.NAME == "Brown-capped Pygmy Woodpecker" & COUNTY %in% c(
           "Darjeeling", "Jalpaiguri", "Ajmer", "Bhilwara", "Solapur", "Ahmednagar", 
           "Nanded", "Thanjavur", "Puducherry"
         )) |
@@ -996,12 +1174,16 @@ rm_prob_mistakes <- function(data) {
           COUNTY == "Chengalpattu" |
             STATE == "Rajasthan"
         )) |
+        (COMMON.NAME == "Lineated Barbet" & STATE %in% c(
+          "Jharkhand"
+        )) |
         (COMMON.NAME == "Himalayan Flameback" & STATE %in% c(
           "Haryana", "Arunachal Pradesh", "Assam"
         )) |
         (COMMON.NAME == "Common Flameback" & STATE == "Arunachal Pradesh") |
         (COMMON.NAME == "Black-rumped Flameback" & COUNTY %in% c(
-          "Beed", "Latur", "Solapur", "Vijayapura", "Parbhani", "Hingoli", "Nanded"
+          "Beed", "Latur", "Solapur", "Vijayapura", "Parbhani", "Hingoli", "Nanded",
+          "Pithoragarh", "Rudraprayag"
         )) |
         (COMMON.NAME == "Lesser Yellownape" & COUNTY == "Narmada") |
         (COMMON.NAME == "Collared Falconet" & COUNTY %in% c(
@@ -1010,7 +1192,8 @@ rm_prob_mistakes <- function(data) {
         (COMMON.NAME == "Laggar Falcon" & STATE == "Goa") |
         (COMMON.NAME == "Alexandrine Parakeet" & COUNTY %in% c(
           "Solapur", "Beed", "Nanded", "Latur", "Kolar", "Surendranagar", 
-          "Junagadh", "Gir Somnath", "Diu"
+          "Junagadh", "Gir Somnath", "Diu", "Kollam", "Pathanamthitta", 
+          "Alappuzha", "Thiruvallur", "Kancheepuram"
         )) |
         (COMMON.NAME == "Plum-headed Parakeet" & (
           COUNTY %in% c("Surendranagar", "Jaisalmer", "Jodhpur", "Churu", "Barmer", 
@@ -1025,13 +1208,14 @@ rm_prob_mistakes <- function(data) {
           "Kolhapur", "Sangli", "Nashik"
         )) |
         (COMMON.NAME == "Small Minivet" & COUNTY %in% c(
-          "Darjeeling", "Kalimpong", "South Sikkim"
+          "Darjeeling", "Kalimpong", "South Sikkim",
+          "Jorhat", "Tinsukia"
         )) |
         (COMMON.NAME == "Scarlet Minivet" & COUNTY %in% c(
           "Krishna", "Guntur", "Chandrapur", "Bijnor"
         )) |
         (COMMON.NAME == "Rosy Minivet" & COUNTY == "South 24 Parganas") |
-        (COMMON.NAME == "Large Cuckooshrike" & COUNTY %in% c(
+        (COMMON.NAME == "Indian Cuckooshrike" & COUNTY %in% c(
           "Solapur", "Nanded", "Parbhani", "Washim", "Jaisalmer", "Barmer", "Jodhpur", 
           "Churu", "Bikaner"
         )) |
@@ -1047,6 +1231,7 @@ rm_prob_mistakes <- function(data) {
             STATE == "Sikkim"
         )) |
         (COMMON.NAME == "Ashy Woodswallow" & COUNTY == "Nagpur") |
+        (COMMON.NAME == "Common Woodshrike" & COUNTY == "Tinsukia") |
         (COMMON.NAME == "Large Woodshrike" & STATE %in% c(
           "Karnataka", "Goa"
         )) |
@@ -1069,6 +1254,10 @@ rm_prob_mistakes <- function(data) {
           "Sri Potti Sriramulu Nellore", "Bagalkote", "Solapur", "Beed", "Ahmednagar", 
           "Bankura", "Birbhum", "Howrah", "Nadia", "North 24 Parganas", "Purba Bardhaman"
         )) |
+        (COMMON.NAME == "Black Drongo" & COUNTY %in% c(
+          "Rudraprayag", "Bageshwar", "Almora", "Pithorgarh", "Uttarkashi", 
+          "Chamoli", "Tehri Garhwal", "Uttarkashi"
+        )) |
         (COMMON.NAME == "Bronzed Drongo" & COUNTY %in% c(
           "Uttarkashi", "Chamoli", "Bageshwar", "Rudraprayag", "North Sikkim"
         )) |
@@ -1080,7 +1269,8 @@ rm_prob_mistakes <- function(data) {
           COUNTY %in% c(
             "Ratnagiri", "Dang", "Narmada", "Surat", "Hathras", "Etah", "Moradabad", "Lakhimpur Kheri",
             "Bahraich", "Ayodhya", "Kanpur Nagar", "Udham Singh Nagar", 
-            "Bulandshahr", "Saharanpur", "Vizianagaram", "Visakhapatnam", "Panchkula"
+            "Bulandshahr", "Saharanpur", "Vizianagaram", "Visakhapatnam", "Panchkula",
+            "Mancherial", "Nanded"
           ) |
             STATE == "Himachal Pradesh" |
             (COUNTY == "Balrampur" & STATE == "Uttar Pradesh")
@@ -1090,7 +1280,7 @@ rm_prob_mistakes <- function(data) {
         (COMMON.NAME == "Common Green-Magpie" & COUNTY %in% c(
           "Dehradun", "Tehri Garhwal", "Rudraprayag", "Chamoli"
         )) |
-        (COMMON.NAME == "Eurasian Nutcracker" & COUNTY == "Lahaul and Spiti") |
+        (COMMON.NAME == "Southern Nutcracker" & COUNTY == "Lahaul and Spiti") |
         (COMMON.NAME == "Large-billed Crow" & COUNTY %in% c(
           "Jaisalmer", "Barmer", "Jodhpur", "Churu", "Bikaner"
         )) |
@@ -1098,7 +1288,7 @@ rm_prob_mistakes <- function(data) {
         (COMMON.NAME == "Green-backed Tit" & COUNTY %in% c(
           "Haridwar", "Udham Singh Nagar"
         )) |
-        (COMMON.NAME == "Cinereous Tit" & COUNTY %in% c(
+        (COMMON.NAME == "Asian Tit" & COUNTY %in% c(
           "Ratnagiri", "Sindhudurg", "Vellore", "YSR District (Kadapa)", "Tirupathur", 
           "Dharmapuri", "Namakkal", "Tiruvannamalai", "Madurai"
         )) |
@@ -1266,19 +1456,33 @@ rm_prob_mistakes <- function(data) {
         )) |
         (COMMON.NAME == "Common Flameback" & COUNTY == "Chamarajanagara" & LATITUDE > 11.791) |
         (COMMON.NAME == "Alexandrine Parakeet " & COUNTY == "Kachchh" & LATITUDE > 22.783) |
-        (COMMON.NAME == "Large Cuckooshrike" & TEMP.REGION %in% c("TN_S-plains", "TN_C-plains")) |
+        (COMMON.NAME == "Indian Cuckooshrike" & TEMP.REGION %in% c("TN_S-plains", "TN_C-plains")) |
         (COMMON.NAME == "Black-hooded Oriole" & TEMP.REGION %in% c("TN_S-plains", "TN_C-plains")) |
         (COMMON.NAME == "White-browed Fantail" & (
           (COUNTY == "Amravati" & LATITUDE < 21.209) |
             (COUNTY == "Akola" & LATITUDE < 21.209)
         )) |
         (COMMON.NAME == "Great Gray Shrike" & COUNTY == "Satara" & LONGITUDE < 73.959) |
-        (COMMON.NAME == "Cinereous Tit" & (
+        (COMMON.NAME == "Red Junglefowl" & COUNTY == "Shimla" & LATITUDE > 31.158) |
+        (COMMON.NAME == "Red Junglefowl" & COUNTY == "Kullu" & LATITUDE > 31.673) |
+        (COMMON.NAME == "Gray Francolin" & COUNTY == "Kodagu" & LONGITUDE < 75.906) |
+        (COMMON.NAME == "Gray Francolin" & COUNTY == "Hassan" & LONGITUDE < 75.869) |
+        (COMMON.NAME == "Gray Francolin" & COUNTY == "Chikkamagaluru" & LONGITUDE < 75.685) |
+        (COMMON.NAME == "Gray Francolin" & COUNTY == "Shivamogga" & LONGITUDE < 75.398) |
+        (COMMON.NAME == "Gray Francolin" & COUNTY == "Uttara Kannada" & LONGITUDE < 74.746) |
+        (COMMON.NAME == "Black Drongo" & COUNTY == "Chamba" & LATITUDE > 32.212) |
+        (COMMON.NAME == "Black Drongo" & COUNTY == "Kangra" & LATITUDE > 32.212) |
+        (COMMON.NAME == "Black Drongo" & STATE == "Sikkim" & LATITUDE > 26.987) |
+        (COMMON.NAME == "Black Drongo" & STATE == "West Bengal" & LATITUDE > 26.987) |
+        (COMMON.NAME == "Black Drongo" & STATE == "Jammu and Kashmir" & LATITUDE > 33.251) |
+        (COMMON.NAME == "Greater Racket-tailed Drongo" & STATE == "Uttarakhand" & LONGITUDE < 78.761) |
+        (COMMON.NAME == "Asian Tit" & (
           TEMP.REGION %in% c("TN_N-plains", "TN_C-plains", "TN_S-plains") |
             (COUNTY == "Chittoor" & LONGITUDE > 78.67)
         )) |
         (COMMON.NAME == "Indian Yellow Tit" & (TEMP.REGION == "MH_plains" & COUNTY != "Yavatmal")) |
         (COMMON.NAME == "Indian Bushlark" & COUNTY == "Pune" & LONGITUDE < 73.601) |
+        (COMMON.NAME == "Indian Bushlark" & COUNTY == "Chittoor" & LONGITUDE > 78.233) |
         (COMMON.NAME == "Tawny Lark" & (
           (COUNTY == "Kolhapur" & LONGITUDE < 74.385) |
             (COUNTY == "Satara" & LONGITUDE < 74.26) |
@@ -1302,6 +1506,8 @@ rm_prob_mistakes <- function(data) {
         (COMMON.NAME == "Yellow-eyed Babbler" & TEMP.REGION %in% c("TN_S-plains", "TN_C-plains")) |
         (COMMON.NAME == "Indian White-eye" & 
            TEMP.REGION %in% c("TN_N-plains", "TN_S-plains", "TN_C-plains")) |
+        (COMMON.NAME == "Rufous-fronted Babbler" & COUNTY == "West Kameng" & LATITUDE > 27.102) |
+        (COMMON.NAME == "Rufous-capped Babbler" & COUNTY == "Lower Dibang Valley" & LATITUDE < 28.178) |
         (COMMON.NAME == "Tawny-bellied Babbler" & (COUNTY == "Pune" & LONGITUDE > 74.1)) |
         (COMMON.NAME == "Puff-throated Babbler" & (
           (TEMP.REGION == "MH_plains" & COUNTY != "Yavatmal") |

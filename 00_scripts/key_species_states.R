@@ -6,8 +6,8 @@ library(tidyverse)
 load("00_data/dataforanalyses_extra.RData")
 main <- read.csv("01_analyses_full/results/SoIB_main.csv")
 
-range.status = main %>% select(eBird.English.Name.2023, SoIB.Latest.Range.Status)
-india.checklist.map = main %>% select(eBird.English.Name.2023, India.Checklist.Common.Name)
+range.status = main %>% select(eBird.English.Name.2024, SoIB.Latest.Range.Status)
+india.checklist.map = main %>% select(eBird.English.Name.2024, India.Checklist.Common.Name)
 
 ###
 
@@ -18,15 +18,15 @@ specs.states = main %>%
          ((IUCN.Category %in% c("Critically Endangered","Endangered","Vulnerable") &
              SoIB.Latest.Priority.Status == "Moderate") |
             (SoIB.Latest.Priority.Status == "High"))) %>%
-  distinct(eBird.English.Name.2023) %>% 
-  pull(eBird.English.Name.2023)
+  distinct(eBird.English.Name.2024) %>% 
+  pull(eBird.English.Name.2024)
 
 # set of endangered IUCN species, to use separately in further decision making
 IUCN.end.species = main %>%
-  filter(eBird.English.Name.2023 %in% specs.states, 
+  filter(eBird.English.Name.2024 %in% specs.states, 
          IUCN.Category %in% c("Critically Endangered","Endangered")) %>%
-  distinct(eBird.English.Name.2023) %>% 
-  pull(eBird.English.Name.2023)
+  distinct(eBird.English.Name.2024) %>% 
+  pull(eBird.English.Name.2024)
 
 # calculate proportional range within each state for each of the selected species
 key.state.species0 = data0 %>%
@@ -37,7 +37,7 @@ key.state.species0 = data0 %>%
   mutate(tot.range = n_distinct(gridg1)) %>%
   group_by(ST_NM,COMMON.NAME) %>% 
   reframe(prop.range = n_distinct(gridg1)/max(tot.range)) %>%
-  left_join(main, by = c("COMMON.NAME" = "eBird.English.Name.2023")) %>%
+  left_join(main, by = c("COMMON.NAME" = "eBird.English.Name.2024")) %>%
   mutate(
     Current.Sort = case_when(SoIB.Latest.Current.Status %in% c("Insufficient Data","Trend Inconclusive") ~ 1,
                              TRUE ~ 0),
@@ -179,7 +179,7 @@ key.state.species.report = key.state.species.report %>%
 # determine the best set of 4 species per state so that repetitions between states are minimized
 initial.report = key.state.species.report %>%
   select(-Current.Sort, -Long.Term.Sort, -rangemean) %>%
-  left_join(range.status, by = c("COMMON.NAME" = "eBird.English.Name.2023"))
+  left_join(range.status, by = c("COMMON.NAME" = "eBird.English.Name.2024"))
 
 flag = 0
 
@@ -287,7 +287,7 @@ key.state.species.report = key.state.species.report %>%
 
 key.state.species.report = key.state.species.report %>%
   select(-Current.Sort, -Long.Term.Sort, -rangemean) %>%
-  left_join(range.status, by = c("COMMON.NAME" = "eBird.English.Name.2023"))
+  left_join(range.status, by = c("COMMON.NAME" = "eBird.English.Name.2024"))
 
 
 
@@ -361,7 +361,7 @@ key.state.species.report = key.state.species.report %>%
   group_by(ST_NM) %>% 
   arrange(desc(prop.range), .by_group=TRUE) %>% 
   slice(1:4) %>%
-  rename(eBird.English.Name.2023 = COMMON.NAME)
+  rename(eBird.English.Name.2024 = COMMON.NAME)
 
 # add important species case by case that have not made it to the list of 4
 miss.spec = data.frame(
@@ -369,7 +369,7 @@ miss.spec = data.frame(
     "Manipur","Andhra Pradesh","Uttarakhand","Himachal Pradesh","Gujarat","Kerala",
     "Andaman and Nicobar Islands","Bihar","Maharashtra","West Bengal","Assam","Assam","Goa"
   ),
-  eBird.English.Name.2023 = c(
+  eBird.English.Name.2024 = c(
     "Manipur Bush-Quail","Jerdon's Courser","Finn's Weaver","Ruddy Shelduck","Greater Flamingo",
     "Garganey","Nicobar Megapode","Northern Pintail","Indian Courser","Rufous-necked Hornbill",
     "White-winged Duck","Bengal Florican","Black-capped Kingfisher"
@@ -377,38 +377,38 @@ miss.spec = data.frame(
 )
 
 add.final = main %>% 
-  filter(eBird.English.Name.2023 %in% c(
+  filter(eBird.English.Name.2024 %in% c(
     "Manipur Bush-Quail","Jerdon's Courser","Finn's Weaver","Ruddy Shelduck","Greater Flamingo",
     "Garganey","Nicobar Megapode","Northern Pintail","Indian Courser","Rufous-necked Hornbill",
     "White-winged Duck","Bengal Florican","Black-capped Kingfisher"
   )) %>%
   left_join(miss.spec) %>%
-  dplyr::select(ST_NM, eBird.English.Name.2023, 
+  dplyr::select(ST_NM, eBird.English.Name.2024, 
                 SoIB.Latest.Current.Status, SoIB.Latest.Long.Term.Status, SoIB.Latest.Range.Status)
 
 key.state.temp = key.state.species %>% 
   dplyr::select(ST_NM, COMMON.NAME, prop.range) %>%
-  rename(eBird.English.Name.2023 = COMMON.NAME)
+  rename(eBird.English.Name.2024 = COMMON.NAME)
   
 prop.to.add = add.final %>%
   left_join(key.state.temp) %>%
-  dplyr::select(ST_NM, eBird.English.Name.2023, prop.range,
+  dplyr::select(ST_NM, eBird.English.Name.2024, prop.range,
                 SoIB.Latest.Current.Status, SoIB.Latest.Long.Term.Status, SoIB.Latest.Range.Status)
 
 key.state.species.report = key.state.species.report %>%
-  filter((ST_NM != "Manipur" | eBird.English.Name.2023 != "Yellow-breasted Bunting") &
-           (ST_NM != "Andhra Pradesh" | eBird.English.Name.2023 != "Yellow-throated Bulbul") &
-           (ST_NM != "Uttarakhand" | eBird.English.Name.2023 != "Rufous-vented Tit") &
-           (ST_NM != "Himachal Pradesh" | eBird.English.Name.2023 != "Tibetan Blackbird") &
-           (ST_NM != "Gujarat" | eBird.English.Name.2023 != "Forest Owlet") &
-           (ST_NM != "Kerala" | eBird.English.Name.2023 != "Nilgiri Laughingthrush") &
-           (ST_NM != "Andaman and Nicobar Islands" | eBird.English.Name.2023 != "Nicobar Bulbul") &
-           (ST_NM != "Bihar" | eBird.English.Name.2023 != "Great Slaty Woodpecker") &
-           (ST_NM != "Maharashtra" | eBird.English.Name.2023 != "Great Knot") &
-           (ST_NM != "West Bengal" | eBird.English.Name.2023 != "Mangrove Pitta") &
-           (ST_NM != "Assam" | eBird.English.Name.2023 != "Greater Adjutant") &
-           (ST_NM != "Assam" | eBird.English.Name.2023 != "Finn's Weaver") &
-           (ST_NM != "Goa" | eBird.English.Name.2023 != "Sanderling")) %>%
+  filter((ST_NM != "Manipur" | eBird.English.Name.2024 != "Yellow-breasted Bunting") &
+           (ST_NM != "Andhra Pradesh" | eBird.English.Name.2024 != "Yellow-throated Bulbul") &
+           (ST_NM != "Uttarakhand" | eBird.English.Name.2024 != "Rufous-vented Tit") &
+           (ST_NM != "Himachal Pradesh" | eBird.English.Name.2024 != "Tibetan Blackbird") &
+           (ST_NM != "Gujarat" | eBird.English.Name.2024 != "Forest Owlet") &
+           (ST_NM != "Kerala" | eBird.English.Name.2024 != "Nilgiri Laughingthrush") &
+           (ST_NM != "Andaman and Nicobar Islands" | eBird.English.Name.2024 != "Nicobar Bulbul") &
+           (ST_NM != "Bihar" | eBird.English.Name.2024 != "Great Slaty Woodpecker") &
+           (ST_NM != "Maharashtra" | eBird.English.Name.2024 != "Great Knot") &
+           (ST_NM != "West Bengal" | eBird.English.Name.2024 != "Mangrove Pitta") &
+           (ST_NM != "Assam" | eBird.English.Name.2024 != "Greater Adjutant") &
+           (ST_NM != "Assam" | eBird.English.Name.2024 != "Finn's Weaver") &
+           (ST_NM != "Goa" | eBird.English.Name.2024 != "Sanderling")) %>%
   bind_rows(prop.to.add) %>%
   group_by(ST_NM) %>% 
   arrange(desc(prop.range), .by_group=TRUE)
@@ -417,12 +417,12 @@ key.state.species.report = key.state.species.report %>%
 # check to see if there are any states that are missing species
 check3 = key.state.species0 %>%
   select(-Current.Sort, -Long.Term.Sort, -rangemean) %>%
-  left_join(range.status, by = c("COMMON.NAME" = "eBird.English.Name.2023")) %>%
+  left_join(range.status, by = c("COMMON.NAME" = "eBird.English.Name.2024")) %>%
   group_by(ST_NM) %>% 
   arrange(desc(prop.range), .by_group = TRUE) %>%
   slice(1:4) %>% 
   ungroup() %>%
-  rename(eBird.English.Name.2023 = COMMON.NAME)
+  rename(eBird.English.Name.2024 = COMMON.NAME)
 
 check3.small = check3 %>%
   filter(ST_NM %in% c("Chhattisgarh","Puducherry"))
@@ -455,23 +455,23 @@ write.csv(key.state.species.report.final, "01_analyses_full/results/key_state_sp
 
 one.perc = main %>% 
   filter(!is.na(Onepercent.Estimates)) %>%
-  dplyr::select(eBird.English.Name.2023, Onepercent.Estimates)
+  dplyr::select(eBird.English.Name.2024, Onepercent.Estimates)
 
 full.list.one.perc = data0 %>%
-  rename(eBird.English.Name.2023 = COMMON.NAME) %>%
+  rename(eBird.English.Name.2024 = COMMON.NAME) %>%
   filter(year > (soib_year_info("latest_year") - 5)) %>%
   left_join(one.perc) %>%
   filter(!is.na(Onepercent.Estimates), 
          OBSERVATION.COUNT != "X") %>%
   mutate(OBSERVATION.COUNT = as.numeric(OBSERVATION.COUNT)) %>%
   filter(OBSERVATION.COUNT >= Onepercent.Estimates, 
-         eBird.English.Name.2023 %in% specs.states) %>%
-  distinct(ST_NM, eBird.English.Name.2023) %>%
+         eBird.English.Name.2024 %in% specs.states) %>%
+  distinct(ST_NM, eBird.English.Name.2024) %>%
   arrange(ST_NM)
 
 full.list.one.perc.prop = key.state.species0 %>%
-  rename(eBird.English.Name.2023 = COMMON.NAME) %>%
-  select(ST_NM, eBird.English.Name.2023, prop.range) %>%
+  rename(eBird.English.Name.2024 = COMMON.NAME) %>%
+  select(ST_NM, eBird.English.Name.2024, prop.range) %>%
   semi_join(full.list.one.perc) %>%
   group_by(ST_NM) %>% 
   arrange(desc(prop.range), .by_group = TRUE) %>%
@@ -479,13 +479,13 @@ full.list.one.perc.prop = key.state.species0 %>%
 
 full.list.4 = key.state.species.report %>%
   anti_join(full.list.one.perc) %>%
-  distinct(ST_NM, eBird.English.Name.2023) %>%
+  distinct(ST_NM, eBird.English.Name.2024) %>%
   arrange(ST_NM) %>%
   bind_rows(full.list.one.perc)
 
 full.list.4.prop = key.state.species0 %>%
-  rename(eBird.English.Name.2023 = COMMON.NAME) %>%
-  select(ST_NM, eBird.English.Name.2023, prop.range) %>%
+  rename(eBird.English.Name.2024 = COMMON.NAME) %>%
+  select(ST_NM, eBird.English.Name.2024, prop.range) %>%
   semi_join(full.list.4) %>%
   group_by(ST_NM) %>% 
   arrange(desc(prop.range), .by_group = TRUE) %>%
@@ -505,14 +505,14 @@ num.spec = full.list.4 %>%
 # in addition to the 4 and 1 % species, include any species in a state when the proportional
 # contribution to range > 0.35
 full.list.prop.rem = data0 %>%
-  rename(eBird.English.Name.2023 = COMMON.NAME) %>%
+  rename(eBird.English.Name.2024 = COMMON.NAME) %>%
   filter(year > (soib_year_info("latest_year") - 5)) %>%
-  filter(eBird.English.Name.2023 %in% specs.states) %>%
-  group_by(eBird.English.Name.2023) %>%
+  filter(eBird.English.Name.2024 %in% specs.states) %>%
+  group_by(eBird.English.Name.2024) %>%
   mutate(tot.range = n_distinct(gridg1)) %>%
-  group_by(ST_NM, eBird.English.Name.2023) %>%
+  group_by(ST_NM, eBird.English.Name.2024) %>%
   reframe(prop.range = n_distinct(gridg1) / max(tot.range)) %>%
-  dplyr::select(ST_NM, eBird.English.Name.2023, prop.range) %>%
+  dplyr::select(ST_NM, eBird.English.Name.2024, prop.range) %>%
   anti_join(full.list.4) %>%
   left_join(num.spec) %>%
   mutate(n = case_when(is.na(n) ~ 0, TRUE ~ n)) %>%

@@ -330,11 +330,11 @@ plot_import_data <- function(mask, import_trend = fn_cur_trend, import_plot_type
                  !(SoIB.Latest.Long.Term.Status %in% status_to_filter),
                  Long.Term.Analysis == "X")  
         }} %>% 
-        dplyr::select(eBird.English.Name.2023) %>% 
+        dplyr::select(eBird.English.Name.2024) %>% 
         add_mask_titles(mask)
       
       data_trends <- data_trends %>% 
-        filter(COMMON.NAME %in% spec_qual$eBird.English.Name.2023,
+        filter(COMMON.NAME %in% spec_qual$eBird.English.Name.2024,
                timegroups <= soib_year_info("latest_year"))
       
     } else if (import_trend == "CAT") {
@@ -349,11 +349,11 @@ plot_import_data <- function(mask, import_trend = fn_cur_trend, import_plot_type
                  !(SoIB.Latest.Current.Status %in% status_to_filter),
                  Current.Analysis == "X")
         }} %>% 
-        dplyr::select(eBird.English.Name.2023) %>% 
+        dplyr::select(eBird.English.Name.2024) %>% 
         add_mask_titles(mask)
       
       data_trends <- data_trends %>% 
-        filter(COMMON.NAME %in% spec_qual$eBird.English.Name.2023,
+        filter(COMMON.NAME %in% spec_qual$eBird.English.Name.2024,
                timegroups >= soib_year_info("cat_start") & timegroups <= soib_year_info("latest_year"))
       
     }
@@ -458,13 +458,13 @@ plot_load_filter_data <- function(fn_plot_type, fn_cur_trend, fn_cur_mask = "non
     
     spec_qual <- map(data_processed, pluck, "spec_qual") %>% bind_rows()
     
-    spec_qual_country <- spec_qual %>% filter(MASK == "none") %>% pull(eBird.English.Name.2023)
-    spec_qual_masks <- spec_qual %>% filter(MASK != "none") %>% pull(eBird.English.Name.2023)
+    spec_qual_country <- spec_qual %>% filter(MASK == "none") %>% pull(eBird.English.Name.2024)
+    spec_qual_masks <- spec_qual %>% filter(MASK != "none") %>% pull(eBird.English.Name.2024)
     
     spec_qual <- intersect(spec_qual_country, spec_qual_masks)
     
     data_trends <- data_trends %>% filter(COMMON.NAME %in% spec_qual)
-    data_main <- data_main %>% filter(eBird.English.Name.2023 %in% spec_qual)
+    data_main <- data_main %>% filter(eBird.English.Name.2024 %in% spec_qual)
     
   } else {
     
@@ -475,7 +475,7 @@ plot_load_filter_data <- function(fn_plot_type, fn_cur_trend, fn_cur_mask = "non
       } else {
         .
       }} %>% 
-      pull(eBird.English.Name.2023)
+      pull(eBird.English.Name.2024)
     
   }
 
@@ -592,7 +592,7 @@ fetch_plot_metadata <- function(plot_type) {
     data4 <- data_main %>% 
       mutate(GROUP = fct_collapse(
         
-        eBird.English.Name.2023,
+        eBird.English.Name.2024,
         
         "Near Resident or Palearctic Migrant" = c(
           "Indian Thick-knee","Great Thick-knee","Beach Thick-knee","Black-winged Stilt",
@@ -631,7 +631,7 @@ fetch_plot_metadata <- function(plot_type) {
                                              "Arctic Migrant") ~ NA_character_,
                                TRUE ~ GROUP)) %>% 
       filter(!is.na(GROUP)) %>% 
-      distinct(GROUP, eBird.English.Name.2023) %>% 
+      distinct(GROUP, eBird.English.Name.2024) %>% 
       mutate(PLOT.NAME = "Shorebird Migratory Behaviours")
     
     data5 <- data_main %>% 
@@ -655,7 +655,7 @@ fetch_plot_metadata <- function(plot_type) {
     data6 <- data_main %>% 
       rename(GROUP = MASK.TITLE) %>% 
       filter(!is.na(GROUP)) %>% 
-      distinct(GROUP, eBird.English.Name.2023) %>% 
+      distinct(GROUP, eBird.English.Name.2024) %>% 
       mutate(PLOT.NAME = "Woodland")
     
     
@@ -665,7 +665,7 @@ fetch_plot_metadata <- function(plot_type) {
     data7 <- data_main %>% 
       rename(GROUP = MASK.TITLE) %>% 
       filter(!is.na(GROUP)) %>% 
-      distinct(GROUP, eBird.English.Name.2023) %>% 
+      distinct(GROUP, eBird.English.Name.2024) %>% 
       mutate(PLOT.NAME = "Open Natural Ecosystems & Cropland")
 
     
@@ -674,7 +674,7 @@ fetch_plot_metadata <- function(plot_type) {
     data8 <- data_main %>% 
       rename(GROUP = MASK.TITLE) %>% 
       filter(!is.na(GROUP)) %>% 
-      distinct(GROUP, eBird.English.Name.2023) %>% 
+      distinct(GROUP, eBird.English.Name.2024) %>% 
       mutate(PLOT.NAME = "Protected Areas")
     
     
@@ -811,7 +811,7 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     data_trends <- data_trends %>% 
       mutate(COMMON.NAME = specname_to_india_checklist(COMMON.NAME, already_show = FALSE))
     data_main <- data_main %>% 
-      mutate(eBird.English.Name.2023 = specname_to_india_checklist(eBird.English.Name.2023, already_show = FALSE))
+      mutate(eBird.English.Name.2024 = specname_to_india_checklist(eBird.English.Name.2024, already_show = FALSE))
     cur_spec <- cur_spec %>% 
       specname_to_india_checklist(already_show = FALSE)
   }
@@ -869,7 +869,7 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     if (plot_type == "single_mask") {
       
       plot_full_country <- data_main %>% 
-        filter(eBird.English.Name.2023 %in% cur_spec,
+        filter(eBird.English.Name.2024 %in% cur_spec,
                MASK == "none") %>% 
         {if (cur_trend == "LTT") {
           pull(., SoIB.Latest.Long.Term.Status)
@@ -904,13 +904,13 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     
     timegroups_lab <- c("before 2000", "2000-2006", "2007-2010", "2011-2012", 
                         "", "2014", "", "2016", "", "2018", "", 
-                        "2020", "", "2022")
-    timegroups_bracket_min <- c(1999, 2006, 2010, 2012, seq(2013, 2021)) + 0.5
-    timegroups_bracket_max <- c(2006, 2010, 2012, seq(2013, 2022)) + 0.5
+                        "2020", "", "2022", "", "2024")
+    timegroups_bracket_min <- c(1999, 2006, 2010, 2012, seq(2013, 2023)) + 0.5
+    timegroups_bracket_max <- c(2006, 2010, 2012, seq(2013, 2024)) + 0.5
     plot_ytitle_margin <- margin(0, -0.6, 0, 0.4, "cm")
     plot_ylab_size = 22
     plot_xlimits <- c(1999.5, 2024.5)
-    plot_gridline_x <- 2023.3
+    plot_gridline_x <- 2024.3
     plot_baseline_lab <- "Pre-2000\nbaseline"
     plot_repel_nudge <- -1.5
     plot_xmin_minus <- 0.22
@@ -918,12 +918,12 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
   } else if (cur_trend == "CAT") {
     
     timegroups_lab <- c("2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022")
-    timegroups_bracket_min <- seq(2015, 2021) + 0.5
-    timegroups_bracket_max <- seq(2016, 2022) + 0.5
+    timegroups_bracket_min <- seq(2015, 2023) + 0.5
+    timegroups_bracket_max <- seq(2016, 2024) + 0.5
     plot_ytitle_margin <- margin(0, 0.6, 0, 0.4, "cm")
     plot_ylab_size = 22
-    plot_xlimits <- c(2015.09, 2023.1)
-    plot_gridline_x <- 2022.7
+    plot_xlimits <- c(2015.09, 2024.1)
+    plot_gridline_x <- 2023.7
     plot_baseline_lab <- "2015\nbaseline"
     plot_repel_nudge <- -0.57
     plot_xmin_minus <- 0.1
@@ -1213,7 +1213,7 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
       return(breaks)
     }
     
-    # updating breaks based on each of 2022 trend values plotted (one in single, multiple in others)
+    # updating breaks based on each of 2024 trend values plotted (one in single, multiple in others)
     plot_ybreaks <- reduce(ref_line, update_breaks, .init = plot_ybreaks)
     
   }
@@ -1457,17 +1457,17 @@ soib_trend_plot_sysmon <- function(plot_type, cur_data_trends,
     
     # for those plots with errorbars
     geom_pos_setting <- position_dodge(0.3)
-    timegroups_num <- 2015:2022
+    timegroups_num <- 2015:2024
     
   } else if (plot_type == "nannaj") {
     
     geom_pos_setting <- position_dodge(0.3)
-    timegroups_num <- 2012:2021
+    timegroups_num <- 2012:2023
     
   } else if (plot_type == "spiti" & sysmon_single == TRUE) {
     
     geom_pos_setting <- position_dodge(0.3)
-    timegroups_num <- 2002:2022
+    timegroups_num <- 2002:2024
     
   } else if (plot_type == "vembanad") {
     
@@ -1510,8 +1510,8 @@ soib_trend_plot_sysmon <- function(plot_type, cur_data_trends,
     
   } else if (plot_type == "spiti") {
     
-    timegroups_bracket_min <- c(seq(2001, 2021)) + 0.5
-    timegroups_bracket_max <- c(seq(2002, 2022)) + 0.5
+    timegroups_bracket_min <- c(seq(2001, 2023)) + 0.5
+    timegroups_bracket_max <- c(seq(2002, 2024)) + 0.5
     
     temp3 <- seq(2,length(timegroups_lab),2)
     timegroups_lab[temp3] = ""

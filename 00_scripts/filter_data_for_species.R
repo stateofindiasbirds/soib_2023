@@ -10,7 +10,7 @@ source('00_scripts/00_functions.R')
 
 # mapping of SoIB-species-of-interest to a range of variables/classifications
 # (manually created)
-fullmap = read.csv("00_data/SoIB_mapping_2023.csv")
+fullmap = read.csv("00_data/SoIB_mapping_2024.csv")
 
 
 # species frequently misidentified and therefore ignored in analyses ###
@@ -31,13 +31,13 @@ spec_resident = fullmap %>%
                                               "Resident & Localized Summer Migrant",
                                               "Resident & Within-India Migrant",
                                               "Resident (Extirpated)")) %>%
-  pull(eBird.English.Name.2023)
+  pull(eBird.English.Name.2024)
 
 # species filtered for certain habitat masks
 spec_woodland = fullmap %>%
   filter(Habitat.Specialization %in% c("Forest",
                                        "Forest & Plantation")) %>%
-  pull(eBird.English.Name.2023)
+  pull(eBird.English.Name.2024)
 
 # we are considering cropland and ONE habitats together to classify "openland species"
 spec_openland = fullmap %>%
@@ -45,7 +45,7 @@ spec_openland = fullmap %>%
                                        "Grassland",
                                        "Grassland & Scrub",
                                        "Open Habitat")) %>%
-  pull(eBird.English.Name.2023)
+  pull(eBird.English.Name.2024)
 
 
 # 0. main data filtering -----------------------------------------------------
@@ -101,6 +101,7 @@ dataspeciesfilter(cur_mask = "none")
 toc() 
 # 495 sec (2023)
 # 185 sec (2024)
+# 104 sec (2025)
 
 
 # 2. processing: woodland mask ----------------------------------------------
@@ -110,6 +111,7 @@ dataspeciesfilter(cur_mask = "woodland")
 toc() 
 # 240 sec (2023)
 # 86 sec (2024)
+# 46 sec (2025)
 
 
 # 3. processing: cropland mask ----------------------------------------------
@@ -119,6 +121,7 @@ dataspeciesfilter(cur_mask = "cropland")
 toc() 
 # 60 sec (2023)
 # 42 sec (2024)
+# 22 sec (2025)
 
 
 # 4. processing: ONEland mask -----------------------------------------------
@@ -128,6 +131,7 @@ dataspeciesfilter(cur_mask = "ONEland")
 toc() 
 # 60 sec (2023)
 # 20 sec (2024)
+# 10 sec (2025)
 
 
 # 5. processing: PA mask ----------------------------------------------------
@@ -137,6 +141,7 @@ dataspeciesfilter(cur_mask = "PA")
 toc() 
 # 80 sec (2023)
 # 24 sec (2024)
+# 13 sec (2025)
 
 
 # 6. processing: states ---------------------------------------------
@@ -160,3 +165,4 @@ get_metadata() %>%
 toc(log = TRUE, quiet = TRUE) 
 tic.log()
 # 253 sec (2024)
+# 121 sec (2025)

@@ -72,7 +72,7 @@ if (skip_res_occu == TRUE) {
   
   # take relevant columns from wocats file of full-country
   tojoin <- get_metadata("none")$SOIBMAIN.WOCATS.PATH %>%
-    distinct(eBird.English.Name.2023, rangelci, rangemean, rangerci)
+    distinct(eBird.English.Name.2024, rangelci, rangemean, rangerci)
   
   # joining to main object
   main <- main %>% left_join(tojoin)
@@ -138,7 +138,7 @@ main = main %>%
     
     SoIB.Latest.Range.Status = case_when(
       is.na(rangemean) ~ NA_character_,
-      rangemean == 0 & !(eBird.English.Name.2023 %in% spec_vagrants) ~ "Historical",
+      rangemean == 0 & !(eBird.English.Name.2024 %in% spec_vagrants) ~ "Historical",
       # above is to prevent species that are not historical but classified as vagrants
       # from being classified as Historical (instead, Very Restricted)
       rangerci < 625 ~ "Very Restricted",
@@ -172,11 +172,11 @@ if (cur_metadata$MASK.TYPE == "state") {
   main_nat <- get_metadata("none") %>%
     pull(SOIBMAIN.PATH) %>%
     read.csv() %>%
-    distinct(eBird.English.Name.2023, SoIB.Latest.Range.Status)
+    distinct(eBird.English.Name.2024, SoIB.Latest.Range.Status)
   
   main_update <- left_join(main_toupdate, main_nat)
   
-  main_order = main %>% select(eBird.English.Name.2023)
+  main_order = main %>% select(eBird.English.Name.2024)
   main <- main_order %>% 
     left_join(bind_rows(main_tokeep, main_update))
   
@@ -202,11 +202,11 @@ if (run_res_trends == TRUE) {
     modtrends5 = ltt_sens_class(modtrends5)
     
     sens_ltt <- main %>%
-      dplyr::select(eBird.English.Name.2023, SoIB.Latest.Long.Term.Status) %>%
+      dplyr::select(eBird.English.Name.2024, SoIB.Latest.Long.Term.Status) %>%
       # the modtrendsN files only have species for which we have run LTT
       filter(!is.na(SoIB.Latest.Long.Term.Status),
              SoIB.Latest.Long.Term.Status != "Insufficient Data") %>%
-      rename(COMMON.NAME = eBird.English.Name.2023) %>%
+      rename(COMMON.NAME = eBird.English.Name.2024) %>%
       bind_rows(modtrends1, modtrends2, modtrends3, modtrends4, modtrends5) %>%
       group_by(COMMON.NAME) %>%
       # how many different status categories have been assigned?
@@ -236,7 +236,7 @@ if (run_res_trends == TRUE) {
     
     
     main <- main %>%
-      left_join(sens_ltt, by = c("eBird.English.Name.2023" = "COMMON.NAME")) %>%
+      left_join(sens_ltt, by = c("eBird.English.Name.2024" = "COMMON.NAME")) %>%
       # if Status assignment is not robust, take the most conservative one
       mutate(SoIB.Latest.Long.Term.Status = case_when(ROBUST == 0 ~ CONSERVATIVE.STATUS,
                                                  TRUE ~ SoIB.Latest.Long.Term.Status)) %>%
@@ -276,14 +276,14 @@ if (run_res_trends == TRUE) {
         TRUE ~ "Stable"
         
       )) %>%
-      dplyr::select(eBird.English.Name.2023, SoIB.Latest.Current.Status.Sens) %>%
-      magrittr::set_colnames(c("eBird.English.Name.2023", glue("s{.x}")))
+      dplyr::select(eBird.English.Name.2024, SoIB.Latest.Current.Status.Sens) %>%
+      magrittr::set_colnames(c("eBird.English.Name.2024", glue("s{.x}")))
     
   }) %>%
     reduce(full_join)
   
   sens_cat <- main %>%
-    dplyr::select(eBird.English.Name.2023, SoIB.Latest.Current.Status) %>%
+    dplyr::select(eBird.English.Name.2024, SoIB.Latest.Current.Status) %>%
     left_join(sens_cat) %>%
     filter(!SoIB.Latest.Current.Status %in% c("Insufficient Data", "Trend Inconclusive"))
   
@@ -299,7 +299,7 @@ if (run_res_trends == TRUE) {
   ind6 = numeric(0)
   ind7 = numeric(0)
   
-  for (i in 1:length(sens_cat$eBird.English.Name.2023)) {
+  for (i in 1:length(sens_cat$eBird.English.Name.2024)) {
     
     categs = as.vector(sens_cat[i,-1])
     
@@ -340,9 +340,9 @@ if (run_res_trends == TRUE) {
   ind6 = ind6 %>% setdiff(ind.rem)
   ind7 = ind7 %>% setdiff(ind.rem)
   
-  spec_ind.rem <- sens_cat$eBird.English.Name.2023[ind.rem]
-  spec_ind6 <- sens_cat$eBird.English.Name.2023[ind6]
-  spec_ind7 <- sens_cat$eBird.English.Name.2023[ind7]
+  spec_ind.rem <- sens_cat$eBird.English.Name.2024[ind.rem]
+  spec_ind6 <- sens_cat$eBird.English.Name.2024[ind6]
+  spec_ind7 <- sens_cat$eBird.English.Name.2024[ind7]
   
   
   
@@ -351,9 +351,9 @@ if (run_res_trends == TRUE) {
     # changing classification where needed
     mutate(SoIB.Latest.Current.Status = case_when(
       
-      eBird.English.Name.2023 %in% spec_ind.rem ~ "Trend Inconclusive",
-      eBird.English.Name.2023 %in% spec_ind6 ~ "Decline",
-      eBird.English.Name.2023 %in% spec_ind7 ~ "Increase",
+      eBird.English.Name.2024 %in% spec_ind.rem ~ "Trend Inconclusive",
+      eBird.English.Name.2024 %in% spec_ind6 ~ "Decline",
+      eBird.English.Name.2024 %in% spec_ind7 ~ "Increase",
       TRUE ~ SoIB.Latest.Current.Status
       
     ))
@@ -372,7 +372,7 @@ if (run_res_trends == TRUE) {
 # classification: converting all non-selected to NA -----------------------
 
 main <- main %>%
-  mutate(across(c(SoIB.Latest.Long.Term.Status, SoIB.Latest.Current.Status, SoIB.Past.Range.Status),
+  mutate(across(c(SoIB.Latest.Long.Term.Status, SoIB.Latest.Current.Status, SoIB.Latest.Range.Status),
                 ~ if_else(Selected.SoIB != "X", NA_character_, .)))
 
 # classification: assign SoIB Priority status (based on trends and occupancy) -----
@@ -433,7 +433,7 @@ main = main %>%
   mutate(across(c(longtermlci, longtermmean, longtermrci),
                 ~ . - 100)) %>%
   # ensuring correct order of columns
-  relocate(eBird.English.Name.2023, eBird.Scientific.Name.2023, eBird.Code, Order, Family,
+  relocate(eBird.English.Name.2024, eBird.Scientific.Name.2024, eBird.Code, Order, Family,
            SoIB.Past.Priority.Status, SoIB.Past.Long.Term.Status, SoIB.Past.Current.Status, SoIB.Past.Range.Status,
            Breeding.Activity.Period, Non.Breeding.Activity.Period,
            Diet.Guild, India.Endemic, Subcontinent.Endemic, Himalayas.Endemic, Endemic.Region,
@@ -484,7 +484,7 @@ main <- main %>%
   {if (as.numeric(str_remove(names(nat_priority)[1], "eBird.English.Name.")) == 
        soib_year_info("latest_year")) {
     dplyr::select(., -SoIB.Latest.Priority.Status) %>% 
-      left_join(nat_priority, by = "eBird.English.Name.2023") 
+      left_join(nat_priority, by = "eBird.English.Name.2024") 
   } else {
     .
   }} 
@@ -513,7 +513,7 @@ if (interannual_update == TRUE){
       left_join(ebird_tax_mapping(), by = main_past_spec_col) %>%
       # SOIB.v2 to be updated to SoIB.Latest in the next annual update
       # Need to raise an issue here as the main files can't be edited
-      dplyr::select(eBird.English.Name.2023,
+      dplyr::select(eBird.English.Name.2024,
                     SoIB.Major.Update.Long.Term.Status = SOIBv2.Long.Term.Status,
                     SoIB.Major.Update.Current.Status = SOIBv2.Current.Status,
                     SoIB.Major.Update.Range.Status = SOIBv2.Range.Status,
@@ -541,7 +541,7 @@ if (interannual_update == TRUE){
     
     # add to current main data, order with the major update columns at the end
     main = main %>%
-      left_join(status_maj_upd, by = "eBird.English.Name.2023") %>%
+      left_join(status_maj_upd, by = "eBird.English.Name.2024") %>%
       # ensuring correct order of columns
       relocate(SoIB.Major.Update.Long.Term.Status, SoIB.Major.Update.Current.Status,
                SoIB.Major.Update.Range.Status, SoIB.Major.Update.Priority.Status,

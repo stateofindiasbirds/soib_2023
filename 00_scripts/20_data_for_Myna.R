@@ -11,7 +11,7 @@ rawpath = paste("00_data/ebd_IN_relJun-",latest_year+1,".txt",sep="")
 preimp = c("TAXONOMIC.ORDER","CATEGORY","COMMON.NAME","SCIENTIFIC.NAME","EXOTIC.CODE",
            "OBSERVATION.COUNT","STATE","STATE.CODE","COUNTY","COUNTY.CODE","LOCALITY",
            "LOCALITY.ID","LOCALITY.TYPE","REVIEWED","APPROVED","LATITUDE","LONGITUDE",
-           "OBSERVATION.DATE","SAMPLING.EVENT.IDENTIFIER","PROTOCOL.TYPE",
+           "OBSERVATION.DATE","SAMPLING.EVENT.IDENTIFIER","PROTOCOL.NAME",
            "PROTOCOL.CODE","DURATION.MINUTES","EFFORT.DISTANCE.KM",
            "NUMBER.OBSERVERS","ALL.SPECIES.REPORTED","GROUP.IDENTIFIER",
            "TIME.OBSERVATIONS.STARTED","OBSERVER.ID")
@@ -104,7 +104,7 @@ data = completelistcheck(data)
 imp = c("TAXONOMIC.ORDER","CATEGORY","COMMON.NAME","SCIENTIFIC.NAME","EXOTIC.CODE",
         "OBSERVATION.COUNT","STATE","STATE.CODE","COUNTY","COUNTY.CODE","LOCALITY",
         "LOCALITY.ID","LOCALITY.TYPE","LATITUDE","LONGITUDE",
-        "OBSERVATION.DATE","SAMPLING.EVENT.IDENTIFIER","PROTOCOL.TYPE",
+        "OBSERVATION.DATE","SAMPLING.EVENT.IDENTIFIER","PROTOCOL.NAME",
         "PROTOCOL.CODE","DURATION.MINUTES","EFFORT.DISTANCE.KM",
         "NUMBER.OBSERVERS","ALL.SPECIES.REPORTED","GROUP.IDENTIFIER",
         "OBSERVER.ID")
@@ -112,7 +112,7 @@ imp = c("TAXONOMIC.ORDER","CATEGORY","COMMON.NAME","SCIENTIFIC.NAME","EXOTIC.COD
 data = data %>%
   dplyr::select(all_of(imp))
 
-writepath = paste("00_data/dataforMyna_",latest_year+1,".txt",sep="")
+writepath = paste("00_data/Myna/dataforMyna_",latest_year+1,".txt",sep="")
 
 write_delim(data, file = writepath, delim = "\t")
 
@@ -133,7 +133,7 @@ latest_year = soib_year_info()
 imp_full = c("TAXONOMIC.ORDER","CATEGORY","COMMON.NAME","SCIENTIFIC.NAME","EXOTIC.CODE",
         "OBSERVATION.COUNT","STATE","STATE.CODE","COUNTY","COUNTY.CODE","LOCALITY",
         "LOCALITY.ID","LOCALITY.TYPE","LATITUDE","LONGITUDE",
-        "OBSERVATION.DATE","SAMPLING.EVENT.IDENTIFIER","PROTOCOL.TYPE",
+        "OBSERVATION.DATE","SAMPLING.EVENT.IDENTIFIER","PROTOCOL.NAME",
         "PROTOCOL.CODE","DURATION.MINUTES","EFFORT.DISTANCE.KM",
         "NUMBER.OBSERVERS","ALL.SPECIES.REPORTED","GROUP.IDENTIFIER",
         "OBSERVER.ID")
@@ -141,15 +141,15 @@ imp_full = c("TAXONOMIC.ORDER","CATEGORY","COMMON.NAME","SCIENTIFIC.NAME","EXOTI
 imp = c("CATEGORY","SCIENTIFIC.NAME",
         "OBSERVATION.COUNT","STATE","STATE.CODE","COUNTY","COUNTY.CODE","LOCALITY",
         "LOCALITY.ID","LOCALITY.TYPE","LATITUDE","LONGITUDE",
-        "OBSERVATION.DATE","SAMPLING.EVENT.IDENTIFIER","PROTOCOL.TYPE",
+        "OBSERVATION.DATE","SAMPLING.EVENT.IDENTIFIER","PROTOCOL.NAME",
         "PROTOCOL.CODE","DURATION.MINUTES","EFFORT.DISTANCE.KM",
         "ALL.SPECIES.REPORTED","GROUP.IDENTIFIER",
         "OBSERVER.ID")
 
-rawpath = paste("00_data/dataforMyna_",latest_year+1,".txt",sep="")
+rawpath = paste("00_data/Myna/dataforMyna_",latest_year+1,".txt",sep="")
 
 data_current = read.delim(rawpath, sep = "\t", header = T)
-data_past = read.delim("00_data/dataforMyna.txt", sep = "\t", header = T)
+data_past = read.delim("00_data/Myna/dataforMyna.txt", sep = "\t", header = T)
 data_current_1 = data_current %>%
   mutate(OBSERVATION.DATE = as.Date(OBSERVATION.DATE)) %>%
   filter(!EXOTIC.CODE %in% c("X","P")) %>%
@@ -158,11 +158,11 @@ data_current_1 = data_current %>%
 data_past_1 = data_past %>%
   mutate(OBSERVATION.DATE = as.Date(OBSERVATION.DATE))
 
-# fullmap = read.csv("00_data/SoIB_mapping_2023.csv") %>%
-#   dplyr::select(eBird.English.Name.2023,eBird.Scientific.Name.2023)
+# fullmap = read.csv("00_data/SoIB_mapping_2024.csv") %>%
+#   dplyr::select(eBird.English.Name.2024,eBird.Scientific.Name.2024)
 # updatemap = ebird_tax_mapping() %>%
 #   left_join(fullmap) %>%
-#   rename(COMMON.NAME = eBird.English.Name.2022)
+#   rename(COMMON.NAME = eBird.English.Name.2023)
 
 data_current_1 = data_current_1 %>%
   mutate(OBSERVATION.DATE = as.Date(OBSERVATION.DATE), 
@@ -261,32 +261,32 @@ main = read.csv("01_analyses_full/results/SoIB_main.csv") %>%
 
   
 
-tax_base = read.csv("00_data/SoIB_mapping_2023.csv") %>%
+tax_base = read.csv("00_data/SoIB_mapping_2024.csv") %>%
   rename(SOIB.Concern.Status = SoIB.Past.Priority.Status,
                 SOIB.Long.Term.Status = SoIB.Past.Long.Term.Status,
                 SOIB.Current.Status = SoIB.Past.Current.Status,
                 SOIB.Range.Status = SoIB.Past.Range.Status)
 
-tax = read.csv("00_data/SoIB_mapping_2023.csv") %>%
+tax = read.csv("00_data/SoIB_mapping_2024.csv") %>%
   dplyr::select(-SoIB.Past.Priority.Status,-SoIB.Past.Long.Term.Status,
                 -SoIB.Past.Current.Status,-SoIB.Past.Range.Status) %>%
-  filter(!eBird.English.Name.2023 %in% 
-           c("Band-bellied Crake","Spur-winged Lapwing","Cape Petrel","African Openbill","Levant Sparrowhawk")) %>%
+  filter(!eBird.English.Name.2024 %in% 
+           c("Band-bellied Crake","Spur-winged Lapwing","Cape Petrel")) %>%
   left_join(main) %>%
   dplyr::select(names(tax_base)) %>%
-  rename(eBird.English.Name.2022 = eBird.English.Name.2023,
-         eBird.Scientific.Name.2022 = eBird.Scientific.Name.2023)
+  rename(eBird.English.Name.2023 = eBird.English.Name.2024,
+         eBird.Scientific.Name.2023 = eBird.Scientific.Name.2024)
 
 
 
 ## write all files
 
 # https://docs.google.com/document/d/1pkb0ftUJ98qgMIlyqlh5bHwvTd71a4aVFtmo_E0hTzk/edit#heading=h.rh4agtvap9l0
-write_delim(newdata_current, file = "00_data/D-24.txt", delim = "\t")
-write_delim(newdata_past, file = "00_data/Plus-D-23.txt", delim = "\t")
-write_delim(deleteddata_past, file = "00_data/Minus-D-23.txt", delim = "\t")
-write.csv(tax, file = "00_data/S-24.csv", row.names = F)
-write.csv(diff, file = "00_data/Minus-S-23.csv", row.names = F)
+write_delim(newdata_current, file = "00_data/Myna/D-24.txt", delim = "\t")
+write_delim(newdata_past, file = "00_data/Myna/Plus-D-23.txt", delim = "\t")
+write_delim(deleteddata_past, file = "00_data/Myna/Minus-D-23.txt", delim = "\t")
+write.csv(tax, file = "00_data/Myna/S-24.csv", row.names = F)
+write.csv(diff, file = "00_data/Myna/Minus-S-23.csv", row.names = F)
 
 
 
@@ -295,8 +295,8 @@ write.csv(diff, file = "00_data/Minus-S-23.csv", row.names = F)
 
 ## District test case
 
-dist = "Nizamabad"
-dist.code = "IN-TS-NI"
+dist = "Sangareddy"
+dist.code = "IN-TS-SR"
 
 require(lubridate)
 require(tidyverse)
@@ -307,7 +307,7 @@ latest_year = soib_year_info()
 imp_full = c("TAXONOMIC.ORDER","CATEGORY","COMMON.NAME","SCIENTIFIC.NAME","EXOTIC.CODE",
              "OBSERVATION.COUNT","STATE","STATE.CODE","COUNTY","COUNTY.CODE","LOCALITY",
              "LOCALITY.ID","LOCALITY.TYPE","LATITUDE","LONGITUDE",
-             "OBSERVATION.DATE","SAMPLING.EVENT.IDENTIFIER","PROTOCOL.TYPE",
+             "OBSERVATION.DATE","SAMPLING.EVENT.IDENTIFIER","PROTOCOL.NAME",
              "PROTOCOL.CODE","DURATION.MINUTES","EFFORT.DISTANCE.KM",
              "NUMBER.OBSERVERS","ALL.SPECIES.REPORTED","GROUP.IDENTIFIER",
              "OBSERVER.ID")
@@ -315,12 +315,12 @@ imp_full = c("TAXONOMIC.ORDER","CATEGORY","COMMON.NAME","SCIENTIFIC.NAME","EXOTI
 imp = c("CATEGORY","SCIENTIFIC.NAME",
         "OBSERVATION.COUNT","STATE","STATE.CODE","COUNTY","COUNTY.CODE","LOCALITY",
         "LOCALITY.ID","LOCALITY.TYPE","LATITUDE","LONGITUDE",
-        "OBSERVATION.DATE","SAMPLING.EVENT.IDENTIFIER","PROTOCOL.TYPE",
+        "OBSERVATION.DATE","SAMPLING.EVENT.IDENTIFIER","PROTOCOL.NAME",
         "PROTOCOL.CODE","DURATION.MINUTES","EFFORT.DISTANCE.KM",
         "ALL.SPECIES.REPORTED","GROUP.IDENTIFIER",
         "OBSERVER.ID")
 
-rawpath = paste("00_data/dataforMyna_",latest_year+1,".txt",sep="")
+rawpath = paste("00_data/Myna/dataforMyna_",latest_year+1,".txt",sep="")
 
 data_current = read.delim(rawpath, sep = "\t", header = T)
 
@@ -350,7 +350,7 @@ newdata_current = newdata_current %>%
          NUMBER.OBSERVERS = "delete") %>%
   dplyr::select(all_of(imp_full))
 
-name = paste("00_data/",dist,"_data_for_testing.txt",sep="")
+name = paste("00_data/Myna/",dist,"_data_for_testing.txt",sep="")
 
 write_delim(newdata_current, file = name, delim = "\t")
 
@@ -414,7 +414,7 @@ newdata_current_shp = newdata_current_shp %>%
          NUMBER.OBSERVERS = "delete") %>%
   dplyr::select(all_of(imp_full))
 
-name = paste("00_data/",dist,"_data_for_testing_shp.txt",sep="")
+name = paste("00_data/Myna/",dist,"_data_for_testing_shp.txt",sep="")
 
 write_delim(newdata_current_shp, file = name, delim = "\t")
 
@@ -424,8 +424,8 @@ diff1 = newdata_current %>%
 diff2 = newdata_current_shp %>%
   setdiff(newdata_current)
 
-name1 = paste("00_data/",dist,"_different_eBirdvsshp.csv",sep="")
-name2 = paste("00_data/",dist,"_different_shpvseBird.csv",sep="")
+name1 = paste("00_data/Myna/",dist,"_different_eBirdvsshp.csv",sep="")
+name2 = paste("00_data/Myna/",dist,"_different_shpvseBird.csv",sep="")
 
 
 write.csv(diff1, file = name1, row.names = F)
