@@ -650,7 +650,7 @@ if (length(trends$sl) == 0)
       }) %>%
       group_by(COMMON.NAME) %>%
       reframe(mean.slope = mean(sl),
-              se.slope = sd(sl) + sqrt(sum(slse^2)/length(slse))) %>%
+              se.slope = sqrt(var(sl) + sum(slse^2)/length(slse))) %>%
       group_by(COMMON.NAME) %>%
       reframe(currentslopelci = mean.slope - 1.96*se.slope,
               currentslopemean = mean.slope,
@@ -720,7 +720,7 @@ if (length(trends$sl) == 0)
         
         .cols = matches("^sl\\d+$"), # "sl"s but not "slse"s
         .fn = list(mean.slope = ~ mean(.),
-                   se.slope = ~ sd(.) + sqrt(sum(get(str_replace(cur_column(), "sl", "slse"))^2) /
+                   se.slope = ~ sqrt(var(.) + sum(get(str_replace(cur_column(), "sl", "slse"))^2) /
                                                length(.))),
         .names = c("{.fn}_{.col}")
         
