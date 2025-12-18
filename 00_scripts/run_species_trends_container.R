@@ -168,7 +168,7 @@ if (to_run == TRUE) {
       c("gridg1", "gridg3", "month")
     }
 
-    data <- data_filt %>% 
+    data_filt_step <- data_filt %>% 
       mutate(across(.cols = all_of(cols_temp), ~ as.factor(.)))
 
     rm(cols_temp)
@@ -299,7 +299,7 @@ if (to_run == TRUE) {
 		       reproducible = reproducible_run,
 		       stats_dir = trends_stats_dir,
 		       species_dir = trends_species_dir,
-		       data = data,
+		       data = data_filt_step,
 		       species_index = species_index,
                        species = launch_species,
                        specieslist = specieslist, 
