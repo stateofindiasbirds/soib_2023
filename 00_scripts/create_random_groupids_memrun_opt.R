@@ -3,7 +3,7 @@ library(parallel)
 # preparing data for specific mask (this is the only part that changes, but automatically)
 cur_metadata <- get_metadata(cur_mask)
 read_path <- cur_metadata$LOCS.PATH
-write_path <- cur_metadata$RAND.GROUP.IDS.PATH
+write_path <- cur_metadata$RAND.GROUP.IDS.PATH.ONLY
 speclist_path <- cur_metadata$SPECLISTDATA.PATH
 
 # don't run if no species selected
@@ -91,7 +91,7 @@ if (to_run == TRUE) {
   rm(locs)
   # Write the 1000
   target_path <- write_path
-  target_dir <- dirname(target_path)
+  target_dir <- target_path
   message(paste("Saving random ids at:",target_dir))
   if(!dir.exists(target_dir)) {
     dir.create(target_dir, recursive = TRUE)
