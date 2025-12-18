@@ -59,6 +59,8 @@ write_rgids_xz <- function(write_path, rgids) {
   }
 }
 
+set.seed(0)
+
 if (to_run == TRUE) {
 
   # create the set of random locations (doesn't work inside a function)
