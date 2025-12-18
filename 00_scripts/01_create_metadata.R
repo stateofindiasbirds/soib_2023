@@ -33,7 +33,7 @@ analyses_metadata <- data.frame(MASK = c("none",
          LOCS.PATH = glue("{FOLDER}sub_samp_locs.csv"),
          SPECLISTDATA.PATH = glue("{FOLDER}specieslists.RData"),
          DATA.PATH = glue("{FOLDER}dataforanalyses.RData"),
-         RAND.GROUP.IDS.PATH = glue("{FOLDER}randomgroupids.RData"),
+         RAND.GROUP.IDS.PATH = glue("{FOLDER}randomgroupids/randomgroupids.RData"),
          
          SIMDATA.PATHONLY = glue("{FOLDER}dataforsim/"),
          TRENDS.PATHONLY = glue("{FOLDER}trends/"),

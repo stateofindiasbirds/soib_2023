@@ -135,7 +135,7 @@
 "Black-bellied Sandgrouse","Pterocles orientalis",NA,"","",NA,NA,NA,NA,NA,NA
 "Painted Sandgrouse","Pterocles indicus",NA,"","X",11,NA,0.194805194805195,0.0909090909090909,10.4545454545455,3.5296194630185
 "Great Indian Bustard","Ardeotis nigriceps",NA,"","X",1,NA,1,NA,5,NA
-"Macqueen's Bustard","Chlamydotis macqueenii",NA,"","",NA,NA,NA,NA,NA,NA
+"Asian Houbara","Chlamydotis macqueenii",NA,"","",NA,NA,NA,NA,NA,NA
 "Bengal Florican","Houbaropsis bengalensis",NA,"","",NA,NA,NA,NA,NA,NA
 "Lesser Florican","Sypheotides indicus",NA,"","X",1,NA,1,NA,5,NA
 "Little Bustard","Tetrax tetrax",NA,"","",NA,NA,NA,NA,NA,NA
@@ -150,7 +150,7 @@
 "Asian Koel","Eudynamys scolopaceus",NA,"X","X",199,0.0351758793969849,0.34108040201005,0.587939698492462,6.2964824120603,0.568554299153862
 "Asian Emerald Cuckoo","Chrysococcyx maculatus",NA,"","",NA,NA,NA,NA,NA,NA
 "Violet Cuckoo","Chrysococcyx xanthorhynchus",NA,"","",NA,NA,NA,NA,NA,NA
-"Horsfield's Bronze-Cuckoo","Chrysococcyx basalis",NA,"","",NA,NA,NA,NA,NA,NA
+"Horsfield's Bronze-Cuckoo","Chalcites basalis",NA,"","",NA,NA,NA,NA,NA,NA
 "Banded Bay Cuckoo","Cacomantis sonneratii",NA,"","X",12,NA,0.238095238095238,0.666666666666667,8.91666666666667,2.64790578580603
 "Plaintive Cuckoo","Cacomantis merulinus",NA,"","X",7,NA,0.342857142857143,0.571428571428571,13.4285714285714,3.82211110949608
 "Gray-bellied Cuckoo","Cacomantis passerinus",NA,"","X",56,0.0357142857142857,0.252232142857143,0.553571428571429,9.10714285714286,1.30975014966422
@@ -240,8 +240,8 @@
 "Caspian Plover","Anarhynchus asiaticus",NA,"","",NA,NA,NA,NA,NA,NA
 "Kentish Plover","Anarhynchus alexandrinus",NA,"","X",35,0.0857142857142857,0.239285714285714,0.342857142857143,8.77142857142857,1.73658434188224
 "Common Ringed Plover","Charadrius hiaticula",NA,"","",NA,NA,NA,NA,NA,NA
-"Long-billed Plover","Charadrius placidus",NA,"","",NA,NA,NA,NA,NA,NA
-"Little Ringed Plover","Charadrius dubius",NA,"","X",93,0.0645161290322581,0.262096774193548,0.419354838709677,7.60215053763441,0.962264475819115
+"Long-billed Plover","Thinornis placidus",NA,"","",NA,NA,NA,NA,NA,NA
+"Little Ringed Plover","Thinornis dubius",NA,"","X",93,0.0645161290322581,0.262096774193548,0.419354838709677,7.60215053763441,0.962264475819115
 "Oriental Plover","Anarhynchus veredus",NA,"","",NA,NA,NA,NA,NA,NA
 "Greater Painted-Snipe","Rostratula benghalensis",NA,"","X",38,NA,0.236842105263158,0.421052631578947,9.42105263157895,1.82969246056873
 "Pheasant-tailed Jacana","Hydrophasianus chirurgus",NA,"","X",73,0.0410958904109589,0.273972602739726,0.575342465753425,8.08219178082192,1.11649074402491
@@ -314,7 +314,7 @@
 "Sooty Gull","Ichthyaetus hemprichii",NA,"","",NA,NA,NA,NA,NA,NA
 "Pallas's Gull","Ichthyaetus ichthyaetus",NA,"","X",12,0.0833333333333333,0.270833333333333,0.333333333333333,8.16666666666667,2.47020957684472
 "Common Gull","Larus canus",NA,"","",NA,NA,NA,NA,NA,NA
-"Herring Gull","Larus argentatus",NA,"","",NA,NA,NA,NA,NA,NA
+"Mongolian Gull","Larus mongolicus",NA,"","",NA,NA,NA,NA,NA,NA
 "Caspian Gull","Larus cachinnans",NA,"","",NA,NA,NA,NA,NA,NA
 "Lesser Black-backed Gull","Larus fuscus",NA,"","X",4,NA,0.5,NA,10.75,5.95439053696234
 "Brown Noddy","Anous stolidus",NA,"","",1,NA,1,NA,2,NA
@@ -354,7 +354,7 @@
 "Barau's Petrel","Pterodroma baraui",NA,"","",NA,NA,NA,NA,NA,NA
 "Jouanin's Petrel","Bulweria fallax",NA,"","",NA,NA,NA,NA,NA,NA
 "Streaked Shearwater","Calonectris leucomelas",NA,"","",NA,NA,NA,NA,NA,NA
-"Cory's Shearwater","Calonectris diomedea",NA,"","",NA,NA,NA,NA,NA,NA
+"Cory's Shearwater","Calonectris borealis",NA,"","",NA,NA,NA,NA,NA,NA
 "Flesh-footed Shearwater","Ardenna carneipes",NA,"","",NA,NA,NA,NA,NA,NA
 "Wedge-tailed Shearwater","Ardenna pacifica",NA,"","",NA,NA,NA,NA,NA,NA
 "Sooty Shearwater","Ardenna grisea",NA,"","",NA,NA,NA,NA,NA,NA
@@ -382,11 +382,11 @@
 "Great White Pelican","Pelecanus onocrotalus",NA,"","X",2,NA,0.5,NA,11.5,4.9
 "Spot-billed Pelican","Pelecanus philippensis",NA,"","X",48,0.0833333333333333,0.317708333333333,0.645833333333333,9.29166666666667,1.51164320827545
 "Dalmatian Pelican","Pelecanus crispus",NA,"","",NA,NA,NA,NA,NA,NA
-"Great Bittern","Botaurus stellaris",NA,"","",NA,NA,NA,NA,NA,NA
-"Yellow Bittern","Ixobrychus sinensis",NA,"","X",50,0.04,0.2425,0.46,8.74,1.37378170027119
-"Little Bittern","Ixobrychus minutus",NA,"","",NA,NA,NA,NA,NA,NA
-"Cinnamon Bittern","Ixobrychus cinnamomeus",NA,"","X",42,0.0238095238095238,0.238095238095238,0.523809523809524,10.1190476190476,1.62962179927494
-"Black Bittern","Ixobrychus flavicollis",NA,"","X",40,NA,0.260714285714286,0.55,9.9,1.63051654549355
+"Eurasian Bittern","Botaurus stellaris",NA,"","",NA,NA,NA,NA,NA,NA
+"Yellow Bittern","Botaurus sinensis",NA,"","X",50,0.04,0.2425,0.46,8.74,1.37378170027119
+"Little Bittern","Botaurus minutus",NA,"","",NA,NA,NA,NA,NA,NA
+"Cinnamon Bittern","Botaurus cinnamomeus",NA,"","X",42,0.0238095238095238,0.238095238095238,0.523809523809524,10.1190476190476,1.62962179927494
+"Black Bittern","Botaurus flavicollis",NA,"","X",40,NA,0.260714285714286,0.55,9.9,1.63051654549355
 "Gray Heron","Ardea cinerea",NA,"X","X",141,0.0425531914893617,0.318262411347518,0.517730496453901,6.90780141843972,0.73656896236954
 "White-bellied Heron","Ardea insignis",NA,"","",NA,NA,NA,NA,NA,NA
 "Goliath Heron","Ardea goliath",NA,"","",NA,NA,NA,NA,NA,NA
@@ -397,7 +397,7 @@
 "Little Egret","Egretta garzetta",NA,"X","X",204,0.0490196078431373,0.321078431372549,0.485294117647059,6.10294117647059,0.568244039677533
 "Western Reef-Heron","Egretta gularis",NA,"","X",27,0.111111111111111,0.263888888888889,0.407407407407407,8.88888888888889,2.30236774776835
 "Pacific Reef-Heron","Egretta sacra",NA,"","",NA,NA,NA,NA,NA,NA
-"Eastern Cattle Egret","Bubulcus coromandus",NA,"X","X",231,0.0346320346320346,0.351190476190476,0.54978354978355,5.74891774891775,0.522618514969652
+"Eastern Cattle-Egret","Ardea coromanda",NA,"X","X",231,0.0346320346320346,0.351190476190476,0.54978354978355,5.74891774891775,0.522618514969652
 "Indian Pond-Heron","Ardeola grayii",NA,"X","X",224,0.03125,0.364397321428571,0.535714285714286,5.86607142857143,0.53299977599504
 "Chinese Pond-Heron","Ardeola bacchus",NA,"","",NA,NA,NA,NA,NA,NA
 "Javan Pond-Heron","Ardeola speciosa",NA,"","",NA,NA,NA,NA,NA,NA
@@ -450,14 +450,14 @@
 "Pallid Harrier","Circus macrourus",NA,"","X",15,NA,0.266666666666667,0.333333333333333,8.8,2.05299391134022
 "Pied Harrier","Circus melanoleucos",NA,"","X",2,1,NA,NA,12.5,6.86
 "Montagu's Harrier","Circus pygargus",NA,"","X",17,0.0588235294117647,0.242647058823529,0.176470588235294,10.8823529411765,2.73535142254963
-"Crested Goshawk","Accipiter trivirgatus",NA,"","X",16,NA,0.25,0.5,8.375,2.56724463189623
-"Shikra","Accipiter badius",NA,"X","X",181,0.0386740331491713,0.312845303867403,0.486187845303867,6.54696132596685,0.606814781254645
-"Nicobar Sparrowhawk","Accipiter butleri",NA,"","",NA,NA,NA,NA,NA,NA
-"Chinese Sparrowhawk","Accipiter soloensis",NA,"","",NA,NA,NA,NA,NA,NA
-"Japanese Sparrowhawk","Accipiter gularis",NA,"","",NA,NA,NA,NA,NA,NA
-"Besra","Accipiter virgatus",NA,"","X",2,0.5,0.5,0.5,11,0
+"Crested Goshawk","Lophospiza trivirgata",NA,"","X",16,NA,0.25,0.5,8.375,2.56724463189623
+"Shikra","Tachyspiza badia",NA,"X","X",181,0.0386740331491713,0.312845303867403,0.486187845303867,6.54696132596685,0.606814781254645
+"Nicobar Sparrowhawk","Tachyspiza butleri",NA,"","",NA,NA,NA,NA,NA,NA
+"Chinese Sparrowhawk","Tachyspiza soloensis",NA,"","",NA,NA,NA,NA,NA,NA
+"Japanese Sparrowhawk","Tachyspiza gularis",NA,"","",NA,NA,NA,NA,NA,NA
+"Besra","Tachyspiza virgata",NA,"","X",2,0.5,0.5,0.5,11,0
 "Eurasian Sparrowhawk","Accipiter nisus",NA,"","X",3,NA,0.555555555555556,1,15,8.54344192933972
-"Eurasian Goshawk","Accipiter gentilis",NA,"","",NA,NA,NA,NA,NA,NA
+"Eurasian Goshawk","Astur gentilis",NA,"","",NA,NA,NA,NA,NA,NA
 "Red Kite","Milvus milvus",NA,"","",NA,NA,NA,NA,NA,NA
 "Black Kite","Milvus migrans",NA,"X","X",128,0.0625,0.34765625,0.453125,6.8828125,0.813915906934962
 "Brahminy Kite","Haliastur indus",NA,"","X",63,0.0952380952380952,0.277777777777778,0.412698412698413,7.88888888888889,1.32097305529809
@@ -472,7 +472,7 @@
 "Long-legged Buzzard","Buteo rufinus",NA,"","",NA,NA,NA,NA,NA,NA
 "Upland Buzzard","Buteo hemilasius",NA,"","",NA,NA,NA,NA,NA,NA
 "Australasian Grass-Owl","Tyto longimembris",NA,"","",NA,NA,NA,NA,NA,NA
-"Barn Owl","Tyto alba",NA,"","",22,NA,0.194805194805195,0.409090909090909,9.27272727272727,2.52107109162669
+"Eastern Barn Owl","Tyto javanica",NA,"","",22,NA,0.194805194805195,0.409090909090909,9.27272727272727,2.52107109162669
 "Andaman Masked-Owl","Tyto deroepstorffi",NA,"","",NA,NA,NA,NA,NA,NA
 "Oriental Bay-Owl","Phodilus badius",NA,"","",NA,NA,NA,NA,NA,NA
 "Sri Lanka Bay-Owl","Phodilus assimilis",NA,"","",NA,NA,NA,NA,NA,NA
@@ -630,7 +630,7 @@
 "Ashy Minivet","Pericrocotus divaricatus",NA,"","",NA,NA,NA,NA,NA,NA
 "Brown-rumped Minivet","Pericrocotus cantonensis",NA,"","",NA,NA,NA,NA,NA,NA
 "Rosy Minivet","Pericrocotus roseus",NA,"","X",9,NA,0.296296296296296,0.555555555555556,8.22222222222222,2.23421320423439
-"Large Cuckooshrike","Coracina macei",NA,"","X",44,0.0454545454545455,0.232954545454545,0.477272727272727,8.34090909090909,1.60195207533262
+"Indian Cuckooshrike","Coracina macei",NA,"","X",44,0.0454545454545455,0.232954545454545,0.477272727272727,8.34090909090909,1.60195207533262
 "Andaman Cuckooshrike","Coracina dobsoni",NA,"","",NA,NA,NA,NA,NA,NA
 "Pied Triller","Lalage nigra",NA,"","",NA,NA,NA,NA,NA,NA
 "Black-winged Cuckooshrike","Lalage melaschistos",NA,"","X",NA,NA,NA,NA,NA,NA
@@ -696,11 +696,11 @@
 "Andaman Treepie","Dendrocitta bayleii",NA,"","",NA,NA,NA,NA,NA,NA
 "Black-rumped Magpie","Pica bottanensis",NA,"","",NA,NA,NA,NA,NA,NA
 "Eurasian Magpie","Pica pica",NA,"","",NA,NA,NA,NA,NA,NA
-"Eurasian Nutcracker","Nucifraga caryocatactes",NA,"","",NA,NA,NA,NA,NA,NA
+"Southern Nutcracker","Nucifraga hemispila",NA,"","",NA,NA,NA,NA,NA,NA
 "Kashmir Nutcracker","Nucifraga multipunctata",NA,"","",NA,NA,NA,NA,NA,NA
 "Red-billed Chough","Pyrrhocorax pyrrhocorax",NA,"","",NA,NA,NA,NA,NA,NA
 "Yellow-billed Chough","Pyrrhocorax graculus",NA,"","",NA,NA,NA,NA,NA,NA
-"Eurasian Jackdaw","Corvus monedula",NA,"","",NA,NA,NA,NA,NA,NA
+"Eurasian Jackdaw","Coloeus monedula",NA,"","",NA,NA,NA,NA,NA,NA
 "House Crow","Corvus splendens",NA,"X","X",246,0.0447154471544715,0.385670731707317,0.556910569105691,5.56910569105691,0.50178988244681
 "Rook","Corvus frugilegus",NA,"","",NA,NA,NA,NA,NA,NA
 "Carrion Crow","Corvus corone",NA,"","",NA,NA,NA,NA,NA,NA
@@ -720,7 +720,7 @@
 "Azure Tit","Cyanistes cyanus",NA,"","",NA,NA,NA,NA,NA,NA
 "Ground Tit","Pseudopodoces humilis",NA,"","",NA,NA,NA,NA,NA,NA
 "Green-backed Tit","Parus monticolus",NA,"","",NA,NA,NA,NA,NA,NA
-"Cinereous Tit","Parus cinereus",NA,"","X",27,0.037037037037037,0.25462962962963,0.444444444444444,6.74074074074074,1.58863888748367
+"Asian Tit","Parus cinereus",NA,"","X",27,0.037037037037037,0.25462962962963,0.444444444444444,6.74074074074074,1.58863888748367
 "White-naped Tit","Machlolophus nuchalis",NA,"","X",3,NA,0.333333333333333,0.333333333333333,10,1.96
 "Himalayan Black-lored Tit","Machlolophus xanthogenys",NA,"","",NA,NA,NA,NA,NA,NA
 "Indian Yellow Tit","Machlolophus aplonotus",NA,"","X",19,NA,0.282894736842105,0.473684210526316,6.52631578947368,1.34369510238093
@@ -732,9 +732,9 @@
 "Black-crowned Sparrow-Lark","Eremopterix nigriceps",NA,"","",NA,NA,NA,NA,NA,NA
 "Ashy-crowned Sparrow-Lark","Eremopterix griseus",NA,"X","X",128,0.0390625,0.271484375,0.3671875,6.8359375,0.808718413851393
 "Singing Bushlark","Mirafra javanica",NA,"","",NA,NA,NA,NA,NA,NA
-"Bengal Bushlark","Mirafra assamica",NA,"","",NA,NA,NA,NA,NA,NA
-"Jerdon's Bushlark","Mirafra affinis",NA,"","X",82,0.0365853658536585,0.288109756097561,0.560975609756098,8.51219512195122,1.03956528791506
-"Indian Bushlark","Mirafra erythroptera",NA,"X","X",25,NA,0.22,0.16,7.32,1.57906760674351
+"Bengal Bushlark","Plocealauda assamica",NA,"","",NA,NA,NA,NA,NA,NA
+"Jerdon's Bushlark","Plocealauda affinis",NA,"","X",82,0.0365853658536585,0.288109756097561,0.560975609756098,8.51219512195122,1.03956528791506
+"Indian Bushlark","Plocealauda erythroptera",NA,"X","X",25,NA,0.22,0.16,7.32,1.57906760674351
 "Horned Lark","Eremophila alpestris",NA,"","",NA,NA,NA,NA,NA,NA
 "Greater Short-toed Lark","Calandrella brachydactyla",NA,"","X",8,0.125,0.234375,0.375,9,2.7219110933313
 "Mongolian Short-toed Lark","Calandrella dukhunensis",NA,"","",NA,NA,NA,NA,NA,NA
@@ -802,9 +802,8 @@
 "Barn Swallow","Hirundo rustica",NA,"X","X",170,0.0352941176470588,0.309558823529412,0.452941176470588,6.57058823529412,0.639623397365034
 "Wire-tailed Swallow","Hirundo smithii",NA,"","X",53,NA,0.205188679245283,0.283018867924528,9.0377358490566,1.36358461948146
 "Hill Swallow","Hirundo domicola",NA,"","",NA,NA,NA,NA,NA,NA
-"Pacific Swallow","Hirundo tahitica",NA,"","",NA,NA,NA,NA,NA,NA
-"Red-rumped Swallow","Cecropis daurica",NA,"X","X",124,0.032258064516129,0.278225806451613,0.419354838709677,7.12903225806452,0.787144620266969
-"Striated Swallow","Cecropis striolata",NA,"","",NA,NA,NA,NA,NA,NA
+"Pacific Swallow","Hirundo javanica",NA,"","",NA,NA,NA,NA,NA,NA
+"Eastern Red-rumped Swallow","Cecropis daurica",NA,"X","X",124,0.032258064516129,0.278225806451613,0.419354838709677,7.12903225806452,0.787144620266969
 "Streak-throated Swallow","Petrochelidon fluvicola",NA,"","X",31,0.032258064516129,0.189516129032258,0.290322580645161,8.38709677419355,1.78732693677202
 "Western House-Martin","Delichon urbicum",NA,"","",NA,NA,NA,NA,NA,NA
 "Asian House-Martin","Delichon dasypus",NA,"","",NA,NA,NA,NA,NA,NA
@@ -829,7 +828,7 @@
 "Yellow-browed Bulbul","Acritillas indica",NA,"","X",3,0.666666666666667,0.583333333333333,0.666666666666667,11.3333333333333,9.49021484360485
 "Black Bulbul","Hypsipetes leucocephalus",NA,"","",NA,NA,NA,NA,NA,NA
 "Square-tailed Bulbul","Hypsipetes ganeesa",NA,"","",NA,NA,NA,NA,NA,NA
-"Nicobar Bulbul","Ixos nicobariensis",NA,"","",NA,NA,NA,NA,NA,NA
+"Nicobar Bulbul","Hypsipetes nicobariensis",NA,"","",NA,NA,NA,NA,NA,NA
 "Ashy Bulbul","Hemixos flavala",NA,"","",NA,NA,NA,NA,NA,NA
 "Mountain Bulbul","Ixos mcclellandii",NA,"","",NA,NA,NA,NA,NA,NA
 "Wood Warbler","Phylloscopus sibilatrix",NA,"","",NA,NA,NA,NA,NA,NA
@@ -909,11 +908,11 @@
 "Manipur Fulvetta","Fulvetta manipurensis",NA,"","",NA,NA,NA,NA,NA,NA
 "Black-breasted Parrotbill","Paradoxornis flavirostris",NA,"","",NA,NA,NA,NA,NA,NA
 "Spot-breasted Parrotbill","Paradoxornis guttaticollis",NA,"","",NA,NA,NA,NA,NA,NA
-"Great Parrotbill","Conostoma aemodium",NA,"","",NA,NA,NA,NA,NA,NA
-"Brown Parrotbill","Cholornis unicolor",NA,"","",NA,NA,NA,NA,NA,NA
-"Gray-headed Parrotbill","Psittiparus gularis",NA,"","",NA,NA,NA,NA,NA,NA
-"White-breasted Parrotbill","Psittiparus ruficeps",NA,"","",NA,NA,NA,NA,NA,NA
-"Rufous-headed Parrotbill","Psittiparus bakeri",NA,"","",NA,NA,NA,NA,NA,NA
+"Great Parrotbill","Paradoxornis aemodius",NA,"","",NA,NA,NA,NA,NA,NA
+"Brown Parrotbill","Paradoxornis unicolor",NA,"","",NA,NA,NA,NA,NA,NA
+"Gray-headed Parrotbill","Paradoxornis gularis",NA,"","",NA,NA,NA,NA,NA,NA
+"White-breasted Parrotbill","Paradoxornis ruficeps",NA,"","",NA,NA,NA,NA,NA,NA
+"Rufous-headed Parrotbill","Paradoxornis bakeri",NA,"","",NA,NA,NA,NA,NA,NA
 "Fulvous Parrotbill","Suthora fulvifrons",NA,"","",NA,NA,NA,NA,NA,NA
 "Black-throated Parrotbill","Suthora nipalensis",NA,"","",NA,NA,NA,NA,NA,NA
 "Pale-billed Parrotbill","Suthora atrosuperciliaris",NA,"","",NA,NA,NA,NA,NA,NA
@@ -932,7 +931,7 @@
 "Golden Babbler","Cyanoderma chrysaeum",NA,"","",NA,NA,NA,NA,NA,NA
 "Black-chinned Babbler","Cyanoderma pyrrhops",NA,"","",NA,NA,NA,NA,NA,NA
 "Rufous-capped Babbler","Cyanoderma ruficeps",NA,"","",NA,NA,NA,NA,NA,NA
-"Buff-chested Babbler","Cyanoderma ambiguum",NA,"","X",2,NA,1,1,9,3.92
+"Rufous-fronted Babbler","Cyanoderma rufifrons",NA,"","X",2,NA,1,1,9,3.92
 "Rufous-throated Wren-Babbler","Spelaeornis caudatus",NA,"","",NA,NA,NA,NA,NA,NA
 "Mishmi Wren-Babbler","Spelaeornis badeigularis",NA,"","",NA,NA,NA,NA,NA,NA
 "Bar-winged Wren-Babbler","Spelaeornis troglodytoides",NA,"","",NA,NA,NA,NA,NA,NA
@@ -1208,9 +1207,9 @@
 "Persian Wheatear","Oenanthe chrysopygia",NA,"","",NA,NA,NA,NA,NA,NA
 "Bohemian Waxwing","Bombycilla garrulus",NA,"","",NA,NA,NA,NA,NA,NA
 "Hypocolius","Hypocolius ampelinus",NA,"","",NA,NA,NA,NA,NA,NA
-"Thick-billed Flowerpecker","Dicaeum agile",NA,"","X",36,0.0277777777777778,0.229166666666667,0.555555555555556,8.72222222222222,1.69401356998952
-"Yellow-vented Flowerpecker","Dicaeum chrysorrheum",NA,"","",NA,NA,NA,NA,NA,NA
-"Yellow-bellied Flowerpecker","Dicaeum melanozanthum",NA,"","",NA,NA,NA,NA,NA,NA
+"Thick-billed Flowerpecker","Pachyglossa agilis",NA,"","X",36,0.0277777777777778,0.229166666666667,0.555555555555556,8.72222222222222,1.69401356998952
+"Yellow-vented Flowerpecker","Pachyglossa chrysorrhea",NA,"","",NA,NA,NA,NA,NA,NA
+"Yellow-bellied Flowerpecker","Pachyglossa melanozantha",NA,"","",NA,NA,NA,NA,NA,NA
 "Pale-billed Flowerpecker","Dicaeum erythrorhynchos",NA,"","X",111,0.036036036036036,0.273648648648649,0.531531531531532,7.24324324324324,0.861044773849954
 "Nilgiri Flowerpecker","Dicaeum concolor",NA,"","",NA,NA,NA,NA,NA,NA
 "Plain Flowerpecker","Dicaeum minullum",NA,"","",NA,NA,NA,NA,NA,NA
@@ -1288,7 +1287,7 @@
 "Olive-backed Pipit","Anthus hodgsoni",NA,"","X",7,NA,0.321428571428571,0.285714285714286,8.14285714285714,3.58939177763216
 "Red-throated Pipit","Anthus cervinus",NA,"","",NA,NA,NA,NA,NA,NA
 "Water Pipit","Anthus spinoletta",NA,"","",NA,NA,NA,NA,NA,NA
-"American Pipit","Anthus rubescens",NA,"","",NA,NA,NA,NA,NA,NA
+"Siberian Pipit","Anthus japonicus",NA,"","",NA,NA,NA,NA,NA,NA
 "Common Chaffinch","Fringilla coelebs",NA,"","",NA,NA,NA,NA,NA,NA
 "Brambling","Fringilla montifringilla",NA,"","",NA,NA,NA,NA,NA,NA
 "Black-and-yellow Grosbeak","Mycerobas icterioides",NA,"","",NA,NA,NA,NA,NA,NA
@@ -1333,7 +1332,7 @@
 "Twite","Linaria flavirostris",NA,"","",NA,NA,NA,NA,NA,NA
 "Eurasian Linnet","Linaria cannabina",NA,"","",NA,NA,NA,NA,NA,NA
 "Red Crossbill","Loxia curvirostra",NA,"","",NA,NA,NA,NA,NA,NA
-"European Goldfinch","Carduelis carduelis",NA,"","",NA,NA,NA,NA,NA,NA
+"Gray-crowned Goldfinch","Carduelis caniceps",NA,"","",NA,NA,NA,NA,NA,NA
 "Fire-fronted Serin","Serinus pusillus",NA,"","",NA,NA,NA,NA,NA,NA
 "Tibetan Serin","Spinus thibetanus",NA,"","",NA,NA,NA,NA,NA,NA
 "Eurasian Siskin","Spinus spinus",NA,"","",NA,NA,NA,NA,NA,NA

@@ -1,4 +1,3 @@
-#
 # Script to run Part 3 Step 1a (variant of original)
 #
 # i.e. computing species trends

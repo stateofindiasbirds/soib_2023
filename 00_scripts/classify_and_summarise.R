@@ -12,6 +12,7 @@ cur_metadata <- get_metadata(cur_mask)
 # read paths
 speclist_path <- cur_metadata$SPECLISTDATA.PATH
 trends_pathonly <- cur_metadata$TRENDS.PATHONLY
+trends_outpath <- cur_metadata$TRENDS.OUTPATH
 
 # write paths
 lttsens_path <- cur_metadata$LTTSENS.PATH
@@ -45,13 +46,13 @@ main = read.csv(mainwocats_path) %>%
 run_res_trends <- ((1 %in% specieslist$ht) | (1 %in% specieslist$rt) |
                      (1 %in% restrictedspecieslist$ht) | (1 %in% restrictedspecieslist$rt)) &
   # edge cases (Tripura, Nagaland, Puducherry) where species selected, but trends could not be generated
-  (length(list.files(trends_pathonly)) != 0)
+  file.exists(trends_outpath)
 
 run_res_trends_LTT <- ((1 %in% specieslist$ht) | (1 %in% restrictedspecieslist$ht)) &
-  (length(list.files(trends_pathonly)) != 0)
+  file.exists(trends_outpath)
 
 run_res_trends_CAT <- ((1 %in% specieslist$rt) | (1 %in% restrictedspecieslist$rt)) &
-  (length(list.files(trends_pathonly)) != 0)
+  file.exists(trends_outpath)
 
 
 # if habitat/conservation area mask, we skip resolve_occu completely (take from full-country)
@@ -71,7 +72,7 @@ if (!cur_metadata$MASK.TYPE %in% c("country", "state")) {
 if (skip_res_occu == TRUE) {
   
   # take relevant columns from wocats file of full-country
-  tojoin <- get_metadata("none")$SOIBMAIN.WOCATS.PATH %>%
+  tojoin <- read.csv(get_metadata("none")$SOIBMAIN.WOCATS.PATH) %>%
     distinct(eBird.English.Name.2024, rangelci, rangemean, rangerci)
   
   # joining to main object
@@ -176,7 +177,7 @@ if (cur_metadata$MASK.TYPE == "state") {
   
   main_update <- left_join(main_toupdate, main_nat)
   
-  main_order = main %>% select(eBird.English.Name.2024)
+  main_order = main %>% dplyr::select(eBird.English.Name.2024)
   main <- main_order %>% 
     left_join(bind_rows(main_tokeep, main_update))
   
@@ -501,6 +502,7 @@ if (interannual_update == TRUE){
   
   main_past = read.csv(main_path)
   main_past_spec_col <- names(main_past)[1]
+  eBird_cur_tax = paste("eBird.English.Name.",soib_year_info("latest_year"),sep="")
   
   if (!file.exists(status_majupd_path)) { # for the 1st interannual update in one major update cycle
 
@@ -508,7 +510,7 @@ if (interannual_update == TRUE){
     
     # update to latest taxonomy and select category columns
     status_maj_upd = main_past %>%
-      dplyr::select(main_past_spec_col, SOIBv2.Long.Term.Status, SOIBv2.Current.Status,
+      dplyr::select(all_of(main_past_spec_col), SOIBv2.Long.Term.Status, SOIBv2.Current.Status,
                     SOIBv2.Range.Status, SOIBv2.Priority.Status) %>%
       left_join(ebird_tax_mapping(), by = main_past_spec_col) %>%
       # SOIB.v2 to be updated to SoIB.Latest in the next annual update
@@ -522,30 +524,32 @@ if (interannual_update == TRUE){
     # write latest major update file
     write.csv(status_maj_upd, file = status_majupd_path, row.names = FALSE)
     
-  } else { 
+  }
+  
+  # read csv of maj upd statuses
+  status_maj_upd = read.csv(status_majupd_path)
+  
+  if (!eBird_cur_tax %in% names(status_maj_upd) & file.exists(status_majupd_path)) {
     
-    # this would be for reruns during the same update cycle, or
-    # for later interannual updates during the same major update cycle
-    
-    # read csv of maj upd statuses
-    status_maj_upd = read.csv(status_majupd_path)
-    
-    if (file.exists(status_majupd_path) & (names(main)[1] != main_past_spec_col)) {
       # to ensure that it's brought to the correct taxonomy in the following years
       status_maj_upd <- status_maj_upd %>%
-        left_join(ebird_tax_mapping(), by = main_past_spec_col) %>% 
-        dplyr::select(names(main)[1], starts_with("SoIB.Major.Update"))
-    }
-
+        left_join(ebird_tax_mapping()) %>% 
+        group_by(eBird.English.Name.2024) %>% slice(1) %>%
+        dplyr::select(eBird_cur_tax, starts_with("SoIB.Major.Update"))
+      
+      write.csv(status_maj_upd, file = status_majupd_path, row.names = FALSE)
   }
+  
+  status_maj_upd <- status_maj_upd %>%
+    group_by(eBird.English.Name.2024) %>% slice(1)
     
-    # add to current main data, order with the major update columns at the end
-    main = main %>%
-      left_join(status_maj_upd, by = "eBird.English.Name.2024") %>%
-      # ensuring correct order of columns
-      relocate(SoIB.Major.Update.Long.Term.Status, SoIB.Major.Update.Current.Status,
-               SoIB.Major.Update.Range.Status, SoIB.Major.Update.Priority.Status,
-               .after = last_col()) 
+  # add to current main data, order with the major update columns at the end
+  main = main %>%
+    left_join(status_maj_upd, by = "eBird.English.Name.2024") %>%
+    # ensuring correct order of columns
+    relocate(SoIB.Major.Update.Long.Term.Status, SoIB.Major.Update.Current.Status,
+             SoIB.Major.Update.Range.Status, SoIB.Major.Update.Priority.Status,
+             .after = last_col()) 
   
 }
 
@@ -857,7 +861,7 @@ if (cur_metadata$MASK.TYPE == "country") {
                                            levels = c("High", "Moderate", "Low")),
            IUCN.Category = factor(IUCN.Category, levels = c(
              "Critically Endangered", "Endangered", "Vulnerable", "Near Threatened",
-             "Least Concern", "Not Recognised"
+             "Least Concern", "Not recognized"
            ))) %>%
     group_by(SoIB.Latest.Priority.Status, IUCN.Category) %>%
     tally() %>%
@@ -904,7 +908,7 @@ if (cur_metadata$MASK.TYPE == "country") {
                                                   levels = c("High", "Moderate", "Low")),
              IUCN.Category = factor(IUCN.Category, levels = c(
                "Critically Endangered", "Endangered", "Vulnerable", "Near Threatened",
-               "Least Concern", "Not Recognised"
+               "Least Concern", "Not recognized"
              ))) %>%
       group_by(SoIB.Latest.Priority.Status, IUCN.Category) %>%
       tally() %>%
@@ -1252,22 +1256,22 @@ if (cur_metadata$MASK.TYPE == "country") {
                           "Range Status" = status_range,
                           "Priority Status" = status_priority,
                           "Species qualification" = species_qual,
-                          "Interannual update: High Priority break-up" = high_priority_breakup_interannual_update,
+                          "Interannual update - High Priority break-up" = high_priority_breakup_interannual_update,
                           "SoIB major vs interannual update" = SoIB1_SoIB2_interannual_update,
                           "SoIB interannual vs major update" = SoIB2_SoIB1_interannual_update,
                           "SoIB interannual update vs IUCN (no.)" = SoIB_vs_IUCN_interannual_update,
                           "SoIB interannual update vs IUCN (IUCN %)" = SoIB_vs_IUCN_percIUCN_interannual_update,
                           "SoIB interannual update vs IUCN (SoIB %)" = SoIB_vs_IUCN_percSoIB_interannual_update,
-                          "Interannual update: Reason for uplisting" = reason_uplist_high_interannual_update,
-                          "Interannual update: Reason for downlisting" = reason_downlist_high_interannual_update,
-                          "Major update: High Priority break-up" = high_priority_breakup_major_update,
+                          "Interannual update - Reason for uplisting" = reason_uplist_high_interannual_update,
+                          "Interannual update - Reason for downlisting" = reason_downlist_high_interannual_update,
+                          "Major update - High Priority break-up" = high_priority_breakup_major_update,
                           "SoIB past vs major update" = SoIB1_SoIB2_major_update,
                           "SoIB major update vs past" = SoIB2_SoIB1_major_update,
                           "SoIB major update vs IUCN (no.)" = SoIB_vs_IUCN_major_update,
                           "SoIB major update vs IUCN (IUCN %)" = SoIB_vs_IUCN_percIUCN_major_update,
                           "SoIB major update vs IUCN (SoIB %)" = SoIB_vs_IUCN_percSoIB_major_update,
-                          "Major update: Reason for uplisting" = reason_uplist_high_major_update,
-                          "Major update: Reason for downlisting" = reason_downlist_high_major_update)
+                          "Major update - Reason for uplisting" = reason_uplist_high_major_update,
+                          "Major update - Reason for downlisting" = reason_downlist_high_major_update)
   } else {
     
     summaries_data = list("Trends Status" = status_trends,
@@ -1295,8 +1299,8 @@ if (cur_metadata$MASK.TYPE == "country") {
                           "Range Status" = status_range,
                           "Priority Status" = status_priority,
                           "Species qualification" = species_qual,
-                          "Interannual update: High Priority break-up" = high_priority_breakup_interannual_update,
-                          "Major update: High Priority break-up" = high_priority_breakup_major_update)
+                          "Interannual update - High Priority break-up" = high_priority_breakup_interannual_update,
+                          "Major update - High Priority break-up" = high_priority_breakup_major_update)
     
   } else {
     
@@ -1304,7 +1308,7 @@ if (cur_metadata$MASK.TYPE == "country") {
                           "Range Status" = status_range,
                           "Priority Status" = status_priority,
                           "Species qualification" = species_qual,
-                          "Major update: High Priority break-up" = high_priority_breakup_major_update)
+                          "Major update - High Priority break-up" = high_priority_breakup_major_update)
     
   }
   

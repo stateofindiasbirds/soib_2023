@@ -411,7 +411,7 @@ print(glue("Activated future-walking using advanced Kenbunshoku Haki!"))
 # start multiworker parallel session
 plan(multisession, workers = parallel::detectCores()/2)
 
-analyses_metadata %>% 
+analyses_metadata %>%
   pull(MASK) %>% 
   # future-walking over each mask
   future_walk(.progress = TRUE, .options = furrr_options(seed = TRUE), ~ {
@@ -445,6 +445,8 @@ tic.log()
 #   - trends/trendsX.csv for whole country and individual mask versions
 #   - X/SoIB_main_wocats.csv
 # Outputs: several
+
+load("00_data/analyses_metadata.RData")
 
 tic.clearlog()
 tic("Finished classifying and summarising for all masks") # 2 min

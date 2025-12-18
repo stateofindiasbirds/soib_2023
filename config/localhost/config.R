@@ -13,7 +13,7 @@ container <- FALSE
 # is not enough RAM. This may happen if running under
 # WSL, or a laptop with limited memory, etc
 # On a Mac, set this to the number of performance cores
-#threads <- 4
+threads <- 8
 
 # Mask
 # Defaults to whole country, i.e. "none"
@@ -21,7 +21,7 @@ cur_mask <- "none"
 
 # my_assignment : Which subset to process
 # if undefined, defaults to 1
-#my_assignment <- 1:1
+my_assignment <- 1:2
 
 # You may choose to process a subset of species by
 # defining those names here. An empty/absent list
@@ -61,4 +61,3 @@ species_to_process <- c(
 # 3 GB margin to account for no process kills on Mac. Higher
 # need for this if you set ram_interleave to FALSE
 #ram_safety_margin <- 3000
-

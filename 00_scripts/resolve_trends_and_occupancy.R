@@ -145,7 +145,8 @@ if (run_res_trends == FALSE) {
                        # Generate the full file paths
                        full.names = T) %>% 
     # Read each CSV file and combine them into a single data frame
-    map_df(read.csv) 
+    map_df(read.csv) %>%
+    mutate(timegroups = if_else(is.na(timegroups) & timegroupsf == "before 2000", 1990, timegroups))
   
   totsims = n_distinct(trends$sl)
   
@@ -267,7 +268,37 @@ if (run_res_trends == FALSE) {
       dplyr::select(-comb)
     
   }
+}
+
+if(!exists("trends"))
+{trends = data.frame(sl = NULL)}
+
+
+if (length(trends$sl) == 0)
+{
+  run_res_trends == FALSE
+  # list of columns that need to be created since we have skipped steps
+  na_columns <- c("longtermlci", "longtermmean", "longtermrci",     
+                  "currentslopelci", "currentslopemean", "currentsloperci", 
+                  get_iucn_proj_cols())
   
+  base = read.csv(base_path) %>% 
+    # if full column has no X at all, gets read as NAs
+    mutate(across(c(Long.Term.Analysis, Current.Analysis, Selected.SoIB),
+                  ~ as.character(.))) %>%
+    mutate(across(c(Long.Term.Analysis, Current.Analysis, Selected.SoIB),
+                  ~ replace_na(., ""))) %>%
+    dplyr::select(-SCIENTIFIC.NAME)
+  
+  main = read.csv("00_data/SoIB_mapping_2024.csv") %>% 
+    left_join(base, by = c("eBird.English.Name.2024" = "COMMON.NAME"))
+  
+  # creating NA columns to match structure of "normal" main data
+  main[, na_columns] <- NA_real_
+  
+  print(glue("Skipping resolving species trends for {cur_mask}"))
+  
+} else {
   
   # data filtering: extra metrics -------------------------------------------
   
@@ -328,7 +359,33 @@ if (run_res_trends == FALSE) {
                                         "", Long.Term.Analysis),
            Current.Analysis = if_else(eBird.English.Name.2024 %in% specsd3,
                                       "", Current.Analysis))
+}
+
+if (length(trends$sl) == 0)
+{
+  run_res_trends == FALSE
+  # list of columns that need to be created since we have skipped steps
+  na_columns <- c("longtermlci", "longtermmean", "longtermrci",     
+                  "currentslopelci", "currentslopemean", "currentsloperci", 
+                  get_iucn_proj_cols())
   
+  base = read.csv(base_path) %>% 
+    # if full column has no X at all, gets read as NAs
+    mutate(across(c(Long.Term.Analysis, Current.Analysis, Selected.SoIB),
+                  ~ as.character(.))) %>%
+    mutate(across(c(Long.Term.Analysis, Current.Analysis, Selected.SoIB),
+                  ~ replace_na(., ""))) %>%
+    dplyr::select(-SCIENTIFIC.NAME)
+  
+  main = read.csv("00_data/SoIB_mapping_2024.csv") %>% 
+    left_join(base, by = c("eBird.English.Name.2024" = "COMMON.NAME"))
+  
+  # creating NA columns to match structure of "normal" main data
+  main[, na_columns] <- NA_real_
+  
+  print(glue("Skipping resolving species trends for {cur_mask}"))
+  
+} else {
   
   # rewriting selected species for LTT and CAT
   spec_lt = main %>% 

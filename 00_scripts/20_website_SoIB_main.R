@@ -5,11 +5,31 @@ require(glue)
 require(writexl)
 
 load("00_data/maps_sf.RData") # for no. of cells in README
+load("00_data/current_soib_migyears.RData")
+load("00_data/analyses_metadata.RData")
+source("00_scripts/00_functions.R")
 source("00_scripts/20_functions.R")
+
+interannual_update = TRUE
+major_update = 2022
+use_major_update = TRUE
 
 # key states for each species
 keystates <- read.csv("01_analyses_full/results/key_state_species_full.csv") %>% 
   arrange(ST_NM, India.Checklist.Common.Name) 
+
+if (interannual_update == T)
+{
+  major_update_map = read.csv(paste("00_data/SoIB_mapping_",major_update,".csv",sep="")) %>%
+    dplyr::select(India.Checklist.Common.Name,eBird.English.Name.2022)
+  latest_map = read.csv(paste("00_data/SoIB_mapping_",latest_soib_my,".csv",sep=""))
+  tax_map = read.csv("00_data/eBird_taxonomy_mapping.csv")
+  
+  keystates = keystates %>%
+    left_join(major_update_map) %>%
+    left_join(tax_map) %>%
+    dplyr::select(ST_NM, eBird.English.Name.2024)
+}
 
 
 # import ----------------------------------------------------------------------------
@@ -19,17 +39,46 @@ main_db0 <- map2(get_metadata()$SOIBMAIN.PATH, get_metadata()$MASK,
                  ~ read_fn(.x) %>% bind_cols(tibble(MASK = .y))) %>% 
   list_rbind()
 
+if (use_major_update) {
+  analyses_metadata = analyses_metadata %>%
+    mutate(SOIBMAIN.MAJOR.PATH = paste(RESULTS,"past/SoIB_main_",major_update+1,".csv",sep=""))
+  
+  main_db_major_update <- map2(analyses_metadata$SOIBMAIN.MAJOR.PATH, get_metadata()$MASK, 
+                               ~ read_fn(.x) %>% bind_cols(tibble(MASK = .y))) %>% 
+    list_rbind() %>%
+    left_join(tax_map) %>%
+    dplyr::select(eBird.English.Name.2024,MASK,longtermlci,longtermmean,
+                  longtermrci,currentslopelci,currentslopemean,
+                  currentsloperci,rangelci,rangemean,rangerci) %>%
+    group_by(eBird.English.Name.2024,MASK) %>% slice(1)
+  
+  db_order = names(main_db0)
+  
+  main_db0 = main_db0 %>%
+    dplyr::select(-longtermlci,-longtermmean,
+                  -longtermrci,-currentslopelci,-currentslopemean,
+                  -currentsloperci,-rangelci,-rangemean,-rangerci) %>%
+    left_join(main_db_major_update) %>%
+    relocate(all_of(db_order))
+}
+
 # red list values
 redlist_proposed_spec <- c(
   "Northern Shoveler", "Baillon's Crake", "Terek Sandpiper", "Marsh Sandpiper", "Forest Wagtail",
   "Kentish Plover", "Spot-winged Starling", "Common Teal", "Garganey", "Great Grey Shrike",
-  "Blue Rock Thrush", "Lesser Sand Plover", "Little Ringed Plover", "Indian Roller",
+  "Blue Rock Thrush", "Tibetan Sand Plover", "Little Ringed Plover", "Indian Roller",
   "Common Sandpiper"
 )
 
-redlist <- read_csv("01_analyses_full/results/redlist.csv") %>% 
+# to change after new redlist.csv is produced
+redlist <- read_csv("01_analyses_full/results/redlist.csv") %>%
+  left_join(major_update_map, by = c("Species" = "India.Checklist.Common.Name")) %>%
+  left_join(tax_map) %>%
+  dplyr::select(-Species, -eBird.English.Name.2022, -eBird.English.Name.2023)
+
+redlist <- redlist %>% 
   filter(`3GEN` <= 14) %>% 
-  dplyr::select("Species", "3GEN Decline", "Redlist Category Proposed") %>% 
+  dplyr::select("eBird.English.Name.2024", "3GEN Decline", "Redlist Category Proposed") %>% 
   ### TEMP: correcting Near-threatened (already corrected in source script)
   mutate(`Redlist Category Proposed` = case_when(
     `Redlist Category Proposed` == "Near-threatened" ~ "Near Threatened",
@@ -37,10 +86,10 @@ redlist <- read_csv("01_analyses_full/results/redlist.csv") %>%
   )) %>% 
   # only list final 15 proposed in report
   mutate(`Redlist Category Proposed` = case_when(
-    Species %in% redlist_proposed_spec ~ `Redlist Category Proposed`, 
+    eBird.English.Name.2024 %in% redlist_proposed_spec ~ `Redlist Category Proposed`, 
     TRUE ~ NA_character_
   )) %>% 
-  magrittr::set_colnames(c("India.Checklist.Common.Name", 
+  magrittr::set_colnames(c("eBird.English.Name.2024", 
                            "Projected % Decline in 3 Generations",
                            "Regional Red List Category")) %>% 
   # these values only for country-level, and not for subnational
@@ -52,8 +101,6 @@ redlist <- read_csv("01_analyses_full/results/redlist.csv") %>%
 # process ---------------------------------------------------------------------------
 
 main_db <- main_db0 %>% 
-  # only species which maps to two species in eBird checklist (but RBDK is vagrant/historical)
-  filter(eBird.English.Name.2023 != "Rufous-backed Dwarf-Kingfisher") %>% 
   # converting binary columns to logical
   mutate(across(c("India.Endemic", "Subcontinent.Endemic", "Himalayas.Endemic"),
                 ~ case_when(. == "Yes" ~ TRUE, TRUE ~ FALSE)),
@@ -75,7 +122,7 @@ main_db <- main_db0 %>%
   # removing species that are not found in/relevant for mask
   # but for India, keeping all
   filter(MASK == "none" |
-           (MASK != "none" & !is.na(SoIB.Latest.Priority.Status))) %>%
+           (MASK != "none" & !is.na(SoIB.Major.Update.Priority.Status))) %>%
   ungroup() %>% 
   dplyr::select(-SPEC.ORDER) %>% 
   # round model estimates appropriately 
@@ -88,13 +135,16 @@ main_db <- main_db0 %>%
   # join Red List columns
   left_join(redlist) %>% 
   # TEMPORARY FIX for subnational SoIB Priority Status (retain national Status)
-  temp_priority_correction() %>% 
+  temp_priority_correction() %>%
+  # remove "latest" priorities
+  dplyr::select(-SoIB.Latest.Long.Term.Status,-SoIB.Latest.Current.Status,
+  -SoIB.Latest.Range.Status,-SoIB.Latest.Priority.Status) %>%
   # move columns
   relocate(
     "India.Checklist.Common.Name","India.Checklist.Scientific.Name",
-    "SoIB.Latest.Priority.Status","SoIB.Latest.Long.Term.Status",
-    "SoIB.Latest.Current.Status","SoIB.Latest.Range.Status",
-    "eBird.English.Name.2023","eBird.Scientific.Name.2023", 
+    "SoIB.Major.Update.Priority.Status","SoIB.Major.Update.Long.Term.Status",
+    "SoIB.Major.Update.Current.Status","SoIB.Major.Update.Range.Status",
+    "eBird.English.Name.2024","eBird.Scientific.Name.2024", 
     "BLI.Common.Name", "BLI.Scientific.Name","Order","Family",
     "Breeding.Activity.Period","Non.Breeding.Activity.Period","Diet.Guild",
     "Endemic.Region","India.Endemic","Subcontinent.Endemic","Himalayas.Endemic",
@@ -114,8 +164,8 @@ main_db <- main_db0 %>%
     "English Name","Scientific Name",
     "SoIB 2023 Priority Status","SoIB 2023 Long-term Trend Status",
     "SoIB 2023 Current Annual Trend Status","SoIB 2023 Distribution Range Size Status",
-    "eBird English Name 2023","eBird Scientific Name 2023",
-    "BLI English Name 2022","BLI Scientific Name 2022","Order","Family",
+    "eBird English Name","eBird Scientific Name",
+    "BLI English Name","BLI Scientific Name","Order","Family",
     "Breeding Activity Period","Non-breeding Activity Period","Diet Guild",
     "Endemicity","Endemic to India","Endemic to Subcontinent","Endemic to Himalaya",
     "Habitat Specialization","Migratory Status within India","Restricted to Islands",
@@ -267,26 +317,26 @@ readme <- tribble(
   "SoIB 2023 Long-term Trend Status", "Long-term Trend Status of species from SoIB 2023 assessment",
   "SoIB 2023 Current Annual Trend Status", "Current Annual Trend Status of species from SoIB 2023 assessment",
   "SoIB 2023 Distribution Range Size Status", "Distribution Range Size Status of species assigned from SoIB 2023 assessment",
-  "eBird English Name 2023", "English name of species in eBird/Clements Checklist 2023",
-  "eBird Scientific Name 2023", "Scientific name of species in eBird/Clements Checklist 2023",
-  "BLI English Name 2022", "English name of species in HBW/BLI Checklist 2022",
-  "BLI Scientific Name 2022", "Scientific name of species in HBW/BLI Checklist 2022",
+  "eBird English Name", "English name of species in eBird/Clements Checklist 2024",
+  "eBird Scientific Name", "Scientific name of species in eBird/Clements Checklist 2024",
+  "BLI English Name", "English name of species in HBW/BLI Checklist 2025",
+  "BLI Scientific Name", "Scientific name of species in HBW/BLI Checklist 2025",
   "Order", "Taxonomic Order to which species belongs",
   "Family", "Taxonomic Family to which species belongs",
   "Breeding Activity Period", "Breeding period of species, based on Wilman et al. 2014",
   "Non-breeding Activity Period", "Non-breeding period of species, based on Wilman et al. 2014",
   "Diet Guild", "Diet guild of species, based on Wilman et al. 2014",
-  "Endemicity", "Endemicity of species adapted from India Checklist v7.1 (https://indianbirds.in/india)",
+  "Endemicity", "Endemicity of species adapted from India Checklist v9.2 (https://indianbirds.in/india)",
   "Endemic to India", "Whether species is endemic to India",
   "Endemic to Subcontinent", "Whether species is endemic to the Indian subcontinent",
   "Endemic to Himalaya", "Whether species is endemic to the Himalaya",
   "Habitat Specialization", "Habitat specialization of species, based on Wilman et al. 2014",
   "Migratory Status within India", "Migratory status of species within India, assigned based on multiple sources",
   "Restricted to Islands", "Whether species is restricted to the islands of India",
-  "IUCN Category", "IUCN threat status category of species, based on India Checklist v7.1 (https://indianbirds.in/india)",
-  "WPA Schedule", "WPA Schedule of species, based on India Checklist v7.1 (https://indianbirds.in/india)",
-  "CITES Appendix", "CITES Appendix category of species, based on India Checklist v7.1 (https://indianbirds.in/india)",
-  "CMS Appendix", "CMS Appendix category of species, based on India Checklist v7.1 (https://indianbirds.in/india)",
+  "IUCN Category", "IUCN threat status category of species, based on India Checklist v9.2 (https://indianbirds.in/india)",
+  "WPA Schedule", "WPA Schedule of species, based on India Checklist v9.2 (https://indianbirds.in/india)",
+  "CITES Appendix", "CITES Appendix category of species, based on India Checklist v9.2 (https://indianbirds.in/india)",
+  "CMS Appendix", "CMS Appendix category of species, based on India Checklist v9.2 (https://indianbirds.in/india)",
   "1% Population Threshold", "Wetlands International estimate of the 1% biogeographic population size (individuals) of a waterbird species",
   "Selected for SoIB", "Whether species was selected for SoIB 2023 analyses",
   "Selected for Long-term Trend", "Whether species was selected for Long-term Trend analysis in SoIB 2023",
@@ -331,7 +381,7 @@ readme <- tribble(
 
 # for website table
 write_xlsx(x = readme[-(1:4), c("Field Name", "Description")],
-           path = "20_website/SoIB_2023_main_readme_forweb.xlsx")
+           path = "20_website/SoIB_2025_main_readme_forweb_2025.xlsx")
 
 
 # writing -----------------------------------------------------------------
@@ -356,7 +406,7 @@ main_db_split <- main_db_split[split_order] %>%
         dplyr::select(-MASK.LABEL))
 
 c(list(README = readme), main_db_split) %>% 
-  write_xlsx(path = "20_website/SoIB_2023_main.xlsx")
+  write_xlsx(path = "20_website/SoIB_2023_main_2025.xlsx")
 
 
 # writing individually for archive

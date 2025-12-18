@@ -53,7 +53,7 @@ Running this also overwrites these files which are under source control:
 - 00_data/eBird_location_data.csv
 - 00_data/indiaspecieslist.csv
 
-Next copy sensitive species map - maps_pa_sf.RData. I do it as follows:
+Next copy protected area map - maps_pa_sf.RData. I do it as follows:
 
     $ cp ~/biz/soib/data-packages/jul-30-ashwin/Spatial\ files/maps_pa_sf.RData 00_data/
 
@@ -69,7 +69,7 @@ Run p1s2.R
     user	8m4.873s
     sys	    0m14.636s
 
-Note thas step Does not change any tracked files.
+Note this step does not change any tracked files.
 
 ## Run Part 1, Step 3
 

@@ -7,10 +7,10 @@ temp_priority_correction <- function(db) {
   
   mapping <- db %>% 
     filter(MASK == "none") %>% 
-    distinct(India.Checklist.Common.Name, SoIB.Latest.Priority.Status)
+    distinct(India.Checklist.Common.Name, SoIB.Major.Update.Priority.Status)
   
   db %>% 
-    dplyr::select(-SoIB.Latest.Priority.Status) %>% 
+    dplyr::select(-SoIB.Major.Update.Priority.Status) %>% 
     left_join(mapping)
   
 }
@@ -94,7 +94,7 @@ join_mask_codes <- function(data) {
   
   
   # return dataframe with codes joined
-  data %>% 
+  datax = data %>% 
     left_join(codes, by = "MASK") %>% 
     # labels
     mutate(MASK.LABEL = case_when(
@@ -137,14 +137,14 @@ join_mask_codes <- function(data) {
 is_curspec_key4state <- function(data) {
   
   key_db <- keystates %>% 
-    distinct(ST_NM, India.Checklist.Common.Name) %>% 
+    distinct(ST_NM, eBird.English.Name.2024) %>% 
     mutate(KEY = TRUE)
   
   data <- data %>% 
     left_join(get_metadata() %>% distinct(MASK, MASK.TYPE)) %>% 
     join_mask_codes() %>% 
     left_join(key_db, 
-              by = c("MASK.LABEL" = "ST_NM", "India.Checklist.Common.Name")) %>% 
+              by = c("MASK.LABEL" = "ST_NM", "eBird.English.Name.2024")) %>% 
     complete(KEY, fill = list(KEY = FALSE)) %>% 
     mutate(KEY = case_when(MASK.TYPE == "state" ~ KEY,
                            TRUE ~ NA)) %>% 

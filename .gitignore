@@ -27,6 +27,8 @@
 00_data/vagrantdata.RData
 
 # for any mask
+dataforanalyses_2023.RData
+dataforanalyses.RData-data_opt
 dataforanalyses.RData 
 randomgroupids.RData
 # list length
@@ -34,6 +36,7 @@ randomgroupids_di.RData
 randomgroupids_du.RData
 
 # large CSVs
+randomgroupids/
 dataforsim/
 trends/
 occupancy-model/
