@@ -147,7 +147,7 @@ soib_year_info <- function(what = "latest_year", container=FALSE) {
   
   # extra years for IUCN projection
   if (what == "iucn_projection") {
-    extra.years = seq(latest_soib_my, length.out = 7) + 1
+    extra.years = seq(latest_soib_my, length.out = max(cat_years)-min(cat_years)-1) + 1
     return(extra.years)
   }
 
