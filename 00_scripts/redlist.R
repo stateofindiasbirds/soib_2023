@@ -17,8 +17,18 @@ proj_upp_lim <- gen10plus_cols[gen10plus_cols %>% str_detect(".rci")]
 
 
 # function to create projected_decline column from various years' proj values
-get_proj_decline_col <- function(data, gen) {
-  proj_year <- MinYear + gen # relation between GEN and projected year
+# Added extra protection for generating columns that are not present
+get_proj_decline_col <- function(gen) {
+
+  # Use the defined projection range from your stub
+  proj_years <- soib_year_info("iucn_projection")
+  
+  # Calculate potential projection year
+  proj_year <- soib_year_info("cat_start") + gen
+  
+  # Cap it to available projection years (e.g., up to 2029)
+  proj_year <- ifelse(proj_year > max(proj_years), max(proj_years), proj_year)
+  
   proj_col_name <- glue("proj{proj_year}.rci")
   return(proj_col_name)
 }
@@ -51,7 +61,7 @@ species <- soib %>%
     1.96 * abs(currentslopemean) > abs(currentsloperci-currentslopelci), 
     (SoIB.Latest.Current.Status %in% c("Stable", "Decline", "Rapid Decline"))
   ) %>%            
-  select('India.Checklist.Common.Name', 'BLI.Scientific.Name') %>%
+  select('BLI.Scientific.Name') %>%
   as.data.frame()
 
 
