@@ -154,7 +154,6 @@ if (to_run == TRUE) {
     
     # read data files for this step
     rgid_path <- paste0(rgids_path,"/rgids-", k, ".RData")
-      
     message(paste("Loading", rgid_path))
     load(rgid_path) # loads randomgroupids
 
