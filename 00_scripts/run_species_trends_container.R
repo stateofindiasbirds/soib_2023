@@ -14,6 +14,7 @@ if(container) {
 }
 speclist_path <- paste0(data_prefix, cur_metadata$SPECLISTDATA.PATH)
 databins_path <- paste0(data_prefix, cur_metadata$DATA.PATH) # for databins
+rgids_path <- paste0(data_prefix, cur_metadata$RAND.GROUP.IDS.PATH.ONLY)
 
 get_free_ram <- function() {
 #               total        used        free      shared  buff/cache   available
@@ -152,7 +153,7 @@ if (to_run == TRUE) {
     tictoc::tic(glue("Species trends for {cur_mask}: {k}/{max(cur_assignment)}"))
     
     # read data files for this step
-    rgid_path <- paste0(dirname(databins_path_data),"/rgids-", k, ".RData")
+    rgid_path <- paste0(rgids_path,"/rgids-", k, ".RData")
     message(paste("Loading", rgid_path))
     load(rgid_path) # loads randomgroupids
 
