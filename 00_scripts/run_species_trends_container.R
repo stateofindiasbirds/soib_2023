@@ -146,13 +146,16 @@ if (to_run == TRUE) {
       }
     }
     data_path = cur_metadata %>% 
-      dplyr::summarise(SIMDATA.PATH = glue("{data_prefix}{SIMDATA.PATHONLY}data{k}.RData_opt")) %>%
+      dplyr::summarise(SIMDATA.PATH = glue("{data_prefix}{FOLDER}data{k}.RData_opt")) %>%
       as.character()
     
     tictoc::tic(glue("Species trends for {cur_mask}: {k}/{max(cur_assignment)}"))
     
     # read data files for this step
-    rgid_path <- paste0(dirname(databins_path_data),"/rgids-", k, ".RData")
+    rgid_path <- cur_metadata %>% 
+      dplyr::summarise(RAND.GROUP.IDS.PATH = glue("{data_prefix}{RAND.GROUP.IDS.PATH.ONLY}rgids-{k}.RData")) %>%
+      as.character()
+      
     message(paste("Loading", rgid_path))
     load(rgid_path) # loads randomgroupids
 
