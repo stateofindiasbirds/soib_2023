@@ -1181,7 +1181,7 @@ expandbyspecies = function(data, species)
 # faster version of this function using data.table and dtplyr
 # optimising runtime
 # previous expandbyspecies() to be retired entirely in next annual update
-expand_dt = function(data, species, singleyear = FALSE) {
+  expand_dt = function(data, species, singleyear = FALSE) {
 
   setDT(data)
 
