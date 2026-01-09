@@ -147,7 +147,7 @@ if (run_res_trends == FALSE) {
   
   trends_files <- trends[!file.info(trends)$isdir]
   
-  trends <- trends_files %>%
+  trends <- trends_files %>% 
     # Read each CSV file and combine them into a single data frame
     map_df(read.csv) %>%
     mutate(timegroups = if_else(is.na(timegroups) & timegroupsf == "before 2000", 1990, timegroups))
