@@ -33,7 +33,7 @@ analyses_metadata <- data.frame(MASK = c("none",
          LOCS.PATH = glue("{FOLDER}sub_samp_locs.csv"),
          SPECLISTDATA.PATH = glue("{FOLDER}specieslists.RData"),
          DATA.PATH = glue("{FOLDER}dataforanalyses.RData"),
-         RAND.GROUP.IDS.PATH = glue("{FOLDER}randomgroupids/randomgroupids.RData"),
+         RAND.GROUP.IDS.PATH.ONLY = glue("{FOLDER}randomgroupids/"),
          
          SIMDATA.PATHONLY = glue("{FOLDER}dataforsim/"),
          TRENDS.PATHONLY = glue("{FOLDER}trends/"),
@@ -94,6 +94,10 @@ walk2(analyses_metadata$WEB.PLOTS.FOLDER, analyses_metadata$PLOT.SINGLE.FOLDER, 
   
   if (!dir.exists(.y)) {dir.create(.y, recursive = TRUE)}
   
+})
+
+walk(analyses_metadata$RAND.GROUP.IDS.PATH.ONLY, ~ {
+  if (!dir.exists(.x)) {dir.create(.x, recursive = TRUE)}
 })
 
 # subfolder for trends
