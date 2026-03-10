@@ -1,5 +1,7 @@
 require(tidyverse)
 
+interannual_update = TRUE
+
 source("00_scripts/02_generate_plots.R")
 source("00_scripts/00_plot_functions.R")
 

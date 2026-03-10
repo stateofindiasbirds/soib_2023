@@ -1,3 +1,185 @@
+# Walk function
+# This function is now defined outside the soib_rangemap function and arguments are
+# passed explicitly. Previously, the walk function relied on exporting heavy objects
+# from the environment into each worker during parallelization. 
+# The change makes it explicit the objects to be exported and the heavy objects are instead
+# loaded into each working instead of loading it to the environment and exporting to each worker.  
+
+to_walk <- function(.x,
+                    occ_final,
+                    vagrant_presence,
+                    cur_g1_sf,
+                    admin_sf,
+                    cur_state_sf = NULL,
+                    palette_range_groups,
+                    bb,
+                    x_range = NULL,
+                    y_range = NULL,
+                    cur_metadata,
+                    specieslist,
+                    haki = FALSE) {
+  
+  load("00_data/map_DEM.RData")
+  
+  if (!haki) {
+    tic("Walked over one species")
+  }
+  
+  stamp <- image_convert(image_read("SoIB_logo.png"), matte = T)
+  
+  pad <- 0.02
+  w   <- 0.18
+  info <- image_info(stamp)
+  h <- w * info$height / info$width
+  
+  stamp <- as.raster(stamp)
+  
+  
+  if (cur_metadata$MASK.TYPE == "country") {
+    
+    plot_base <- ggplot() +
+      geom_raster(data = map_dem_in,
+                  aes(x = x, y = y, fill = codes),
+                  alpha = 0.3) +
+      scale_fill_grey(na.value = "transparent", guide = "none")
+    
+  } else if (cur_metadata$MASK.TYPE == "state") {
+    
+    plot_base <- ggplot() +
+      geom_sf(data = cur_state_sf,
+              col = NA,
+              fill = "grey80",
+              alpha = 0.6)
+  }
+  
+  plot_base <- plot_base +
+    scale_x_continuous(expand = c(0,0)) +
+    scale_y_continuous(expand = c(0,0))
+  
+  
+  cur_data_occ <- occ_final %>% 
+    filter(COMMON.NAME == .x) %>% 
+    left_join(palette_range_groups,
+              by = c("status" = "LABEL.CODE")) %>% 
+    right_join(cur_g1_sf,
+               by = c("gridg1" = "GRID.G1")) %>% 
+    st_as_sf()
+  
+  cur_data_vag <- vagrant_presence %>% 
+    filter(COMMON.NAME == .x) %>% 
+    left_join(palette_range_groups,
+              by = c("status" = "LABEL.CODE"))
+  
+  all_statuses <- bind_rows(
+    st_drop_geometry(cur_data_occ),
+    cur_data_vag
+  ) %>% 
+    distinct(LABEL, COLOUR)
+  
+  # ------------------ OUTPUT PATHS ------------------
+  
+  converted_spec <- specname_to_india_checklist(.x,
+                                                already_show = FALSE)
+  
+  web_spec <- str_replace_all(converted_spec,
+                              c(" " = "-", "'" = "_"))
+  
+  path_map <- glue("{cur_metadata$MAP.FOLDER}{web_spec}_{cur_metadata$MASK.CODE}_map_2025.png")
+  
+  path_map_web <- glue("{cur_metadata$WEB.MAP.FOLDER}{web_spec}_{cur_metadata$MASK.CODE}_map_2025.jpg")
+  
+  
+  cur_plot_base <- plot_base +
+    new_scale_fill() +
+    geom_rangemap_occ(cur_data_occ,
+                      admin_sf,
+                      cur_data_vag) +
+    scale_alpha_identity() +
+    scale_fill_identity(
+      guide = guide_legend(title = NULL),
+      labels = levels(all_statuses$LABEL),
+      breaks = levels(all_statuses$COLOUR)
+    ) +
+    scale_colour_identity() +
+    ggtheme_soibrangemap()
+  
+ # For country
+
+  if (cur_metadata$MASK.TYPE == "country") {
+  cur_plot <- cur_plot_base +
+    new_scale_fill() +
+    geom_rangemap_occ(cur_data_occ, admin_sf, cur_data_vag) +
+    # using identity scale since we have specified the column of hexcodes in aes of geom
+    scale_alpha_identity() +
+    scale_fill_identity(guide = guide_legend(title = NULL),
+                        labels = levels(all_statuses$LABEL),
+                        breaks = levels(all_statuses$COLOUR)) +
+    scale_colour_identity() +
+    # theme
+    ggtheme_soibrangemap() +
+    annotation_raster(stamp,
+                      xmin = bb["xmax"] - w * x_range,
+                      xmax = bb["xmax"] - pad * x_range,
+                      ymin = bb["ymax"] - h * y_range,
+                      ymax = bb["ymax"] - pad * y_range)
+  
+  
+  # writing maps
+  ggsave(filename = path_map, plot = cur_plot,
+         dpi = 1000, bg = "white",
+         width = 7, height = 7, units = "in")
+  
+  ggsave(filename = path_map_web, plot = cur_plot,
+         dpi = 1000, bg = "white",
+         width = 7, height = 7, units = "in")
+  
+  } 
+  
+  if (cur_metadata$MASK.TYPE == "state") {
+    
+  # Top row containing logo
+  logo_row <- cowplot::ggdraw() +
+    cowplot::draw_image(
+      "SoIB_logo.png",
+      x = 1,          # right edge
+      y = 1,          # top edge
+      hjust = 1,
+      vjust = 1,
+      width = 0.25    # adjust size here
+    )
+  
+  # Combine logo row + map
+  cur_plot <- cowplot::plot_grid(
+    logo_row,
+    cur_plot_base,
+    ncol = 1,
+    rel_heights = c(1, 8)
+  )
+  
+  ggsave(filename = path_map,
+         plot = cur_plot,
+         dpi = 1000,
+         bg = "white",
+         width = 9, #8,
+         height = 9,
+         units = "in")
+  
+  ggsave(filename = path_map_web,
+         plot = cur_plot,
+         dpi = 1000,
+         bg = "white",
+         width = 9,
+         height = 9,
+         units = "in")
+  
+  }
+  
+  if (!haki) {
+    toc()
+  }
+}
+
+
 # reference grid lines --------------------------------------------------------------
 
 # we have to manually create grid lines because we want empty space before t=1
@@ -25,7 +207,7 @@ geom_gridline <- function(index_y = NULL, baseline = FALSE) {
     ann_size <- 6
     ann_lab <- plot_ybreaks_lab[index_y]
     ann_fontface <- 1
-  
+    
   }
   
   if (analysis_type == "sysmon") {
@@ -51,18 +233,18 @@ geom_gridline <- function(index_y = NULL, baseline = FALSE) {
 # x-axis brackets -------------------------------------------------------------------
 
 geom_axisbracket <- function(bracket_type = "time", bracket_trend = cur_trend) {
-
-  if (bracket_type == "time") {
-
-  bracket_min <- timegroups_bracket_min
-  bracket_max <- timegroups_bracket_max
-  bracket_ypos <- plot_ymin0 - 0.01 * plot_range_max
-  bracket_lab <- timegroups_lab[-1]
-  bracket_tiplength <- 0
-  bracket_labelsize <- 4.8
-  bracket_fontface <- 1
-  bracket_vjust <- 2.5
   
+  if (bracket_type == "time") {
+    
+    bracket_min <- timegroups_bracket_min
+    bracket_max <- timegroups_bracket_max
+    bracket_ypos <- plot_ymin0 - 0.01 * plot_range_max
+    bracket_lab <- timegroups_lab[-1]
+    bracket_tiplength <- 0
+    bracket_labelsize <- 4.8
+    bracket_fontface <- 1
+    bracket_vjust <- 2.5
+    
   } else if (bracket_type == "trend") {
     
     if (bracket_trend == "CAT") {
@@ -81,7 +263,7 @@ geom_axisbracket <- function(bracket_type = "time", bracket_trend = cur_trend) {
   }
   
   bracket_shorten <- 0.15
-
+  
   if (analysis_type == "sysmon") {
     
     if (plot_type == "bustards") {
@@ -243,7 +425,8 @@ ggtheme_soibrangemap <- function() {
           plot.background = element_rect(fill = "transparent", colour = NA),
           panel.background = element_rect(fill = "transparent", colour = NA)) +
     theme(legend.position = "bottom",
-          legend.text = element_text(colour = palette_plot_elem, size = 12),
+          legend.text = element_text(colour = palette_plot_elem, size = 12, 
+                                     margin = margin(l = 12, r = 15)),
           legend.box.margin = margin(3, 0, 0, 0))
   
 }
@@ -291,7 +474,7 @@ plot_import_data <- function(mask, import_trend = fn_cur_trend, import_plot_type
   } else {
     
     # load data ---------------------------------------------------------------
-
+    
     data_main <- read.csv(cur_metadata$SOIBMAIN.PATH) %>%
       add_mask_titles(mask)
     
@@ -360,19 +543,22 @@ plot_import_data <- function(mask, import_trend = fn_cur_trend, import_plot_type
     
     
     # return ----------------------------------------------------------------------------
-
-    return(list(spec_qual = spec_qual, data_trends = data_trends, data_main = data_main))
-
-  }
     
+    return(list(spec_qual = spec_qual, data_trends = data_trends, data_main = data_main))
+    
+  }
+  
 }
 
 # load appropriate data and filter for species qualified for plotting ------------------
 
 plot_load_filter_data <- function(fn_plot_type, fn_cur_trend, fn_cur_mask = "none") {
   
+  # fn_plot_type <- "single"
+  # fn_cur_trend <- "LTT"
+  # fn_cur_mask <- "none"
   # metadata and paths --------------------------------------------------
-
+  
   if (fn_plot_type == "single") {
     
     cur_metadata <- get_metadata("none") %>% 
@@ -394,8 +580,12 @@ plot_load_filter_data <- function(fn_plot_type, fn_cur_trend, fn_cur_mask = "non
       } else if (fn_plot_type == "composite") {
         mutate(., CUR.OUT.PATH = PLOT.COMPOSITE.FOLDER)
       }}
-
+    
   }
+  
+  # path_write <- cur_metadata %>% 
+  #     mutate(., PLOT.OUTPATH = case_when(fn_cur_trend == "LTT" ~ glue("{CUR.OUT.PATH}long-term trends/"),
+  #                                        fn_cur_trend == "CAT" ~ glue("{CUR.OUT.PATH}current trends/")))
   
   path_write <- cur_metadata %>% 
     {if (!(fn_plot_type %in% c("multi", "composite"))) {
@@ -412,7 +602,7 @@ plot_load_filter_data <- function(fn_plot_type, fn_cur_trend, fn_cur_mask = "non
     }} %>% 
     pull(PLOT.OUTPATH) %>% 
     unique()
-
+  
   # create path(s) if doesn't exist
   walk(path_write, ~ {
     if (!dir.exists(.x)) {dir.create(.x, recursive = TRUE)}
@@ -439,11 +629,11 @@ plot_load_filter_data <- function(fn_plot_type, fn_cur_trend, fn_cur_mask = "non
                                           import_plot_type = fn_plot_type)
   ) %>% 
     # remove NULL elements, which are masks whose data file(s) are missing
-    purrr::compact() 
+    purrr::compact()  # SO: Interannual_update value is required
   
   data_main <- map(data_processed, pluck, "data_main") %>% bind_rows()
   data_trends <- map(data_processed, pluck, "data_trends") %>% bind_rows()
-
+  
   # for mask comparison, even though we have filtered each mask's trends for its qual. spp.,
   # we want an additional filter so that comparisons are only made for those species in masks
   # that are also there in full-country data
@@ -478,8 +668,8 @@ plot_load_filter_data <- function(fn_plot_type, fn_cur_trend, fn_cur_mask = "non
       pull(eBird.English.Name.2024)
     
   }
-
-
+  
+  
   # assigning necessary objects to global environment ---------------------------------
   
   obj_list2 <- list(spec_qual = spec_qual, data_trends = data_trends,
@@ -487,7 +677,7 @@ plot_load_filter_data <- function(fn_plot_type, fn_cur_trend, fn_cur_mask = "non
   
   list2env(obj_list2, envir = .GlobalEnv)
   
-
+  
 }
 
 # fetch plot metadata for multi and composite graphs --------------------------------
@@ -553,8 +743,8 @@ fetch_plot_metadata <- function(plot_type) {
     cur_trend <- "LTT"
     data_processed <- plot_import_data("none", cur_trend, plot_type)
     data_main <- data_processed %>% pluck("data_main") %>% bind_rows()
-
-
+    
+    
     data1 <- data_main %>% 
       mutate(GROUP = case_when(Diet.Guild == "" ~ NA_character_, 
                                Diet.Guild == "Fruit & Nect" ~ "Fruit & Nectar",
@@ -646,7 +836,7 @@ fetch_plot_metadata <- function(plot_type) {
       filter(!is.na(GROUP)) %>% 
       distinct(GROUP, Order, Habitat.Specialization) %>% 
       mutate(PLOT.NAME = "Raptor Habitat Specialisations")
-
+    
     
     # mask composites
     
@@ -667,7 +857,7 @@ fetch_plot_metadata <- function(plot_type) {
       filter(!is.na(GROUP)) %>% 
       distinct(GROUP, eBird.English.Name.2024) %>% 
       mutate(PLOT.NAME = "Open Natural Ecosystems & Cropland")
-
+    
     
     plot_load_filter_data(plot_type, cur_trend, "PA")
     
@@ -699,7 +889,7 @@ fetch_plot_metadata <- function(plot_type) {
     rm(list = c("spec_qual", "data_trends", "data_main", "path_write"), 
        envir = .GlobalEnv)
     
-
+    
     return(plot_metadata)
     
   }
@@ -758,15 +948,15 @@ fetch_sysmon_metadata <- function(cur_case) {
 # generate summary of composites ----------------------------------------------------
 
 create_composite_summary <- function(metadata, init_obj) {
-
+  
   summary_composite <- metadata %>% 
     rename(COMPOSITE.NO = PLOT.NO, COMPOSITE.NAME = PLOT.NAME) %>% 
     # converting to India Checklist names
     mutate(PLOT.SPEC = specname_to_india_checklist(PLOT.SPEC),
            SoIB.Latest.Priority.Status = case_when(SoIB.Latest.Priority.Status == "Moderate" ~ "MOD",
-                                              TRUE ~ str_to_upper(SoIB.Latest.Priority.Status))) %>% 
+                                                   TRUE ~ str_to_upper(SoIB.Latest.Priority.Status))) %>% 
     mutate(SoIB.Latest.Priority.Status = factor(SoIB.Latest.Priority.Status,
-                                           levels = c("HIGH", "MOD", "LOW"))) %>% 
+                                                levels = c("HIGH", "MOD", "LOW"))) %>% 
     group_by(COMPOSITE.NO, COMPOSITE.NAME, GROUP, SoIB.Latest.Priority.Status) %>% 
     dplyr::summarise(NO.SPEC = n_distinct(PLOT.SPEC),
                      LIST.SPEC = str_flatten_comma(PLOT.SPEC)) %>% 
@@ -775,7 +965,7 @@ create_composite_summary <- function(metadata, init_obj) {
   init_obj <- init_obj %>% left_join(summary_composite)
   
   return(init_obj)
-
+  
 }
 
 # ### PLOT: SoIB 2023 trend -------------------------------------------------------------
@@ -784,9 +974,22 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
                             data_trends, data_main, path_write,
                             cur_plot_metadata, haki = FALSE) {
   
+  # plot_type <- "single_mask"
+  # cur_trend <- "LTT"
+  # cur_spec <- "Asian Fairy-bluebird"
+  # data_trends <- data_trends
+  # data_main <- data_main
+  # path_write <- path_write
+  # cur_plot_metadata <- web_metadata
+  # haki = FALSE
+  
   # don't try to plot if species is not qualified for current trend-mask combo
-  if (!(cur_spec %in% spec_qual)) {
-    stop("Selected species is not qualified for current trend analysis for current mask!")
+  # any() is added to prevent error when plot_type = multi. Without any(), 
+  # cur_spec is a vector and the if condition fails
+  if(plot_type %in% c("single", "single_mask", "multi")){
+    if (!(any((cur_spec) %in% spec_qual))) {
+      stop("Selected species is not qualified for current trend analysis for current mask!")
+    }
   }
   
   require(tidyverse)
@@ -796,6 +999,7 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
   require(ggrepel) # text repel
   require(tictoc)
   require(magick) # for stamp
+  source('00_scripts/00_functions.R')
   
   analysis_type <- "ebird"
   
@@ -832,7 +1036,7 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     path_write_file <- "20_website/graphs/insufficient_data.png"
     
   } else if (!(plot_type %in% c("multi", "composite"))) {
-
+    
     # for website (originated that way, but now PNG works for both)
     source("00_scripts/20_functions.R")
     cur_plot_metadata <- join_mask_codes(cur_plot_metadata)
@@ -840,7 +1044,7 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     web_spec <- str_replace_all(cur_spec, c(" " = "-", "'" = "_"))
     web_mask <- cur_plot_metadata$MASK.CODE
     path_write_file <- glue("{path_write}{web_spec}_{web_mask}_{cur_trend}_trend.png")
-
+    
   } else {
     path_write_file <- glue("{path_write}{unique(cur_plot_metadata$FILE.NAME)}.png")
   }
@@ -864,19 +1068,31 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     }
     
     # don't plot full-country trend line (which does not have CI band) if it is Inconclusive
-    # single-species will always plot Inconclusive
+    # single-species will always plot Inconclusive. 
+    # For interannual updates, we currently use the Latest Long term and
+    # Current Status. However, for the 2025 update, we want to retain the 
     
     if (plot_type == "single_mask") {
       
-      plot_full_country <- data_main %>% 
-        filter(eBird.English.Name.2024 %in% cur_spec,
-               MASK == "none") %>% 
-        {if (cur_trend == "LTT") {
-          pull(., SoIB.Latest.Long.Term.Status)
-        } else if (cur_trend == "CAT") {
-          pull(., SoIB.Latest.Current.Status)
-        }}
-      
+      if(interannual_update == TRUE){
+        plot_full_country <- data_main %>% 
+          filter(eBird.English.Name.2024 %in% cur_spec,
+                 MASK == "none") %>% 
+          {if (cur_trend == "LTT") {
+            pull(., SoIB.Major.Update.Long.Term.Status)
+          } else if (cur_trend == "CAT") {
+            pull(., SoIB.Major.Update.Current.Status)
+          }}
+      } else {
+        plot_full_country <- data_main %>% 
+          filter(eBird.English.Name.2024 %in% cur_spec,
+                 MASK == "none") %>% 
+          {if (cur_trend == "LTT") {
+            pull(., SoIB.Latest.Long.Term.Status)
+          } else if (cur_trend == "CAT") {
+            pull(., SoIB.Latest.Current.Status)
+          }}
+      }
     }
     
   } else {
@@ -905,25 +1121,28 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     timegroups_lab <- c("before 2000", "2000-2006", "2007-2010", "2011-2012", 
                         "", "2014", "", "2016", "", "2018", "", 
                         "2020", "", "2022", "", "2024")
-    timegroups_bracket_min <- c(1999, 2006, 2010, 2012, seq(2013, 2023)) + 0.5
-    timegroups_bracket_max <- c(2006, 2010, 2012, seq(2013, 2024)) + 0.5
+    timegroups_bracket_min <- c(1999, 2006, 2010, 2012, seq(2013, soib_year_info("latest_year")-1)) + 0.5
+    timegroups_bracket_max <- c(2006, 2010, 2012, seq(2013, soib_year_info("latest_year"))) + 0.5
     plot_ytitle_margin <- margin(0, -0.6, 0, 0.4, "cm")
     plot_ylab_size = 22
-    plot_xlimits <- c(1999.5, 2024.5)
-    plot_gridline_x <- 2024.3
+    #plot_xlimits <- c(1999.5, 2024.5)
+    plot_xlimits <- c(1999.5, soib_year_info("latest_year")+2.5) # SO: Changed 2024.5 to 2026.5
+    #plot_gridline_x <- 2024.3
+    plot_gridline_x <- soib_year_info("latest_year")+1.3 # SO: Changed 2024.3 to 2026.3
     plot_baseline_lab <- "Pre-2000\nbaseline"
     plot_repel_nudge <- -1.5
     plot_xmin_minus <- 0.22
     
   } else if (cur_trend == "CAT") {
     
-    timegroups_lab <- c("2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022")
-    timegroups_bracket_min <- seq(2015, 2023) + 0.5
-    timegroups_bracket_max <- seq(2016, 2024) + 0.5
+    timegroups_lab <- c("2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024")
+    timegroups_bracket_min <- seq(2015, soib_year_info("latest_year")-1) + 0.5
+    timegroups_bracket_max <- seq(2016, soib_year_info("latest_year")) + 0.5
     plot_ytitle_margin <- margin(0, 0.6, 0, 0.4, "cm")
     plot_ylab_size = 22
-    plot_xlimits <- c(2015.09, 2024.1)
-    plot_gridline_x <- 2023.7
+    #plot_xlimits <- c(2015.09, 2024.1)
+    plot_xlimits <- c(2015.09, soib_year_info("latest_year")+1.1) #c(2015.09, 2026.1) # SO: Changed 2024.1 to 2026.1
+    plot_gridline_x <- soib_year_info("latest_year")+0.7 #2023.7 # SO: Changed 2023.7 to 2025.7
     plot_baseline_lab <- "2015\nbaseline"
     plot_repel_nudge <- -0.57
     plot_xmin_minus <- 0.1
@@ -985,9 +1204,11 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     
     plot_xmin <- 2003
     timegroups_bracket_min <- c(1999 - (2003 - plot_xmin), 
-                                2006, 2010, 2012, seq(2013, 2021)) + 0.5
+                                2006, 2010, 2012, seq(2013, soib_year_info("latest_year")-1)) + 0.5 # SO: Automated the year
+    # plot_xlimits <- c(1999.5 - (2003 - plot_xmin), 
+    #                   2024.5)
     plot_xlimits <- c(1999.5 - (2003 - plot_xmin), 
-                      2024.5)
+                      soib_year_info("latest_year")+2.5) # SO: Changed 2024.5 to 2026.5
     
   } else if (plot_type != "single_mask") {
     
@@ -1020,9 +1241,11 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     if (cur_trend == "LTT") {
       # in some masks, minimum year is < 2003, which reduces the margin for labels
       timegroups_bracket_min <- c(1999 - (2003 - plot_xmin), 
-                                  2006, 2010, 2012, seq(2013, 2021)) + 0.5
+                                  2006, 2010, 2012, seq(2013, soib_year_info("latest_year")-1)) + 0.5 # SO: Automated the year
+      # plot_xlimits <- c(1999.5 - (2003 - plot_xmin), 
+      #                   2024.5)
       plot_xlimits <- c(1999.5 - (2003 - plot_xmin), 
-                        2024.5)
+                        soib_year_info("latest_year")+2.5) # SO: Changed 2024.5 to 2026.5
     }
     
   }
@@ -1077,9 +1300,9 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     if ((plot_ymax - plot_ymin) < 100 & plot_ymax > 0) {
       plot_ymax <- plot_ymax + 50
     }
-  
-}
     
+  }
+  
   # determining y-axis breaks for current plot ----------------------------------------
   
   if (plot_type == "stamp") {
@@ -1092,7 +1315,7 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     plot_range_max <- plot_ymax - plot_ymin
     
   } else {
-
+    
     plot_ybreaks <- seq(plot_ymin, plot_ymax, length.out = 5)
     
     # if 100 not in the ybreaks, adjustment needed
@@ -1356,48 +1579,68 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
   }
   
   # completing and writing the plot -----------------------------------------------------
-    
-    # joining plot base with other constant aesthetic features of graph
-    
-    cur_plot <- plot_base +
-      # timegroup brackets
-      geom_axisbracket("time") +
-      # "Current Trend" bracket
-      {if (cur_trend != "CAT") {
-        geom_axisbracket("trend", bracket_trend = cur_trend)
-      }} +
-      # manual grid lines with labels because we want empty space before the first timegroup
-      geom_gridline(1) +
-      geom_gridline(2) +
-      geom_gridline(3) +
-      geom_gridline(4) +
-      geom_gridline(5) +
-      {if (plot_type != "stamp") {
-        geom_gridline(baseline = TRUE)
-      } else {
-        annotation_raster(stamp, 
-                          ymin = 40, ymax = 160,
-                          xmin = plot_xlimits[1] + 1.25*diff(plot_xlimits)/5, 
-                          xmax = plot_xlimits[2] - 0.75*diff(plot_xlimits)/5)
-      }} +
-      coord_cartesian(ylim = c(plot_ymin0 - 0.1 * plot_range_max,
-                               plot_ymax0 + 0.1 * plot_range_max),
-                      clip = "off") +
-      scale_x_continuous(expand = c(0, 0), limits = plot_xlimits) +
-      scale_y_continuous(expand = c(0, 0)) +
-      # ggtitle(cur_spec) +
-      labs(x = "Time-steps", y = "Change in Abundance Index") +
-      guides(colour = "none", fill = "none") +
-      # theme
-      ggtheme_soibtrend()
+  
+  # joining plot base with other constant aesthetic features of graph
+  
+  cur_plot <- plot_base +
+    # timegroup brackets
+    geom_axisbracket("time") +
+    # "Current Trend" bracket
+    {if (cur_trend != "CAT") {
+      geom_axisbracket("trend", bracket_trend = cur_trend)
+    }} +
+    # manual grid lines with labels because we want empty space before the first timegroup
+    geom_gridline(1) +
+    geom_gridline(2) +
+    geom_gridline(3) +
+    geom_gridline(4) +
+    geom_gridline(5) +
+    {if (plot_type != "stamp") {
+      geom_gridline(baseline = TRUE)
+    } else {
+      annotation_raster(stamp, 
+                        ymin = 40, ymax = 160,
+                        xmin = plot_xlimits[1] + 1.25*diff(plot_xlimits)/5, 
+                        xmax = plot_xlimits[2] - 0.75*diff(plot_xlimits)/5)
+    }} +
+    coord_cartesian(ylim = c(plot_ymin0 - 0.1 * plot_range_max,
+                             plot_ymax0 + 0.1 * plot_range_max),
+                    clip = "off") +
+    scale_x_continuous(expand = c(0, 0), limits = plot_xlimits) +
+    scale_y_continuous(expand = c(0, 0)) +
+    labs(x = "Time-steps", y = "Change in Abundance Index") +
+    guides(colour = "none", fill = "none") +
+    theme_void() +
+    ggtheme_soibtrend()
+  
+  if(plot_type == "single_mask" | plot_type == "multi" | plot_type == "composite"){
     
     ggsave(filename = path_write_file, plot = cur_plot,
            dpi = 500, bg = "transparent",
+           width = 14, height = 7.5, units = "in")  
+  } else {
+    ggsave(filename = path_write_file, plot = cur_plot,
+           dpi = 500, bg = "transparent",
            width = 11, height = 7.5, units = "in")
-
+  }
+  
+  
+  # 
+  # ggsave(filename = "02_graphs/01_single/01_none/long-term trends/Ashy-Drongo_in_LTT_trend_2029_5.png", plot = cur_plot,
+  #        dpi = 500, bg = "transparent",
+  #        width = 11, height = 7.5, units = "in")
+  # 
+  # ggsave(filename = "02_graphs/01_single/01_none/long-term trends/Ashy-Drongo_in_LTT_trend_2025_5.png", plot = cur_plot,
+  #        dpi = 500, bg = "transparent",
+  #        width = 11, height = 7.5, units = "in")
+  # 
+  # ggsave(filename = "02_graphs/01_single/01_none/long-term trends/Ashy-Drongo_in_LTT_trend_2027_5.png", plot = cur_plot,
+  #        dpi = 500, bg = "transparent",
+  #        width = 11, height = 7.5, units = "in")
+  
   # removing objects from global environment ------------------------------------------
   
-  rm(list = names(obj_list), envir = .GlobalEnv)
+  #rm(list = names(obj_list), envir = .GlobalEnv)
   
   if (!haki) {
     toc()
@@ -1744,7 +1987,7 @@ soib_trend_plot_sysmon <- function(plot_type, cur_data_trends,
   ggsave(filename = path_write_file, plot = cur_plot,
          dpi = 500, bg = "transparent",
          width = 11, height = 7.5, units = "in")
-
+  
   # removing objects from global environment ------------------------------------------
   
   rm(list = names(obj_list), envir = .GlobalEnv)
@@ -1754,56 +1997,404 @@ soib_trend_plot_sysmon <- function(plot_type, cur_data_trends,
 
 # ### PLOT: SoIB 2023 range map -------------------------------------------------------------
 
-soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
-  
-  # which_spec either "all" or eBird name
-  
-  # setup -----------------------------------------------------------------------------
+# soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
+#   
+#   # which_spec either "all" or eBird name
+#   #which_spec <- "Eurasian Kestrel"
+#   # setup -----------------------------------------------------------------------------
+#   
+#   require(tidyverse)
+#   require(sf)
+#   require(tictoc)
+#   require(glue)
+#   require(ggnewscale) # to allow us to specify new scale_fill for filling occupancy grids
+#   require(grid) # for custom key_glyph (for  legend)
+#   require(rlang) # for custom key_glyph (for legend)
+#   require(furrr)
+#   require(parallel)
+#   require(magick)
+#   
+#   sf_use_s2(FALSE) # not using spherical geometries
+#   
+#   tic(glue("Finished creating range map [mask: {cur_mask}] for [species: {str_flatten_comma(which_spec)}]"))
+#   
+#   stamp <- image_convert(image_read("SoIB_logo.png"), matte = T)
+#   
+#   source("00_scripts/00_functions.R")
+#   source("00_scripts/20_functions.R")
+#   
+#   cur_metadata <- get_metadata(cur_mask) %>% join_mask_codes()
+#   
+#   if (!cur_metadata$MASK.TYPE %in% c("country", "state")) {
+#     return("Select either a country or a state!")
+#   }
+#   
+#   load("00_data/maps_sf.RData")
+#   # load DEM
+#   load("00_data/map_DEM.RData")
+#   
+#   
+#   if (cur_metadata$MASK.TYPE == "country") {
+#     admin_sf <- states_sf # which admin outlines to plot over basemap
+#     cur_g1_sf <- g1_in_sf # which grid polygon to use
+#   } else if (cur_metadata$MASK.TYPE == "state") {
+#     admin_sf <- dists_sf %>% filter(STATE.NAME == cur_mask)
+#     cur_state_sf <- states_sf %>% filter(STATE.NAME == cur_mask)
+#     
+#     load("00_data/grids_st_sf.RData")
+#     rm(g2_st_sf, g3_st_sf, g4_st_sf)
+#     cur_g1_sf <- g1_st_sf %>% filter(STATE.NAME == cur_mask)
+#     
+#     # for filtering data later
+#     cur_g1_filt <- cur_g1_sf %>% distinct(GRID.G1) %>% pull(GRID.G1)
+#   }
+#   
+#   bb <- st_bbox(cur_g1_sf)
+#   
+#   x_range <- bb["xmax"] - bb["xmin"]
+#   y_range <- bb["ymax"] - bb["ymin"]
+#   
+#   pad <- 0.02
+#   w   <- 0.18
+#   info <- image_info(stamp)
+#   h <- w * info$height / info$width
+#   
+#   # input paths
+#   path_main <- cur_metadata$SOIBMAIN.PATH
+#   path_speclists <- cur_metadata$SPECLISTDATA.PATH
+#   path_toplot <- cur_metadata$MAP.DATA.OCC.PATH
+#   path_vagrants <- cur_metadata$MAP.DATA.VAG.PATH
+#   
+#   
+#   # load data -------------------------------------------------------------------------
+#   
+#   # data
+#   
+#   load(path_speclists)
+#   
+#   occ_final = read.csv(path_toplot) %>% 
+#     mutate(gridg1 = as.character(gridg1)) %>% 
+#     filter(COMMON.NAME %in% specieslist$COMMON.NAME) # mostly needed for states
+#   
+#   vagrant_presence = read.csv(path_vagrants) %>% 
+#     # for spatial join later
+#     rownames_to_column("ID")
+#   
+#   main = read.csv(path_main)
+#   
+#   
+#   # for states, we want to filter this data appropriately
+#   if (cur_metadata$MASK.TYPE == "state") {
+#     
+#     # 1. filter "to plot" data for valid grids in current state
+#     occ_final <- occ_final %>% filter(gridg1 %in% cur_g1_filt)
+#     
+#     
+#     # 2. spatial filter for vagrant data
+#     vagrant_filt <- vagrant_presence %>% 
+#       st_as_sf(coords = c("LONGITUDE", "LATITUDE")) %>% 
+#       st_set_crs(st_crs(states_sf))
+#     
+#     vagrant_filt <- vagrant_filt[unlist(st_intersects(cur_state_sf, vagrant_filt)),] %>% 
+#       st_drop_geometry() %>% 
+#       distinct(ID)
+#     
+#     vagrant_presence <- vagrant_presence %>% 
+#       filter(ID %in% vagrant_filt$ID) %>% 
+#       mutate(ID = NULL)
+#     
+#     rm(vagrant_filt)
+#     
+#     
+#     # 3. remove false presences (edge cases: reported from same cell but point is outside current state)
+#     occ_final <- occ_final %>% rangemap_rm_falsepres(cur_mask, specieslist)
+#     
+#   }
+#   
+#   
+#   # error check for species name
+#   if (str_flatten_comma(which_spec) != "all") {
+#     
+#     correct_specnames <- specieslist %>% 
+#       distinct(COMMON.NAME) %>% 
+#       pull(COMMON.NAME)
+#     
+#     if (any(!which_spec %in% correct_specnames)) {
+#       return(c("Range map can only be plotted for valid species! (Check appropriate 'specieslist'.)",
+#                "Or, incorrect species name provided! Use the correct eBird taxonomy name."))
+#     }
+#     
+#     rm(correct_specnames)
+#     
+#   }
+#   
+#   
+#   # plot/theme settings -----------------------------------------------------
+#   
+#   palette_plot_elem <- "#56697B"
+#   palette_plot_title <- "#A13E2B"
+#   
+#   palette_range_groups <- data.frame(
+#     LABEL = c("Year-round", "Summer", "Spring/Autumn", "Winter"),
+#     COLOUR = c("#562377", "#dc6f42", "#e4b73e", "#00858f"),
+#     # useful for joining later
+#     LABEL.CODE = c("YR", "S", "P", "W"),
+#     LABEL.ALT = c("Year-round", "Summer", "Passage", "Winter")
+#   ) %>% 
+#     mutate(across(everything(), ~ fct_inorder(.)))
+#   
+#   plot_fontfamily <- "Gandhi Sans"
+#   
+#   
+#   # assigning objects to environment --------------------------------------------------
+#   
+#   obj_list <- list(palette_plot_elem = palette_plot_elem,
+#                    palette_plot_title = palette_plot_title,
+#                    palette_range_groups = palette_range_groups,
+#                    plot_fontfamily = plot_fontfamily)
+#   
+#   list2env(obj_list, envir = .GlobalEnv)
+#   
+#   # creating the plot base ------------------------------------------
+#   
+#   # if (cur_metadata$MASK.TYPE == "country") {
+#   #   
+#   #   plot_base <- ggplot() +
+#   #     geom_raster(data = map_dem_in, aes(x = x, y = y, fill = codes), 
+#   #                 alpha = 0.3) +
+#   #     scale_fill_grey(na.value = "transparent", guide = "none")
+#   #   
+#   # } else if (cur_metadata$MASK.TYPE == "state") {
+#   #   
+#   #   # the DEM resolution is not high enough; becomes very pixelated for small states
+#   #   # plus, doesn't give much insight. So, using uniform grey fill instead.
+#   #   
+#   #   plot_base <- ggplot() +
+#   #     geom_sf(data = cur_state_sf, col = NA, fill = "grey80", alpha = 0.6)
+#   #   
+#   # }
+#   # 
+#   # plot_base <- plot_base +
+#   #   scale_x_continuous(expand = c(0,0)) +
+#   #   scale_y_continuous(expand = c(0,0))
+#   
+#   
+#   # completing and writing the plot -----------------------------------------------------
+#   
+#   if (str_flatten_comma(which_spec) != "all") {
+#     cur_spec <- which_spec
+#   } else {
+#     cur_spec <- specieslist %>% distinct(COMMON.NAME) %>% pull(COMMON.NAME)
+#   }
+#   
+#   # deciding whether to walk or future-walk (parallel) based on number of iterations required
+#   # (name: https://onepiece.fandom.com/wiki/Haki/Kenbunshoku_Haki#Future_Vision)
+#   # thresholds set based on testing done
+#   min_tresh <- ifelse(cur_metadata$MASK.TYPE == "state", 25, 5)
+#   advanced_kenbunshoku <- if (length(cur_spec) >= min_tresh) TRUE else FALSE
+#   
+#   # extra error catch step
+#   if (any(!cur_spec %in% specieslist$COMMON.NAME)) {
+#     
+#     return("Range map can only be plotted for valid species! (Check appropriate 'specieslist'.)")
+#     
+#   } else {
+#     
+#     # walking creation of maps over all specified species
+#     to_walk <- function(.x, haki = FALSE) {
+#       
+#       if (!haki) {
+#         tic("Walked over one species")
+#       }
+#       
+#       if (cur_metadata$MASK.TYPE == "country") {
+#         
+#         plot_base <- ggplot() +
+#           geom_raster(data = map_dem_in, aes(x = x, y = y, fill = codes), 
+#                       alpha = 0.3) +
+#           scale_fill_grey(na.value = "transparent", guide = "none")
+#         
+#       } else if (cur_metadata$MASK.TYPE == "state") {
+#         
+#         # the DEM resolution is not high enough; becomes very pixelated for small states
+#         # plus, doesn't give much insight. So, using uniform grey fill instead.
+#         
+#         plot_base <- ggplot() +
+#           geom_sf(data = cur_state_sf, col = NA, fill = "grey80", alpha = 0.6)
+#         
+#       }
+#       
+#       plot_base <- plot_base +
+#         scale_x_continuous(expand = c(0,0)) +
+#         scale_y_continuous(expand = c(0,0))
+#       
+#       # filtering data for species
+#       cur_data_occ = occ_final %>% 
+#         filter(COMMON.NAME == .x) %>% 
+#         left_join(palette_range_groups, by = c("status" = "LABEL.CODE")) %>% 
+#         right_join(cur_g1_sf, by = c("gridg1" = "GRID.G1")) %>% 
+#         st_as_sf()
+#       
+#       cur_data_vag = vagrant_presence %>% 
+#         filter(COMMON.NAME == .x) %>% 
+#         left_join(palette_range_groups, by = c("status" = "LABEL.CODE"))
+#       
+#       # in some cases, one migratory status present in one of the two (occupied vs vagrant)
+#       # we want legend to reflect all present
+#       all_statuses <- bind_rows(st_drop_geometry(cur_data_occ), cur_data_vag) %>% 
+#         distinct(LABEL, COLOUR)
+#       
+#       
+#       # output paths (one structured into subfolders, one without structure for website)
+#       
+#       # convert to India Checklist names 
+#       converted_spec <- specname_to_india_checklist(.x, already_show = FALSE)
+#       
+#       
+#       web_spec <- str_replace_all(converted_spec, c(" " = "-", "'" = "_"))
+#       
+#       # for structured
+#       path_map <- glue("{cur_metadata$MAP.FOLDER}{web_spec}_{cur_metadata$MASK.CODE}_map_2025.png")
+#       
+#       # for website
+#       path_map_web <- glue("{cur_metadata$WEB.MAP.FOLDER}{web_spec}_{cur_metadata$MASK.CODE}_map_2025.jpg")
+#       
+#       
+#       # joining plot base with other constant aesthetic features of graph
+#       cur_plot <- plot_base +
+#         new_scale_fill() +
+#         geom_rangemap_occ(cur_data_occ, admin_sf, cur_data_vag) +
+#         # using identity scale since we have specified the column of hexcodes in aes of geom
+#         scale_alpha_identity() +
+#         scale_fill_identity(guide = guide_legend(title = NULL),
+#                             labels = levels(all_statuses$LABEL),
+#                             breaks = levels(all_statuses$COLOUR)) +
+#         scale_colour_identity() +
+#         # theme
+#         ggtheme_soibrangemap() +
+#         annotation_raster(stamp,
+#                           xmin = bb["xmax"] - w * x_range,
+#                           xmax = bb["xmax"] - pad * x_range,
+#                           ymin = bb["ymax"] - h * y_range,
+#                           ymax = bb["ymax"] - pad * y_range)
+#       
+#       
+#       # writing maps
+#       ggsave(filename = path_map, plot = cur_plot,
+#              dpi = 1000, bg = "white",
+#              width = 7, height = 7, units = "in")
+#       
+#       ggsave(filename = path_map_web, plot = cur_plot,
+#              dpi = 1000, bg = "white",
+#              width = 7, height = 7, units = "in")
+#       
+#       if (!haki) {
+#         toc()
+#       }
+#       
+#     }
+#     
+#     # deciding whether to walk or future-walk (parallel) based on number of iterations required
+#     if (advanced_kenbunshoku) {
+#       
+#       print(glue("Activated future-walking using advanced Kenbunshoku Haki!"))
+#       
+#       tic(glue("Future-walked over {length(cur_spec)} species"))
+#       
+#       # start multiworker parallel session
+#       plan(multisession, workers = parallel::detectCores()/2)
+#       
+#       future_walk(cur_spec, .progress = TRUE, ~ to_walk(.x, advanced_kenbunshoku))
+#       
+#       # end multiworker parallel session
+#       plan(sequential)
+#       
+#       toc()
+#       
+#     } else {
+#       
+#       walk(cur_spec, ~ to_walk(.x))
+#       
+#     }
+#     
+#   }
+#   
+#   
+#   # removing objects from global environment ------------------------------------------
+#   
+#   rm(list = names(obj_list), envir = .GlobalEnv)
+#   
+#   toc()
+#   
+# }
+
+# ### PLOT: SoIB 2025 range map -------------------------------------------------------------
+
+soib_rangemap <- function(which_spec = "all",
+                          cur_mask = "none") {
   
   require(tidyverse)
   require(sf)
   require(tictoc)
   require(glue)
-  require(ggnewscale) # to allow us to specify new scale_fill for filling occupancy grids
-  require(grid) # for custom key_glyph (for  legend)
-  require(rlang) # for custom key_glyph (for legend)
+  require(ggnewscale)
+  require(grid)
+  require(rlang)
   require(furrr)
   require(parallel)
+  require(magick)
+  require(cowplot)
   
-  sf_use_s2(FALSE) # not using spherical geometries
+  sf_use_s2(FALSE)
   
   tic(glue("Finished creating range map [mask: {cur_mask}] for [species: {str_flatten_comma(which_spec)}]"))
-  
   
   source("00_scripts/00_functions.R")
   source("00_scripts/20_functions.R")
   
-  cur_metadata <- get_metadata(cur_mask) %>% join_mask_codes()
+  cur_metadata <- get_metadata(cur_mask) %>% 
+    join_mask_codes()
   
   if (!cur_metadata$MASK.TYPE %in% c("country", "state")) {
     return("Select either a country or a state!")
   }
   
-  load("00_data/maps_sf.RData")
-  # load DEM
-  load("00_data/map_DEM.RData")
   
+  load("00_data/maps_sf.RData")
   
   if (cur_metadata$MASK.TYPE == "country") {
-    admin_sf <- states_sf # which admin outlines to plot over basemap
-    cur_g1_sf <- g1_in_sf # which grid polygon to use
-  } else if (cur_metadata$MASK.TYPE == "state") {
-    admin_sf <- dists_sf %>% filter(STATE.NAME == cur_mask)
-    cur_state_sf <- states_sf %>% filter(STATE.NAME == cur_mask)
+    
+    admin_sf <- states_sf
+    cur_g1_sf <- g1_in_sf
+    bb <- st_bbox(cur_g1_sf)
+    
+    x_range <- bb["xmax"] - bb["xmin"]
+    y_range <- bb["ymax"] - bb["ymin"]
+    
+  } else {
+    
+    admin_sf <- dists_sf %>%
+      dplyr::filter(STATE.NAME == cur_mask)
+    
+    cur_state_sf <- states_sf %>%
+      dplyr::filter(STATE.NAME == cur_mask)
     
     load("00_data/grids_st_sf.RData")
-    rm(g2_st_sf, g3_st_sf, g4_st_sf)
-    cur_g1_sf <- g1_st_sf %>% filter(STATE.NAME == cur_mask)
     
-    # for filtering data later
-    cur_g1_filt <- cur_g1_sf %>% distinct(GRID.G1) %>% pull(GRID.G1)
+    rm(g2_st_sf, g3_st_sf, g4_st_sf)
+    
+    g1_st_sf_1 <- st_sf(g1_st_sf,
+                        sf_column_name = "GEOM.G1")
+    
+    cur_g1_sf <- g1_st_sf_1 %>%
+      dplyr::filter(STATE.NAME == cur_mask)
+    
+    bb <- st_bbox(cur_g1_sf)
+    
+    cur_g1_filt <- cur_g1_sf %>%
+      distinct(GRID.G1) %>%
+      pull(GRID.G1)
   }
-  
   
   # input paths
   path_main <- cur_metadata$SOIBMAIN.PATH
@@ -1857,7 +2448,6 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
     
   }
   
-  
   # error check for species name
   if (str_flatten_comma(which_spec) != "all") {
     
@@ -1873,7 +2463,6 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
     rm(correct_specnames)
     
   }
-  
   
   # plot/theme settings -----------------------------------------------------
   
@@ -1901,29 +2490,6 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
   
   list2env(obj_list, envir = .GlobalEnv)
   
-  # creating the plot base ------------------------------------------
-  
-  if (cur_metadata$MASK.TYPE == "country") {
-    
-    plot_base <- ggplot() +
-      geom_raster(data = map_dem_in, aes(x = x, y = y, fill = codes), 
-                  alpha = 0.3) +
-      scale_fill_grey(na.value = "transparent", guide = "none")
-    
-  } else if (cur_metadata$MASK.TYPE == "state") {
-    
-    # the DEM resolution is not high enough; becomes very pixelated for small states
-    # plus, doesn't give much insight. So, using uniform grey fill instead.
-    
-    plot_base <- ggplot() +
-      geom_sf(data = cur_state_sf, col = NA, fill = "grey80", alpha = 0.6)
-    
-  }
-  
-  plot_base <- plot_base +
-    scale_x_continuous(expand = c(0,0)) +
-    scale_y_continuous(expand = c(0,0))
-  
   
   # completing and writing the plot -----------------------------------------------------
   
@@ -1946,104 +2512,51 @@ soib_rangemap <- function(which_spec = "all", cur_mask = "none") {
     
   } else {
     
-    # walking creation of maps over all specified species
-    to_walk <- function(.x, haki = FALSE) {
-      
-      if (!haki) {
-        tic("Walked over one species")
-      }
-      
-      # filtering data for species
-      cur_data_occ = occ_final %>% 
-        filter(COMMON.NAME == .x) %>% 
-        left_join(palette_range_groups, by = c("status" = "LABEL.CODE")) %>% 
-        right_join(cur_g1_sf, by = c("gridg1" = "GRID.G1")) %>% 
-        st_as_sf()
-      
-      cur_data_vag = vagrant_presence %>% 
-        filter(COMMON.NAME == .x) %>% 
-        left_join(palette_range_groups, by = c("status" = "LABEL.CODE"))
-      
-      # in some cases, one migratory status present in one of the two (occupied vs vagrant)
-      # we want legend to reflect all present
-      all_statuses <- bind_rows(st_drop_geometry(cur_data_occ), cur_data_vag) %>% 
-        distinct(LABEL, COLOUR)
-      
-      
-      # output paths (one structured into subfolders, one without structure for website)
-      
-      # convert to India Checklist names 
-      converted_spec <- specname_to_india_checklist(.x, already_show = FALSE)
-        
-      
-      web_spec <- str_replace_all(converted_spec, c(" " = "-", "'" = "_"))
-
-      # for structured
-      path_map <- glue("{cur_metadata$MAP.FOLDER}{web_spec}_{cur_metadata$MASK.CODE}_map_2023.png")
-      
-      # for website
-      path_map_web <- glue("{cur_metadata$WEB.MAP.FOLDER}{web_spec}_{cur_metadata$MASK.CODE}_map_2023.jpg")
-      
-      
-      # joining plot base with other constant aesthetic features of graph
-      cur_plot <- plot_base +
-        new_scale_fill() +
-        geom_rangemap_occ(cur_data_occ, admin_sf, cur_data_vag) +
-        # using identity scale since we have specified the column of hexcodes in aes of geom
-        scale_alpha_identity() +
-        scale_fill_identity(guide = guide_legend(title = NULL),
-                            labels = levels(all_statuses$LABEL),
-                            breaks = levels(all_statuses$COLOUR)) +
-        scale_colour_identity() +
-        # theme
-        ggtheme_soibrangemap()
-      
-      
-      # writing maps
-      ggsave(filename = path_map, plot = cur_plot,
-             dpi = 1000, bg = "white",
-             width = 7, height = 7, units = "in")
-      
-      ggsave(filename = path_map_web, plot = cur_plot,
-             dpi = 1000, bg = "white",
-             width = 7, height = 7, units = "in")
-      
-      if (!haki) {
-        toc()
-      }
-      
-    }
+    walk_fun <- purrr::partial(
+      to_walk,
+      occ_final = occ_final,
+      vagrant_presence = vagrant_presence,
+      cur_g1_sf = cur_g1_sf,
+      admin_sf = admin_sf,
+      cur_state_sf = cur_state_sf,
+      palette_range_groups = palette_range_groups,
+      bb = bb,
+      x_range = x_range, 
+      y_range = y_range,
+      cur_metadata = cur_metadata,
+      specieslist = specieslist
+    )
     
-    # deciding whether to walk or future-walk (parallel) based on number of iterations required
     if (advanced_kenbunshoku) {
       
-      print(glue("Activated future-walking using advanced Kenbunshoku Haki!"))
+      plan(multisession,
+           workers = parallel::detectCores()/2)
       
-      tic(glue("Future-walked over {length(cur_spec)} species"))
-
-      # start multiworker parallel session
-      plan(multisession, workers = parallel::detectCores()/2)
+      future_walk(
+        cur_spec,
+        ~ walk_fun(.x, haki = TRUE),
+        .progress = TRUE
+      )
       
-      future_walk(cur_spec, .progress = TRUE, ~ to_walk(.x, advanced_kenbunshoku))
-      
-      # end multiworker parallel session
       plan(sequential)
-      
       toc()
       
     } else {
       
-      walk(cur_spec, ~ to_walk(.x))
-      
+      walk(
+        cur_spec,
+        ~ walk_fun(.x, haki = FALSE)
+      )
     }
-      
+    
+    
   }
-  
-  
-  # removing objects from global environment ------------------------------------------
-  
   rm(list = names(obj_list), envir = .GlobalEnv)
   
-  toc()
+  toc() 
   
 }
+
+
+
+
