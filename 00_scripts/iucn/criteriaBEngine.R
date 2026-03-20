@@ -58,10 +58,10 @@ ContinuingDeclineExt <- if (file.exists(continuingdeclineexfile)) {
       EnglishName,
       AOOYearBandChange,	
       AOOChange,	
-      AOOChangePrecent,	
+      AOOChangePercent,	
       AOHYearBandChange,	#Area of Habitat
       AOHChange,	
-      AOHPrecent,	
+      AOHPercent,	
       EOHYearBandChange,	#Extent of Habitat
       EOHChange,	
       EOHPercent,	
@@ -123,24 +123,56 @@ fluctuations <- if (file.exists(extremefluctationsfile)) {
   tibble()
 }
 
+safe_left_join <- function(x, y, by) {
+  if (is.null(y) || nrow(y) == 0) return(x)
+  if (!by %in% names(y)) return(x)
+  dplyr::left_join(x, y, by = by)
+}
 
 # ============================================================
 # 7. JOIN DATA
 # ============================================================
 
 criteriaB_data <- basiceooaoo %>%
-                    left_join(soib_decline, by = "EnglishName") %>%
-                    left_join(ContinuingDeclineExt, by = "EnglishName") %>%
-                    left_join(SeverelyFragmented, by = "EnglishName") %>%
-                    left_join(NoOfLocations, by = "EnglishName") %>%
-                    left_join(fluctuations, by = "EnglishName")
-  
+                  safe_left_join(soib_decline, by = "EnglishName") %>%
+                  safe_left_join(ContinuingDeclineExt, by = "EnglishName") %>%
+                  safe_left_join(SeverelyFragmented, by = "EnglishName") %>%
+                  safe_left_join(NoOfLocations, by = "EnglishName") %>%
+                  safe_left_join(fluctuations, by = "EnglishName")
+
+# This is to handle fields that may be missing as the source files are optional for analysis
+required_cols <- c(
+  "SeverelyFragmented", "Locations",
+  "EOOChange", "EOOYearBandChange",
+  "AOOChange", "AOOYearBandChange", "AOOChangePercent",
+  "AOHChange", "AOHYearBandChange", "AOHPercent",
+  "EOHChange", "EOHYearBandChange", "EOHPercent",
+  "NoOfLocationsChange", "NoOfLocationYearBandChange",
+  "NoOfSubPopulationsChange", "NoOfSubPopYearBandChange",
+  "Current.Analysis", "currentsloperci", "mean5km",
+  "currentslopemean", "currentslopelci",
+  "SoIB.Latest.Current.Status",
+  "ExtremeFluctuationsinEOO",
+  "ExtremeFluctuationsinAOO",
+  "ExtremeFluctuationsinNoOfLocations",
+  "ExtremeFluctuationsinNoOfSubPopulations",
+  "ExtremeFluctuationsinNoOfMatureIndividuals"
+)  
+
+ensure_cols <- function(df, cols) {
+  missing <- setdiff(cols, names(df))
+  if (length(missing) > 0) {
+    df[missing] <- NA
+  }
+  df
+}
 
 # ============================================================
 # 8. SUBCRITERIA CONDITIONS (a, b, c)
 # ============================================================
 
 criteriaB_data <- criteriaB_data %>%
+  ensure_cols(required_cols) %>%
   mutate(
     
     # ============================================================
@@ -499,11 +531,11 @@ criteriaB_output <- criteriaB_data %>%
     EOOChangePercent,
     EOOYearBandChange,
     AOOChange,
-    AOOChangePrecent,
+    AOOChangePercent,
     
     # Optional habitat proxies (keep if useful)
     AOHChange,
-    AOHPrecent,
+    AOHPercent,
     EOHChange,
     EOHPercent,
     

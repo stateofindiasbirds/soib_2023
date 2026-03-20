@@ -11,13 +11,25 @@ library(stringr)
 # 1a. READ INPUT DATA
 # ============================================================
 
-population_data <- read_csv(populationsfile) %>%
-  rename(
-    Largest_Sub_Pop = `Largest SubPop`
-  ) %>%
-  mutate(
-    EnglishName = trimws(EnglishName)
-  )
+population_data <- if (file.exists(populationsfile)) {
+  read_csv(populationsfile) %>%  
+    rename(
+      Largest_Sub_Pop = `Largest SubPop`
+    ) %>%
+    mutate(
+      EnglishName = trimws(EnglishName)
+    )
+} else {
+  tibble()
+}
+
+if (nrow(population_data) == 0) {
+  
+  message("No population data — skipping Criterion C")
+  
+
+  return;
+}
 
 # ============================================================
 # 1b. EXTREME FLUCTUATIONS (ONLY MATURE INDIVIDUALS)

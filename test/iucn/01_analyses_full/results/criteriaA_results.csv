@@ -1,6 +1,6 @@
 EnglishName,CriteriaA_Category,CriteriaA_String,Decline,Years3GEN,StartYear,EndYear,OrgStartYear,OrgEndYear,ActualDecline,Method,Reversible,ReasonUnderstood,ReasonCeased,A_a,A_b,A_c,A_d,A_e,DirectObservation,AbundanceIndex,EOODecline,AOODecline,HabitatQuality,Exploitation,OtherEffects,SeverityScore,MethodScore
 Amur Falcon,VU,A2b,41,12,2015,2027,2015,2024,"-6.45% (-4.28, -8.62)",Inferred,0,0,0,FALSE,TRUE,FALSE,FALSE,FALSE,0,1,0,0,0,0,0,2,1
-Andaman Treepie,VU,A2a,40,14,2010,2024,2010,2024,NA,Observed,0,0,0,TRUE,FALSE,FALSE,FALSE,FALSE,1,0,0,0,0,0,0,2,2
+Andaman Treepie,VU,A2a,40,14,2010,2024,2010,2024,"-50% (-40 , -60)",Observed,0,0,0,TRUE,FALSE,FALSE,FALSE,FALSE,1,0,0,0,0,0,0,2,2
 Ashy-crowned Sparrow-Lark,NT,A2b,20,10,2015,2025,2015,2024,"-2.9% (-2.15, -3.65)",Inferred,0,0,0,FALSE,TRUE,FALSE,FALSE,FALSE,0,1,0,0,0,0,0,1,1
 Baillon's Crake,VU,A2b,47,10,2015,2025,2015,2024,"-7.31% (-6.12, -8.5)",Inferred,0,0,0,FALSE,TRUE,FALSE,FALSE,FALSE,0,1,0,0,0,0,0,2,1
 Bank Myna,VU,A2b,33,10,2015,2025,2015,2024,"-4.78% (-3.92, -5.63)",Inferred,0,0,0,FALSE,TRUE,FALSE,FALSE,FALSE,0,1,0,0,0,0,0,2,1
@@ -42,8 +42,8 @@ Little Forktail,NA,A2b,18,10,2015,2025,2015,2024,"-3.98% (-2.02, -5.94)",Inferre
 Little Ringed Plover,NT,A2b,29,14,2015,2029,2015,2024,"-3.01% (-2.38, -3.64)",Inferred,0,0,0,FALSE,TRUE,FALSE,FALSE,FALSE,0,1,0,0,0,0,0,1,1
 Little Stint,NT,A2b,28,12,2015,2027,2015,2024,"-3.59% (-2.68, -4.49)",Inferred,0,0,0,FALSE,TRUE,FALSE,FALSE,FALSE,0,1,0,0,0,0,0,1,1
 Malabar Lark,NA,A2b,16,10,2015,2025,2015,2024,"-3.82% (-1.67, -5.97)",Inferred,0,0,0,FALSE,TRUE,FALSE,FALSE,FALSE,0,1,0,0,0,0,0,0,1
-Nicobar Bulbul,VU,A1b,45,13,2000,2013,2000,2015,NA,Inferred,1,1,1,FALSE,TRUE,FALSE,FALSE,FALSE,0,1,0,0,0,0,0,2,1
-Nicobar Pigeon,CR,A4d,88,27,2014,2041,2014,2034,NA,Projected,0,0,0,FALSE,FALSE,FALSE,TRUE,FALSE,0,0,0,0,0,1,0,4,0
+Nicobar Bulbul,VU,A1b,45,13,2000,2013,2000,2015,"-60% (-50 , -70)",Inferred,1,1,1,FALSE,TRUE,FALSE,FALSE,FALSE,0,1,0,0,0,0,0,2,1
+Nicobar Pigeon,CR,A4d,88,27,2014,2041,2014,2034,"-90% (-80 , -95)",Projected,0,0,0,FALSE,FALSE,FALSE,TRUE,FALSE,0,0,0,0,0,1,0,4,0
 Northern Pintail,EN,A2b,54,17,2015,2032,2015,2024,"-5.44% (-4.42, -6.47)",Inferred,0,0,0,FALSE,TRUE,FALSE,FALSE,FALSE,0,1,0,0,0,0,0,3,1
 Northern Shoveler,VU,A2b,48,13,2015,2028,2015,2024,"-5.86% (-4.96, -6.76)",Inferred,0,0,0,FALSE,TRUE,FALSE,FALSE,FALSE,0,1,0,0,0,0,0,2,1
 Orange-headed Thrush,NA,A2b,14,11,2015,2026,2015,2024,"-2.26% (-1.32, -3.2)",Inferred,0,0,0,FALSE,TRUE,FALSE,FALSE,FALSE,0,1,0,0,0,0,0,0,1

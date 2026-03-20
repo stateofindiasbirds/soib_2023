@@ -1,17 +1,63 @@
 library(dplyr)
 library(readr)
+library(purrr)
 source("00_scripts/iucn/config_iucn.R")
 
+category_map <- c(
+  "EX"  = "Extinct",
+  "EW"  = "Extinct in Wild",
+  "CR(PE)" = "Critically Endangered (Possibly Extinct)",
+  "CR"  = "Critically Endangered",
+  "EN"  = "Endangered",
+  "VU"  = "Vulnerable",
+  "NT"  = "Near Threatened",
+  "LC"  = "Least Concern",
+  "DD"  = "Data Deficient"
+)
 category_rank <- c(
   "Extinct",
   "Extinct in Wild",
+  "Critically Endangered (Possibly Extinct)",
   "Critically Endangered",
   "Endangered",
   "Vulnerable",
   "Near Threatened",
   "Least Concern",
-  "Data Deficient"
+  "Data Deficient",
+  "Not Assessed"
 )
+
+format_num <- function(x) {
+  suppressWarnings({
+    
+    format_one <- function(s) {
+      if (is.na(s) || s == "") return("")
+      
+      # regex to capture numbers (integers/decimals)
+      pattern <- "\\d+\\.?\\d*"
+      
+      matches <- gregexpr(pattern, s)[[1]]
+      
+      if (matches[1] == -1) return(s)  # no numbers
+      
+      nums <- regmatches(s, gregexpr(pattern, s))[[1]]
+      
+      # format each number
+      formatted_nums <- vapply(nums, function(n) {
+        num <- as.numeric(n)
+        if (is.na(num)) return(n)
+        prettyNum(num, big.mark = ",", scientific = FALSE)
+      }, character(1))
+      
+      # replace back into string
+      regmatches(s, gregexpr(pattern, s))[[1]] <- formatted_nums
+      
+      return(s)
+    }
+    
+    vapply(x, format_one, character(1))
+  })
+}
 # ============================================================
 # 1. READ INPUT FILES
 # ============================================================
@@ -34,7 +80,8 @@ soib_main <- soib_main %>%
   mutate(
     EnglishName    = trimws(eBird.English.Name.2024),
     ScientificName = trimws(eBird.Scientific.Name.2024),
-    BirdLifeName   = trimws(BLI.Scientific.Name)
+    BirdLifeName   = trimws(BLI.Scientific.Name),
+    
   ) %>%
   distinct(ScientificName, .keep_all = TRUE)
 
@@ -149,17 +196,24 @@ species <- merged %>%
     # --------------------------------------------------------
     EnglishName = EnglishName,
     ScientificName = ScientificName,
-    RegionalRedlist = case_when(
-      all(is.na(c(CriteriaA_Category, CriteriaB_Category, CriteriaC_Category, CriteriaD_Category))) ~ "Least Concern",
-      TRUE ~ {
-        vals <- c(CriteriaA_Category, CriteriaB_Category, CriteriaC_Category, CriteriaD_Category)
+    RegionalRedlist = pmap_chr(
+      list(CriteriaA_Category, CriteriaB_Category, CriteriaC_Category, CriteriaD_Category),
+      function(...) {
+        vals <- c(...)
+        # remove NA
         vals <- vals[!is.na(vals)]
-        
+        # map codes → full names
+        vals <- category_map[vals]
+        # remove anything unmapped (just in case)
+        vals <- vals[!is.na(vals)]
+        # if no threat categories → default LC
+        if (!length(vals)) return("Least Concern")
+        # pick highest threat
         category_rank[min(match(vals, category_rank))]
       }
-    ),    
-    GlobalRedlist = red_list_category_code,
-    AdjustedRegionalRedlist = NA_character_,
+    ),
+    GlobalRedlist = ifelse (is.na(red_list_category_code), "Not Assessed", category_map[red_list_category_code]),
+    AdjustedRegionalRedlist = "To be done",
     
     # --------------------------------------------------------
     # SOIB FIELDS
@@ -180,26 +234,41 @@ species <- merged %>%
     CriteriaB_String = CriteriaB_String,
     CriteriaC_String = CriteriaC_String,
     CriteriaD_String = CriteriaD_String,
+    
+    GlobalCriteriaString = criteria,
     # --------------------------------------------------------
     # DECLINE METRICS
     # --------------------------------------------------------
-    Decline3GEN = round(Decline,1),
+    #Stringly everything
+    #Note, Decline comes from Criteria A file, others from Criteria C
+    Decline3GEN = ifelse(is.na(Decline),"NA",paste0(round(Decline,1))),
     Years3GEN = Years3GEN,
     
-    Decline2GEN = round(`2GEN Decline`,1),
+    Decline2GEN = ifelse(is.na(`2GEN Decline`),"NA",paste0(round(`2GEN Decline`,1))),
     Years2GEN = Years2GEN,
-    
-    Decline1GEN = round(`1GEN Decline`,1),
+
+    Decline1GEN = ifelse(is.na(`1GEN Decline`),"NA",paste0(round(`1GEN Decline`,1))),
     Years1GEN = Years1GEN,
-    
+
     GenerationLength = supplementary_info_json_generational_length,
-    ActualDeclinePercentage = ActualDecline,
-    YearsActualDecline = ifelse (is.na(ActualDeclinePercentage), "NA",paste0(as.integer(OrgEndYear-OrgStartYear),"years, ",OrgStartYear,"-",OrgEndYear)),
+    ActualDeclinePercentage = ifelse (`SoIB.Latest.Current.Status` %in% c("Stable", "Decline", "Rapid Decline", "Rapid Increase", "Increase"),
+                                      paste0(round(currentslopemean,2),
+                                     "% (",
+                                     round(currentsloperci,2),
+                                     ", ",
+                                     round(currentslopelci,2),") pa, "),
+                                     ifelse (is.na(ActualDecline), NA, ActualDecline)),
+
+    YearsActualDecline = ifelse (`SoIB.Latest.Current.Status` %in% c("Stable", "Decline", "Rapid Decline", "Rapid Increase", "Increase"),
+                                      paste0(as.integer(latestYear-2015),"y, ",2015,"-",latestYear),
+                                 ifelse (is.na(ActualDecline) | is.na(OrgStartYear) | is.na(OrgEndYear),
+                                 "",
+                                 paste0(as.integer(OrgEndYear-OrgStartYear),"y, ",OrgStartYear,"-",OrgEndYear))),
     
     # --------------------------------------------------------
     # POPULATION
     # --------------------------------------------------------
-    BiogPop1Percent = Onepercent.Estimates,
+    BiogPop1Percent = format_num (Onepercent.Estimates),
     CMS = CMS.Appendix,
     CITES = CITES.Appendix,
     Schedule = WPA.Schedule,
@@ -207,30 +276,30 @@ species <- merged %>%
     # --------------------------------------------------------
     # DISTRIBUTION
     # --------------------------------------------------------
-    EOO = LikelyEOO,
-    MaxEOO = MaxEOO,
+    EOO = format_num(LikelyEOO),
+    MaxEOO = ifelse (is.na(MaxEOO), "" ,paste0("(Max ",format_num(MaxEOO), ")")),
     
-    DeclineEOO3GEN = NA_real_, #If available, it should be a string
+    DeclineEOO = ifelse (is.na(EOOChangePercent),NA,paste0(round (EOOChangePercent, 1),"%")), #If available, it should be a string
     
     EOOYearBandChange = EOOYearBandChange,
 
     # --------------------------------------------------------
     # AOO
     # --------------------------------------------------------
-    MinAOO = MinAOO,
-    MaxAOO = MaxAOO,
+    MinAOO = format_num(MinAOO),
+    MaxAOO = ifelse (is.na(MaxAOO), "" ,paste0("(Max ",format_num(MaxAOO), ")")),
     Locations = Locations,
     
     # --------------------------------------------------------
     # POPULATION COUNTS
     # --------------------------------------------------------
     Subspecies = SubspeciesCount,
-    TotalLikelyPop = BestMaturePop,
-    TotalMaxPop = MaxMaturePop,
+    TotalLikelyPop = format_num(round(BestMaturePop,0)),
+    TotalMaxPop = ifelse (is.na(MaxMaturePop),"", paste0(" (Max ", format_num(round(MaxMaturePop,0)),")")),
     
-    GlobalPopulation = supplementary_info_json_population_size,
-    GlobalEOO = supplementary_info_json_estimated_extent_of_occurence,
-    GlobalAOO = supplementary_info_json_estimated_area_of_occupancy,
+    GlobalPopulation = ifelse (is.na(supplementary_info_json_population_size) | (supplementary_info_json_population_size == "U"), "Unknown", format_num(supplementary_info_json_population_size)), 
+    GlobalEOO = format_num(supplementary_info_json_estimated_extent_of_occurence),
+    GlobalAOO = format_num(supplementary_info_json_estimated_area_of_occupancy),
     
     GlobalRangePercent = NA_character_, #Awaiting info from Alex
     GlobalPopulationTrend = population_trend_description_en,
@@ -243,9 +312,12 @@ species <- merged %>%
 # 5. DATA TYPES
 # ============================================================
 
+#species <- species %>%
+#  mutate(across(where(is.character), as.character)) %>%
+#  mutate(across(where(is.numeric), as.numeric))
+
 species <- species %>%
-  mutate(across(where(is.character), as.character)) %>%
-  mutate(across(where(is.numeric), as.numeric))
+  filter(EnglishName %in% species_list$English.Name)
 
 # ============================================================
 # 6. WRITE OUTPUT

@@ -23,3 +23,5 @@ criteriaCResultsfile <- "01_analyses_full/results/criteriaC_results.csv"
 criteriaDResultsfile <- "01_analyses_full/results/criteriaD_results.csv"
 
 nrloutputfile <- "01_analyses_full/results/species_nrl.csv"
+
+nrlspecieslistfile <- "00_data/species_nrl.csv"

@@ -11,8 +11,25 @@ library(stringr)
 # 1. READ INPUT DATA
 # ============================================================
 
-population_data <- read_csv(populationsfile) %>% 
-  mutate(EnglishName = trimws(EnglishName))
+population_data <- if (file.exists(populationsfile)) {
+  read_csv(populationsfile) %>%  
+    rename(
+      Largest_Sub_Pop = `Largest SubPop`
+    ) %>%
+    mutate(
+      EnglishName = trimws(EnglishName)
+    )
+} else {
+  tibble()
+}
+
+if (nrow(population_data) == 0) {
+  
+  message("No population data — skipping Criterion D")
+  
+
+  return;
+}
 
 # ============================================================
 # 2. READ AOO DATA
@@ -35,10 +52,10 @@ plausiblethreat <- if (file.exists(plausiblethreatfile)) {
     EnglishName,
     TimeToVU,
     TimeToEN,
-    TimetoCR
+    TimeToCR
   )
 } else {
-  tibble(EnglishName = character(), ExtremeFluctuation = logical())
+  tibble(EnglishName = character(), TimeToVU = integer(), TimeToEN = integer(), TimeToCR = integer())
 }
 
 # ============================================================
@@ -96,7 +113,7 @@ NoOfLocations <- if (file.exists(nooflocationsfile)) {
     mutate(EnglishName = trimws(Species)) %>% 
     select(EnglishName, Locations)
 } else {
-  tibble()
+  tibble(EnglishName = character(), Locations = integer())
 }
 
 # ============================================================
@@ -119,9 +136,9 @@ master_species <- bind_rows(
 criteriaD_data <- master_species %>%
   left_join(population_data, by = "EnglishName") %>%
   left_join(basicaoo, by = "EnglishName") %>%
+  left_join(gen_data, by = "EnglishName") %>%
   left_join(NoOfLocations, by = "EnglishName") %>%
-  left_join(plausiblethreat, by = "EnglishName") %>%
-  left_join(gen_data, by = "EnglishName")
+  left_join(plausiblethreat, by = "EnglishName")
 
 
 # ============================================================
@@ -161,7 +178,7 @@ criteriaD_data <- criteriaD_data %>%
     PlausibleThreat_NT =
       (!is.na(TimeToEN) & TimeToEN <= OneGen) |
       (!is.na(TimeToVU) & TimeToVU <= OneGen) |
-      (!is.na(TimetoCR) & TimetoCR <= ThreeGen)
+      (!is.na(TimeToCR) & TimeToCR <= ThreeGen)
   )
 
 # ============================================================
@@ -287,7 +304,7 @@ criteriaD_output <- criteriaD_data %>%
     # --------------------------------------------------------
     # SUBPOPULATION STRUCTURE (SUPPORTING CONTEXT)
     # --------------------------------------------------------
-    `Largest SubPop`,
+    Largest_Sub_Pop,
     
     # --------------------------------------------------------
     # RANGE RESTRICTION (D2 CORE)
@@ -304,7 +321,7 @@ criteriaD_output <- criteriaD_data %>%
     
     TimeToVU,
     TimeToEN,
-    TimetoCR,
+    TimeToCR,
     
     # --------------------------------------------------------
     # PLAUSIBLE THREATS (CRITICAL FOR D2)

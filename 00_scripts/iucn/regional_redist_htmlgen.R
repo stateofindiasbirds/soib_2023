@@ -1,24 +1,19 @@
 library(readr)
 library(dplyr)
 library(glue)
+library(webshot2)
+
 source("00_scripts/iucn/config_iucn.R")
 
 # Read CSV
 species <- read_csv(nrloutputfile)
 
-# Safe number formatting
-format_num <- function(x) {
-  if (is.na(x) || x == "" || is.null(x)) return("")
-  suppressWarnings({
-    num <- as.numeric(x)
-    if (is.na(num)) return(as.character(x))
-    prettyNum(num, big.mark = ",", scientific = FALSE)
-  })
+na_blank <- function(x) {
+  ifelse(is.na(x) | x == "", "", x)
 }
-
 # Combine IUCN criteria in the required format
 combine_criteria <- function(sp) {
-  criteria <- c()
+  criteria_out <- c()
   
   for (crit in c("A","B","C","D")) {
     
@@ -28,31 +23,28 @@ combine_criteria <- function(sp) {
     if (!is.na(crit_level) && nzchar(crit_level) &&
         !is.na(crit_string) && nzchar(crit_string)) {
       
-      criteria <- c(criteria, paste0(crit_level, " ", crit_string))
+      # split on "+"
+      parts <- unlist(strsplit(crit_string, "\\+"))
+      parts <- trimws(parts)
+      
+      if (length(parts) > 1) {
+        first <- parts[1]
+        
+        # remove only leading "B" (or A/C/D depending on crit)
+        rest <- sub(paste0("^", crit), "", parts[-1])
+        
+        combined <- paste0(first, "+", paste(rest, collapse = "+"))
+      } else {
+        combined <- parts
+      }
+      
+      criteria_out <- c(criteria_out, paste0(crit_level, " ", combined))
     }
   }
   
-  paste(criteria, collapse = "; ")
-}
-
-combine_criteria_old <- function(sp) {
-  criteria <- c()
-  for (crit in c("A","B","C","D")) {
-    main_col <- paste0("MainCriteria", crit)
-    sub_col <- paste0("SubCriteria", crit)
-    crit_level_col <- paste0("Criteria", crit)
-    
-    main_val <- as.character(sp[[main_col]])
-    sub_val  <- as.character(sp[[sub_col]])
-    crit_level <- as.character(sp[[crit_level_col]])
-    
-    if (!is.na(crit_level) && crit_level != "" && !is.na(main_val) && main_val != "") {
-      crit_text <- paste0(crit_level, " ", main_val)
-      if (!is.na(sub_val) && sub_val != "") crit_text <- paste0(crit_text, sub_val)
-      criteria <- c(criteria, crit_text)
-    }
-  }
-  paste(criteria, collapse = "; ")
+  if (length(criteria_out) == 0) return(NA_character_)
+  
+  paste(criteria_out, collapse = "; ")
 }
 
 # Generate HTML for a species
@@ -108,16 +100,16 @@ generate_html_pretty <- function(sp) {
     glue("        <div class='data-row'><span class='label'>Migratory Status (India):</span> <span class='value'>{sp$MigratoryStatusIndia}</span></div>"),
     
     "        <div class='section-title'>IUCN Criteria Met</div>",
-    glue("        <div class='data-row'><span class='value'>{combine_criteria(sp)}</span></div>"),
+    glue("        <div class='data-row'><span class='value'>Regional: {combine_criteria(sp)}</span></div>"),
+    glue("        <div class='data-row'><span class='value'>Global: {sp$GlobalCriteriaString}</span></div>"),
     
     "        <div class='section-title'>Range Size (sq. km.) <span class='criteria-label'>Criteria B</span></div>",
-    glue("        <div class='data-row'><span class='label'>Extent of Occurrence (EOO):</span> <span class='value'>{format_num(sp$EOO)} (Max {format_num(sp$MaxEOO)})</span></div>"),
-    glue("        <div class='data-row'><span class='label'>Area of Occupancy (AOO):</span> <span class='value'>{format_num(sp$MinAOO)} (Max {format_num(sp$MaxAOO)})</span></div>"),
-    glue("        <div class='data-row'><span class='label'>Projected Decline in EOO (3 generations):</span> <span class='value'>{sp$DeclineEOO3GEN}</span></div>"),
-    glue("        <div class='data-row'><span class='label'>Actual Decline in EOO:</span> <span class='value'>{sp$ActualDeclinePercentage} ({sp$YearsActualDecline} years)</span></div>"),
+    glue("        <div class='data-row'><span class='label'>Extent of Occurrence (EOO):</span> <span class='value'>{sp$EOO} {na_blank(sp$MaxEOO)}</span></div>"),
+    glue("        <div class='data-row'><span class='label'>Area of Occupancy (AOO):</span> <span class='value'>{sp$MinAOO} {na_blank(sp$MaxAOO)}</span></div>"),
+    glue("        <div class='data-row'><span class='label'>Decline in EOO (%):</span> <span class='value'>{sp$DeclineEOO}</span></div>"),
     glue("        <div class='data-row'><span class='label'>EOO Change Year Band:</span> <span class='value'>{sp$EOOYearBandChange}</span></div>"),
-    glue("        <div class='data-row'><span class='label'>Global EOO:</span> <span class='global-value'>{format_num(sp$GlobalEOO)}</span></div>"),
-    glue("        <div class='data-row'><span class='label'>Global AOO:</span> <span class='global-value'>{format_num(sp$GlobalAOO)}</span></div>"),
+    glue("        <div class='data-row'><span class='label'>Global EOO:</span> <span class='global-value'>{sp$GlobalEOO}</span></div>"),
+    glue("        <div class='data-row'><span class='label'>Global AOO:</span> <span class='global-value'>{sp$GlobalAOO}</span></div>"),
     glue("        <div class='data-row'><span class='label'>% of Global Range:</span> <span class='value'>{sp$GlobalRangePercent}</span></div>"),
     glue("        <div class='data-row'><span class='label'>No. of Locations:</span> <span class='value'>{sp$Locations}</span></div>"),
     glue("        <div class='data-row'><span class='label'>No. of Subspecies:</span> <span class='value'>{sp$Subspecies}</span></div>"),
@@ -140,13 +132,13 @@ generate_html_pretty <- function(sp) {
     "          </tr>",
     "        </table>",
     glue("        <div class='data-row'><span class='label'>Generation Length:</span> <span class='value'>{sp$GenerationLength}</span></div>"),
-    glue("        <div class='data-row'><span class='label'>Actual Decline:</span> <span class='value'>{sp$ActualDeclinePercentage}% ({sp$YearsActualDecline} years, {sp$NewEOOStart}–{sp$NewEOOEnd})</span></div>"),
+    glue("        <div class='data-row'><span class='label'>Actual Trend (%):</span> <span class='value'>{sp$ActualDeclinePercentage} {na_blank(sp$YearsActualDecline)}</span></div>"),
     glue("        <div class='data-row'><span class='label'>Global Population Trend:</span> <span class='global-value'>{sp$GlobalPopulationTrend}</span></div>"),
     
     "        <div class='section-title'>Population <span class='criteria-label'>Criteria C & D</span></div>",
-    glue("        <div class='data-row'><span class='label'>Regional Population:</span> <span class='value'>{format_num(sp$TotalLikelyPop)} (Max {format_num(sp$TotalMaxPop)})</span></div>"),
-    glue("        <div class='data-row'><span class='label'>Global Population:</span> <span class='value'>{format_num(sp$GlobalPopulation)}</span></div>"),
-    glue("        <div class='data-row'><span class='label'>1% biogeographic population:</span> <span class='value'>{format_num(sp$BiogPop1Percent)}</span></div>"),
+    glue("        <div class='data-row'><span class='label'>Regional Population:</span> <span class='value'>{sp$TotalLikelyPop} {na_blank(sp$TotalMaxPop)}</span></div>"),
+    glue("        <div class='data-row'><span class='label'>Global Population:</span> <span class='value'>{sp$GlobalPopulation}</span></div>"),
+    glue("        <div class='data-row'><span class='label'>1% biogeographic population:</span> <span class='value'>{sp$BiogPop1Percent}</span></div>"),
     
 "        <div class='section-title'>SoIB</div>",
 "        <table class='soib-table'>",
@@ -172,9 +164,53 @@ generate_html_pretty <- function(sp) {
 }
 
 # Generate HTML for each species
+#for(i in 1:nrow(species)) {
+#  html_content <- generate_html_pretty(species[i, ])
+#  file_name <- paste0(gsub(" ", "_", species$EnglishName[i]), ".html")
+#  file_name <- paste0(redlist_home_dir,"outputs\\",file_name)
+#  writeLines(html_content, con = file_name)
+#}
+
+filter_species <- c ("Snowy-throated Babbler",
+                     "Ashambu Laughingthrush",
+                     "Amur Falcon",
+                     "Eurasian Spoonbill",
+                     "Cotton Pygmy-Goose",
+                     "Nicobar Pigeon",
+                     "Andaman Treepie")
 for(i in 1:nrow(species)) {
+  
+#  if(!(species$EnglishName[i] %in% filter_species)) next;
+  
+  # Generate HTML
   html_content <- generate_html_pretty(species[i, ])
-  file_name <- paste0(gsub(" ", "_", species$EnglishName[i]), ".html")
-  file_name <- paste0(redlist_home_dir,"outputs\\",file_name)
-  writeLines(html_content, con = file_name)
+  
+  # Temp HTML file (needed for screenshot)
+  temp_html <- tempfile(fileext = ".html")
+  writeLines(html_content, con = temp_html)
+  
+  # Output JPG file name
+  output_file <- paste0(gsub(" ", "_", species$EnglishName[i]), ".jpg")
+  output_file <- paste0(redlist_home_dir, "outputs\\", output_file)
+  
+  print(paste("Generating JPG for", species$EnglishName[i]))
+  
+  # Screenshot
+  tryCatch({
+    webshot2::webshot(
+      temp_html,
+      file = output_file,
+      selector = "body",
+      vwidth = 1024, #1088,
+      vheight = 768, #1366,
+      zoom = 2,
+#      cliprect = c(0, 0, 1024, 768), #1080, 1360),
+      delay = 2  # replace with your config if needed
+    )
+  }, error = function(e) {
+    print(paste("Card generation failed:", e$message))
+  })
+  
+  # Optional: remove temp file
+  unlink(temp_html)
 }

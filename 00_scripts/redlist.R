@@ -74,9 +74,9 @@ soib <- inner_join (soib, species,by = c("BLI.Scientific.Name" = "BLI.Scientific
 
 soib <- soib %>%
   mutate(
-    GEN1 = floor(pmax(GEN, 3)),        # 3 years OR 1 generation
-    GEN2 = floor(pmax(2 * GEN, 5)),    # 5 years OR 2 generations
-    GEN3 = floor(pmax(3 * GEN, 10)),    # 10 years OR 3 generations (already used)
+    GEN1 = round(pmax(GEN, 3)),        # 3 years OR 1 generation
+    GEN2 = round(pmax(2 * GEN, 5)),    # 5 years OR 2 generations
+    GEN3 = round(pmax(3 * GEN, 10)),    # 10 years OR 3 generations (already used)
     valid1GEN = GEN1 <= threegenperiod,
     valid2GEN = GEN2 <= threegenperiod,
     valid3GEN = GEN3 <= threegenperiod

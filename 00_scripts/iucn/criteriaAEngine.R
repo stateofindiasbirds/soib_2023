@@ -17,200 +17,202 @@ manual_decline <- if (file.exists(popDeclinefile)) {
       MeanGridCoverage = NA_character_,
       LTC = NA_character_,
       CAT = NA_character_
-    )
+    ) %>% 
+    filter(!is.na(Method))
 } else {
   tibble()
 }
 
-# Keep only rows with defined method (ensures valid interpretation)
-manual_decline <- manual_decline %>%
-  filter(!is.na(Method))
-
+# Process only if there are rows
+if(nrow(manual_decline) > 0)
+{
 
 # ============================================================
 # 2. READ 3GEN DATA AND SOIB TAXONOMIC MAPPING
 # ============================================================
 
-threegen <- read.csv(threegenfile)
-
-soib <- read.csv(get_metadata("none")$SOIBMAIN.PATH)
-
-soib <- soib %>% 
-  select(
-    "India.Checklist.Common.Name",
-    "India.Checklist.Scientific.Name",
-    "BLI.Scientific.Name",
-  )
+  threegen <- read.csv(threegenfile)
+  
+  soib <- read.csv(get_metadata("none")$SOIBMAIN.PATH)
+  
+  soib <- soib %>% 
+    select(
+      "India.Checklist.Common.Name",
+      "India.Checklist.Scientific.Name",
+      "BLI.Scientific.Name",
+    )
 
 
 # ============================================================
 # 3. GENERATION LENGTH PREPARATION
 # ============================================================
 
-gen_data <- threegen %>%
-  select(
-    BLI,
-    GEN
-  ) %>%
-  rename(
-    BLI.Scientific.Name = BLI,
-    GenerationLength = GEN
-  )
+  gen_data <- threegen %>%
+    select(
+      BLI,
+      GEN
+    ) %>%
+    rename(
+      BLI.Scientific.Name = BLI,
+      GenerationLength = GEN
+    )
 
 # Map BLI → EnglishName using SOIB
-gen_data <- soib %>%
-  select(
-    EnglishName = India.Checklist.Common.Name,
-    BLI.Scientific.Name
-  ) %>%
-  inner_join(gen_data, by = "BLI.Scientific.Name") %>%
-  mutate(EnglishName = trimws(EnglishName)) %>%
-  select(EnglishName, GenerationLength)
+  gen_data <- soib %>%
+    select(
+      EnglishName = India.Checklist.Common.Name,
+      BLI.Scientific.Name
+    ) %>%
+    inner_join(gen_data, by = "BLI.Scientific.Name") %>%
+    mutate(EnglishName = trimws(EnglishName)) %>%
+    select(EnglishName, GenerationLength)
 
 
 # ============================================================
 # 4. APPLY GENERATION LENGTH TO MANUAL DATA
 # ============================================================
 
-manual_decline <- manual_decline %>%
-  left_join(gen_data, by = "EnglishName") %>%
-  mutate(
-    # IUCN rule: 3GEN or minimum 10 years
-    Years3GEN = pmax(10, round(3 * GenerationLength))
-  )
+  manual_decline <- manual_decline %>%
+    left_join(gen_data, by = "EnglishName") %>%
+    mutate(
+      # IUCN rule: 3GEN or minimum 10 years
+      Years3GEN = pmax(10, round(3 * GenerationLength))
+    )
 
 
 # ============================================================
 # 5. PREPARE DECLINE METRICS
 # ============================================================
 
-manual_decline <- manual_decline %>%
-  mutate(
-    OrgStartYear = as.numeric(StartYear),
-    OrgEndYear = as.numeric(EndYear),
-    DeclinePercent = as.numeric(DeclinePercentLci), #always take 95% LCI
-    ActualDecline = paste ("-",round(DeclinePercentMean, 2)," (-",round(DeclinePercentLci, 2),",-", round(DeclinePercentRci, 2),")"),
-    
-    Duration = OrgEndYear - OrgStartYear,
-    
-    Years3GEN = as.numeric(Years3GEN),
-    
-    YearsToExtend = Years3GEN - Duration,
-    NeedsExtension = Duration < Years3GEN,
-    
-    # Only these methods allow extrapolation (correct IUCN interpretation)
-    CanExtrapolate = Method %in% c("Observed", "Inferred", "Projected"),
-    WasExtrapolated = NeedsExtension & CanExtrapolate
-  )
+  manual_decline <- manual_decline %>%
+    mutate(
+      OrgStartYear = as.numeric(StartYear),
+      OrgEndYear = as.numeric(EndYear),
+      DeclinePercent = as.numeric(DeclinePercentLci), #always take 95% LCI
+      ActualDecline = paste0 ("-",round(DeclinePercentMean, 1),"% (-",round(DeclinePercentLci, 1)," , -", round(DeclinePercentRci, 1),")"),
+      
+      Duration = OrgEndYear - OrgStartYear,
+      
+      Years3GEN = as.numeric(Years3GEN),
+      
+      YearsToExtend = Years3GEN - Duration,
+      NeedsExtension = Duration < Years3GEN,
+      
+      # Only these methods allow extrapolation (correct IUCN interpretation)
+      CanExtrapolate = Method %in% c("Observed", "Inferred", "Projected"),
+      WasExtrapolated = NeedsExtension & CanExtrapolate
+    )
 
 
 # ============================================================
 # 6. STANDARDISE DECLINE TO 3GEN WINDOW
 # ============================================================
 
-manual_decline <- manual_decline %>%
-  mutate(
-    # Convert decline → remaining proportion
-    RemainingProp =
-      ifelse(!is.na(DeclinePercent),
-             1 - (DeclinePercent / 100),
-             NA_real_),
-    
-    # Annualised multiplicative rate
-    AnnualRate =
-      ifelse(Duration > 0 & !is.na(RemainingProp),
-             RemainingProp^(1 / Duration),
-             NA_real_),
-    
-    # Decide evaluation period
-    EvalYears =
-      case_when(
-        Duration >= Years3GEN ~ Years3GEN,
-        NeedsExtension & CanExtrapolate ~ Years3GEN,
-        TRUE ~ Duration
-      ),
-    
-    # Adjust EndYear to match evaluation window
-    EndYear =
-      ifelse(!is.na(StartYear) & !is.na(EvalYears),
-             OrgStartYear + EvalYears,
-             OrgEndYear),
-    
-    StartYear = OrgStartYear,
-    
-    # Project decline to 3GEN
-    FinalRemaining =
-      ifelse(!is.na(AnnualRate),
-             AnnualRate^EvalYears,
-             NA_real_),
-    
-    Decline =
-      ifelse(!is.na(FinalRemaining),
-             (1 - FinalRemaining) * 100,
-             DeclinePercent),
-    
-    # If extrapolated → method becomes Projected (important correction)
-    Method =
-      case_when(
-        NeedsExtension & CanExtrapolate ~ "Projected",
-        TRUE ~ Method
-      )
-  )
+  manual_decline <- manual_decline %>%
+    mutate(
+      # Convert decline → remaining proportion
+      RemainingProp =
+        ifelse(!is.na(DeclinePercent),
+               1 - (DeclinePercent / 100),
+               NA_real_),
+      
+      # Annualised multiplicative rate
+      AnnualRate =
+        ifelse(Duration > 0 & !is.na(RemainingProp),
+               RemainingProp^(1 / Duration),
+               NA_real_),
+      
+      # Decide evaluation period
+      EvalYears =
+        case_when(
+          Duration >= Years3GEN ~ Years3GEN,
+          NeedsExtension & CanExtrapolate ~ Years3GEN,
+          TRUE ~ Duration
+        ),
+      
+      # Adjust EndYear to match evaluation window
+      EndYear =
+        ifelse(!is.na(StartYear) & !is.na(EvalYears),
+               OrgStartYear + EvalYears,
+               OrgEndYear),
+      
+      StartYear = OrgStartYear,
+      
+      # Project decline to 3GEN
+      FinalRemaining =
+        ifelse(!is.na(AnnualRate),
+               AnnualRate^EvalYears,
+               NA_real_),
+      
+      Decline =
+        ifelse(!is.na(FinalRemaining),
+               (1 - FinalRemaining) * 100,
+               DeclinePercent),
+      
+      # If extrapolated → method becomes Projected (important correction)
+      Method =
+        case_when(
+          NeedsExtension & CanExtrapolate ~ "Projected",
+          TRUE ~ Method
+        )
+    )
 
 
 # ============================================================
 # 7. FINAL CLEANING OF MANUAL DATA
 # ============================================================
 
-manual_decline <- manual_decline %>%
-  mutate(
-    Years3GEN = as.numeric(Years3GEN),
-    Decline = round(Decline, 1)
-  )
+  manual_decline <- manual_decline %>%
+    mutate(
+      Years3GEN = as.numeric(Years3GEN),
+      Decline = round(Decline, 1)
+    )
 
-manual_decline <- manual_decline %>%
-  mutate(
-    # Convert all logical flags to numeric (0/1 standardisation)
-    Reversible = as.numeric(Reversible),
-    ReasonUnderstood = as.numeric(ReasonUnderstood),
-    ReasonCeased = as.numeric(ReasonCeased),
-    
-    DirectObservation = as.numeric(DirectObservation),
-    AbundanceIndex = as.numeric(AbundanceIndex),
-    EOODecline = as.numeric(EOODecline),
-    AOODecline = as.numeric(AOODecline),
-    HabitatQuality = as.numeric(HabitatQuality),
-    Exploitation = as.numeric(Exploitation),
-    OtherEffects = as.numeric(OtherEffects),
-    
-    Decline = as.integer(Decline),
-    RangeCoverage = as.numeric(RangeCoverage)
-    
-  ) %>%
-  select(
-    EnglishName,
-    Method,
-    Reversible,
-    ReasonUnderstood,
-    ReasonCeased,
-    OrgStartYear,
-    OrgEndYear,
-    StartYear,
-    EndYear,
-    Years3GEN,
-    Decline,
-    DirectObservation,
-    AbundanceIndex,
-    EOODecline,
-    AOODecline,
-    HabitatQuality,
-    Exploitation,
-    OtherEffects,
-    RangeCoverage,
-    MeanGridCoverage,
-    LTC,
-    CAT
-  )
+  manual_decline <- manual_decline %>%
+    mutate(
+      # Convert all logical flags to numeric (0/1 standardisation)
+      Reversible = as.numeric(Reversible),
+      ReasonUnderstood = as.numeric(ReasonUnderstood),
+      ReasonCeased = as.numeric(ReasonCeased),
+      
+      DirectObservation = as.numeric(DirectObservation),
+      AbundanceIndex = as.numeric(AbundanceIndex),
+      EOODecline = as.numeric(EOODecline),
+      AOODecline = as.numeric(AOODecline),
+      HabitatQuality = as.numeric(HabitatQuality),
+      Exploitation = as.numeric(Exploitation),
+      OtherEffects = as.numeric(OtherEffects),
+      
+      Decline = as.integer(Decline),
+      RangeCoverage = as.numeric(RangeCoverage)
+      
+    ) %>%
+    select(
+      EnglishName,
+      Method,
+      Reversible,
+      ReasonUnderstood,
+      ReasonCeased,
+      OrgStartYear,
+      OrgEndYear,
+      ActualDecline,
+      StartYear,
+      EndYear,
+      Years3GEN,
+      Decline,
+      DirectObservation,
+      AbundanceIndex,
+      EOODecline,
+      AOODecline,
+      HabitatQuality,
+      Exploitation,
+      OtherEffects,
+      RangeCoverage,
+      MeanGridCoverage,
+      LTC,
+      CAT
+    )
+}
 
 
 # ============================================================
