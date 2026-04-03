@@ -308,13 +308,57 @@ species <- merged %>%
     GlobalRedlistURL = url
   )
 
+
 # ============================================================
-# 5. DATA TYPES
+# 5. APPLY RARITIES OVERRIDES (IF FILE EXISTS)
 # ============================================================
 
-#species <- species %>%
-#  mutate(across(where(is.character), as.character)) %>%
-#  mutate(across(where(is.numeric), as.numeric))
+if (file.exists(raritiesfile)) {
+  
+  rarities <- read_csv(raritiesfile, show_col_types = FALSE) %>%
+    mutate(
+      EnglishName = trimws(EnglishName),
+      .in_rarities = TRUE
+    )
+  
+  species <- species %>%
+    left_join(rarities, by = "EnglishName", suffix = c("", ".rar"))
+  
+  # Columns to update (common columns only)
+  cols <- intersect(names(rarities), names(species))
+  cols <- setdiff(cols, c("EnglishName", ".in_rarities"))
+  
+  for (col in cols) {
+    
+    rar_col <- paste0(col, ".rar")
+    
+    if (!rar_col %in% names(species)) next
+    
+    species[[col]] <- ifelse(
+      # Apply override ONLY if species is in rarities
+      species$.in_rarities %in% TRUE,
+      
+      # If rarities value is "" → keep original
+      ifelse(
+        species[[rar_col]] == "",
+        species[[col]],
+        species[[rar_col]]   # includes NA and real values
+      ),
+      
+      # Species not in rarities → keep original
+      species[[col]]
+    )
+  }
+  
+  # Cleanup
+  species <- species %>%
+    select(-ends_with(".rar"), -.in_rarities)
+  
+  cat("Rarities file applied.\n")
+  
+} else {
+  cat("Rarities file not found, skipping overrides.\n")
+}
 
 species <- species %>%
   filter(EnglishName %in% species_list$English.Name)

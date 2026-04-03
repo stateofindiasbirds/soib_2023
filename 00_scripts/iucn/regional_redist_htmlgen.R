@@ -64,6 +64,7 @@ generate_html_pretty <- function(sp) {
     "    .species-header { position: absolute; top: 50%; transform: translateY(-50%); left: 24px; color: white; font-size: 22px; font-weight: 600; letter-spacing: 0.5px; }",
     "    .species-header i { color: #f4ece9; font-weight: 400; }",
     "    .columns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 30px; }",
+    "    .value.redlist-highlight {color: blue; font-weight: bold; }",
     "    .section-title { font-weight: 600; margin-top: 15px; border-bottom: 2px solid #99566a; padding-bottom: 3px; color: #333; display: flex; justify-content: space-between; align-items: center; }",
     "    .criteria-label { font-weight: 600; font-size: 14px; color: #99566a; }",
     "    .data-row { display: flex; justify-content: space-between; border-radius: 6px; padding: 4px 8px; }",
@@ -94,7 +95,8 @@ generate_html_pretty <- function(sp) {
     "      <!-- Left Column -->",
     "      <div>",
     "        <div class='section-title'>Redlist</div>",
-    glue("        <div class='data-row'><span class='label'>Regional (Default):</span> <span class='value'>{sp$RegionalRedlist}</span></div>"),
+    glue("        <div class='data-row'><span class='label'>Regional (Default):</span> <span class='value redlist-highlight'>{sp$RegionalRedlist}</span></div>"),
+#    glue("        <div class='data-row'><span class='label'>Regional (Default):</span> <span class='value'>{sp$RegionalRedlist}</span></div>"),
     glue("        <div class='data-row'><span class='label'>Regional (Adjusted):</span> <span class='value'>{sp$AdjustedRegionalRedlist}</span></div>"),
     glue("        <div class='data-row'><span class='label'>Global:</span> <span class='value'><a href='{sp$GlobalRedlistURL}' target='_blank'>{sp$GlobalRedlist}</a></span></div>"),
     glue("        <div class='data-row'><span class='label'>Migratory Status (India):</span> <span class='value'>{sp$MigratoryStatusIndia}</span></div>"),
@@ -102,7 +104,7 @@ generate_html_pretty <- function(sp) {
     "        <div class='section-title'>IUCN Criteria Met</div>",
     glue("        <div class='data-row'><span class='value'>Regional: {combine_criteria(sp)}</span></div>"),
     glue("        <div class='data-row'><span class='value'>Global: {sp$GlobalCriteriaString}</span></div>"),
-    
+
     "        <div class='section-title'>Range Size (sq. km.) <span class='criteria-label'>Criteria B</span></div>",
     glue("        <div class='data-row'><span class='label'>Extent of Occurrence (EOO):</span> <span class='value'>{sp$EOO} {na_blank(sp$MaxEOO)}</span></div>"),
     glue("        <div class='data-row'><span class='label'>Area of Occupancy (AOO):</span> <span class='value'>{sp$MinAOO} {na_blank(sp$MaxAOO)}</span></div>"),
@@ -171,16 +173,17 @@ generate_html_pretty <- function(sp) {
 #  writeLines(html_content, con = file_name)
 #}
 
-filter_species <- c ("Snowy-throated Babbler",
-                     "Ashambu Laughingthrush",
-                     "Amur Falcon",
-                     "Eurasian Spoonbill",
-                     "Cotton Pygmy-Goose",
-                     "Nicobar Pigeon",
-                     "Andaman Treepie")
+filter_species <- c ("Siberian Crane",
+                     "Masked Finfoot",
+                     "Manipur Bush-Quail",
+                     "Pink-headed Duck",
+                     "Himalayan Quail",
+                     "Green Peafowl",
+                     "Common Kestrel",
+                     "Indian Roller")
 for(i in 1:nrow(species)) {
   
-#  if(!(species$EnglishName[i] %in% filter_species)) next;
+  if(!(species$EnglishName[i] %in% filter_species)) next;
   
   # Generate HTML
   html_content <- generate_html_pretty(species[i, ])

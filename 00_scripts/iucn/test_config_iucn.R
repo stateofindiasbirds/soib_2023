@@ -16,6 +16,7 @@ plausiblethreatfile <- paste0(parentfolder, "01_analyses_full/results/plausiblet
 
 assessmentsflattenedfile <- "00_data/IUCN_assessments_flattened.csv"
 subpopulationsfile <- "00_data/species_with_subspecies_count.csv"
+raritiesfile <- "00_data/rarities_nrl.csv" 
 
 criteriaAResultsfile <- paste0(parentfolder, "01_analyses_full/results/criteriaA_results.csv")
 criteriaBResultsfile <- paste0(parentfolder, "01_analyses_full/results/criteriaB_results.csv")

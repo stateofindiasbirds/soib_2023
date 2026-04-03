@@ -16,6 +16,7 @@ plausiblethreatfile <- "01_analyses_full/results/plausiblethreat.csv"
 
 assessmentsflattenedfile <- "00_data/IUCN_assessments_flattened.csv"
 subpopulationsfile <- "00_data/species_with_subspecies_count.csv"
+raritiesfile <- "00_data/rarities_nrl.csv" 
 
 criteriaAResultsfile <- "01_analyses_full/results/criteriaA_results.csv"
 criteriaBResultsfile <- "01_analyses_full/results/criteriaB_results.csv"
