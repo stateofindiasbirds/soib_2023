@@ -5,6 +5,9 @@ library(purrr)
 source("utils.R")
 source("config.R")
 
+# Give the India shapefile. Only boundary needed
+shapefile <- "..\\..\\..\\data\\states_sf_admin_mapped\\states_sf_admin_mapped.shp"
+
 generate_grids <- function(grid_size_km, geography) {
   # Define grid size in degrees
   grid_size_deg <- grid_size_km / 111  # Assume 1 degree ~ 111 km
@@ -36,7 +39,8 @@ generate_grids <- function(grid_size_km, geography) {
   return(grid_sf)
 }
 
-kerala_map <- st_read("..\\data\\states_sf_admin_mapped/states_sf_admin_mapped.shp") %>% filter (STATE_NAME == "Kerala")
+#kerala_map <- st_read("..\\data\\states_sf_admin_mapped/states_sf_admin_mapped.shp") %>% filter (STATE_NAME == "Kerala")
+india_map <- st_read(shapefile) 
 
 # Generate the global grid
 grids_sf <- setNames(
@@ -46,4 +50,5 @@ grids_sf <- setNames(
 
 names(grids_sf) <- grid_sizes_km
 
-saveRDS(grids_sf, "kl_grids.RDS")
+#saveRDS(grids_sf, "kl_grids.RDS")
+saveRDS(grids_sf, "in_grids.RDS")
