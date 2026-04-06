@@ -36,7 +36,8 @@ generate_grids <- function(grid_size_km, geography) {
   return(grid_sf)
 }
 
-kerala_map <- st_read("..\\data\\states_sf_admin_mapped/states_sf_admin_mapped.shp") %>% filter (STATE_NAME == "Kerala")
+#kerala_map <- st_read("..\\data\\states_sf_admin_mapped/states_sf_admin_mapped.shp") %>% filter (STATE_NAME == "Kerala")
+india_map <- st_read("..\\data\\states_sf_admin_mapped/states_sf_admin_mapped.shp") 
 
 # Generate the global grid
 grids_sf <- setNames(
@@ -46,4 +47,5 @@ grids_sf <- setNames(
 
 names(grids_sf) <- grid_sizes_km
 
-saveRDS(grids_sf, "kl_grids.RDS")
+#saveRDS(grids_sf, "kl_grids.RDS")
+saveRDS(grids_sf, "in_grids.RDS")
