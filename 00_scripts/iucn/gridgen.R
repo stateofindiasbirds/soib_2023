@@ -5,50 +5,93 @@ library(purrr)
 source("utils.R")
 source("config.R")
 
-# Give the India shapefile. Only boundary needed
-shapefile <- "..\\..\\..\\data\\states_sf_admin_mapped\\states_sf_admin_mapped.shp"
+# -------------------------------
+# Fixed origin (India-friendly)
+# -------------------------------
+origin_lon <- 68
+origin_lat <- 6
 
+# -------------------------------
+# Snap bbox to grid
+# -------------------------------
+snap_bbox <- function(bbox, grid_size_deg) {
+  
+  # Convert to plain numeric (IMPORTANT FIX)
+  xmin <- as.numeric(bbox["xmin"])
+  ymin <- as.numeric(bbox["ymin"])
+  xmax <- as.numeric(bbox["xmax"])
+  ymax <- as.numeric(bbox["ymax"])
+  
+  # Snap to grid
+  xmin <- floor((xmin - origin_lon) / grid_size_deg) * grid_size_deg + origin_lon
+  ymin <- floor((ymin - origin_lat) / grid_size_deg) * grid_size_deg + origin_lat
+  
+  xmax <- ceiling((xmax - origin_lon) / grid_size_deg) * grid_size_deg + origin_lon
+  ymax <- ceiling((ymax - origin_lat) / grid_size_deg) * grid_size_deg + origin_lat
+  
+  # Recreate bbox
+  st_bbox(c(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax), crs = 4326)
+}
+# -------------------------------
+# Main grid generator (OPTIMIZED)
+# -------------------------------
 generate_grids <- function(grid_size_km, geography) {
-  # Define grid size in degrees
-  grid_size_deg <- grid_size_km / 111  # Assume 1 degree ~ 111 km
   
-  # Create a grid spanning a fixed range (Kerala)
-  bbox <- st_bbox(c(xmin = 74.5, xmax = 77.5, ymin = 8, ymax = 13), crs = 4326)
+  grid_size_deg <- grid_size_km / 111
   
+  # Snap bbox
+  bbox <- snap_bbox(st_bbox(geography), grid_size_deg)
+  
+  # Create grid
   grid <- st_make_grid(
-    st_as_sfc(st_bbox(bbox)), 
-    cellsize = c(grid_size_deg, grid_size_deg),
+    st_as_sfc(st_bbox(bbox)),
+    cellsize = grid_size_deg,
     square = TRUE
   )
   
-  # Convert grid to sf object
   grid_sf <- st_sf(geometry = grid)
   
-  # Compute the centroid of each grid cell
-  centroids <- st_centroid(grid_sf)
+  # Use centroids (safe for square grids)
+  coords <- st_coordinates(st_centroid(grid_sf))
   
-  # Extract lat/lon from centroids
-  lat_lon <- st_coordinates(centroids)
+  # Vectorised GridID (FAST)
+  col <- floor((coords[,1] - origin_lon) / grid_size_deg)
+  row <- floor((coords[,2] - origin_lat) / grid_size_deg)
   
-  # Generate grid_id for each centroid
-  grid_sf$GridID <- mapply(compute_grid_id, lat_lon[, 2], lat_lon[, 1], MoreArgs = list(grid_size_km = grid_size_km))
+  grid_sf$GridID <- paste(grid_size_km, row, col, sep = "_")
   
-  grid_sf <- st_join(grid_sf, geography, join = st_intersects) %>% filter (STATE_CODE == geography$STATE_CODE)
-  grid_sf %>% select (GridID) 
+  # Fast spatial filter (sparse)
+  keep <- lengths(st_intersects(grid_sf, geography)) > 0
+  grid_sf <- grid_sf[keep, ]
+  
+  # Keep only ID
+  grid_sf <- grid_sf %>% select(GridID)
   
   return(grid_sf)
 }
 
-#kerala_map <- st_read("..\\data\\states_sf_admin_mapped/states_sf_admin_mapped.shp") %>% filter (STATE_NAME == "Kerala")
-india_map <- st_read(shapefile) 
+# -------------------------------
+# Load India geometry
+# -------------------------------
+load("..\\..\\00_data\\maps_sf.RData")
 
-# Generate the global grid
+india_sf <- st_transform(india_sf, 4326)
+
+if (!st_is_valid(india_sf)) {
+  india_sf <- st_make_valid(india_sf)
+}
+
+# -------------------------------
+# Generate grids
+# -------------------------------
 grids_sf <- setNames(
-  lapply(grid_sizes_km, function(grid_size_km) generate_grids(grid_size_km, kerala_map)),
-  grid_sizes_km
+  lapply(aoo_grid_sizes_km, function(aoo_grid_sizes_km) {
+    generate_grids(aoo_grid_sizes_km, india_sf)
+  }),
+  aoo_grid_sizes_km
 )
 
-names(grids_sf) <- grid_sizes_km
-
-#saveRDS(grids_sf, "kl_grids.RDS")
+# -------------------------------
+# Save
+# -------------------------------
 saveRDS(grids_sf, "in_grids.RDS")
