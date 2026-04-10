@@ -22,7 +22,7 @@ EffortThesholdAcrossGridsPercentile <- 80
 consistent_eoo_limit <- 5
 
 # Which all grid sizes need to be calculated
-aoo_grid_sizes_km <- c(2, 4, 8)
+aoo_grid_sizes_km <- c(8, 4, 2)
 #aoo_grid_sizes_km <- c(4, 8, 16)
 
 # No records before 2000 used in EOO calculation

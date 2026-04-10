@@ -2,6 +2,11 @@ library(sf)
 library(dplyr)
 library(purrr)
 library(tidyr)
+library(furrr)
+
+plan(multisession, workers = 2) # Parallel ready
+plan(sequential)
+
 source("config.R")
 
 EOOGridMap <- data.frame(
@@ -12,49 +17,131 @@ EOOGridMap <- data.frame(
 
 # Function to create DataFrame of Grid IDs that intersect with EOOMap
 create_grid_dataframe <- function(eoo, grid_sizes_km, grids_sf) {
-  # Helper function to process each species and grid size
+  
   process_species_grid <- function(species_data, grid_size_km, grids_sf) {
+    species_name <- species_data$Species
+    
+    start_time <- Sys.time()
+    message(paste0("Processing: ", species_name, " | Grid: ", grid_size_km, " km"))
     
     grid_sf <- grids_sf[[as.character(grid_size_km)]]
-    result_df <- tibble(GridResolution = grid_size_km, GridID = integer(0))
-    eoo_shape <- species_data$EOOMap[[1]]  # Access the shape for the species
+    result_df <- tibble(Species = character(), GridResolution = numeric(), GridID = integer())
+    grid_map_entry <- NULL
     
-    if(!is.null(eoo_shape))
-    {
-      # Clip the grid to the EOOShape
-      clipped_grid <- st_intersection(grid_sf, eoo_shape)
+    eoo_shape <- species_data$EOOMap[[1]]
+    
+    if(!is.null(eoo_shape)) {
+      message(paste0("Grid cells: ", nrow(grid_sf)))
+      message(paste0("EOO bbox area: ", st_area(st_as_sfc(st_bbox(eoo_shape)))))
       
-      # Prepare the result dataframe
-      if (nrow(clipped_grid) > 0) {
-        # Add the new row to the dataframe. Note this is directly updating a global variable as a side-effect and hence <<-
-        EOOGridMap <<- rbind(EOOGridMap, data.frame(Species = species_data$Species, GridResolution = grid_size_km, EOOGridMap = I(list(clipped_grid))))        
-        result_df <- clipped_grid %>%
+      # Step 1: bbox filter
+      bbox <- st_as_sfc(st_bbox(eoo_shape))
+      grid_sf <- grid_sf[st_intersects(grid_sf, bbox, sparse = FALSE), ]
+      
+      # Step 2: precise filter
+      matched <- grid_sf[st_intersects(grid_sf, eoo_shape, sparse = FALSE), ]
+      
+      message("Grid after filter: ", nrow(matched))
+      
+      if (nrow(matched) > 0) {
+        # grid_data
+        result_df <- matched %>%
           st_set_geometry(NULL) %>%
-          mutate( GridResolution = grid_size_km) %>%
-          select(GridResolution, GridID)
-      } 
+          mutate(
+            Species = species_name,
+            GridResolution = grid_size_km
+          ) %>%
+          select(Species, GridResolution, GridID)
+        
+        # grid_map
+        grid_map_entry <- data.frame(
+          Species = species_name,
+          GridResolution = grid_size_km,
+          EOOGridMap = I(list(matched))
+        )
+      }
     }
-    return(result_df)
+    
+    end_time <- Sys.time()
+    message(paste0("Done: ", species_name, " | Grid: ", grid_size_km,
+                   " | Time: ", round(difftime(end_time, start_time, units = "secs"), 2), " sec"))
+    
+    return(list(
+      grid_data = result_df,
+      grid_map = grid_map_entry
+    ))
   }
-
-  # Apply the function to all species and grid sizes
-  grid_data <- eoo %>%
-    rowwise() %>%
-    mutate(grid_data = list(
-      bind_rows(map_dfr(grid_sizes_km, ~ process_species_grid(cur_data(), .x, grids_sf)))
-    )) %>%
-    unnest(grid_data) %>% 
-    select(Species, GridResolution, GridID)
   
-  return(grid_data)
+  # Sequential execution (parallel-ready structure)
+  results <- future_map(
+      1:nrow(eoo),
+      function(i) {
+        species_data <- eoo[i, ]
+        
+        map(grid_sizes_km, function(gs) {
+          process_species_grid(species_data, gs, grids_sf)
+        })
+      },
+      .options = furrr_options(
+        seed = TRUE,
+      globals = list(
+        grids_sf = grids_sf,
+        grid_sizes_km = grid_sizes_km
+      ),
+      packages = c("sf", "dplyr", "purrr", "tibble")
+    )
+  )  
+  results_flat <- purrr::flatten(results)
+  
+  # Combine outputs
+  grid_data <- bind_rows(purrr::map(results_flat, "grid_data"))
+  EOOGridMap <- bind_rows(purrr::compact(purrr::map(results_flat, "grid_map")))
+  
+  return(list(
+    grid_data = grid_data,
+    EOOGridMap = EOOGridMap
+  ))
 }
 
-
+species <- c (
+  "Banasura Laughingthrush",
+  "Nilgiri Laughingthrush",
+  "Ashambu Laughingthrush",
+  "Black-headed Greenfinch",
+  "Andaman Masked-Owl",
+  "Mangrove Pitta",
+  "Naga Wren-Babbler",
+  "Nilgiri Pipit",
+  "Nilgiri Sholakili",
+  "White-bellied Sholakili",
+  "Nicobar Imperial-Pigeon",
+  "Mishmi Wren-Babbler",
+  "Andaman Woodpecker",
+  "Marsh Babbler",
+  "Swamp Grass Babbler",
+  "Pale-capped Pigeon",
+  "Kashmir Nuthatch",
+  "Gray-crowned Prinia",
+  "White-bellied Blue Flycatcher",
+  "Upland Pipit",
+  "Yellow-eyed Pigeon",
+  "White-browed Tit-Warbler",
+  "Brown-cheeked Rail"
+)
 
 EOO <- readRDS("eoo.RDS")
-kl_grids <- readRDS("kl_grids.RDS")
+
+# Testing. uncomment
+#EOO <- EOO %>% filter (Species %in% species)
+
+in_grids <- readRDS("in_grids.RDS")
 # Create the grid data frame
-grid_data <- create_grid_dataframe(EOO, grid_sizes_km, kl_grids)
+system.time({
+  res <- create_grid_dataframe(EOO, aoo_grid_sizes_km, in_grids)
+})
+
+grid_data <- res$grid_data
+EOOGridMap <- res$EOOGridMap
 
 saveRDS(grid_data,"grids.RDS")
 saveRDS(EOOGridMap, "grid_maps.RDS")
