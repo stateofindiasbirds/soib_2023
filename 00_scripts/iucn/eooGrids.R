@@ -4,8 +4,15 @@ library(purrr)
 library(tidyr)
 library(furrr)
 
-plan(multisession, workers = 2) # Parallel ready
-plan(sequential)
+config_settings <- list (
+  use_parallel = TRUE,
+  workers = 4
+)
+
+if (config_settings$use_parallel)
+{
+  plan(multisession, workers = config_settings$workers) # Parallel ready
+}
 
 source("config.R")
 
@@ -14,6 +21,7 @@ EOOGridMap <- data.frame(
   GridResolution = numeric(),
   EOOGridMap = I(list())  # Use I(list()) for list-columns like spatial objects
 )
+
 
 # Function to create DataFrame of Grid IDs that intersect with EOOMap
 create_grid_dataframe <- function(eoo, grid_sizes_km, grids_sf) {
@@ -72,8 +80,31 @@ create_grid_dataframe <- function(eoo, grid_sizes_km, grids_sf) {
     ))
   }
   
-  # Sequential execution (parallel-ready structure)
-  results <- future_map(
+  if (config_settings$use_parallel)
+  {
+    # Sequential execution (parallel-ready structure)
+    results <- future_map(
+        1:nrow(eoo),
+        function(i) {
+          species_data <- eoo[i, ]
+          
+          map(grid_sizes_km, function(gs) {
+            process_species_grid(species_data, gs, grids_sf)
+          })
+        },
+        .options = furrr_options(
+          seed = TRUE,
+        globals = list(
+          grids_sf = grids_sf,
+          grid_sizes_km = grid_sizes_km
+        ),
+        packages = c("sf", "dplyr", "purrr", "tibble")
+      )
+    )  
+  }
+  else
+  {
+    results <- map(
       1:nrow(eoo),
       function(i) {
         species_data <- eoo[i, ]
@@ -81,16 +112,9 @@ create_grid_dataframe <- function(eoo, grid_sizes_km, grids_sf) {
         map(grid_sizes_km, function(gs) {
           process_species_grid(species_data, gs, grids_sf)
         })
-      },
-      .options = furrr_options(
-        seed = TRUE,
-      globals = list(
-        grids_sf = grids_sf,
-        grid_sizes_km = grid_sizes_km
-      ),
-      packages = c("sf", "dplyr", "purrr", "tibble")
+      }
     )
-  )  
+  }  
   results_flat <- purrr::flatten(results)
   
   # Combine outputs
@@ -132,7 +156,7 @@ species <- c (
 EOO <- readRDS("eoo.RDS")
 
 # Testing. uncomment
-#EOO <- EOO %>% filter (Species %in% species)
+EOO <- EOO %>% filter (Species %in% species)
 
 in_grids <- readRDS("in_grids.RDS")
 # Create the grid data frame
