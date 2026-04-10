@@ -13,24 +13,24 @@ container <- FALSE
 # is not enough RAM. This may happen if running under
 # WSL, or a laptop with limited memory, etc
 # On a Mac, set this to the number of performance cores
-threads <- 8
+#threads <- 8
 
 # Mask
 # Defaults to whole country, i.e. "none"
-cur_mask <- "none"
+ cur_mask <- "Jammu and Kashmir"
 
 # my_assignment : Which subset to process
 # if undefined, defaults to 1
-my_assignment <- 1:2
+my_assignment <- 6:1000
 
 # You may choose to process a subset of species by
 # defining those names here. An empty/absent list
 # means "process all species"
-species_to_process <- c(
+#species_to_process <- c("Tawny-bellied Babbler")
 #  "Coppersmith Barbet"
 #  "Oriental Magpie-Robin",
 #  "Rufous-throated Fulvetta" # Short runtime
-)
+#)
 
 # Trends computation results in a trends_N.csv file
 # Force trends computation. Defaults to TRUE for

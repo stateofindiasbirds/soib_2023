@@ -2,8 +2,10 @@
 # or for an interannual update (every year between major versions)?
 
 # interannual_update needs to set in each file!
+# priority_update needs to set before part 4
+# if priority_update = FALSE, then classify_and_summarise.R will not be run
 
-# According to theold pipeline and the pipeline in 
+# According to the old pipeline and the pipeline in 
 # https://esajournals.onlinelibrary.wiley.com/doi/10.1002/ecs2.70290
 
 # Run each step in order. May start from in between but progress sequentially down.
@@ -197,4 +199,38 @@ source("p2s2a.R")
 
 # By default, 1 assignment of the entire country is run
 
+# Update config.R before running the next line
+
 source("p3s1a.R")
+
+# PART 4 (resolve) ------------------------------------------------------------------
+
+# STEP 1: Resolve trends & occupancy for all selected species
+# Run:
+# - after above steps (P3, S1-2)
+# Requires:
+# - tidyverse, tictoc, sf, VGAM, writexl
+# - data files:
+#   - fullspecieslist.csv
+#   - trends/trendsX.csv for whole country and individual mask versions
+# Outputs: several
+
+source("p4s1.R")
+
+# STEP 2: Resolve trends & occupancy for all selected species
+# Run:
+# - after above steps (P3, S1-2)
+# Requires:
+# - tidyverse, tictoc, sf, VGAM, writexl
+# - data files:
+#   - fullspecieslist.csv
+#   - trends/trendsX.csv for whole country and individual mask versions
+# Outputs: several
+
+source("p4s2.R")
+
+
+
+
+
+
