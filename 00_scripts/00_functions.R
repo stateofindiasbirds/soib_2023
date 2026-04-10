@@ -1942,9 +1942,13 @@ get_latest_IUCN_status <- function(data, col_specname, col_iucn = NULL,
   
   col_order <- names(data)
   
+  # mapping <- read_csv(path_mapping) %>% 
+  #   dplyr::select("eBird.English.Name.2024", "IUCN.Category") %>% 
+  #   magrittr::set_colnames(col_newnames)
   mapping <- read_csv(path_mapping) %>% 
-    dplyr::select("eBird.English.Name.2024", "IUCN.Category") %>% 
-    magrittr::set_colnames(col_newnames)
+    dplyr::select("India.Checklist.Common.Name", "IUCN.Category")
+  # The previous command was leading to NAs in IUCN.Category due to differences
+  # in the eBird Names and India Checklist Names
   
   data_upd <- data %>% 
     # if IUCN column already exists, remove it before join
