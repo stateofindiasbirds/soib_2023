@@ -824,7 +824,7 @@ if (length(trends$sl) == 0)
   # in an interannual update, we want to rename the old trends.csv
   # to archive it for future/downstream use while latest will be saved as trends.csv
   
-  if (interannual_update == TRUE) {
+  if (interannual_update == TRUE & file.exists(trends_outpath)) {
     
     trends_cur_end_year <- trends %>% 
       filter(!is.na(mean)) %>% # future year rows will have values in some cols but not "mean"
