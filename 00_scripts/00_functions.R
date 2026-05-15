@@ -640,8 +640,15 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = TRUE) {
     filter(ALL.SPECIES.REPORTED == 1) %>%
     distinct(LOCALITY.ID, group.id, month, timegroups)
   
+  grids_write = data0 %>% 
+    filter(ALL.SPECIES.REPORTED == 1) %>%
+    distinct(gridg0, group.id, month, timegroups)
+  
   write.csv(locs_write, row.names = F, 
             file = cur_metadata$LOCS.PATH)
+  
+  write.csv(grids_write, row.names = F, 
+            file = cur_metadata$GRIDS.PATH)
   
   
   # saving the full filtered data

@@ -17,11 +17,11 @@ threads <- 12
 
 # Mask
 # Defaults to whole country, i.e. "none"
-cur_mask <- "Karnataka"
+cur_mask <- "none"
 
 # my_assignment : Which subset to process
 # if undefined, defaults to 1
-my_assignment <- 5:1000
+my_assignment <- 1:1
 
 # You may choose to process a subset of species by
 # defining those names here. An empty/absent list

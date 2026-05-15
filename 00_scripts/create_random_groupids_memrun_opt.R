@@ -2,7 +2,8 @@ library(parallel)
 
 # preparing data for specific mask (this is the only part that changes, but automatically)
 cur_metadata <- get_metadata(cur_mask)
-read_path <- cur_metadata$LOCS.PATH
+if (sub.type == "locs"){read_path <- cur_metadata$LOCS.PATH} 
+if (sub.type == "grids"){read_path <- cur_metadata$GRIDS.PATH}
 write_path <- cur_metadata$RAND.GROUP.IDS.PATH.ONLY
 speclist_path <- cur_metadata$SPECLISTDATA.PATH
 
@@ -18,8 +19,18 @@ convert_group_id <- function(x) {
   return(base + as.integer(substr(x,2,12)))
 }
 
-idx_col <- function(row) {
-  return(paste0(row["LOCALITY.ID"],as.character(row["month"]),row["timegroups"]))
+if (sub.type == "locs")
+{
+  idx_col <- function(row) {
+    return(paste0(row["LOCALITY.ID"],as.character(row["month"]),row["timegroups"]))
+  }
+}
+
+if (sub.type == "grids")
+{
+  idx_col <- function(row) {
+    return(paste0(row["gridg0"],as.character(row["month"]),row["timegroups"]))
+  }
 }
 
 group_values <- function(df) {
@@ -77,7 +88,14 @@ if (to_run == TRUE) {
   locs$group.id <- convert_group_id(locs$group.id)
 
   # remove unneeded columns
-  locs[c("keys", "month","timegroups","LOCALITY.ID")] <- list(NULL)
+  if (sub.type == "locs")
+  {
+    locs[c("keys", "month","timegroups","LOCALITY.ID")] <- list(NULL)
+  }
+  if (sub.type == "grids")
+  {
+    locs[c("keys", "month","timegroups","gridg0")] <- list(NULL)
+  }  
   gc()
 
   locs <- locs %>% group_by(idx)

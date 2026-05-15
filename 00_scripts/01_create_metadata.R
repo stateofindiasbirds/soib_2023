@@ -31,6 +31,7 @@ analyses_metadata <- data.frame(MASK = c("none",
   )) %>% 
   mutate(FULLSPECLIST.PATH = glue("{FOLDER}fullspecieslist.csv"),
          LOCS.PATH = glue("{FOLDER}sub_samp_locs.csv"),
+         GRIDS.PATH = glue("{FOLDER}sub_samp_grids.csv"),
          SPECLISTDATA.PATH = glue("{FOLDER}specieslists.RData"),
          DATA.PATH = glue("{FOLDER}dataforanalyses.RData"),
          RAND.GROUP.IDS.PATH.ONLY = glue("{FOLDER}randomgroupids/"),
