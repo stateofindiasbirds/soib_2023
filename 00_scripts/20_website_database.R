@@ -9,10 +9,13 @@
 #    to the latest insights.
 #
 # 2. In the code, trend graphs are generated only when the trend is not classified
-#    as "Insufficient data". If the new trend is "Insufficient data" but the
-#    previous trend was not, the 2023 report would have a trend graph while the
-#    current update would not — potentially confusing users. To handle this gracefully,
-#    the most recently available graph is displayed in such cases.
+#    as "Insufficient data". If the new trend is "Insufficient data" for full
+#    country but the previous trend was not, the 2023 report would have a trend graph 
+#    while the current update would not — potentially confusing users. 
+#    To handle this gracefully, the most recently available graph is displayed in such cases.
+#    Note that these operations are not applicable if a state/mask trend is 
+#    insuffficient in 2025 and there is a valid trend in 2023. In this case, the
+#    insufficient data will be displayed
 
 require(tidyverse)
 require(glue)
@@ -35,46 +38,6 @@ previous_database <- read.csv("20_website/website_database_2025_iucn_update.csv"
 
 # import ----------------------------------------------------------------------------
 
-# importing all data and setting up
-# web_db0_test2 <- map2(get_metadata()$SOIBMAIN.PATH, get_metadata()$MASK,
-#                 ~ read_fn(.x) %>% bind_cols(tibble(MASK = .y))) %>%
-#   list_rbind() %>%
-#   # updating with latest IUCN Status
-#   get_latest_IUCN_status("India.Checklist.Common.Name", "IUCN.Category") %>%
-#   mutate(India.Checklist.Common.Name = fct_inorder(India.Checklist.Common.Name)) %>%
-#   # filtering for SoIB species
-#   filter(Selected.SoIB == "X") %>%
-#   # whether species is new to latest SoIB
-#   mutate(new_to_soib = case_when(is.na(SoIB.Major.Update.Priority.Status) & !is.na(SoIB.Latest.Priority.Status) ~ TRUE,
-#                                  TRUE ~ FALSE)) %>%
-#   dplyr::select(-c("eBird.English.Name.2024", "eBird.Scientific.Name.2024", "Order", "Family",
-#                   contains("Breeding.Activity"), "Diet.Guild", "SoIB.Major.Update.Long.Term.Status",
-#                   "SoIB.Major.Update.Current.Status",
-#                   "SoIB.Major.Update.Range.Status",
-#                   "SoIB.Major.Update.Priority.Status",
-#                    starts_with("BLI."), ends_with(".Appendix"), "Onepercent.Estimates",
-#                    contains("range25km"), "mean5km", "ci5km",
-#                    starts_with("proj20"))) %>%
-#   # dplyr::select(-c("eBird.English.Name.2024", "eBird.Scientific.Name.2024", "Order", "Family",
-#   #                  starts_with("SoIB."), contains("Breeding.Activity"), "Diet.Guild",
-#   #                  starts_with("BLI."), ends_with(".Appendix"), "Onepercent.Estimates",
-#   #                  contains("range25km"), "mean5km", "ci5km",
-#   #                  starts_with("proj20"))) %>%
-#   # joining MASK.TYPE
-#   left_join(get_metadata() %>% distinct(MASK, MASK.TYPE)) %>%
-#   # changing "country" mask type to "national"
-#   mutate(MASK.TYPE = if_else(MASK.TYPE == "country", "national", MASK.TYPE)) %>%
-#   relocate(India.Checklist.Common.Name, MASK) %>%
-#   arrange(India.Checklist.Common.Name, MASK) %>%
-#   mutate(ID = "", post_excerpt = "", post_date = "", downloadlink = "",
-#          wp_page_template = "", pinged = "", primary_assessment = "",
-#          post_author = "amithkumar.4",
-#          post_status = "publish",
-#          post_format = "standard",
-#          comment_status = "closed", ping_status = "closed",
-#          post_parent = 0, menu_order = 0)
-
-
 web_db0 <- map2(get_metadata()$SOIBMAIN.PATH, get_metadata()$MASK, 
                 ~ read_fn(.x) %>% bind_cols(tibble(MASK = .y))) %>% 
   list_rbind() %>% 
@@ -85,7 +48,7 @@ web_db0 <- map2(get_metadata()$SOIBMAIN.PATH, get_metadata()$MASK,
   filter(Selected.SoIB == "X") %>% 
   # whether species is new to latest SoIB
   mutate(new_to_soib_2025 = case_when(is.na(SoIB.Major.Update.Priority.Status) & !is.na(SoIB.Latest.Priority.Status) ~ TRUE,
-                                 TRUE ~ FALSE)) %>% 
+                                      TRUE ~ FALSE)) %>% 
   # joining MASK.TYPE
   left_join(get_metadata() %>% distinct(MASK, MASK.TYPE)) %>% 
   # changing "country" mask type to "national"
@@ -102,26 +65,7 @@ web_db0 <- map2(get_metadata()$SOIBMAIN.PATH, get_metadata()$MASK,
 
 all_names <- names(web_db0)
 
-# unique_to_either <- union(setdiff(use_2023_cat_species$India.Checklist.Common.Name, use_2023_ltt_species$India.Checklist.Common.Name),
-#                           setdiff(use_2023_ltt_species$India.Checklist.Common.Name, use_2023_cat_species$India.Checklist.Common.Name))
-# 
-# common_to_both <- intersect(use_2023_cat_species$India.Checklist.Common.Name, use_2023_ltt_species$India.Checklist.Common.Name)
 
-# cols_to_drop <- if (priority_update) {
-#   c("eBird.English.Name.2024", "eBird.Scientific.Name.2024", "Order", "Family",
-#     contains("Breeding.Activity"), "Diet.Guild", "SoIB.Major.Update.Long.Term.Status",
-#     "SoIB.Major.Update.Current.Status", "SoIB.Major.Update.Range.Status","SoIB.Major.Update.Priority.Status",  
-#     starts_with("BLI."), ends_with(".Appendix"), "Onepercent.Estimates", 
-#     contains("range25km"), "mean5km", "ci5km",
-#     starts_with("proj20"))
-# } else {
-#   c("eBird.English.Name.2024", "eBird.Scientific.Name.2024", "Order", "Family",
-#     contains("Breeding.Activity"), "Diet.Guild", "SoIB.Latest.Long.Term.Status",
-#     "SoIB.Latest.Current.Status", "SoIB.Latest.Range.Status","SoIB.Latest.Priority.Status",  
-#     starts_with("BLI."), ends_with(".Appendix"), "Onepercent.Estimates", 
-#     contains("range25km"), "mean5km", "ci5km",
-#     starts_with("proj20"))
-# }
 
 # Before going forward, check whether there are any species for which there is 
 # "insufficient data" for latest current/long term trends but had sufficient data
@@ -140,7 +84,7 @@ web_db0_tmp <- web_db0 %>%
                   "SoIB.Major.Update.Long.Term.Status",
                   "SoIB.Major.Update.Current.Status"))
 
-# Latest LTT is insufficient data while last Major Update is not.
+# Latest LTT is insufficient data while last Major Update is not, for full country.
 use_2023_ltt_species <- web_db0_tmp %>% 
   filter(
     (SoIB.Latest.Long.Term.Status == "Insufficient Data" & 
@@ -163,7 +107,8 @@ use_2023_cat_species <- web_db0_tmp %>%
                   "SoIB.Latest.Current.Status"))
 
 # Create a new column to flag the species and MASK combination for which there 
-# is insufficient data now and had trend estimates from the last major update.
+# is insufficient data now and had trend estimates from the last major update,
+# for full country.
 
 web_db_flag <- web_db0 %>% 
   left_join(
@@ -233,73 +178,40 @@ tax_order <- levels(web_db0$India.Checklist.Common.Name)
 
 # creation of fields ----------------------------------------------------------------
 
-# if (priority_update) {
-#   rename_cols <- quote(rename(`long-term_trend` = longtermmean,
-#          current_annual_change = currentslopemean,
-#          distribution_range_size = rangemean,
-#          iucn_status = IUCN.Category,
-#          migratory_status = Migratory.Status.Within.India,
-#          wlpa_schedule = WPA.Schedule,
-#          habitat_specialization = Habitat.Specialization,
-#          endemicity = Endemic.Region,
-#          custom_url = eBird.Code,
-#          current_status = SoIB.Latest.Current.Status,
-#          distribution_status = SoIB.Latest.Range.Status,
-#          long_term_status = SoIB.Latest.Long.Term.Status,
-#          status_of_conservation_concern = SoIB.Latest.Priority.Status
-#          ))
-#          
-# } else {
-#   rename_cols <- quote(rename(`long-term_trend` = longtermmean,
-#          current_annual_change = currentslopemean,
-#          distribution_range_size = rangemean,
-#          iucn_status = IUCN.Category,
-#          migratory_status = Migratory.Status.Within.India,
-#          wlpa_schedule = WPA.Schedule,
-#          habitat_specialization = Habitat.Specialization,
-#          endemicity = Endemic.Region,
-#          custom_url = eBird.Code,
-#          current_status = SoIB.Major.Update.Current.Status,
-#          distribution_status = SoIB.Major.Update.Range.Status,
-#          long_term_status = SoIB.Major.Update.Long.Term.Status,
-#          status_of_conservation_concern = SoIB.Major.Update.Priority.Status
-#   ))
-# }
-
-# Rename columns. If priority update is FALSE, the long_term_status and
-# current_status reflect the last Major update. Otherwise, they will reflect
-# the lates statuses.
+# Rename columns. If priority update is FALSE, the last Major update will be
+# assigned to long_term_status and current_status. 
+# Otherwise, latest status will be assigned to long_term_status and current_status.
 
 if (priority_update) {
   rename_cols <- exprs(`long-term_trend` = longtermmean,
-                              current_annual_change = currentslopemean,
-                              distribution_range_size = rangemean,
-                              iucn_status = IUCN.Category,
-                              migratory_status = Migratory.Status.Within.India,
-                              wlpa_schedule = WPA.Schedule,
-                              habitat_specialization = Habitat.Specialization,
-                              endemicity = Endemic.Region,
-                              custom_url = eBird.Code,
-                              current_status = SoIB.Latest.Current.Status,
-                              distribution_status = SoIB.Latest.Range.Status,
-                              long_term_status = SoIB.Latest.Long.Term.Status,
-                              status_of_conservation_concern = SoIB.Latest.Priority.Status
+                       current_annual_change = currentslopemean,
+                       distribution_range_size = rangemean,
+                       iucn_status = IUCN.Category,
+                       migratory_status = Migratory.Status.Within.India,
+                       wlpa_schedule = WPA.Schedule,
+                       habitat_specialization = Habitat.Specialization,
+                       endemicity = Endemic.Region,
+                       custom_url = eBird.Code,
+                       current_status = SoIB.Latest.Current.Status,
+                       distribution_status = SoIB.Latest.Range.Status,
+                       long_term_status = SoIB.Latest.Long.Term.Status,
+                       status_of_conservation_concern = SoIB.Latest.Priority.Status
   )
-
+  
 } else {
   rename_cols <- exprs(`long-term_trend` = longtermmean,
-                              current_annual_change = currentslopemean,
-                              distribution_range_size = rangemean,
-                              iucn_status = IUCN.Category,
-                              migratory_status = Migratory.Status.Within.India,
-                              wlpa_schedule = WPA.Schedule,
-                              habitat_specialization = Habitat.Specialization,
-                              endemicity = Endemic.Region,
-                              custom_url = eBird.Code,
-                              current_status = SoIB.Major.Update.Current.Status,
-                              distribution_status = SoIB.Major.Update.Range.Status,
-                              long_term_status = SoIB.Major.Update.Long.Term.Status,
-                              status_of_conservation_concern = SoIB.Major.Update.Priority.Status
+                       current_annual_change = currentslopemean,
+                       distribution_range_size = rangemean,
+                       iucn_status = IUCN.Category,
+                       migratory_status = Migratory.Status.Within.India,
+                       wlpa_schedule = WPA.Schedule,
+                       habitat_specialization = Habitat.Specialization,
+                       endemicity = Endemic.Region,
+                       custom_url = eBird.Code,
+                       current_status = SoIB.Major.Update.Current.Status,
+                       distribution_status = SoIB.Major.Update.Range.Status,
+                       long_term_status = SoIB.Major.Update.Long.Term.Status,
+                       status_of_conservation_concern = SoIB.Major.Update.Priority.Status
   )
 }
 
@@ -328,164 +240,9 @@ web_db <- web_db0 %>%
                                 TRUE ~ MASK.LABEL))
 
 
-# web_db <- web_db0 %>% 
-#   # TEMPORARY FIX for subnational SoIB Priority Status (retain national Status)
-#   #temp_priority_correction() %>% 
-#   # join key states for each species
-#   left_join(keystates, by = "India.Checklist.Common.Name") %>% 
-#   rename(`long-term_trend` = longtermmean,
-#          current_annual_change = currentslopemean,
-#          distribution_range_size = rangemean,
-#          iucn_status = IUCN.Category,
-#          migratory_status = Migratory.Status.Within.India,
-#          wlpa_schedule = WPA.Schedule,
-#          habitat_specialization = Habitat.Specialization,
-#          endemicity = Endemic.Region,
-#          custom_url = eBird.Code) %>% 
-#   mutate(current_status = SoIB.Major.Update.Current.Status,
-#           distribution_status = SoIB.Major.Update.Range.Status,
-#           long_term_status = SoIB.Major.Update.Long.Term.Status,
-#           status_of_conservation_concern = SoIB.Major.Update.Priority.Status) %>%
-#   dplyr::select(-c("SoIB.Major.Update.Current.Status", "SoIB.Major.Update.Range.Status", 
-#                    "SoIB.Major.Update.Long.Term.Status", "SoIB.Major.Update.Priority.Status")) %>%
-#   mutate(across(c("long-term_trend", "current_annual_change"), ~ round(., 2))) %>% 
-#   # adding commas to large values of range size
-#   mutate(across(c("distribution_range_size", "rangelci", "rangerci"), ~ label_comma()(as.numeric(.)))) %>% 
-#   # on website, we want a filter to show only species which have trend graph (LTT or CAT)
-#   # trend graphs not plotted for Insufficient Data
-#   mutate(only_estimated_trend = case_when(
-#     long_term_status == "Insufficient Data" & current_status == "Insufficient Data" ~ "No",
-#     TRUE ~ "Yes"
-#   )) %>% 
-#   str_c_CI(., longtermlci, longtermrci, new_name = "long-term_trend_ci") %>% 
-#   str_c_CI(., currentslopelci, currentsloperci, new_name = "current_annual_change_ci") %>% 
-#   str_c_CI(., rangelci, rangerci, new_name = "distribution_range_size_ci_units_of_10000_sqkm") %>% 
-#   join_mask_codes() %>% 
-#   # change mask labels from acronym for website
-#   mutate(MASK.LABEL = case_when(MASK.LABEL == "PAs" ~ "Protected Areas",
-#                                 MASK.LABEL == "ONEs" ~ "Open Natural Ecosystems",
-#                                 TRUE ~ MASK.LABEL))
+# Create URLs for the trend and map images
 
-
-# creation of fields within species (diff. masks) -----------------------------------
-
-# web_db <- web_db %>% 
-#   # setup for some long strings
-#   mutate(URL_base = "https://stateofindiasbirds.in/wp-content/",
-#          # prefix for uploads
-#          URL_pre_uploads = glue("{URL_base}wp-content/uploads/2025/"),
-#          # subfolder structure for SoIB 2023 original images
-#          URL_orig_substr = "originals/2025/",
-#          # converting species name to enter in URLs
-#          URL_species = str_replace_all(India.Checklist.Common.Name, 
-#                                        c(" " = "-", "'" = "_")), 
-#          URL_suf_rangemap = "_map_2025.jpg",
-#          URL_suf_trend_LTT = "_LTT_trend.png",
-#          URL_suf_trend_CAT = "_CAT_trend.png") %>% 
-#   # some long strings
-#   mutate(featured_image = glue("{URL_pre_uploads}{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
-#          map_filename = glue("{URL_pre_uploads}maps/{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
-#          map_filename_originals = glue("{URL_pre_uploads}{URL_orig_substr}{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
-#          # no trend plot if both LTT and CAT absent
-#          # graph in species card:
-#          graph_filename = case_when(
-#            !is.na(`long-term_trend`) ~ glue("{URL_pre_uploads}trends/{URL_species}_{MASK.CODE}{URL_suf_trend_LTT}"),
-#            !is.na(current_annual_change) ~ glue("{URL_pre_uploads}trends/{URL_species}_{MASK.CODE}{URL_suf_trend_CAT}"),
-#            TRUE ~ NA_character_
-#          ),
-#          # originals for download:
-#          graph_filename_originals = case_when(
-#            !is.na(`long-term_trend`) ~ glue("{URL_pre_uploads}{URL_orig_substr}trends/{URL_species}_{MASK.CODE}{URL_suf_trend_LTT}"),
-#            TRUE ~ NA_character_
-#          ),
-#          graph_filename_originals_cat = case_when(
-#            !is.na(current_annual_change) ~ glue("{URL_pre_uploads}{URL_orig_substr}trends/{URL_species}_{MASK.CODE}{URL_suf_trend_CAT}"),
-#            TRUE ~ NA_character_
-#          )) %>%
-#   mutate(post_name = case_when(MASK.TYPE == "national" ~ glue("{custom_url}"),
-#                                TRUE ~ glue("{MASK.CODE}-{custom_url}")),
-#          post_category = MASK.LABEL,
-#          post_content = MASK.LABEL,
-#          all_trends = MASK.LABEL,
-#          habitats = if_else(MASK.TYPE == "habitat", MASK.LABEL, "None"),
-#          conservation_areas = if_else(MASK.TYPE == "conservation_area", MASK.LABEL, "None")) %>% 
-#   # no maps for habitats/CAs, so show India map
-#   mutate(across(c(featured_image, starts_with("map_filename")), 
-#                 ~ case_when(!MASK.TYPE %in% c("habitat", "conservation_area") ~ .,
-#                             TRUE ~ str_replace(., glue("_{MASK.CODE}_"), "_in_")))) %>%
-#   # _addn columns need to contain info about whether or not that species-mask combo has trend 
-#   mutate(custom_url_estnot = case_when(
-#     !is.na(`long-term_trend`) | !is.na(current_annual_change) ~ glue("est-{custom_url}"),
-#     TRUE ~ glue("not-{custom_url}")
-#   ))
-
-
-# The code is supposed to create links as follows:
-# map_filename = https://wordpress-1024190-3615983.cloudwaysapps.com/wp-content/uploads/maps/Fulvous-Whistling-Duck_in_map_2023.jpg
-# ma
-
-# But the website database that's actually used has the following links:
-# glue("{URL_base}wp-content/uploads/2024/") for graphs
-# "originals/2025/"
-
-# ifelse(flag_fix_ltt == TRUE|flag_fix_cat == TRUE, 
-#        glue("{URL_base}wp-content/uploads/2024/"),
-#        glue("{URL_base}wp-content/uploads/2025/")),
-
-# web_db_2 <- web_db %>% 
-#   # setup for some long strings
-#   mutate(URL_base = "https://stateofindiasbirds.in/wp-content/uploads/",
-#          # prefix for uploads
-#          #URL_pre_uploads = glue("{URL_base}wp-content/uploads/"),
-#          # For graphs
-#          # subfolder structure for SoIB 2025 original images
-#          URL_graph_year_ltt = ifelse(flag_fix_ltt == TRUE, "2023", "2025"), # For distribution map,
-#          URL_graph_year_cat = ifelse(flag_fix_cat == TRUE, "2023", "2025"),
-#          # converting species name to enter in URLs
-#          URL_species = str_replace_all(India.Checklist.Common.Name, 
-#                                        c(" " = "-", "'" = "_")),
-#          URL_scientific_name = str_replace_all(India.Checklist.Scientific.Name, 
-#                                        c(" " = "_")),
-#          feature_image_extension = ".jpg",
-#          URL_suf_rangemap = "_map_2025.jpg",
-#          URL_suf_trend_LTT = "_LTT_trend.png",
-#          URL_suf_trend_CAT = "_CAT_trend.png") %>% 
-#   # some long strings
-#   mutate(featured_image = glue("{URL_base}{URL_scientific_name}{feature_image_extension}"),
-#          map_filename = glue("{URL_base}maps/2025/display/{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
-#          map_filename_originals = glue("{URL_base}maps/2025/original/{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
-#       
-#          # originals for download:
-#          graph_filename_originals = case_when(
-#          long_term_status != "Insufficient Data" ~ glue("{URL_base}trends/{URL_graph_year_ltt}/original/{URL_species}_{MASK.CODE}{URL_suf_trend_LTT}"),
-#          TRUE ~ NA_character_
-#         ),
-#         graph_filename_originals_cat = case_when(
-#           current_status != "Insufficient Data" ~ glue("{URL_base}trends/{URL_graph_year_cat}/original/{URL_species}_{MASK.CODE}{URL_suf_trend_CAT}"),
-#         TRUE ~ NA_character_
-#         ),
-#          graph_filename = coalesce(
-#            graph_filename_originals,
-#            graph_filename_originals_cat
-#          )) %>%
-#   mutate(post_name = case_when(MASK.TYPE == "national" ~ glue("{custom_url}"),
-#                                TRUE ~ glue("{MASK.CODE}-{custom_url}")),
-#          post_category = MASK.LABEL,
-#          post_content = MASK.LABEL,
-#          all_trends = MASK.LABEL,
-#          habitats = if_else(MASK.TYPE == "habitat", MASK.LABEL, "None"),
-#          conservation_areas = if_else(MASK.TYPE == "conservation_area", MASK.LABEL, "None")) %>% 
-#   # no maps for habitats/CAs, so show India map
-#   mutate(across(c(featured_image, starts_with("map_filename")), 
-#                 ~ case_when(!MASK.TYPE %in% c("habitat", "conservation_area") ~ .,
-#                             TRUE ~ str_replace(., glue("_{MASK.CODE}_"), "_in_")))) %>%
-#   # _addn columns need to contain info about whether or not that species-mask combo has trend 
-#   mutate(custom_url_estnot = case_when(
-#     !is.na(`long-term_trend`) | !is.na(current_annual_change) ~ glue("est-{custom_url}"),
-#     TRUE ~ glue("not-{custom_url}")
-#   ))
-
-web_db_2 <- web_db %>% 
+web_db_2 <- web_db %>%
   # setup for some long strings
   mutate(URL_base = "https://stateofindiasbirds.in/wp-content/uploads/",
          # prefix for uploads
@@ -521,6 +278,7 @@ web_db_2 <- web_db %>%
            graph_filename_originals,
            graph_filename_originals_cat
          )) %>%
+  mutate(graph_filename = str_replace(graph_filename, "original", "display")) %>%
   mutate(post_name = case_when(MASK.TYPE == "national" ~ glue("{custom_url}"),
                                TRUE ~ glue("{MASK.CODE}-{custom_url}")),
          post_category = MASK.LABEL,
@@ -538,64 +296,11 @@ web_db_2 <- web_db %>%
     TRUE ~ glue("not-{custom_url}")
   ))
 
-# Check how many species have 2023 trends instead of 2025
+# Check how many species have 2023 trends instead of 2025, for full country
 
 tmp <- web_db_2 %>%
-  filter(str_detect(graph_filename, "2023"))
-  
-# web_db <- web_db %>% 
-#   # setup for some long strings
-#   mutate(URL_base = "https://stateofindiasbirds.in/wp-content/",
-#          # prefix for uploads
-#          URL_pre_uploads = ifelse(flag_fix_ltt == TRUE|flag_fix_cat == TRUE, 
-#                                   glue("{URL_base}wp-content/uploads/2024/"),
-#                                   glue("{URL_base}wp-content/uploads/2025/")),
-#          # For graphs
-#          # subfolder structure for SoIB 2025 original images
-#          URL_orig_substr = "originals/2025/", # For distribution map
-#          # converting species name to enter in URLs
-#          URL_species = str_replace_all(India.Checklist.Common.Name, 
-#                                        c(" " = "-", "'" = "_")), 
-#          URL_suf_rangemap = "_map_2025.jpg",
-#          URL_suf_trend_LTT = "_LTT_trend.png",
-#          URL_suf_trend_CAT = "_CAT_trend.png") %>% 
-#   # some long strings
-#   mutate(featured_image = glue("{URL_pre_uploads}{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
-#          map_filename = glue("{URL_pre_uploads}maps/{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
-#          map_filename_originals = glue("{URL_pre_uploads}{URL_orig_substr}{URL_species}_{MASK.CODE}{URL_suf_rangemap}"),
-#          # no trend plot if both LTT and CAT absent
-#          # graph in species card:
-#          graph_filename = case_when(
-#            !is.na(`long-term_trend`) ~ glue("{URL_pre_uploads}trends/{URL_species}_{MASK.CODE}{URL_suf_trend_LTT}"),
-#            !is.na(current_annual_change) ~ glue("{URL_pre_uploads}trends/{URL_species}_{MASK.CODE}{URL_suf_trend_CAT}"),
-#            TRUE ~ NA_character_
-#          ),
-#          # originals for download:
-#          graph_filename_originals = case_when(
-#            !is.na(`long-term_trend`) ~ glue("{URL_pre_uploads}{URL_orig_substr}trends/{URL_species}_{MASK.CODE}{URL_suf_trend_LTT}"),
-#            TRUE ~ NA_character_
-#          ),
-#          graph_filename_originals_cat = case_when(
-#            !is.na(current_annual_change) ~ glue("{URL_pre_uploads}{URL_orig_substr}trends/{URL_species}_{MASK.CODE}{URL_suf_trend_CAT}"),
-#            TRUE ~ NA_character_
-#          )) %>%
-#   mutate(post_name = case_when(MASK.TYPE == "national" ~ glue("{custom_url}"),
-#                                TRUE ~ glue("{MASK.CODE}-{custom_url}")),
-#          post_category = MASK.LABEL,
-#          post_content = MASK.LABEL,
-#          all_trends = MASK.LABEL,
-#          habitats = if_else(MASK.TYPE == "habitat", MASK.LABEL, "None"),
-#          conservation_areas = if_else(MASK.TYPE == "conservation_area", MASK.LABEL, "None")) %>% 
-#   # no maps for habitats/CAs, so show India map
-#   mutate(across(c(featured_image, starts_with("map_filename")), 
-#                 ~ case_when(!MASK.TYPE %in% c("habitat", "conservation_area") ~ .,
-#                             TRUE ~ str_replace(., glue("_{MASK.CODE}_"), "_in_")))) %>%
-#   # _addn columns need to contain info about whether or not that species-mask combo has trend 
-#   mutate(custom_url_estnot = case_when(
-#     !is.na(`long-term_trend`) | !is.na(current_annual_change) ~ glue("est-{custom_url}"),
-#     TRUE ~ glue("not-{custom_url}")
-#   ))
-
+  filter(str_detect(graph_filename, "2023") & 
+           MASK == "none")
 
 
 web_db_3 <- web_db_2 %>% 
@@ -655,10 +360,6 @@ web_db_5 <- web_db_4 %>%
   mutate(post_title = factor(post_title, levels = tax_order)) %>% 
   arrange(post_title)
 
-# Remove hyphens from the species names (post_title)
-
-# web_db_6 <- web_db_5 %>%
-#   mutate(post_title = str_replace_all(post_title, c("-" = " ")))
 
 # Some columns from the previous website database have to be pulled into this
 # update. These are new_to_soib_2023, custom_URL and post_name. 
@@ -671,10 +372,11 @@ web_db_5 <- web_db_4 %>%
 previous_database_tmp <- previous_database %>%
   rename(old_URL_2020 = custom_url,
          old_URL_2023 = post_name,
-         )
+  )
 
-# The post_name in the previous database is from India.Checklist.Common.Name 
-# from 2022. Use the SoIB mapping 2023 file to get the eBird 2022 names. 
+# The post_name in the older database represents India.Checklist.Common.Name 
+# from 2022. So this cannot be combined with the current file directly. 
+# In the older database, use the SoIB mapping 2022 file to get the eBird 2022 names. 
 # Then use the taxonomy file to pull the eBird 2024 names. 
 # Then use the 2024 mapping file to pull India.Checklist.Common.Name from
 # 2024 (post_title in the updated database)
@@ -684,7 +386,7 @@ map_2024 <- read.csv("00_data/SoIB_mapping_2024.csv")
 
 taxmap <- read.csv("00_data/eBird_taxonomy_mapping.csv")
 
-
+# Get eBird.English.Name.2022 using the 2022 mapping file
 previous_database_tmp_2  <- previous_database_tmp %>% 
   left_join(map_2022 %>% dplyr::select(c(eBird.English.Name.2022, India.Checklist.Common.Name)),
             by = join_by(post_title == India.Checklist.Common.Name))
@@ -701,16 +403,31 @@ previous_database_tmp_2  <- previous_database_tmp %>%
             by = join_by(post_title == India.Checklist.Common.Name))
 
 
+# Get eBird.English.Name.2024 from the taxonomy mapping file
 previous_database_tmp_3 <- previous_database_tmp_2 %>%
   left_join(taxmap %>% dplyr::select(c(eBird.English.Name.2022, eBird.English.Name.2024)),
             by = "eBird.English.Name.2022")
 
+
+# Get India.Checklist.Common.Name 2024 using the 2024 mapping file
 previous_database_tmp_4 <- previous_database_tmp_3 %>%
   left_join(map_2024 %>% dplyr::select(c(eBird.English.Name.2024, India.Checklist.Common.Name)),
             by = "eBird.English.Name.2024")
 
+# At this stage, we have India.Checklist.Common.Name from both 2022 and 2024 in
+# one object. 
+# In this object, post_name = India.Checklist.Common.Name from 2022
+# India.Checklist.Common.Name = India.Checklist.Common.Name from 2024
+
+# This object now contains names from 2024 so that it can be joined with the 
+# current database to pull the required columns
+
 previous_database_tmp_5 <- previous_database_tmp_4 %>%
   dplyr::select(-all_of(c("eBird.English.Name.2022", "eBird.English.Name.2024")))
+
+# Are there any empty or NA India.Checklist.Common.Name
+
+which(is.na(previous_database_tmp_5$India.Checklist.Common.Name) | previous_database_tmp_5$India.Checklist.Common.Name == "")
 
 
 web_db_6 <- web_db_5 %>%
@@ -722,10 +439,11 @@ web_db_6 <- web_db_5 %>%
                               "post_content")), 
             by = join_by(post_title == India.Checklist.Common.Name, post_content))
 
-# At this point, the English Names and Scientific Names reflect the 2025 taxonomy
+# At this point, the English Names and Scientific Names reflect the 2024 taxonomy
 # from India Checklist. 
 # But to maintain continuity on the website, we will revert to the 2023 names.
-# The map, trend URLs will have to be recreated 
+# The map and trend URLs will still bear the 2024 names except in cases where
+# we have to revert to the 2023 names
 
 # 2024 India - (2024 India, 2024 eBird - SoIB mapping 2024) - (2024 ebird, 2022 ebird - taxonomy mapping) - (2022 ebird, 2022 India - SoIB mapping 2022)
 
@@ -734,7 +452,7 @@ web_db_7 <- web_db_6 %>% left_join(map_2024 %>%
                                      dplyr::select(c("eBird.English.Name.2024", "India.Checklist.Common.Name")),
                                    by = join_by(post_title == India.Checklist.Common.Name))
 
-web_db_8 <- web_db_7 %>% left_join(tax_map %>%
+web_db_8 <- web_db_7 %>% left_join(taxmap %>%
                                      dplyr::select(c("eBird.English.Name.2022", "eBird.English.Name.2024")),
                                    by = "eBird.English.Name.2024")
 
@@ -747,25 +465,21 @@ web_db_8 <- web_db_7 %>% left_join(tax_map %>%
 # means that we show both Striated and Red-rumped swallow. Strangely, there is 
 # no Striated Swallow. 
 
-# Note 2: 
-
-# There are new species in 2025 which have no corresponding name in 2023. These 
-# will remain the 2024 names (example: Barnacle goose)
-
-# removing striated heron
+# Removing striated swallow
 
 web_db_9 <- web_db_8 %>% filter(is.na(eBird.English.Name.2022) | eBird.English.Name.2022 != "Striated Swallow")
 
 # Use soib_mapping_2022 to pull the corresponding 2022 India Checklist names
 
 web_db_10 <- web_db_9 %>% left_join(map_2022 %>%
-                                       dplyr::select("eBird.English.Name.2022",
-                                                     "India.Checklist.Common.Name",
-                                                     "India.Checklist.Scientific.Name"),
-                                     by = "eBird.English.Name.2022")
+                                      dplyr::select("eBird.English.Name.2022",
+                                                    "India.Checklist.Common.Name",
+                                                    "India.Checklist.Scientific.Name"),
+                                    by = "eBird.English.Name.2022")
 
-# Remove post_title and scientific_name and rename the India Checklist Common
-# Name as post_title and India Checklist Scientific Name as scientific name
+# Are there any NAs in the pulled India.Checklist.Common.Name, "India.Checklist.Scientific.Name",
+
+which(is.na(web_db_10$India.Checklist.Common.Name) | is.na(web_db_10$India.Checklist.Scientific.Name))
 
 web_db_11 <- web_db_10 %>%
   dplyr::select(
@@ -779,8 +493,8 @@ web_db_11 <- web_db_10 %>%
 
 
 web_db_12 <- web_db_11 %>% 
-  # setup for some long strings
   mutate(URL_base = "https://stateofindiasbirds.in/wp-content/uploads/",
+         # setup for some long strings
          # prefix for uploads
          #URL_pre_uploads = glue("{URL_base}wp-content/uploads/"),
          # For graphs
@@ -789,15 +503,15 @@ web_db_12 <- web_db_11 %>%
          URL_graph_year_cat = ifelse(flag_fix_cat == TRUE, "2023", "2025"),
          # converting species name to enter in URLs
          URL_species_map = str_replace_all(post_title, 
-                                       c(" " = "-", "'" = "_")),
+                                           c(" " = "-", "'" = "_")),
          URL_species_ltt = ifelse(flag_fix_ltt == TRUE, str_replace_all(India.Checklist.Common.Name.2022, 
-                                       c(" " = "-", "'" = "_")), str_replace_all(post_title, 
-                                                                                 c(" " = "-", "'" = "_"))),
+                                                                        c(" " = "-", "'" = "_")), str_replace_all(post_title, 
+                                                                                                                  c(" " = "-", "'" = "_"))),
          URL_species_cat = ifelse(flag_fix_cat == TRUE, str_replace_all(India.Checklist.Common.Name.2022,
-                                       c(" " = "-", "'" = "_")), str_replace_all(post_title, 
-                                                                                 c(" " = "-", "'" = "_"))),
+                                                                        c(" " = "-", "'" = "_")), str_replace_all(post_title, 
+                                                                                                                  c(" " = "-", "'" = "_"))),
          URL_scientific_name = str_replace_all(India.Checklist.Scientific.Name.2022, 
-                                       c(" " = "_")), 
+                                               c(" " = "_")), # This is used to 
          feature_image_extension = ".jpg",
          URL_suf_rangemap = "_map_2025.jpg",
          URL_suf_trend_LTT = "_LTT_trend.png",
@@ -819,21 +533,13 @@ web_db_12 <- web_db_11 %>%
          graph_filename = coalesce(
            graph_filename_originals,
            graph_filename_originals_cat
-         )) 
+         )) %>%
+  mutate(graph_filename = str_replace(graph_filename, "original", "display"))
 
-
-# Checks: Rows where the graph links are from 2023 AND the species names are different
 
 tmp <- web_db_12 %>%
-  mutate(India.Checklist.Common.Name.ltt.diff = (URL_species_map != URL_species_ltt)) %>%
-  filter(India.Checklist.Common.Name.ltt.diff == TRUE)
+  filter(str_detect(graph_filename, "display"))
 
-tmp <- web_db_12 %>%
-  mutate(India.Checklist.Common.Name.cat.diff = (URL_species_map != URL_species_cat)) %>%
-  filter(India.Checklist.Common.Name.cat.diff == TRUE)
-
-# LTT: Immaculate cupwing for India and Uttarakhand
-# CAT: Rufous-fronted Babbler for Arunachal Pradesh
 
 web_db_13 <- web_db_12 %>%
   dplyr::select(
@@ -862,6 +568,34 @@ web_db_13 <- web_db_12 %>%
   relocate(scientific_name, .after=menu_order)
 
 
+# Checks: Rows where graph plots are from 2023
+
+tmp <- web_db_13 %>%
+  filter(str_detect(graph_filename, "2023"))
+
+# Revert to 2023 only if the graph plots are for full country. All the others
+# will re-labelled NA
+
+web_db_14 <- web_db_13 %>%
+  mutate(
+    graph_filename = case_when(
+      str_detect(as.character(graph_filename), "2023") ~ NA_character_,
+      TRUE ~ as.character(graph_filename)
+    ),
+    graph_filename_originals = case_when(
+      str_detect(as.character(graph_filename_originals), "2023") ~ NA_character_,
+      TRUE ~ as.character(graph_filename_originals)
+    ),
+    graph_filename_originals_cat = case_when(
+      str_detect(as.character(graph_filename_originals_cat), "2023") ~ NA_character_,
+      TRUE ~ as.character(graph_filename_originals_cat)
+  )
+  )
+  
+tmp <- web_db_14 %>%
+  filter(str_detect(graph_filename, "2023"))
+
+# No species will have 2023 graphs displayed.
 
 # Add photographer credits. Some changes in 2025 ----
 
@@ -880,9 +614,11 @@ credits_update <- credits %>%
 write.csv(credits_update, file = "20_website/photo_credits_update.csv", row.names = FALSE)
 
 
-web_db_14 <- web_db_13 %>% left_join(credits_update)
+web_db_15 <- web_db_14 %>% left_join(credits_update)
 
-write.csv(web_db_14, file = "20_website/website_database_2025_update.csv", 
+web_db_15$update <- "2025 Update"
+
+write.csv(web_db_15, file = "20_website/website_database_2025_update.csv", 
           row.names = FALSE)
 
 
