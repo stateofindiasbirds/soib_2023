@@ -14,15 +14,15 @@ cur_metadata <- get_metadata(cur_mask)
 # read paths
 speclist_path <- cur_metadata$SPECLISTDATA.PATH
 trends_pathonly <- cur_metadata$TRENDS.PATHONLY
-trends_outpath <- cur_metadata$TRENDS.OUTPATH
+trends_outpath <- "01_analyses_full/results/trends_subsamp_test.csv" #cur_metadata$TRENDS.OUTPATH
 
 # write paths
-lttsens_path <- cur_metadata$LTTSENS.PATH
-cursens_path <- cur_metadata$CURSENS.PATH 
+lttsens_path <- "01_analyses_full/results/longterm_sensitivity_subsamp_test.RData" #cur_metadata$LTTSENS.PATH
+cursens_path <- "01_analyses_full/results/current_sensitivity_subsamp_test.csv" #cur_metadata$CURSENS.PATH 
 
-mainwocats_path <- cur_metadata$SOIBMAIN.WOCATS.PATH
-main_path <- cur_metadata$SOIBMAIN.PATH
-summaries_path <- cur_metadata$SUMMARY.PATH
+mainwocats_path <- "01_analyses_full/results/SoIB_main_wocats_subsamp_test.csv" #cur_metadata$SOIBMAIN.WOCATS.PATH
+main_path <- "01_analyses_full/results/SoIB_main_subsamp_test.csv"  #cur_metadata$SOIBMAIN.PATH
+summaries_path <- "01_analyses_full/results/SoIB_summaries_subsamp_test.xlsx" #cur_metadata$SUMMARY.PATH
 
 ###
 
@@ -501,7 +501,9 @@ if (interannual_update == TRUE){
   # so the if conditional will work anyway)
   status_majupd_path <- glue("{get_metadata(cur_mask)$RESULTS}{status_majupd_file}")
   
-  main_past = read.csv(main_path)
+  main_past = read.csv("01_analyses_full/results/SoIB_main.csv") #read.csv(main_path)
+  # read.csv(main_path) reads the existing SoIB main file. In this scenario, 
+  # the existing main file is the one from the 2025 
   main_past_spec_col <- names(main_past)[1]
   eBird_cur_tax = paste("eBird.English.Name.",soib_year_info("latest_year"),sep="")
   

@@ -1,0 +1,163 @@
+---
+title: "Species Change Summary"
+format:
+  html:
+    toc: true
+    code-fold: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(knitr)
+```
+
+# Overview
+
+This document summarizes how species changed between the major assessment and the 2025 update for:
+
+-   Long-term trend
+-   Current trend
+-   Range
+-   Priority category
+
+The analysis is grouped by the 2023 conservation priority .
+
+# Input Data
+
+```{r}
+changes <- read.csv("/home/shasanko/soib_2025_rerun_bugfixed/soib_2023/01_analyses_full/results/SoIB_changes_summary.csv", header = T)
+
+names(changes)
+```
+
+# Long-Term Trend Changes
+
+## High Priority Species
+
+```{r}
+changes_summary_ltt_high <- changes %>%
+  filter(
+    Major_Priority == "High",
+    Major_LongTerm != Latest_LongTerm
+  ) %>%
+  count(
+    Major_Priority,
+    Major_LongTerm,
+    Latest_LongTerm
+  )
+
+changes_summary_ltt_high
+```
+
+## Moderate Priority Species
+
+```{r}
+changes_summary_ltt_mod <- changes %>%
+  filter(
+    Major_Priority == "Moderate",
+    Major_LongTerm != Latest_LongTerm
+  ) %>%
+  count(
+    Major_Priority,
+    Major_LongTerm,
+    Latest_LongTerm
+  )
+
+changes_summary_ltt_mod
+```
+
+
+# Current Trend Changes
+
+## High Priority Species
+
+```{r}
+changes_summary_cat_high <- changes %>%
+  filter(
+    Major_Priority == "High",
+    Major_Current != Latest_Current) %>%
+  count(
+    Major_Priority,
+    Major_Current,
+    Latest_Current
+  )
+
+changes_summary_cat_high
+```
+
+## Moderate Priority Species
+
+```{r}
+changes_summary_cat_mod <- changes %>%
+  filter(
+    Major_Priority == "Moderate",
+    Major_Current != Latest_Current) %>%
+  count(
+    Major_Priority,
+    Major_Current,
+    Latest_Current
+  )
+
+changes_summary_cat_mod
+```
+
+# Range Changes (all priorities combined)
+
+```{r}
+changes_summary_range <- changes %>%
+  filter(Major_Range != Latest_Range) %>%
+  count(
+    Major_Priority,
+    Major_Range,
+    Latest_Range
+  )
+
+changes_summary_range %>%
+  arrange(Major_Priority, desc(n))
+```
+
+
+# Total Number of Species With Changes
+
+```{r}
+overall_summary <- changes %>%
+  summarise(
+    LongTerm_Changes = sum(Major_LongTerm != Latest_LongTerm, na.rm = TRUE),
+    Current_Changes  = sum(Major_Current != Latest_Current, na.rm = TRUE),
+    Range_Changes    = sum(Major_Range != Latest_Range, na.rm = TRUE),
+    Priority_Changes = sum(Major_Priority != Latest_Priority, na.rm = TRUE)
+  )
+
+overall_summary
+```
+
+# Summary by Major Priority
+
+```{r}
+summary_by_priority <- changes %>%
+  group_by(Major_Priority) %>%
+  summarise(
+    Total_Species = n(),
+
+    LongTerm_Changes =
+      sum(Major_LongTerm != Latest_LongTerm, na.rm = TRUE),
+
+    Current_Changes =
+      sum(Major_Current != Latest_Current, na.rm = TRUE),
+
+    Range_Changes =
+      sum(Major_Range != Latest_Range, na.rm = TRUE),
+
+    Priority_Changes =
+      sum(Major_Priority != Latest_Priority, na.rm = TRUE)
+  )
+
+summary_by_priority
+```
+
