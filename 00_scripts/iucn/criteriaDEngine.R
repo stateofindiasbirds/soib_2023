@@ -6,6 +6,37 @@ library(dplyr)
 library(readr)
 library(tidyr)
 library(stringr)
+source("00_scripts/iucn/config_iucn.R")
+
+
+#############Map names###############
+
+species_list <- read.csv(nrlspecieslistfile)
+#EOOAOO is generated directly using eBird names
+EOOAOO <- read.csv(eooaoofile)  %>%
+  mutate(
+    eBirdName = trimws(Species)
+  )
+
+# SoIB main file should be only for species selected for redlist
+soib_main <- read_csv(soibmainfile) %>% 
+  mutate(
+    eBirdName  = trimws(eBird.English.Name.2024),
+    EnglishName = trimws(India.Checklist.Common.Name),
+    ScientificName = trimws(India.Checklist.Scientific.Name)
+    
+  ) %>%
+  filter(
+    EnglishName %in% trimws(species_list$English.Name)
+  ) 
+
+# Map eBird names from EOOAOO to SoIB eBird names
+EOOAOO <- EOOAOO %>%
+  inner_join(
+    soib_main,
+    by = "eBirdName"
+  ) 
+
 
 # ============================================================
 # 1. READ INPUT DATA
@@ -35,8 +66,10 @@ if (nrow(population_data) == 0) {
 # 2. READ AOO DATA
 # ============================================================
 
-basicaoo <- read_csv(eooaoofile) %>%
-  mutate(EnglishName = trimws(Species)) %>%
+basicaoo <- EOOAOO %>%
+  mutate(
+    EnglishName = trimws(EnglishName)
+  ) %>%
   select(
     EnglishName,
     MaxAOO
@@ -64,12 +97,11 @@ plausiblethreat <- if (file.exists(plausiblethreatfile)) {
 
 threegen <- read.csv(threegenfile)
 
-soib <- read.csv(get_metadata("none")$SOIBMAIN.PATH)
 
-soib <- soib %>% 
+soib_main <- soib_main %>% 
   select(
-    "India.Checklist.Common.Name",
-    "India.Checklist.Scientific.Name",
+    "EnglishName",
+    "ScientificName",
     "BLI.Scientific.Name",
     "Current.Analysis",
     "currentsloperci",
@@ -95,9 +127,9 @@ gen_data <- threegen %>%
   )
 
 # Map BLI → EnglishName using SOIB (NO FILTERING)
-gen_data <- soib %>%
+gen_data <- soib_main %>%
   select(
-    EnglishName = India.Checklist.Common.Name,
+    EnglishName,
     BLI.Scientific.Name
   ) %>%
   inner_join(gen_data, by = "BLI.Scientific.Name") %>%
@@ -128,6 +160,17 @@ master_species <- bind_rows(
 ) %>%
   distinct() %>%
   mutate(EnglishName = trimws(EnglishName))
+
+cat("\n--- master_species names missing in soib_main ---\n")
+anti_join(
+  master_species,
+  
+  soib_main %>%
+    select(EnglishName),
+  
+  by = "EnglishName"
+) %>%
+  print(n = Inf)
 
 # ============================================================
 # 7b. JOIN ALL DATA TO MASTER LIST

@@ -6,7 +6,7 @@ popDeclinefile  <- "00_data/populationdeclines.csv"
 threegenfile    <- "00_data/3genbli.csv"
 soibredlistfile <- "01_analyses_full/results/redlist.csv"
 eooaoofile <- "01_analyses_full/results/eooaoo.csv"
-soibmainfile <- "01_analyses_full/results/SoIB_main.csv"
+soibmainfile <- get_metadata("none")$SOIBMAIN.PATH
 continuingdeclineexfile <- "01_analyses_full/results/continuingdeclineext.csv"
 severelyfragmentedfile <- "01_analyses_full/results/severelyfragmented.csv"
 nooflocationsfile <- "01_analyses_full/results/nooflocations.csv"
@@ -14,9 +14,10 @@ extremefluctationsfile <- "01_analyses_full/results/extremefluctuations.csv"
 populationsfile <- "00_data/populations.csv"
 plausiblethreatfile <- "01_analyses_full/results/plausiblethreat.csv"
 
-assessmentsflattenedfile <- "00_data/IUCN_assessments_flattened.csv"
+assessmentsflattenedfile <- "00_data/IUCN_assessments_Flattened_With SoIB Names.csv"
 subpopulationsfile <- "00_data/species_with_subspecies_count.csv"
 raritiesfile <- "00_data/rarities_nrl.csv" 
+percentrangefile <- "00_data/percent_species_ranges_India.csv"
 
 criteriaAResultsfile <- "01_analyses_full/results/criteriaA_results.csv"
 criteriaBResultsfile <- "01_analyses_full/results/criteriaB_results.csv"
@@ -26,3 +27,5 @@ criteriaDResultsfile <- "01_analyses_full/results/criteriaD_results.csv"
 nrloutputfile <- "01_analyses_full/results/species_nrl.csv"
 
 nrlspecieslistfile <- "00_data/species_nrl.csv"
+
+redlist_home_dir <- "00_scripts\\iucn\\"

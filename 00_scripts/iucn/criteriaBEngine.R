@@ -1,14 +1,42 @@
 library(dplyr)
 library(readr)
+source("00_scripts/iucn/config_iucn.R")
 
 latestYear <- 2024 #Obtain this from a configuration 
 
 # ============================================================
 # 1. READ BASIC EOO/AOO DATA & PREPARE. ALWAYS AVAILABLE
 # ============================================================
-basiceooaoo <- read_csv(eooaoofile) %>%
+
+#############Map names###############
+
+species_list <- read.csv(nrlspecieslistfile)
+#EOOAOO is generated directly using eBird names
+EOOAOO <- read.csv(eooaoofile)  %>%
+              mutate(
+                eBirdName = trimws(Species)
+              )
+
+# SoIB main file should be only for species selected for redlist
+soib_main <- read_csv(soibmainfile) %>% 
+                mutate(
+                  eBirdName  = trimws(eBird.English.Name.2024),
+                  EnglishName = trimws(India.Checklist.Common.Name)
+                ) %>%
+                filter(
+                  EnglishName %in% trimws(species_list$English.Name)
+                ) 
+
+# Map eBird names from EOOAOO to SoIB eBird names
+EOOAOO <- EOOAOO %>%
+            inner_join(
+              soib_main,
+              by = "eBirdName"
+            ) 
+
+basiceooaoo <- EOOAOO %>%
   mutate(
-    EnglishName = trimws(Species)
+    EnglishName = trimws(EnglishName)
   ) %>%
   select(
     EnglishName,
@@ -32,10 +60,7 @@ basiceooaoo <- read_csv(eooaoofile) %>%
 # ============================================================
 # 2. PREPARE POPULATION DECLINE DATA. ALWAYS AVAILABLE
 # ============================================================
-soib_decline <- read_csv(soibmainfile) %>%
-  mutate(
-    EnglishName = trimws(eBird.English.Name.2024)
-  ) %>%
+soib_decline <- soib_main %>%
     select(
       EnglishName,
       Current.Analysis,

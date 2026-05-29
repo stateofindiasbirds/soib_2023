@@ -6,6 +6,7 @@ library(dplyr)
 library(readr)
 library(tidyr)
 library(stringr)
+source("00_scripts/iucn/config_iucn.R")
 
 # ============================================================
 # 1a. READ INPUT DATA
