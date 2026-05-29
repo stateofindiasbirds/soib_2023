@@ -1,3 +1,9 @@
+source("00_scripts/00_functions.R")
+
+library(conflicted) #Issue with MASS package from 00_fuctions.R
+conflict_prefer("filter", "dplyr")
+conflict_prefer("select", "dplyr")
+
 source("00_scripts/iucn/CriteriaAEngine.R")
 source("00_scripts/iucn/CriteriaBEngine.R")
 source("00_scripts/iucn/CriteriaCEngine.R")

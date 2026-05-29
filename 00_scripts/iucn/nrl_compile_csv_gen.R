@@ -63,27 +63,281 @@ format_num <- function(x) {
 # ============================================================
 
 criteriaA_results <- read_csv(criteriaAResultsfile)
-criteriaB_results <- read_csv(criteriaBResultsfile)
+criteriaB_results <- read_csv(criteriaBResultsfile) 
 criteriaC_results <- read_csv(criteriaCResultsfile)
 criteriaD_results <- read_csv(criteriaDResultsfile)
 
-soib_main        <- read_csv(soibmainfile)
-iucn_assessments <- read_csv(assessmentsflattenedfile)
-subpopulations   <- read_csv(subpopulationsfile)
-species_list     <- read.csv(nrlspecieslistfile)
+species_list     <- read.csv(nrlspecieslistfile) %>% 
+                    mutate(EnglishName = `English.Name`)
+
+    
+soib_main <- read_csv(soibmainfile) %>% 
+                mutate(
+                  EnglishName = India.Checklist.Common.Name,
+                  eBirdName = eBird.English.Name.2024,
+                  BirdLifeName = BLI.Scientific.Name,
+                  ScientificName = India.Checklist.Scientific.Name
+                ) %>%
+                filter(
+                  EnglishName %in% trimws(species_list$EnglishName)
+                ) 
+soib_main %>%
+  count(EnglishName) %>%
+  filter(n > 1)
+
+soib_main <- soib_main %>% 
+                distinct(EnglishName, .keep_all = TRUE)
+
+iucn_assessments <- read_csv(assessmentsflattenedfile) %>% 
+                      mutate(
+                        EnglishName = `English Name`
+                      ) %>%
+                    filter(
+                      EnglishName %in% trimws(soib_main$EnglishName)
+                    ) 
+
+iucn_assessments %>%
+  count(EnglishName) %>%
+  filter(n > 1)
+
+iucn_assessments <- iucn_assessments %>% 
+                    select (EnglishName,
+                        red_list_category_code,
+                        criteria,
+                        url,
+                        supplementary_info_json_generational_length,
+                        supplementary_info_json_population_size,
+                        supplementary_info_json_estimated_extent_of_occurence,
+                        supplementary_info_json_estimated_area_of_occupancy,
+                        population_trend_description_en) %>%
+                      distinct(EnglishName, .keep_all = TRUE)
+
+percentrange <- read_csv(percentrangefile) %>% 
+                    select (sci_name, pp) %>%
+                    transmute (
+                      BirdLifeName = sci_name,
+                      regionalrange = case_when(
+                        is.na(pp) ~ NA_character_,
+                        pp < 0.01 ~ "< 1%",
+                        TRUE ~ paste0(round(pp * 100, 0), "%")
+                      )
+                    ) %>%
+                distinct(BirdLifeName, .keep_all = TRUE) %>%
+                inner_join(
+                  soib_main %>%
+                    select(BirdLifeName, EnglishName),
+                  by = "BirdLifeName"
+                ) %>%
+                select (EnglishName, regionalrange)
+
+
+subpopulations   <- read_csv(subpopulationsfile) %>% 
+                      mutate(
+                        ScientificName = Species) %>% 
+                        inner_join(
+                          soib_main %>%
+                            select(ScientificName, EnglishName),
+                          by = "ScientificName"
+                        ) %>%
+                        select (EnglishName, No_of_Subspecies)
+
+# ============================================================
+
+# CHECK FOR NON-MATCHING SPECIES BEFORE JOINS
+
+# ============================================================
+
+cat("\n=============================\n")
+cat("ANTI-JOIN CHECKS\n")
+cat("=============================\n")
+
+# ------------------------------------------------------------
+
+# 1. species_list vs soib_main
+
+# ------------------------------------------------------------
+
+cat("\n--- species_list English names missing in soib_main ---\n")
+
+anti_join(
+  species_list %>%
+    select(EnglishName),
+  
+  soib_main %>%
+    select(EnglishName),
+  
+  by = "EnglishName"
+)
+
+# ------------------------------------------------------------
+
+# 2. IUCN scientific-name joins
+
+# ------------------------------------------------------------
+
+cat("\n--- soib_main names missing in iucn_assessments ---\n")
+
+anti_join(
+  soib_main %>%
+    select(EnglishName),
+  
+  iucn_assessments %>%
+    select(EnglishName),
+  
+  by = "EnglishName"
+) %>%
+  print(n = Inf)
+
+cat("\n--- iucn_assessments names missing in soib_main ---\n")
+
+anti_join(
+  iucn_assessments %>%
+    select(EnglishName),
+  
+  soib_main %>%
+    select(EnglishName),
+  
+  by = "EnglishName"
+) %>%
+  print(n = Inf)
+
+# ------------------------------------------------------------
+
+# 3. Criteria A English-name joins
+
+# ------------------------------------------------------------
+
+cat("\n--- Criteria A English names missing in soib_main ---\n")
+
+anti_join(
+  criteriaA_results %>%
+    select(EnglishName),
+  
+  soib_main %>%
+    select(EnglishName),
+  
+  by = "EnglishName"
+) %>%
+  print(n = Inf)
+
+# ------------------------------------------------------------
+
+# 4. Criteria B English-name joins
+
+# ------------------------------------------------------------
+
+cat("\n--- soib_main English names missing in Criteria B ---\n")
+
+anti_join(
+  soib_main %>%
+    select(EnglishName),
+  
+  criteriaB_results %>%
+    select(EnglishName),
+  
+  by = "EnglishName"
+) %>%
+  print(n = Inf)
+
+cat("\n--- Criteria B English names missing in soib_main ---\n")
+
+anti_join(
+  criteriaB_results %>%
+    select(EnglishName),
+  
+  soib_main %>%
+    select(EnglishName),
+  
+  by = "EnglishName"
+) %>%
+  print(n = Inf)
+
+# ------------------------------------------------------------
+
+# 5. Criteria C English-name joins
+
+# ------------------------------------------------------------
+
+cat("\n--- Criteria C English names missing in soib_main ---\n")
+
+anti_join(
+  criteriaC_results %>%
+    select(EnglishName),
+  
+  soib_main %>%
+    select(EnglishName),
+  
+  by = "EnglishName"
+) %>%
+  print(n = Inf)
+
+# ------------------------------------------------------------
+
+# 6. Criteria D English-name joins
+
+# ------------------------------------------------------------
+
+cat("\n--- Criteria D English names missing in soib_main ---\n")
+
+anti_join(
+  criteriaD_results %>%
+    select(EnglishName),
+  
+  soib_main %>%
+    select(EnglishName),
+  
+  by = "EnglishName"
+) %>%
+  print(n = Inf)
+
+# ------------------------------------------------------------
+
+# 7. Subpopulation scientific-name joins
+
+# ------------------------------------------------------------
+
+cat("\n--- soib_mainnames missing in subpopulations ---\n")
+
+anti_join(
+  soib_main %>%
+    select(EnglishName),
+  
+  subpopulations %>%
+    select(EnglishName),
+  
+  by = "EnglishName"
+) 
+
+# ------------------------------------------------------------
+
+# 8. Global percentage English name joins
+
+# ------------------------------------------------------------
+
+cat("\n--- soib_mainnames missing in global percentage file ---\n")
+
+anti_join(
+  soib_main %>%
+    select(EnglishName),
+  
+  percentrange %>%
+    select(EnglishName),
+  
+  by = "EnglishName"
+) 
 
 # ============================================================
 # 2. NORMALIZE KEYS
 # ============================================================
 
-soib_main <- soib_main %>%
-  mutate(
-    EnglishName    = trimws(eBird.English.Name.2024),
-    ScientificName = trimws(eBird.Scientific.Name.2024),
-    BirdLifeName   = trimws(BLI.Scientific.Name),
-    
-  ) %>%
-  distinct(ScientificName, .keep_all = TRUE)
+#soib_main <- soib_main %>%
+#  mutate(
+#    EnglishName    = trimws(eBird.English.Name.2024),
+#    ScientificName = trimws(eBird.Scientific.Name.2024),
+#    BirdLifeName   = trimws(BLI.Scientific.Name),
+#    
+#  ) %>%
+#  distinct(ScientificName, .keep_all = TRUE)
 
 criteriaA_results <- criteriaA_results %>%
   mutate(EnglishName = trimws(EnglishName)) %>%
@@ -101,18 +355,11 @@ criteriaD_results <- criteriaD_results %>%
   mutate(EnglishName = trimws(EnglishName)) %>%
   distinct(EnglishName, .keep_all = TRUE)
 
-iucn_assessments <- iucn_assessments %>%
-  mutate(
-    BirdLifeName = trimws(taxon_object_json_scientific_name)
-  ) %>%
-  distinct(BirdLifeName, .keep_all = TRUE)
-
 subpopulations <- subpopulations %>%
   mutate(
-    ScientificName = trimws(Species),
     SubspeciesCount = as.integer(No_of_Subspecies)
   ) %>%
-  distinct(ScientificName, .keep_all = TRUE)
+  distinct(EnglishName, .keep_all = TRUE)
 
 # ============================================================
 # 3. MERGE ALL DATA (SoIB AS BASE)
@@ -121,7 +368,8 @@ subpopulations <- subpopulations %>%
 merged <- soib_main %>%
   
   # ---- IUCN ----
-left_join(iucn_assessments, by = "BirdLifeName", relationship = "many-to-one") %>%
+left_join(iucn_assessments,
+                                       by = "EnglishName", relationship = "many-to-one") %>%
   
   # ---- Criteria A ----
 left_join(criteriaA_results %>%
@@ -181,7 +429,10 @@ left_join(criteriaD_results %>%
   
   # ---- Subspecies ----
 left_join(subpopulations,
-          by = "ScientificName",
+          by = "EnglishName",
+          relationship = "many-to-one") %>% 
+left_join(percentrange,
+          by = "EnglishName",
           relationship = "many-to-one")
 
 # ============================================================
@@ -220,7 +471,7 @@ species <- merged %>%
     # --------------------------------------------------------
     SoIBPriority = SoIB.Latest.Priority.Status,
     LTC = SoIB.Latest.Long.Term.Status,
-    CAT = SoIB.Latest.Range.Status,
+    CAT = SoIB.Latest.Current.Status,
     
     # --------------------------------------------------------
     # CRITERIA
@@ -301,13 +552,12 @@ species <- merged %>%
     GlobalEOO = format_num(supplementary_info_json_estimated_extent_of_occurence),
     GlobalAOO = format_num(supplementary_info_json_estimated_area_of_occupancy),
     
-    GlobalRangePercent = NA_character_, #Awaiting info from Alex
+    GlobalRangePercent = regionalrange, #Awaiting info from Alex
     GlobalPopulationTrend = population_trend_description_en,
     
     MigratoryStatusIndia = Migratory.Status.Within.India,
     GlobalRedlistURL = url
   )
-
 
 # ============================================================
 # 5. APPLY RARITIES OVERRIDES (IF FILE EXISTS)
@@ -361,7 +611,7 @@ if (file.exists(raritiesfile)) {
 }
 
 species <- species %>%
-  filter(EnglishName %in% species_list$English.Name)
+  filter(EnglishName %in% species_list$EnglishName)
 
 # ============================================================
 # 6. WRITE OUTPUT
