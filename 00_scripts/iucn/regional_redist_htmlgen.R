@@ -122,24 +122,20 @@
       
       "      <!-- Right Column -->",
       "      <div>",
-      "        <div class='section-title'>Population Decline <span class='criteria-label'>Criteria A & C</span></div>",
+      "        <div class='section-title'>Population Decline (Inferred) <span class='criteria-label'>Criteria A & C</span></div>",
       "        <table>",
-      "          <tr><th style='text-align:left;'>Generations</th><th>3</th><th>2</th><th>1</th></tr>",
+      "          <tr><th style='text-align:left;'>Decline (3 generations)</th><th>UCI</th><th>Mean</th><th>LCI</th></tr>",
       "          <tr><td>Projected Decline %</td>",
       glue("            <td>{sp$Decline3GEN}</td>"),
-      glue("            <td>{sp$Decline2GEN}</td>"),
-      glue("            <td>{sp$Decline1GEN}</td>"),
-      "          </tr>",
-      "          <tr><td>No. of Years</td>",
-      glue("            <td>{sp$Years3GEN}</td>"),
-      glue("            <td>{sp$Years2GEN}</td>"),
-      glue("            <td>{sp$Years1GEN}</td>"),
+      glue("            <td>{sp$Decline3GENMean}</td>"),
+      glue("            <td>{sp$Decline3GENLci}</td>"),
       "          </tr>",
       "        </table>",
       glue("        <div class='data-row'><span class='label'>Generation Length:</span> <span class='value'>{sp$GenerationLength}</span></div>"),
       glue("        <div class='data-row'><span class='label'>Actual Trend (%):</span> <span class='value'>{sp$ActualDeclinePercentage} {na_blank(sp$YearsActualDecline)}</span></div>"),
       glue("        <div class='data-row'><span class='label'>Global Population Trend:</span> <span class='global-value'>{sp$GlobalPopulationTrend}</span></div>"),
-      
+      glue("        <div class='data-row'><span class='label'>Continuing Decline (Regional):</span> <span class='value'>{sp$ContinuingDecline}</span></div>"),
+  
       "        <div class='section-title'>Population <span class='criteria-label'>Criteria C & D</span></div>",
       glue("        <div class='data-row'><span class='label'>Regional Population:</span> <span class='value'>{sp$TotalLikelyPop} {na_blank(sp$TotalMaxPop)}</span></div>"),
       glue("        <div class='data-row'><span class='label'>Global Population:</span> <span class='value'>{sp$GlobalPopulation}</span></div>"),
@@ -197,7 +193,7 @@
     
     # Output JPG file name
     output_file <- paste0(gsub(" ", "_", species$EnglishName[i]), ".jpg")
-    output_file <- paste0(resultspath, "outputs\\", output_file)
+    output_file <- file.path(paste0(resultspath, "/outputs"), output_file)
     
     print(paste("Generating JPG for", species$EnglishName[i]))
     
