@@ -39,7 +39,7 @@ if(nrow(manual_decline) > 0)
     select(
       "India.Checklist.Common.Name",
       "India.Checklist.Scientific.Name",
-      "BLI.Scientific.Name",
+      "BLI.Scientific.Name"
     )
 
 
@@ -88,8 +88,10 @@ if(nrow(manual_decline) > 0)
     mutate(
       OrgStartYear = as.numeric(StartYear),
       OrgEndYear = as.numeric(EndYear),
-      DeclinePercent = as.numeric(DeclinePercentLci), #always take 95% LCI
-      ActualDecline = paste0 ("-",round(DeclinePercentMean, 1),"% (-",round(DeclinePercentLci, 1)," , -", round(DeclinePercentRci, 1),")"),
+      DeclinePercent = as.numeric(DeclinePercentRci), #always take 95% RCI
+      DeclinePercentMean = as.numeric(DeclinePercentMean),
+      DeclinePercentLci = as.numeric(DeclinePercentLci),
+      ActualDecline = paste0 ("-",round(DeclinePercentMean, 1),"% (-",round(DeclinePercentRci, 1)," , -", round(DeclinePercentLci, 1),")"),
       
       Duration = OrgEndYear - OrgStartYear,
       
@@ -115,11 +117,27 @@ if(nrow(manual_decline) > 0)
         ifelse(!is.na(DeclinePercent),
                1 - (DeclinePercent / 100),
                NA_real_),
+      RemainingPropMean =
+        ifelse(!is.na(DeclinePercentMean),
+               1 - (DeclinePercentMean / 100),
+               NA_real_),
+      RemainingPropLci =
+        ifelse(!is.na(DeclinePercentLci),
+               1 - (DeclinePercentLci / 100),
+               NA_real_),
       
       # Annualised multiplicative rate
       AnnualRate =
         ifelse(Duration > 0 & !is.na(RemainingProp),
                RemainingProp^(1 / Duration),
+               NA_real_),
+      AnnualRateMean =
+        ifelse(Duration > 0 & !is.na(RemainingPropMean),
+               RemainingPropMean^(1 / Duration),
+               NA_real_),
+      AnnualRateLci =
+        ifelse(Duration > 0 & !is.na(RemainingPropLci),
+               RemainingPropLci^(1 / Duration),
                NA_real_),
       
       # Decide evaluation period
@@ -143,11 +161,27 @@ if(nrow(manual_decline) > 0)
         ifelse(!is.na(AnnualRate),
                AnnualRate^EvalYears,
                NA_real_),
+      FinalRemainingMean =
+        ifelse(!is.na(AnnualRateMean),
+               AnnualRateMean^EvalYears,
+               NA_real_),
+      FinalRemainingLci =
+        ifelse(!is.na(AnnualRateLci),
+               AnnualRateLci^EvalYears,
+               NA_real_),
       
       Decline =
         ifelse(!is.na(FinalRemaining),
                (1 - FinalRemaining) * 100,
                DeclinePercent),
+      DeclineMean =
+        ifelse(!is.na(FinalRemainingMean),
+               (1 - FinalRemainingMean) * 100,
+               DeclinePercentMean),
+      DeclineLci =
+        ifelse(!is.na(FinalRemainingLci),
+               (1 - FinalRemainingLci) * 100,
+               DeclinePercentLci),
       
       # If extrapolated → method becomes Projected (important correction)
       Method =
@@ -184,6 +218,8 @@ if(nrow(manual_decline) > 0)
       OtherEffects = as.numeric(OtherEffects),
       
       Decline = as.integer(Decline),
+      DeclineMean = as.integer(DeclineMean),
+      DeclineLci = as.integer(DeclineLci),
       RangeCoverage = as.numeric(RangeCoverage)
       
     ) %>%
@@ -200,6 +236,8 @@ if(nrow(manual_decline) > 0)
       EndYear,
       Years3GEN,
       Decline,
+      DeclineMean,
+      DeclineLci,
       DirectObservation,
       AbundanceIndex,
       EOODecline,
@@ -237,6 +275,8 @@ redlist_decline <- read_csv(soibredlistfile) %>%
     EndYear = StartYear + Years3GEN,
     
     Decline = as.integer(`3GEN Decline`),
+    DeclineMean = as.integer(`3GEN Decline Mean`),
+    DeclineLci = as.integer(`3GEN Decline LCI`),
     ActualDecline = `Current Annual Decline`,
     
     # Evidence pathway (index-based inference)
@@ -266,6 +306,8 @@ redlist_decline <- read_csv(soibredlistfile) %>%
     EndYear,
     Years3GEN,
     Decline,
+    DeclineMean,
+    DeclineLci,
     DirectObservation,
     AbundanceIndex,
     EOODecline,
@@ -429,7 +471,9 @@ criteriaA_output <- criteriaA_final %>%
     CriteriaA_String,
     
     # Decline info
-    Decline,
+    Decline, #LCI is actual decline
+    DeclineMean,
+    DeclineLci,
     Years3GEN,
     StartYear,
     EndYear,

@@ -41,7 +41,7 @@ EOOAOO <- EOOAOO %>%
     MinAOO = round(MinAOO),
     MaxAOO = round(MaxAOO),
     LikelyEOO = round(LikelyEOO),
-    MaxEOO = 0,
+    MaxEOO = NA,
     EOOChange = round(EOOChange),
   ) %>% 
   select (Species, MinAOO, MaxAOO, MinEstimate_2km, EOOStartYear, LikelyEOO, MaxEOO, EOOYearBandChange, EOOChange, EOOChangePercent)

@@ -382,6 +382,8 @@ left_join(criteriaA_results %>%
                    StartYear,
                    EndYear,
                    Decline,
+                   DeclineMean,
+                   DeclineLci,
                    Years3GEN
                    ),
           by = "EnglishName",
@@ -465,7 +467,6 @@ species <- merged %>%
     ),
     GlobalRedlist = ifelse (is.na(red_list_category_code), "Not Assessed", category_map[red_list_category_code]),
     AdjustedRegionalRedlist = "To be done",
-    
     # --------------------------------------------------------
     # SOIB FIELDS
     # --------------------------------------------------------
@@ -493,6 +494,8 @@ species <- merged %>%
     #Stringly everything
     #Note, Decline comes from Criteria A file, others from Criteria C
     Decline3GEN = ifelse(is.na(Decline),"NA",paste0(round(Decline,1))),
+    Decline3GENMean = ifelse(is.na(DeclineMean),"NA",paste0(round(DeclineMean,1))),
+    Decline3GENLci = ifelse(is.na(DeclineLci),"NA",paste0(round(DeclineLci,1))),
     Years3GEN = Years3GEN,
     
     Decline2GEN = ifelse(is.na(`2GEN Decline`),"NA",paste0(round(`2GEN Decline`,1))),
@@ -515,7 +518,7 @@ species <- merged %>%
                                  ifelse (is.na(ActualDecline) | is.na(OrgStartYear) | is.na(OrgEndYear),
                                  "",
                                  paste0(as.integer(OrgEndYear-OrgStartYear),"y, ",OrgStartYear,"-",OrgEndYear))),
-    
+    ContinuingDecline  = ifelse( is.na(currentslopelci), "Unknown",ifelse (currentslopelci > 0, "No", ifelse(currentsloperci < 0, "Yes", "Uncertain"))),
     # --------------------------------------------------------
     # POPULATION
     # --------------------------------------------------------
@@ -523,12 +526,12 @@ species <- merged %>%
     CMS = CMS.Appendix,
     CITES = CITES.Appendix,
     Schedule = WPA.Schedule,
-    
+    Endemic = India.Endemic,
     # --------------------------------------------------------
     # DISTRIBUTION
     # --------------------------------------------------------
     EOO = format_num(LikelyEOO),
-    MaxEOO = ifelse (is.na(MaxEOO), "" ,paste0("(Max ",format_num(MaxEOO), ")")),
+    MaxEOO = ifelse (is.na(MaxEOO) | (MaxEOO == 0), "" ,paste0("(Max ",format_num(MaxEOO), ")")),
     
     DeclineEOO = ifelse (is.na(EOOChangePercent),NA,paste0(round (EOOChangePercent, 1),"%")), #If available, it should be a string
     
@@ -538,7 +541,7 @@ species <- merged %>%
     # AOO
     # --------------------------------------------------------
     MinAOO = format_num(MinAOO),
-    MaxAOO = ifelse (is.na(MaxAOO), "" ,paste0("(Max ",format_num(MaxAOO), ")")),
+    MaxAOO = ifelse (is.na(MaxAOO) | (MaxAOO == 0), "" ,paste0("(Max ",format_num(MaxAOO), ")")),
     Locations = Locations,
     
     # --------------------------------------------------------
@@ -546,7 +549,7 @@ species <- merged %>%
     # --------------------------------------------------------
     Subspecies = SubspeciesCount,
     TotalLikelyPop = format_num(round(BestMaturePop,0)),
-    TotalMaxPop = ifelse (is.na(MaxMaturePop),"", paste0(" (Max ", format_num(round(MaxMaturePop,0)),")")),
+    TotalMaxPop = ifelse (is.na(MaxMaturePop),"", paste0("(",format_num(round(MinMaturePop,0)),"-", format_num(round(MaxMaturePop,0)),")")),
     
     GlobalPopulation = ifelse (is.na(supplementary_info_json_population_size) | (supplementary_info_json_population_size == "U"), "Unknown", format_num(supplementary_info_json_population_size)), 
     GlobalEOO = format_num(supplementary_info_json_estimated_extent_of_occurence),
@@ -609,6 +612,16 @@ if (file.exists(raritiesfile)) {
 } else {
   cat("Rarities file not found, skipping overrides.\n")
 }
+
+species <- species %>%
+  mutate(
+    AdjustedRegionalRedlist = if_else(
+      Endemic == "Yes",
+      RegionalRedlist,
+      "To be done"
+    )
+  )
+
 
 species <- species %>%
   filter(EnglishName %in% species_list$EnglishName)
