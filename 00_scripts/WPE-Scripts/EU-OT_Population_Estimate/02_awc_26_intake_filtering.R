@@ -1,4 +1,6 @@
 # AWC 2026 Data Intake and Filtering
+library(lubridate)
+
 source("config.R")
 
 awc26_data <- read.delim(awc26, sep = "\t", header = T, quote = "", 
@@ -90,7 +92,6 @@ awc26_data = awc26_data %>% select(COMMON.NAME,SCIENTIFIC.NAME,OBSERVATION.COUNT
                                    EFFORT.DISTANCE.KM,NUMBER.OBSERVERS,GROUP.IDENTIFIER,CHECKLIST.ID)
 
 # Add date, month and year columns
-library(lubridate)
 awc26_data <- awc26_data %>%
   mutate(
     OBSERVATION.DATE = ymd_hms(OBSERVATION.DATE),

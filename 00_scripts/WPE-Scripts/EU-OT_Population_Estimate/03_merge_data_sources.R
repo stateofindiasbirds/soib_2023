@@ -1,5 +1,6 @@
 # Merge all data sources
 library(dplyr)
+library(lubridate)
 
 # STEP 1 — Add DATA.SOURCE column
 ebird_data <- ebird_data %>%
@@ -91,9 +92,6 @@ merged_data <- merged_data %>%
       )
 
 # Convert columns back to appropriate data types
-library(dplyr)
-library(lubridate)
-
 merged_data <- merged_data %>%
   mutate(
     OBSERVATION.COUNT = as.numeric(OBSERVATION.COUNT),

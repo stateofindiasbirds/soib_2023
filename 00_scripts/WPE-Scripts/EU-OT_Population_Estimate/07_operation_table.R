@@ -51,8 +51,8 @@ evaluate_formula <- function(formula, eu_table, value_col) {
 final_results <- operation_table %>%
   rowwise() %>%
   mutate(
-    FINAL_MIN = evaluate_formula(OPERATION, eu_results, "ESTIMATE.MIN"),
-    FINAL_MAX = evaluate_formula(OPERATION, eu_results, "ESTIMATE.MAX")
+    FINAL_MIN = evaluate_formula(OPERATION_MIN, eu_results, "ESTIMATE.MIN"),
+    FINAL_MAX = evaluate_formula(OPERATION_MAX, eu_results, "ESTIMATE.MAX")
   )
 
 # Write back
