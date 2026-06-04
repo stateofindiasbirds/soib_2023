@@ -4,7 +4,7 @@ CurYear <- 2024
 dir <- "..\\..\\..\\data\\"
 unzip <- 0
 ebdfile <- paste0("ebd_IN-KL_smp_rel",month.abb[CurMonth],"-",CurYear)
-regionshape <- "states_sf_admin_mapped/states_sf_admin_mapped.shp"
+regionshape <- "states_sf_admin_mapped"
 
 #Lists that have effort.distance are greater than this value (in km) will not be considered for AOO calculations
 MaxDistanceThresholdforAOO <- 4  # Since we are calculating at 4x4 grid, any list about 4km will not have the necessary precision. 
@@ -22,7 +22,8 @@ EffortThesholdAcrossGridsPercentile <- 80
 consistent_eoo_limit <- 5
 
 # Which all grid sizes need to be calculated
-grid_sizes_km <- c(2, 4, 8)
+aoo_grid_sizes_km <- c(8, 4, 2)
+#aoo_grid_sizes_km <- c(4, 8, 16)
 
 # No records before 2000 used in EOO calculation
 lastYearforEOOCalculation <- 2000
