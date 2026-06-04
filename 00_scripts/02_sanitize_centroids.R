@@ -30,9 +30,8 @@ report <- read.csv("00_data/centroids_assessment_report.csv")
 raw_data <- read.csv("00_data/ebird_tracks_IN_2026-01-08.csv")
 
 # Only keep valid checklists
-centroids_to_process <- report %>% 
-  filter(action %in% c("KEEP", "SWAP_AND_KEEP") & 
-           list_found_in_ebd == TRUE) %>%
+centroids_to_process <- report_1 %>% 
+  filter(action %in% c("KEEP", "SWAP_AND_KEEP")) %>%
   left_join(raw_data, by = "checklist_id")
 
 # Make new columns for swapped coordinates ----

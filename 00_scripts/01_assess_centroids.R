@@ -76,13 +76,12 @@ ebd_presence <-
 centroids_ebd_check <- centroids %>%
   mutate(list_found_in_ebd = checklist_id %in% ebd_presence$checklist_id)
 
-
 centroids_updated <- centroids_ebd_check %>%
   mutate(action = case_when(
     location_status == 1 & list_found_in_ebd == TRUE ~ "KEEP",
     location_status == 1 & list_found_in_ebd == FALSE ~ "REMOVE_NOT_IN_EBD",
     location_status == 0 &
-      location_status_swapped == 1 ~ "SWAP_AND_KEEP",
+      location_status_swapped == 1 & list_found_in_ebd == TRUE ~ "SWAP_AND_KEEP",
     TRUE ~ "REMOVE_OUTSIDE_INDIA"
   )
   )
@@ -101,6 +100,7 @@ assessment_report <- centroids_updated %>%
 write.csv(assessment_report,
           "00_data/centroids_assessment_report.csv",
           row.names = FALSE)
+
 
 # Summary JSON
 summary_stats <- list(

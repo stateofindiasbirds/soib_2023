@@ -4,6 +4,6 @@
   "n_total_raw": 2313805,
   "n_remove_not_in_ebd": 19227,
   "n_keep_from_original": 2255901,
-  "n_swap_and_keep": 781,
-  "n_remove_outside_india": 37896
+  "n_swap_and_keep": 772,
+  "n_remove_outside_india": 37905
 }
