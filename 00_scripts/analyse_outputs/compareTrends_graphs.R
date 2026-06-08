@@ -38,7 +38,13 @@ old <- read.csv("01_analyses_full/results/trends.csv")[,colnames]
 new <- read.csv("01_analyses_full/results/trends_subsamp_test.csv")[,colnames]
 write_path <- "01_analyses_full/results/figs/subsamp_test/species_trends_batch_"
 
+old <- read.csv("01_analyses_full/results/trends.csv")[,colnames]
+new <- read.csv("01_analyses_full/results/trends_n5000.csv")[,colnames]
+write_path <- "01_analyses_full/results/figs/subsamp_5000_test/species_trends_batch_"
 
+old <- read.csv("01_analyses_full/results/trends_subsamp_test.csv")[,colnames]
+new <- read.csv("01_analyses_full/results/trends_n5000.csv")[,colnames]
+write_path <- "01_analyses_full/results/figs/subsamp_n1_vs_n5_test/species_trends_batch_"
 
 names(old) <- colnames
 names(new) <- colnames
@@ -56,6 +62,17 @@ combined <- old %>%
                       lci_std_recent_new = lci_std_recent, mean_std_recent_new = mean_std_recent, rci_std_recent_new = rci_std_recent),
              by = c("COMMON.NAME", "timegroups")) %>%
   filter(!is.na(mean_old) & !is.na(mean_new))
+
+# combined_1 <- old %>%
+#   rename(lci_old = lci, mean_old = mean, rci_old = rci,
+#          lci_std_old = lci_std, mean_std_old = mean_std, rci_std_old = rci_std,
+#          lci_std_recent_old = lci_std_recent, mean_std_recent_old = mean_std_recent, rci_std_recent_old = rci_std_recent) %>%
+#   inner_join(new %>%
+#                rename(lci_new = lci, mean_new = mean, rci_new = rci,
+#                       lci_std_new = lci_std, mean_std_new = mean_std, rci_std_new = rci_std,
+#                       lci_std_recent_new = lci_std_recent, mean_std_recent_new = mean_std_recent, rci_std_recent_new = rci_std_recent),
+#              by = c("COMMON.NAME", "timegroups")) %>%
+#   filter(!is.na(mean_old) & !is.na(mean_new))
 
 # -----------------------------
 # 3. Compute summary statistics (baseline-aware MD)
@@ -298,10 +315,10 @@ for (i in seq_along(species_batches)) {
   
   # --- plotting
   p <- ggplot(plot_data, aes(x = timegroups)) +
-    geom_ribbon(aes(ymin = lci_std_new, ymax = rci_std_new, fill = "2025 Update - Subsamp change"), alpha = 0.25) +
-    geom_ribbon(aes(ymin = lci_std_old, ymax = rci_std_old, fill = "2025 Update"), alpha = 0.4) +
-    geom_line(aes(y = mean_std_new, color = "2025 Update - Subsamp change"), size = 1.1) +
-    geom_line(aes(y = mean_std_old, color = "2025 Update"), size = 1.1) +
+    geom_ribbon(aes(ymin = lci_std_new, ymax = rci_std_new, fill = "2025 Update - Subsamp 5"), alpha = 0.25) +
+    geom_ribbon(aes(ymin = lci_std_old, ymax = rci_std_old, fill = "2025 Update - Subsamp 1"), alpha = 0.4) +
+    geom_line(aes(y = mean_std_new, color = "2025 Update - Subsamp 5"), size = 1.1) +
+    geom_line(aes(y = mean_std_old, color = "2025 Update - Subsamp 1"), size = 1.1) +
     geom_hline(yintercept = 0, color = "black", linetype = "solid", linewidth = 0.8) +
     geom_text(aes(x = min(timegroups, na.rm = TRUE), y = 0, label = baseline_label),
               hjust = 0, vjust = -0.5, size = 3.2, color = "black") +
@@ -313,11 +330,11 @@ for (i in seq_along(species_batches)) {
     ) +
     scale_color_manual(
       name = "Trend Type",
-      values = c("2025 Update" = "#1f77b4", "2025 Update - Subsamp change" = "#d62728")
+      values = c("2025 Update - Subsamp 1" = "#1f77b4", "2025 Update - Subsamp 5" = "#d62728")
     ) +
     scale_fill_manual(
       name = "Trend Type (CI)",
-      values = c("2025 Update" = "#1f77b4", "2025 Update - Subsamp change" = "#d62728")
+      values = c("2025 Update - Subsamp 1" = "#1f77b4", "2025 Update - Subsamp 5" = "#d62728")
     ) +
     # --- Y-axis signed labels (+/-)
     scale_y_continuous(
