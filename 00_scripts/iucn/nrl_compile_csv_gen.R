@@ -90,7 +90,7 @@ soib_main <- soib_main %>%
 
 iucn_assessments <- read_csv(assessmentsflattenedfile) %>% 
                       mutate(
-                        EnglishName = `English Name`
+                        EnglishName = india_checklist_common_name_2025,
                       ) %>%
                     filter(
                       EnglishName %in% trimws(soib_main$EnglishName)
