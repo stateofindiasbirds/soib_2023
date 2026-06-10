@@ -33,3 +33,5 @@ maxYearforProcessing <- 2023
 
 # MAximum distance to be used for EOO Calculation
 MaxChecklistDistanceforEOO <- 10
+
+MaxTrackCellsForExpansion <- 4
