@@ -18,13 +18,13 @@ test_species <- c (
   "Golden-headed Cisticola"
 )
 
-test_species <- c (
+test_species <- c (test_species, c(
   "Banasura Laughingthrush",
   "Nilgiri Laughingthrush",
   "Ashambu Laughingthrush",
   "Black-headed Greenfinch"
-)
-  
+))
+
 scriptpath <- "00_scripts/iucn/"
 datapath   <- "00_scripts/iucn/"
 
@@ -35,16 +35,159 @@ library(sf)
 library(dplyr)
 source(file.path(scriptpath, "config.R"))
 
+centroid <- readRDS("00_data/centroids_sanitized_final.rds")
+
+centroid <- centroid %>%
+  select(
+    checklist_id,
+    centroid_longitude,
+    centroid_latitude,
+    longitude_min,
+    longitude_max,
+    latitude_min,
+    latitude_max,
+    location_score
+  )
+
 obsv    <- readRDS(file.path(datapath,"ebd.RDS"))
 species <- obsv$COMMON.NAME %>% unique() %>% grep(pattern = "[()/\\\\.]", value = TRUE, invert = TRUE)
 species <- readRDS(file.path(datapath,"eoo.RDS")) %>% 
-#            filter(Species %in% test_species) %>%
+            #filter(Species %in% test_species) %>%
             select (Species) %>%
             pull(Species)
 
 obsv    <- obsv %>% 
               filter (PROTOCOL.NAME == 'Stationary' | PROTOCOL.NAME == 'Traveling') %>%
               filter (EFFORT.DISTANCE.KM <= MaxDistanceThresholdforAOO)
+
+obsv <- obsv %>%
+  left_join(
+    centroid,
+    by = c("SAMPLING.EVENT.IDENTIFIER" = "checklist_id")
+  )
+
+compute_bbox_diagonal <- function(
+    lon_min, lon_max,
+    lat_min, lat_max
+) {
+  
+  lon_span_km <- (lon_max - lon_min) * 111 * cos(pi * (lat_min + lat_max) / 360)
+  lat_span_km <- (lat_max - lat_min) * 111
+  
+  sqrt(lon_span_km^2 + lat_span_km^2)
+}
+
+# Compute diagonal and insert
+obsv <- obsv %>%
+  mutate(
+    bbox_diagonal_km =
+      if_else(
+        !is.na(longitude_min),
+        compute_bbox_diagonal(
+          longitude_min,
+          longitude_max,
+          latitude_min,
+          latitude_max
+        ),
+        NA_real_
+      )
+  )
+
+
+################# Centroid metrics #######################
+message(
+  "Matched checklists: ",
+  n_distinct(
+    obsv$SAMPLING.EVENT.IDENTIFIER[
+      !is.na(obsv$centroid_latitude)
+    ]
+  ),
+  " of ",
+  n_distinct(obsv$SAMPLING.EVENT.IDENTIFIER)
+)
+
+table(obsv$location_score, useNA = "always")
+
+message(
+  "2km centroid checklists = ",
+  n_distinct(
+    obsv$SAMPLING.EVENT.IDENTIFIER[
+      !is.na(obsv$centroid_latitude) &
+        obsv$location_score == 0
+    ]
+  )
+)
+
+message(
+  "4km centroid checklists = ",
+  n_distinct(
+    obsv$SAMPLING.EVENT.IDENTIFIER[
+      !is.na(obsv$centroid_latitude) &
+        obsv$location_score %in% c(0,1)
+    ]
+  )
+)
+
+message(
+  "8km centroid checklists = ",
+  n_distinct(
+    obsv$SAMPLING.EVENT.IDENTIFIER[
+      !is.na(obsv$centroid_latitude) &
+        obsv$location_score %in% c(0,1,2)
+    ]
+  )
+)
+
+old_grid_4 <- compute_grid_id(
+  obsv$LATITUDE,
+  obsv$LONGITUDE,
+  4
+)
+
+new_grid_4 <- compute_grid_id(
+  ifelse(
+    !is.na(obsv$centroid_latitude) &
+      obsv$location_score %in% c(0,1),
+    obsv$centroid_latitude,
+    obsv$LATITUDE
+  ),
+  ifelse(
+    !is.na(obsv$centroid_longitude) &
+      obsv$location_score %in% c(0,1),
+    obsv$centroid_longitude,
+    obsv$LONGITUDE
+  ),
+  4
+)
+
+mean(old_grid_4 != new_grid_4, na.rm = TRUE)
+
+old_grid_8 <- compute_grid_id(
+  obsv$LATITUDE,
+  obsv$LONGITUDE,
+  8
+)
+
+new_grid_8 <- compute_grid_id(
+  ifelse(
+    !is.na(obsv$centroid_latitude) &
+      obsv$location_score %in% c(0,1,2),
+    obsv$centroid_latitude,
+    obsv$LATITUDE
+  ),
+  ifelse(
+    !is.na(obsv$centroid_longitude) &
+      obsv$location_score %in% c(0,1,2),
+    obsv$centroid_longitude,
+    obsv$LONGITUDE
+  ),
+  8
+)
+
+mean(old_grid_8 != new_grid_8, na.rm = TRUE)
+###############################Centorid diagnostics done
+
+
 
 load_species_grids <- function(species_names) {
   
@@ -118,34 +261,130 @@ compute_grid_id <- function(lat, lon, grid_size_km,
   return(grid_id)
 }
 
-compute_grid_number <- function(lat, lon, distance, protocol, grid_size_km) {
+compute_grid_number <- function(lat, lon, extent_km, protocol, grid_size_km) {
   # Check if the distance is greater than the grid size
   return (
-  ifelse ( (protocol != 'Stationary' & protocol != 'Traveling') | (protocol == 'Traveling' & distance > grid_size_km), 
+  ifelse ( (protocol != 'Stationary' & protocol != 'Traveling') | (protocol == 'Traveling' & extent_km > grid_size_km), 
            NA_character_,
           {
               compute_grid_id (lat, lon, grid_size_km)
           }))
 }
 
+bbox_grid_ids <- function(
+    lon_min, lon_max,
+    lat_min, lat_max,
+    grid_size_km,
+    origin_lon = 68,
+    origin_lat = 6
+) {
+  
+  if (
+    is.na(lon_min) ||
+    is.na(lon_max) ||
+    is.na(lat_min) ||
+    is.na(lat_max)
+  ) {
+    return(character(0))
+  }
+  
+  grid_size_deg <- grid_size_km / 111
+  
+  row_min <- floor((lat_min - origin_lat) / grid_size_deg)
+  row_max <- floor((lat_max - origin_lat) / grid_size_deg)
+  
+  col_min <- floor((lon_min - origin_lon) / grid_size_deg)
+  col_max <- floor((lon_max - origin_lon) / grid_size_deg)
+  
+  expand.grid(
+    row = row_min:row_max,
+    col = col_min:col_max
+  ) %>%
+    transmute(
+      GridID = paste(grid_size_km, row, col, sep = "_")
+    ) %>%
+    pull(GridID)
+}
+
 prepare_checklist_grid <- function(obsv) {
+  
+  
   
   # Step 1: Checklist → Grid mapping
   Checklist2Grid <- obsv %>%
     distinct(GROUP.ID, .keep_all = TRUE) %>%
     mutate(
-      Grid_2km = compute_grid_number(LATITUDE, LONGITUDE, EFFORT.DISTANCE.KM, PROTOCOL.NAME, 2),
-      Grid_4km = compute_grid_number(LATITUDE, LONGITUDE, EFFORT.DISTANCE.KM, PROTOCOL.NAME, 4),
-      Grid_8km = compute_grid_number(LATITUDE, LONGITUDE, EFFORT.DISTANCE.KM, PROTOCOL.NAME, 8)
+      Extent_2km = ifelse( !is.na(centroid_latitude) & location_score == 0 & !is.na(bbox_diagonal_km), bbox_diagonal_km, EFFORT.DISTANCE.KM ),
+      
+      Extent_4km = ifelse( !is.na(centroid_latitude) & location_score %in% c(0,1) & !is.na(bbox_diagonal_km), bbox_diagonal_km, EFFORT.DISTANCE.KM ),
+      
+      Extent_8km = ifelse( !is.na(centroid_latitude) & location_score %in% c(0,1,2) & !is.na(bbox_diagonal_km), bbox_diagonal_km, EFFORT.DISTANCE.KM ),
+      
+      Grid_2km = compute_grid_number(ifelse( !is.na(location_score) & location_score == 0 & !is.na(centroid_latitude), centroid_latitude, LATITUDE), 
+                                     ifelse( !is.na(location_score) & location_score == 0 & !is.na(centroid_longitude),centroid_longitude,LONGITUDE),
+                                     Extent_2km, 
+                                     PROTOCOL.NAME, 
+                                     2),
+      
+      Grid_4km = compute_grid_number(ifelse( !is.na(location_score) & location_score %in% c(0,1) & !is.na(centroid_latitude), centroid_latitude, LATITUDE), 
+                                     ifelse( !is.na(location_score) & location_score %in% c(0,1) & !is.na(centroid_longitude),centroid_longitude,LONGITUDE), 
+                                     Extent_4km, 
+                                     PROTOCOL.NAME, 
+                                     4),
+      
+      Grid_8km = compute_grid_number(ifelse( !is.na(location_score) & location_score %in% c(0,1,2) & !is.na(centroid_latitude), centroid_latitude, LATITUDE),  
+                                     ifelse( !is.na(location_score) & location_score %in% c(0,1,2) & !is.na(centroid_longitude),centroid_longitude,LONGITUDE), 
+                                     Extent_8km, 
+                                     PROTOCOL.NAME, 
+                                     8),
+      TrackCells_4km = pmap(
+        list(
+          longitude_min,
+          longitude_max,
+          latitude_min,
+          latitude_max
+        ),
+        ~ {
+          cells <- bbox_grid_ids(
+            ..1, ..2, ..3, ..4,
+            grid_size_km = 4
+          )
+          
+          if(length(cells) <= MaxTrackCellsForExpansion)
+            cells
+          else
+            character(0)
+        }
+      ),
+      
+      TrackCells_8km = pmap(
+        list(
+          longitude_min,
+          longitude_max,
+          latitude_min,
+          latitude_max
+        ),
+        ~ {
+          cells <- bbox_grid_ids(
+            ..1, ..2, ..3, ..4,
+            grid_size_km = 8
+          )
+          
+          if(length(cells) <= MaxTrackCellsForExpansion)
+            cells
+          else
+            character(0)
+        }
+      )      
     ) %>%
-    select(GROUP.ID, Grid_2km, Grid_4km, Grid_8km, ALL.SPECIES.REPORTED) %>% 
+    select(GROUP.ID, Grid_2km, Grid_4km, Grid_8km, TrackCells_4km, TrackCells_8km, ALL.SPECIES.REPORTED, location_score) %>% 
     mutate(
       Grid_2km = as.character(Grid_2km),
       Grid_4km = as.character(Grid_4km),
       Grid_8km = as.character(Grid_8km)
     )
   
-  colnames(Checklist2Grid) <- c("Checklist", "Grid_2km", "Grid_4km", "Grid_8km", "Complete")
+  colnames(Checklist2Grid) <- c("Checklist", "Grid_2km", "Grid_4km", "Grid_8km", "TrackCells_4km", "TrackCells_8km", "Complete","location_score")
   
   # Step 2: Checklist counts per grid
   ChecklistCount <- Checklist2Grid %>%
@@ -165,6 +404,17 @@ prepare_checklist_grid <- function(obsv) {
     ) %>%
     group_by(GridResolution, GridID) %>%
     summarise(ChecklistCount = n_distinct(Checklist), .groups = 'drop')
+  
+  message(
+    "Centroid usage (checklists):\n",
+    "Total = ", nrow(Checklist2Grid),
+    "\n2km = ",
+    sum(Checklist2Grid$location_score == 0, na.rm = TRUE),
+    "\n4km = ",
+    sum(Checklist2Grid$location_score %in% c(0,1), na.rm = TRUE),
+    "\n8km = ",
+    sum(Checklist2Grid$location_score %in% c(0,1,2), na.rm = TRUE)
+  )
   
   return(list(
     Checklist2Grid = Checklist2Grid,
@@ -201,6 +451,50 @@ proc_aoo <- function (obsv, targetSpeciesObsv, Checklist2Grid, ChecklistCount)
                                 select(Species, GridResolution, GridID, Complete)
   
   message("ChecklistPresenceInGrid ", nrow(ChecklistPresenceInGrid))
+  
+  ChecklistTrackCells <- targetSpeciesObsv %>%
+    inner_join(Checklist2Grid, by = "Checklist")
+  
+  UT_4km <- ChecklistTrackCells %>%
+    filter(location_score %in% c(0,1), lengths(TrackCells_4km) > 1) %>%
+    rowwise() %>%
+    mutate(
+      GridID = list(
+        setdiff(
+          TrackCells_4km,
+          Grid_4km
+        )
+      )
+    ) %>%
+    unnest(GridID) %>%
+    transmute(
+      Species,
+      GridResolution = 4,
+      GridID
+    )
+  
+  UT_8km <- ChecklistTrackCells %>%
+    filter(location_score %in% c(0,1,2), lengths(TrackCells_8km) > 1) %>%
+    rowwise() %>%
+    mutate(
+      GridID = list(
+        setdiff(
+          TrackCells_8km,
+          Grid_8km
+        )
+      )
+    ) %>%
+    unnest(GridID) %>%
+    transmute(
+      Species,
+      GridResolution = 8,
+      GridID
+    )
+  
+  SpeciesTrackUncertainty <- bind_rows(
+    UT_4km,
+    UT_8km
+  )
   # Step 4: Calculate species presence in a grid
   SpeciesPresenceInGrid <- ChecklistPresenceInGrid %>%
       distinct(Species, GridResolution, GridID, .keep_all = TRUE) %>%
@@ -263,27 +557,61 @@ proc_aoo <- function (obsv, targetSpeciesObsv, Checklist2Grid, ChecklistCount)
   )
   
   # Step 10: Calculate the final occupancy status for each species in each grid.
-  SpeciesOccupancyInGrid <-     species_grids %>% 
-                                mutate(Species = as.character(Species)) %>%
-                                # Join with the presence dataframe
-                                left_join(SpeciesPresenceInGrid %>%
-                                            mutate(Occupancy = "P"), 
-                                          by = c("Species", "GridResolution", "GridID")) %>%
-                                # Join with the absence dataframe
-                                left_join(SpeciesAbsenceInGrid %>%
-                                            filter(Absence == 1) %>%
-                                            mutate(Occupancy = "A"),
-                                          by = c("Species", "GridResolution", "GridID")) %>%
-                                # Determine the final Occupancy status
-                                mutate(Occupancy = case_when(
-                                  !is.na(Occupancy.x) ~ Occupancy.x, # Presence takes priority
-                                  !is.na(Occupancy.y) ~ Occupancy.y, # Absence if not present
-                                  TRUE ~ "U"                       # Unknown if neither presence nor absence
-                                )) %>%
-                                # Select and rename columns
-                                select(Species, GridResolution, GridID, Occupancy) 
-  message("SpeciesOccupancyInGrid ", nrow(SpeciesOccupancyInGrid))
+  SpeciesOccupancyInGrid <- species_grids %>%
+    mutate(Species = as.character(Species)) %>%
+    
+    # Presence
+    left_join(
+      SpeciesPresenceInGrid %>%
+        mutate(Present = TRUE),
+      by = c("Species", "GridResolution", "GridID")
+    ) %>%
+    
+    # Track uncertainty
+    left_join(
+      SpeciesTrackUncertainty %>%
+        mutate(TrackUncertainty = TRUE),
+      by = c("Species", "GridResolution", "GridID")
+    ) %>%
+    
+    # Absence
+    left_join(
+      SpeciesAbsenceInGrid %>%
+        filter(Absence == 1) %>%
+        mutate(Absent = TRUE),
+      by = c("Species", "GridResolution", "GridID")
+    ) %>%
+    
+    # Final occupancy assignment
+    mutate(
+      Occupancy = case_when(
+        !is.na(Present) ~ "P",             # Presence always wins
+        !is.na(TrackUncertainty) ~ "UT",   # Track-derived uncertainty
+        !is.na(Absent) ~ "A",              # Absence
+        TRUE ~ "U"                         # Remaining unknown
+      )
+    ) %>%
+    
+    select(
+      Species,
+      GridResolution,
+      GridID,
+      Occupancy
+    )
   
+  message(
+    "SpeciesOccupancyInGrid ",
+    nrow(SpeciesOccupancyInGrid)
+  )
+  
+  message(
+    "Occupancy breakdown: ",
+    paste(
+      names(table(SpeciesOccupancyInGrid$Occupancy)),
+      table(SpeciesOccupancyInGrid$Occupancy),
+      collapse = ", "
+    )
+  )
 
   # Define the area for each grid resolution (in square km)
   grid_areas <- c(`2` = 4, `4` = 16, `8` = 64)
@@ -293,8 +621,9 @@ proc_aoo <- function (obsv, targetSpeciesObsv, Checklist2Grid, ChecklistCount)
                       group_by(Species, GridResolution) %>%
                       summarize(
                         MinEstimate = sum(Occupancy == "P") * grid_areas[as.character(first(GridResolution))],
-                        MaxEstimate = sum(Occupancy %in% c("P", "U")) * grid_areas[as.character(first(GridResolution))],
+                        MaxEstimate = sum(Occupancy %in% c("P", "UT", "U")) * grid_areas[as.character(first(GridResolution))],
                         GridIDs_P = list(GridID[Occupancy == "P"]),  # Collect grid IDs for occupancy "P"
+                        GridIDs_UT = list(GridID[Occupancy == "UT"]),
                         GridIDs_U = list(GridID[Occupancy == "U"]),  # Collect grid IDs for occupancy "U"
                         .groups = 'drop'
                       ) %>%
@@ -304,7 +633,7 @@ proc_aoo <- function (obsv, targetSpeciesObsv, Checklist2Grid, ChecklistCount)
                       # Pivot to wide format
                       pivot_wider(
                         names_from = GridResolution,
-                        values_from = c(MinEstimate, MaxEstimate, GridIDs_P, GridIDs_U),
+                        values_from = c(MinEstimate, MaxEstimate, GridIDs_P, GridIDs_UT, GridIDs_U),
                         names_sep = "_"
                       ) %>%
                       # Rename columns appropriately
@@ -312,16 +641,26 @@ proc_aoo <- function (obsv, targetSpeciesObsv, Checklist2Grid, ChecklistCount)
                         MinEstimate_2km = MinEstimate_2,
                         MaxEstimate_2km = MaxEstimate_2,
                         GridIDs_P_2km = GridIDs_P_2,
+                        GridIDs_UT_2km = GridIDs_UT_2,
                         GridIDs_U_2km = GridIDs_U_2,
                         MinEstimate_4km = MinEstimate_4,
                         MaxEstimate_4km = MaxEstimate_4,
                         GridIDs_P_4km = GridIDs_P_4,
+                        GridIDs_UT_4km = GridIDs_UT_4,
                         GridIDs_U_4km = GridIDs_U_4,
                         MinEstimate_8km = MinEstimate_8,
                         MaxEstimate_8km = MaxEstimate_8,
                         GridIDs_P_8km = GridIDs_P_8,
+                        GridIDs_UT_8km = GridIDs_UT_8,
                         GridIDs_U_8km = GridIDs_U_8
                       )
+
+  message(
+    "P=", sum(SpeciesOccupancyInGrid$Occupancy == "P"),
+    " UT=", sum(SpeciesOccupancyInGrid$Occupancy == "UT"),
+    " A=", sum(SpeciesOccupancyInGrid$Occupancy == "A"),
+    " U=", sum(SpeciesOccupancyInGrid$Occupancy == "U")
+  )  
   return (AOOEstimates)
 }
 
@@ -391,3 +730,25 @@ AOO_table <- AOOEstimates %>%
 saveRDS(AOO_table, file.path(datapath,"aoo.RDS"))
 
 
+
+#####################Comparisons####################
+old <- readRDS(file.path(datapath, "aoo_after_centroid_integration.RDS"))
+new <- readRDS(file.path(datapath, "aoo_after_bounding_box.RDS"))
+
+comparison <- old %>%
+  select(Species, MinAOO_old = MinAOO, MaxAOO_old = MaxAOO) %>%
+  inner_join(
+    new %>%
+      select(Species, MinAOO_new = MinAOO, MaxAOO_new = MaxAOO),
+    by = "Species"
+  ) %>%
+  mutate(
+    MinPctChange =
+      100 * (MinAOO_new - MinAOO_old) / MinAOO_old,
+    
+    MaxPctChange =
+      100 * (MaxAOO_new - MaxAOO_old) / MaxAOO_old
+  )
+
+comparison %>%
+  arrange(desc(abs(MinPctChange)))
