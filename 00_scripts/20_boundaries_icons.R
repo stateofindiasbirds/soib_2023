@@ -5,6 +5,10 @@ library(tictoc)
 
 load("00_data/maps_sf.RData")
 
+walk("20_website/boundaries_icons", ~ {
+  if (!dir.exists(.x)) {dir.create(.x, recursive = TRUE)}
+})
+
 tic("Creating boundaries for states")
 states_sf %>% 
   dplyr::select(-AREA) %>% 
