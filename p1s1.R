@@ -7,6 +7,7 @@ source("00_scripts/00_functions.R")
 interannual_update = TRUE
 
 source("00_scripts/01_create_metadata.R")
+source("00_scripts/02_sanitize_centroids.R")
 
 tic("Reading and cleaning raw data")
 readcleanrawdata(rawpath = "00_data/ebd_IN_unv_smp_relAug-2025.txt",
