@@ -169,9 +169,15 @@ get_iucn_proj_cols <- function() {
 ## read and clean raw data and add important columns like group id, seasonality variables
 ## place raw txt file (India download) in working directory 
 
-readcleanrawdata = function(rawpath = "00_data/ebd_IN_unv_smp_relAug-2025.txt", 
-                            sensitivepath = "00_data/ebd_sensitive_relAug-2025_IN.txt")
+readcleanrawdata = function(rawpath, 
+                            sensitivepath)
 {
+  require(lubridate)
+  require(tidyverse)
+  # rawpath <- "00_data/ebd_IN_unv_smp_relAug-2025.txt"
+  # rawpath <- "00_data/ebd_IN-KL_201311_201912_smp_relAug-2025.txt"
+  # sensitivepath <- "00_data/ebd_sensitive_relAug-2025_IN.txt"
+  
   # select only necessary columns
   preimp = c("CATEGORY","COMMON.NAME","SCIENTIFIC.NAME","OBSERVATION.COUNT",
              "LOCALITY.ID","LOCALITY.TYPE","REVIEWED","APPROVED","STATE","COUNTY",
@@ -199,7 +205,7 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_unv_smp_relAug-2025.txt",
   # read data from certain columns only
   data = read.delim(rawpath, colClasses = nms, sep = "\t", header = T, quote = "", 
                     stringsAsFactors = F, na.strings = c(""," ",NA))
-
+  
   # read sensitive species data
   nms1 = read.delim(sensitivepath, nrows = 1, sep = "\t", header = T, quote = "", stringsAsFactors = F, 
                     na.strings = c(""," ",NA))
@@ -207,12 +213,12 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_unv_smp_relAug-2025.txt",
   nms1[!(nms1 %in% preimp)] = "NULL"
   nms1[nms1 %in% preimp] = NA
   
-
+  
   # read sensitive species data
-
+  
   sesp = read.delim(sensitivepath, colClasses = nms1, sep = "\t", header = T, quote = "", 
                     stringsAsFactors = F, na.strings = c(""," ",NA))
-
+  
   
   # merge both data frames
   data = rbind(data, sesp) %>%
@@ -220,7 +226,7 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_unv_smp_relAug-2025.txt",
     filter(REVIEWED == 0 | APPROVED == 1) %>%
     filter(!EXOTIC.CODE %in% c("X"))
   
-
+  
   ## choosing important columns required for further analyses
   
   imp = c("CATEGORY","COMMON.NAME","SCIENTIFIC.NAME","OBSERVATION.COUNT",
@@ -231,7 +237,7 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_unv_smp_relAug-2025.txt",
           "DURATION.MINUTES","EFFORT.DISTANCE.KM",
           "ALL.SPECIES.REPORTED","group.id","SAMPLING.EVENT.IDENTIFIER")
   
-
+  
   # no of days in every month, and cumulative number
   days = c(31,28,31,30,31,30,31,31,30,31,30,31)
   cdays = c(0,31,59,90,120,151,181,212,243,273,304,334)
@@ -261,6 +267,74 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_unv_smp_relAug-2025.txt",
   source("00_scripts/rm_prob_mistakes.R")
   data <- rm_prob_mistakes(data)
   
+  # saveRDS(data, "00_data/data_debug.RDS")
+  # 
+  # tmp <- data %>% filter(LOCALITY.ID == "L3932049")
+  
+  data_tmp <- readRDS("00_data/data_debug.RDS")
+  
+  # Swap the location latitude and longitude with centroid latitude and longitude
+  # wherever applicable
+  
+  centroids_sanitized_final <- readRDS("00_data/centroids_sanitized_final.rds")
+  
+  centroids_sanitized_final <- centroids_sanitized_final %>%
+    filter(location_score<=2)
+  
+  data <- data %>%
+    left_join(centroids_sanitized_final %>%
+                dplyr::select(c(checklist_id,
+                                centroid_longitude,
+                                centroid_latitude)),
+              by = join_by(group.id == checklist_id))
+  
+  data <- data %>%
+    mutate(
+      new_longitude = case_when(
+        !is.na(centroid_longitude) ~ centroid_longitude,
+        TRUE ~ LONGITUDE
+      ),
+      new_latitude = case_when(
+        !is.na(centroid_latitude) ~ centroid_latitude,
+        TRUE ~ LATITUDE
+      )
+    )
+  
+  data <- data %>%
+    dplyr::select(-c(LATITUDE,
+                     LONGITUDE,
+                     centroid_longitude,
+                     centroid_latitude)) %>%
+    rename(LATITUDE = new_latitude,
+           LONGITUDE = new_longitude)%>%
+    dplyr::select(c(
+      CATEGORY,
+      COMMON.NAME,
+      SCIENTIFIC.NAME,
+      OBSERVATION.COUNT,
+      LOCALITY.ID,
+      REVIEWED,
+      APPROVED,
+      EXOTIC.CODE,
+      LOCALITY.TYPE,
+      STATE,
+      COUNTY,
+      LATITUDE,
+      LONGITUDE,
+      TIME.OBSERVATIONS.STARTED,
+      OBSERVER.ID,
+      PROTOCOL.NAME,
+      DURATION.MINUTES,
+      EFFORT.DISTANCE.KM,
+      ALL.SPECIES.REPORTED,
+      group.id,
+      SAMPLING.EVENT.IDENTIFIER,
+      month,
+      day,
+      cyear,
+      year,
+      no.sp
+    ))
   
   # create and write a file with common names and scientific names of all Indian species
   # useful for mapping
@@ -272,24 +346,24 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_unv_smp_relAug-2025.txt",
   # create location file for LULC
   locdat = data %>% distinct(LOCALITY.ID, LATITUDE, LONGITUDE)
   write.csv(locdat,"00_data/eBird_location_data.csv", row.names=FALSE)
-
+  
   
   # need to combine several closely related species and slashes/spuhs
   # so, first changing their category to species since they will be combined next
   data = data %>%
     mutate(SCIENTIFIC.NAME = NULL, # needed it for printing indiaspecieslists
            CATEGORY = case_when(COMMON.NAME %in% c(
-      "Green/Greenish Warbler", "Siberian/Amur Stonechat", "Red-necked/Little Stint",
-      "Western/Eastern Yellow Wagtail", "Common/Himalayan Buzzard",
-      "Western/Eastern Marsh Harrier", "Tibetan/Greater Sand-Plover", "Baikal/Spotted Bush Warbler",
-      "Lemon-rumped/Sichuan Leaf Warbler",
-      "Bank Swallow/Pale Martin", "Riparia sp.", "Greater/Mongolian Short-toed Lark",
-      "Taiga/Red-breasted Flycatcher", "Tricolored x Chestnut Munia (hybrid)", "Little/House Swift", 
-      "Pin-tailed/Swinhoe's Snipe", "Booted/Sykes's Warbler", "Iduna sp.", "Greater/Malabar Flameback",
-      "Indian/Oriental Cuckooshrike","European/Eastern Red-rumped Swallow",
-      "Hainan Blue/Blue-throated/Chinese Blue Flycatcher"
-      ) ~ "species",
-      TRUE ~ CATEGORY)) %>%
+             "Green/Greenish Warbler", "Siberian/Amur Stonechat", "Red-necked/Little Stint",
+             "Western/Eastern Yellow Wagtail", "Common/Himalayan Buzzard",
+             "Western/Eastern Marsh Harrier", "Tibetan/Greater Sand-Plover", "Baikal/Spotted Bush Warbler",
+             "Lemon-rumped/Sichuan Leaf Warbler",
+             "Bank Swallow/Pale Martin", "Riparia sp.", "Greater/Mongolian Short-toed Lark",
+             "Taiga/Red-breasted Flycatcher", "Tricolored x Chestnut Munia (hybrid)", "Little/House Swift", 
+             "Pin-tailed/Swinhoe's Snipe", "Booted/Sykes's Warbler", "Iduna sp.", "Greater/Malabar Flameback",
+             "Indian/Oriental Cuckooshrike","European/Eastern Red-rumped Swallow",
+             "Hainan Blue/Blue-throated/Chinese Blue Flycatcher"
+           ) ~ "species",
+           TRUE ~ CATEGORY)) %>%
     # combining species, slashes and spuhs
     mutate(COMMON.NAME = case_when(
       COMMON.NAME %in% c("Green Warbler", "Green/Greenish Warbler") ~ "Greenish Warbler",
@@ -308,7 +382,7 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_unv_smp_relAug-2025.txt",
       COMMON.NAME %in% c("Sichuan Leaf Warbler", 
                          "Lemon-rumped/Sichuan Leaf Warbler") ~ "Lemon-rumped Warbler",
       COMMON.NAME %in% c("Pale Martin", "Bank Swallow/Pale Martin", 
-                          "Riparia sp.") ~ "Gray-throated Martin",
+                         "Riparia sp.") ~ "Gray-throated Martin",
       COMMON.NAME %in% c("Mongolian Short-toed Lark", 
                          "Greater/Mongolian Short-toed Lark") ~ "Greater Short-toed Lark",
       COMMON.NAME %in% c("Taiga Flycatcher", 
@@ -335,7 +409,7 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_unv_smp_relAug-2025.txt",
   
   ## setup eBird data ##
   
-
+  
   # for automatically selecting the latest migratory year to use in 
   # current SoIB run (done annually)
   full_soib_my <- data |> 
@@ -344,7 +418,7 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_unv_smp_relAug-2025.txt",
     reframe(n_month = n_distinct(month)) |> 
     filter(n_month == 12) |> 
     pull(year)
-
+  
   latest_soib_my <- max(full_soib_my)
   
   # median years for each historical timegroup
@@ -352,21 +426,21 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_unv_smp_relAug-2025.txt",
     distinct(group.id, .keep_all = TRUE) %>% 
     filter(ALL.SPECIES.REPORTED == 1) %>%
     mutate(hist_period = case_when(year <= 1999 ~ 1,
-                                  year > 1999 & year <= 2006 ~ 2,
-                                  year > 2006 & year <= 2010 ~ 3,
-                                  year > 2010 & year <= 2012 ~ 4)) %>% 
+                                   year > 1999 & year <= 2006 ~ 2,
+                                   year > 2006 & year <= 2010 ~ 3,
+                                   year > 2010 & year <= 2012 ~ 4)) %>% 
     group_by(hist_period) %>% 
     reframe(median_year = round(median(year))) %>% 
     arrange(hist_period) %>% 
     pull(median_year)
-
+  
   save(full_soib_my, latest_soib_my, median_soib_hist_years, 
        file = "00_data/current_soib_migyears.RData")
   # this RData file gets updated each time readcleanrawdata() is run---
   # which is usually only once in each annual or "major" update
   # (intermediate changes usually don't run readcleanrawdata() so year won't change)
-
-
+  
+  
   ## remove repeats by retaining only a single group.id + species combination
   
   data = data %>%

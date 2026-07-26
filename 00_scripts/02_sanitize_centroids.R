@@ -30,7 +30,7 @@ report <- read.csv("00_data/centroids_assessment_report.csv")
 raw_data <- read.csv("00_data/ebird_tracks_IN_2026-01-08.csv")
 
 # Only keep valid checklists
-centroids_to_process <- report_1 %>% 
+centroids_to_process <- report %>% 
   filter(action %in% c("KEEP", "SWAP_AND_KEEP")) %>%
   left_join(raw_data, by = "checklist_id")
 
@@ -105,11 +105,11 @@ final_output <- centroids_sanitized_ebd_col %>%
   mutate(
     location_score = calculate_location_score(dist_meters/1000)
   ) %>%
-  select(
+  dplyr::select(
     checklist_id, obs_dt, 
     longitude_min = final_lon_min, longitude_max = final_lon_max, 
     latitude_min = final_lat_min, latitude_max = final_lat_max, 
-    centroid_longitude = final_lon_min, centroid_latitude = final_lat_min,
+    centroid_longitude = final_centroid_lon, centroid_latitude = final_centroid_lat,
     location_score
   )
 
