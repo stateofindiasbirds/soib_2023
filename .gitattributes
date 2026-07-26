@@ -67,3 +67,4 @@
 *.R  	  text
 *.Rproj text
 *.[Rr]md   linguist-detectable
+00_data/IUCN_assessments_flattened.csv -text

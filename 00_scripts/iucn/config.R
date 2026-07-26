@@ -35,3 +35,7 @@ maxYearforProcessing <- 2023
 MaxChecklistDistanceforEOO <- 10
 
 MaxTrackCellsForExpansion <- 4
+
+modelForSpeciesAbsence <- TRUE
+
+centroidfile <- "00_data/centroids_sanitized_final.rds"

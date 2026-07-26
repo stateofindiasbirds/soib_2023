@@ -13,7 +13,7 @@ source(file.path(scriptpath, "utils.R"))
 # Reads ebd, filters interesting columns, stores the data in ebd.RDS
 source(file.path(scriptpath, "ebd.R"))
 
-# Generates all grids of all sizes using the shapefile of the region
+# Generates all grids of all sizes using the shapefile of the region. Run this only once.
 source(file.path(scriptpath, "gridgen.R"))
 
 # Calculates and maps eoo using ebd
@@ -24,6 +24,9 @@ source(file.path(scriptpath, "eoodiff.R"))
 
 # Uses EOO maps to filter out only the grids that overlap with EOO 
 source(file.path(scriptpath, "eooGrids.R"))
+
+# Use the grids from EOO and calculate AOO
+source(file.path(scriptpath, "aooprefilter.R"))
 
 # Use the grids from EOO and calculate AOO
 source(file.path(scriptpath, "aoo.R"))
