@@ -229,9 +229,3 @@ source("p4s1.R")
 # Outputs: several
 
 source("p4s2.R")
-
-
-
-
-
-
