@@ -256,6 +256,14 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_unv_smp_relAug-2025.txt",
     mutate(no.sp = n_distinct(COMMON.NAME)) %>%
     ungroup()
   
+  data = data %>%
+    # converting months to seasons
+    mutate(season = as.numeric(month)) %>% 
+    mutate(season = case_when(season %in% c(12,1,2) ~ "Win",
+                              season %in% c(3,4,5) ~ "Sum",
+                              season %in% c(6,7,8) ~ "Mon",
+                              season %in% c(9,10,11) ~ "Aut")) %>% 
+    mutate(season = as.factor(season))
   
   # remove probable mistakes
   source("00_scripts/rm_prob_mistakes.R")
@@ -2123,4 +2131,320 @@ update_species_lists = function(species_list_data, scientific_also = FALSE) {
   
   }
 
+}
+
+
+trend_calculation <- function(my_seed) {
+  
+  set.seed(my_seed) # for bootMer simulations
+  
+  if (model != "glm")
+  {
+    if (model == "full")
+    {
+      # 100km/25km random effects
+      m = glmer(freq ~ timegroups + season + season:log(no.sp) + (1|gridg3/gridg1), 
+                data = data_tot, family = binomial(link = 'cloglog'),
+                weights = n_lists,
+                nAGQ = 0, control = glmerControl(optimizer = "bobyqa"))  
+    } else {
+      # only 25km random effects
+      m = glmer(freq ~ timegroups + season + season:log(no.sp) + (1|gridg1), 
+                data = data_tot, family = binomial(link = 'cloglog'),
+                weights = n_lists,
+                nAGQ = 0, control = glmerControl(optimizer = "bobyqa"))
+    }
+    
+    
+    # bootstrapping
+    
+    pred_fun <- function(input_model) {
+      predict(input_model, newdata = ltemp, re.form = NA, 
+              allow.new.levels = TRUE, type = "response")
+    }
+    
+    # parallelization happens only here
+    pred_bootMer = bootMer(m, 
+                           nsim = sims, # for faster compute, estimate doesn't change much with high sims
+                           FUN = pred_fun, 
+                           use.u = FALSE, type = "parametric", 
+                           parallel = "yes", ncpus = par_cores)
+    
+    # expanding the bootMer object into a normal data frame with
+    # values per simulation
+    ltemp_pred = ltemp %>%
+      slice(rep(1:n(), times = nrow(pred_bootMer$t))) %>%
+      mutate(
+        sim = rep(1:nrow(pred_bootMer$t), each = nrow(ltemp)),
+        pred = c(t(pred_bootMer$t))
+      )
+  } else {
+    # only fixed effects
+    m = glm(freq ~ timegroups + season + season:log(no.sp), 
+            data = data_tot, family = binomial(link = 'cloglog'),
+            weights = n_lists)
+    
+    # bootstrapping
+    
+    pred_fun <- function(input_model) {
+      predict(input_model, newdata = ltemp, type = "response")
+    }
+    
+    pred_boot = replicate(sims, {
+      y = simulate(m)[[1]]
+      data_boot = data_tot %>%
+        mutate(freq = y)
+      fit = update(m, data = data_boot)
+      pred_fun(fit)
+    }, simplify = "matrix")
+    
+    # bootstrapping and parallelizing again here
+    pred_boot = mclapply(seq_len(sims), function(i) {
+      y = simulate(m)[[1]]
+      data_boot = data_tot %>%
+        mutate(freq = y)
+      fit = update(m, data = data_boot)
+      pred_fun(fit)
+    }, mc.cores = par_cores)
+    
+    pred_boot <- do.call(rbind, pred_boot)
+    
+    ltemp_pred = ltemp %>%
+      slice(rep(1:n(), times = nrow(pred_boot))) %>%
+      mutate(
+        sim = rep(seq_len(nrow(pred_boot)), each = nrow(ltemp)),
+        pred = c(t(pred_boot))
+      )
+    
+  }
+  
+  # mean across seasons
+  ltemp_pred_comb = ltemp_pred %>%
+    group_by(sim,timegroups) %>%
+    reframe(pred = mean(pred)) %>%
+    right_join(tm) %>% 
+    left_join(databins_use %>% distinct(timegroups, year)) %>%
+    rename(timegroupsf = timegroups,
+           timegroups = year) %>% 
+    mutate(timegroupsf = factor(timegroupsf, 
+                                levels = databins_use$timegroups)) %>%
+    complete(timegroupsf) %>% 
+    arrange(sim,timegroupsf)
+  
+  return(ltemp_pred_comb)
+  
+}
+
+# standardized trends estimated from bootMer sims
+standarized_trends_ltt <- function(ltemp_pred_comb) {
+  
+  ratios = ltemp_pred_comb %>%
+    filter(timegroupsf == first_year) %>%
+    dplyr::select(-timegroupsf,-timegroups) %>%
+    rename(first = pred)
+  
+  f1_rats = ltemp_pred_comb %>%
+    left_join(ratios) %>%
+    mutate(tp0 = pred/first) %>% 
+    group_by(timegroups) %>% 
+    reframe(lci_std_tot = 100*as.numeric(quantile(tp0, 0.025)),
+            mean_std_tot = 100*median(tp0),
+            rci_std_tot = 100*as.numeric(quantile(tp0, 0.975)))
+  
+  # only standardise where long-term trends are present
+  if (is.na(ht))
+  {
+    f1_rats_long = f1_rats %>%
+      rename(lci_std = lci_std_tot,
+             mean_std = mean_std_tot,
+             rci_std = rci_std_tot) %>%
+      mutate(lci_std = NA,
+             mean_std = NA,
+             rci_std = NA)
+  } else {
+    f1_rats_long = f1_rats %>%
+      rename(lci_std = lci_std_tot,
+             mean_std = mean_std_tot,
+             rci_std = rci_std_tot)
+  }
+  
+  return(f1_rats_long)
+  
+}
+
+# standardise according to current trend baseline
+standarized_trends_cat <- function() {
+  
+  ltemp_pred_comb_recent = ltemp_pred_comb %>%
+    filter(timegroupsf %in% soib_year_info("cat_years"))
+  
+  ratios_recent = ltemp_pred_comb %>%
+    filter(timegroupsf == first_year_recent) %>%
+    dplyr::select(-timegroupsf,-timegroups) %>%
+    rename(first = pred)
+  
+  f1_rats_recent = ltemp_pred_comb_recent %>%
+    left_join(ratios_recent) %>%
+    mutate(tp0 = pred/first) %>% 
+    group_by(timegroups) %>% 
+    reframe(lci_std_recent = 100*as.numeric(quantile(tp0, 0.025)),
+            mean_std_recent = 100*median(tp0),
+            rci_std_recent = 100*as.numeric(quantile(tp0, 0.975)))
+  
+  return(f1_rats_recent)
+  
+} 
+
+# standardised trends projected into the future based on
+# recent trends
+trends_projections <- function() {
+  
+  ltemp_pred_comb_recent = ltemp_pred_comb %>%
+    filter(timegroupsf %in% soib_year_info("cat_years"))
+  
+  ratios_recent = ltemp_pred_comb %>%
+    filter(timegroupsf == first_year_recent) %>%
+    dplyr::select(-timegroupsf,-timegroups) %>%
+    rename(first = pred)
+  
+  # model is based on non-standardised trend values
+  f1_proj = ltemp_pred_comb_recent %>%
+    left_join(ratios_recent) %>%
+    mutate(tp0 = pred/first) %>%
+    group_by(sim) %>%
+    group_modify(~ {
+      datatopred = data.frame(timegroups = extra.years)
+      # exponential model unlike cat calculation
+      modelfit = lm(log(pred) ~ timegroups, data = .x)
+      pred_proj = predict(modelfit, newdata = datatopred, se = TRUE)
+      first_year_ext = .x %>% filter(timegroups == first_year_recent)
+      .x %>%
+        reframe(timegroups = datatopred$timegroups,
+                mean = pred_proj$fit,
+                se = pred_proj$se.fit,
+                # value in first year that's already there
+                val = first_year_ext$pred)
+      
+    }) %>%
+    # we want mean and SE of change in repfreq between years, so divide by first year value
+    mutate(lci_bt = 100*exp(mean - 1.96 * se)/val,
+           mean_bt = 100*exp(mean)/val,
+           rci_bt = 100*exp(mean + 1.96 * se)/val) %>%
+    group_by(timegroups) %>%
+    # median across sims
+    reframe(lci_ext_std = median(lci_bt),
+            mean_ext_std = median(mean_bt),
+            rci_ext_std = median(rci_bt))
+  
+  return(f1_proj)
+  
+} 
+
+# repeat the bootstrapping to produce 5 different ltts
+ltt_sensitivity_sim <- function(my_seed) {
+  
+  ltemp_pred_comb_sim = trend_calculation(my_seed)
+  f1_rats_long_sim = standarized_trends_ltt(ltemp_pred_comb_sim)
+  modtrends_sim = f1_rats_long_sim %>%
+    filter(timegroups == soib_year_info("latest_year")) %>%
+    dplyr::select(lci_std, mean_std, rci_std) %>%
+    rename(longtermlci = lci_std,
+           longtermmean = mean_std,
+           longtermrci = rci_std)
+  
+  return(modtrends_sim)
+  
+}
+
+# calculate cat based on a linear model
+current_annual_trend_calculation <- function() {
+  
+  ltemp_pred_comb_recent = ltemp_pred_comb %>%
+    filter(timegroupsf %in% soib_year_info("cat_years"))
+  
+  ratios_recent = ltemp_pred_comb %>%
+    filter(timegroups == min(timegroups)) %>%
+    dplyr::select(-timegroupsf,-timegroups) %>%
+    rename(first = pred)
+  
+  # based on standardised trends unlike for projections
+  f1_cat = ltemp_pred_comb_recent %>%
+    left_join(ratios_recent) %>%
+    mutate(tp0 = pred/first) %>%
+    group_by(sim) %>%
+    group_modify(~ {
+      modelfit <- lm(tp0 ~ timegroups, data = .x)
+      
+      tibble(
+        mean = coef(summary(modelfit))[2, 1],
+        se = coef(summary(modelfit))[2, 2]
+      )
+    }) %>%
+    ungroup() %>%
+    reframe(currentmean = median(mean),
+            currentse = sqrt(sum(se^2)/n())) %>%
+    mutate(lci_cat = 100*(currentmean - 1.96 * currentse),
+           mean_cat = 100*currentmean,
+           rci_cat = 100*(currentmean + 1.96 * currentse))
+  
+  f1_cat = f1_cat %>%
+    reframe(currentslopelci = median(lci_cat),
+            currentslopemean = median(mean_cat),
+            currentsloperci = median(rci_cat)) %>%
+    mutate(COMMON.NAME = species, .before = 1)
+  
+  return(f1_cat)
+  
+}
+
+# create sensitivity file for cat by dropping one year
+# in each iteration
+cat_sensitivity_sim <- function() {
+  
+  years = soib_year_info("cat_years")
+  
+  cattrends_sim = purrr::imap_dfc(years, function(drop_year, i) {
+    
+    ltemp_pred_comb_recent = ltemp_pred_comb %>%
+      filter(timegroupsf %in% years,
+             timegroupsf != drop_year)
+    
+    ratios_recent = ltemp_pred_comb %>%
+      filter(timegroups == min(timegroups)) %>%
+      dplyr::select(-timegroupsf, -timegroups) %>%
+      rename(first = pred)
+    
+    out = ltemp_pred_comb_recent %>%
+      left_join(ratios_recent) %>%
+      mutate(tp0 = pred / first) %>%
+      group_by(sim) %>%
+      group_modify(~{
+        
+        modelfit = lm(tp0 ~ timegroups, data = .x)
+        
+        tibble(
+          mean = coef(summary(modelfit))[2, 1],
+          se   = coef(summary(modelfit))[2, 2]
+        )
+        
+      }) %>%
+      ungroup() %>%
+      reframe(currentmean = median(mean),
+              currentse = sqrt(sum(se^2)/n())) %>%
+      mutate(lci_cat = 100*(currentmean - 1.96 * currentse),
+             mean_cat = 100*currentmean,
+             rci_cat = 100*(currentmean + 1.96 * currentse)) %>%
+      transmute(
+        !!paste0("currentslopelci", i)  := median(lci_cat),
+        !!paste0("currentslopemean", i) := median(mean_cat),
+        !!paste0("currentsloperci", i)  := median(rci_cat)
+      )
+    
+    out
+    
+  }) %>%
+    mutate(COMMON.NAME = species, .before = 1)
+  
+  return(cattrends_sim)
+  
 }
