@@ -142,6 +142,7 @@ source("p1s3.R")
 
 # - "rgids-[1-1000].RData" for whole country and individual mask versions,
 #                          one each per assignment
+sub.type = "grids"
 
 source("p2s1a.R")
 
@@ -228,9 +229,3 @@ source("p4s1.R")
 # Outputs: several
 
 source("p4s2.R")
-
-
-
-
-
-
