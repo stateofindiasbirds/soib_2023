@@ -279,8 +279,6 @@ readcleanrawdata = function(rawpath,
   # 
   # tmp <- data %>% filter(LOCALITY.ID == "L3932049")
   
-  data_tmp <- readRDS("00_data/data_debug.RDS")
-  
   # Swap the location latitude and longitude with centroid latitude and longitude
   # wherever applicable
   
