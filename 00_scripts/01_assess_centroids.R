@@ -13,17 +13,21 @@ library(digest)
 
 source("00_scripts/private.R")
 source("00_scripts/functions_centroids.R") # Load helper functions
+centroids_file_name <- "00_data/ebird_tracks_IN_2026-07-08.csv"
+assessment_path <- "00_data/centroids_assessment_report.csv"
+summary_jsonpath <- "00_data/centroids_assessment_summary.json"
 
 # Load Data ----
 load("00_data/maps_sf.RData")
 india_sf_4326 <- st_transform(india_sf, crs = 4326)
 
-raw_file_path <- "00_data/ebird_tracks_IN_2026-01-08.csv.zip"
-unzip(raw_file_path, exdir = "00_data")
-centroids_file_name <-
-  list.files(path = "00_data/",
-             pattern = "ebird_tracks_IN.*\\.csv$",
-             full.names = TRUE)[1]
+#raw_file_path <- "00_data/ebird_tracks_IN_2026-07-08.csv.zip"
+#unzip(raw_file_path, exdir = "00_data")
+# centroids_file_name <-
+#   list.files(path = "00_data/",
+#              pattern = "ebird_tracks_IN.*\\.csv$",
+#              full.names = TRUE)[1]
+
 centroids <- read.csv(centroids_file_name, header = TRUE)
 
 # Validation file structure ----
@@ -98,7 +102,7 @@ assessment_report <- centroids_updated %>%
          list_found_in_ebd)
 
 write.csv(assessment_report,
-          "00_data/centroids_assessment_report.csv",
+          assessment_path,
           row.names = FALSE)
 
 
@@ -116,7 +120,7 @@ summary_stats <- list(
 
 write_json(
   summary_stats,
-  "00_data/centroids_assessment_summary.json",
+  summary_jsonpath,
   auto_unbox = TRUE,
   pretty = TRUE
 )
