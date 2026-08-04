@@ -170,13 +170,14 @@ get_iucn_proj_cols <- function() {
 ## place raw txt file (India download) in working directory 
 
 readcleanrawdata = function(rawpath, 
-                            sensitivepath)
+                            sensitivepath,
+                            centroidspath)
 {
   require(lubridate)
   require(tidyverse)
   # rawpath <- "00_data/ebd_IN_unv_smp_relAug-2025.txt"
-  # rawpath <- "00_data/ebd_IN-KL_201311_201912_smp_relAug-2025.txt"
   # sensitivepath <- "00_data/ebd_sensitive_relAug-2025_IN.txt"
+  # centroidspath <- "00_data/centroids_sanitized_final.rds"
   
   # select only necessary columns
   preimp = c("CATEGORY","COMMON.NAME","SCIENTIFIC.NAME","OBSERVATION.COUNT",
@@ -275,14 +276,13 @@ readcleanrawdata = function(rawpath,
   source("00_scripts/rm_prob_mistakes.R")
   data <- rm_prob_mistakes(data)
   
-  # saveRDS(data, "00_data/data_debug.RDS")
-  # 
-  # tmp <- data %>% filter(LOCALITY.ID == "L3932049")
-  
+  #saveRDS(data, "00_data/data_debug.RDS")
   # Swap the location latitude and longitude with centroid latitude and longitude
   # wherever applicable
   
-  centroids_sanitized_final <- readRDS("00_data/centroids_sanitized_final.rds")
+  #data <- readRDS("00_data/data_debug.RDS")
+  
+  centroids_sanitized_final <- readRDS(centroidspath)
   
   centroids_sanitized_final <- centroids_sanitized_final %>%
     filter(location_score<=2)
@@ -292,7 +292,7 @@ readcleanrawdata = function(rawpath,
                 dplyr::select(c(checklist_id,
                                 centroid_longitude,
                                 centroid_latitude)),
-              by = join_by(group.id == checklist_id))
+              by = join_by(SAMPLING.EVENT.IDENTIFIER == checklist_id))
   
   data <- data %>%
     mutate(
@@ -2243,7 +2243,7 @@ trend_calculation <- function(my_seed) {
                            nsim = sims, # for faster compute, estimate doesn't change much with high sims
                            FUN = pred_fun, 
                            use.u = FALSE, type = "parametric", 
-                           parallel = "yes", ncpus = par_cores)
+                           parallel = "multicore", ncpus = par_cores)
     
     # expanding the bootMer object into a normal data frame with
     # values per simulation

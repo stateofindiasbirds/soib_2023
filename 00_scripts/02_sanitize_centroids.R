@@ -16,18 +16,21 @@ library(jsonlite)
 sf::sf_use_s2(FALSE)
 source("00_scripts/private.R")
 source("00_scripts/functions_centroids.R") # Load helper functions
+summary_stats_jsonpath <- "00_data/centroids_assessment_summary.json"
+centroids_file_name <- "00_data/ebird_tracks_IN_2026-07-08.csv"
+assessment_path <- "00_data/centroids_assessment_report.csv"
 
 # Verify Integrity of the centroids file  ----
-summary_json <- read_json("00_data/centroids_assessment_summary.json")
-current_sha <- digest("00_data/ebird_tracks_IN_2026-01-08.csv", algo="sha256", file=TRUE)
+summary_json <- read_json(summary_stats_jsonpath)
+current_sha <- digest(centroids_file_name, algo="sha256", file=TRUE)
 
 if (current_sha != summary_json$input_sha256) {
   stop("Data integrity check failed! Input file has changed since assessment.")
 }
 
 # Read and filter ----
-report <- read.csv("00_data/centroids_assessment_report.csv")
-raw_data <- read.csv("00_data/ebird_tracks_IN_2026-01-08.csv")
+report <- read.csv(assessment_path, header = T)
+raw_data <- read.csv(centroids_file_name, header = T)
 
 # Only keep valid checklists
 centroids_to_process <- report %>% 
@@ -86,7 +89,7 @@ centroids_sanitized_ebd_col <- centroids_sanitized %>%
   )
 
 
-saveRDS(centroids_sanitized_ebd_col, file = "00_data/centroids_sanitized_ebd_col_wo_dist.rds")
+saveRDS(centroids_sanitized_ebd_col, file = "00_data/centroids_sanitized_ebd_col_wo_dist_relJun-2026.rds")
 
 
 centroids_sanitized_ebd_col$dist_meters <- compute_bbox_distance(centroids_sanitized_ebd_col,
@@ -113,7 +116,7 @@ final_output <- centroids_sanitized_ebd_col %>%
     location_score
   )
 
-write.csv(final_output, "00_data/centroids_sanitized_final.csv", row.names = FALSE)
+write.csv(final_output, "00_data/centroids_sanitized_relJun-2026.csv", row.names = FALSE)
 
-saveRDS(final_output, file = "00_data/centroids_sanitized_final.rds")
+saveRDS(final_output, file = "00_data/centroids_sanitized_relJun-2026.rds")
 

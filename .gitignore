@@ -10,12 +10,14 @@
 *.zip
 *.rar
 40_manuscripts/01_blueprint/dataforanalyses_extra_2023.RData
+00_data/*ebird_tracks*
 
 */data_rangemap_vagrants.csv
 00_data/BOW_image_list.csv
 00_data/state_summary_image_list.csv
 01_analyses_states/SoIB_state_summary.docx
 30_certificates/India_eBirders_20230815.csv
+
 
 # RData files
 00_data/rawdata.RData
@@ -25,6 +27,9 @@
 00_data/grids_st_sf.Rdata
 00_data/randomgroupids.RData
 00_data/vagrantdata.RData
+
+# RDS files
+00_data/centroids_sanitized_relJun-2026.rds
 
 # for any mask
 dataforanalyses_2023.RData
@@ -45,6 +50,7 @@ occupancy-presence/
 */*/results/occupancy/
 20_website/archive/
 40_manuscripts/02_listlength/results/
+
 
 
 # image outputs
