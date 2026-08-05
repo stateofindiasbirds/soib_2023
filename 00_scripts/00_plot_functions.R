@@ -649,7 +649,7 @@ fetch_plot_metadata <- function(plot_type) {
         str_flatten_comma(c("Isabelline Wheatear","Great Gray Shrike","Rufous-tailed Lark",
                             "Yellow-billed Babbler","Eurasian Kestrel","Jerdon's Bushlark")),
         str_flatten_comma(c("Little Ringed Plover","Little Tern","Great Thick-knee","Small Pratincole")),
-        str_flatten_comma(c("Tibetan Sand-Plover","Terek Sandpiper","Whimbrel","Curlew Sandpiper",
+        str_flatten_comma(c("Tibetan Sand-Plover","Terek Sandpiper","Eurasian Whimbrel","Curlew Sandpiper",
                             "Eurasian Curlew")),
         str_flatten_comma(c("Oriental Honey-buzzard","Black Kite","Western Marsh Harrier",
                             "Short-toed Snake-Eagle","Pallid Harrier","Greater Spotted Eagle")),
@@ -764,7 +764,7 @@ fetch_plot_metadata <- function(plot_type) {
         
         "Arctic Migrant" = c(
           "Black-bellied Plover","European Golden-Plover","American Golden-Plover",
-          "Pacific Golden-Plover","Whimbrel","Bar-tailed Godwit","Ruddy Turnstone",
+          "Pacific Golden-Plover","Eurasian Whimbrel","Bar-tailed Godwit","Ruddy Turnstone",
           "Great Knot","Red Knot","Broad-billed Sandpiper","Sharp-tailed Sandpiper",
           "Curlew Sandpiper","Temminck's Stint","Long-toed Stint",
           "Spoon-billed Sandpiper","Red-necked Stint","Sanderling","Dunlin",

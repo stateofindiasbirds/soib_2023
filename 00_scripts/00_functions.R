@@ -175,13 +175,13 @@ readcleanrawdata = function(rawpath,
 {
   require(lubridate)
   require(tidyverse)
-  # rawpath <- "00_data/ebd_IN_unv_smp_relAug-2025.txt"
-  # sensitivepath <- "00_data/ebd_sensitive_relAug-2025_IN.txt"
-  # centroidspath <- "00_data/centroids_sanitized_final.rds"
+  # rawpath <- "00_data/ebd_IN_unv_smp_relJun-2026.txt"
+  # sensitivepath <- "00_data/ebd_sensitive_relJun-2026.txt"
+  # centroidspath <- "00_data/centroids_sanitized_relJun-2026.rds"
   
   # select only necessary columns
   preimp = c("CATEGORY","COMMON.NAME","SCIENTIFIC.NAME","OBSERVATION.COUNT",
-             "LOCALITY.ID","LOCALITY.TYPE","REVIEWED","APPROVED","STATE","COUNTY",
+             "LOCALITY.ID","LOCALITY.TYPE","REVIEWED","APPROVED","COUNTRY","STATE","COUNTY",
              "LATITUDE","LONGITUDE","OBSERVATION.DATE","TIME.OBSERVATIONS.STARTED","OBSERVER.ID",
              "PROTOCOL.NAME","DURATION.MINUTES","EFFORT.DISTANCE.KM","EXOTIC.CODE",
              "NUMBER.OBSERVERS","ALL.SPECIES.REPORTED","GROUP.IDENTIFIER","SAMPLING.EVENT.IDENTIFIER")
@@ -195,7 +195,7 @@ readcleanrawdata = function(rawpath,
   # EFFORT.DISTANCE.KM - distance traveled; NUMBER.OBSERVERS - no. of birders;
   # ALL.SPECIES.REPORTED - indicates whether a checklist is complete or not;
   # GROUP.IDENTIFIER - unique ID for every set of shared checklists (NA when not shared);
-  # SAMPLING.EVENT.IDENTIFIER - unique checlist ID
+  # SAMPLING.EVENT.IDENTIFIER - unique checklist ID
   
   nms = read.delim(rawpath, nrows = 1, sep = "\t", header = T, quote = "", stringsAsFactors = F, 
                    na.strings = c(""," ",NA))
@@ -218,7 +218,8 @@ readcleanrawdata = function(rawpath,
   # read sensitive species data
   
   sesp = read.delim(sensitivepath, colClasses = nms1, sep = "\t", header = T, quote = "", 
-                    stringsAsFactors = F, na.strings = c(""," ",NA))
+                    stringsAsFactors = F, na.strings = c(""," ",NA)) %>%
+    filter(COUNTRY == "India")
   
   
   # merge both data frames
@@ -231,12 +232,11 @@ readcleanrawdata = function(rawpath,
   ## choosing important columns required for further analyses
   
   imp = c("CATEGORY","COMMON.NAME","SCIENTIFIC.NAME","OBSERVATION.COUNT",
-          "LOCALITY.ID", "REVIEWED","APPROVED","EXOTIC.CODE",
-          "LOCALITY.TYPE","STATE","COUNTY",
-          "LATITUDE","LONGITUDE","OBSERVATION.DATE","TIME.OBSERVATIONS.STARTED",
-          "OBSERVER.ID","PROTOCOL.NAME",
-          "DURATION.MINUTES","EFFORT.DISTANCE.KM",
-          "ALL.SPECIES.REPORTED","group.id","SAMPLING.EVENT.IDENTIFIER")
+          "LOCALITY.ID","LOCALITY.TYPE","REVIEWED","APPROVED","STATE","COUNTY",
+          "LATITUDE","LONGITUDE","OBSERVATION.DATE","TIME.OBSERVATIONS.STARTED","OBSERVER.ID",
+          "PROTOCOL.NAME","DURATION.MINUTES","EFFORT.DISTANCE.KM","EXOTIC.CODE",
+          "NUMBER.OBSERVERS","ALL.SPECIES.REPORTED","GROUP.IDENTIFIER","SAMPLING.EVENT.IDENTIFIER",
+          "group.id")
   
   
   # no of days in every month, and cumulative number
@@ -256,7 +256,6 @@ readcleanrawdata = function(rawpath,
            #week = week(OBSERVATION.DATE),
            #fort = ceiling(day/14),
            cyear = year(OBSERVATION.DATE)) %>%
-    dplyr::select(-c("OBSERVATION.DATE")) %>%
     mutate(year = ifelse(month > 5, cyear, cyear-1)) %>% # from June to May
     # add number of species/list length column (no.sp), for list length analyses (lla)
     group_by(group.id) %>% 
@@ -272,15 +271,23 @@ readcleanrawdata = function(rawpath,
                               season %in% c(9,10,11) ~ "Aut")) %>% 
     mutate(season = as.factor(season))
   
+  data_to_correct = data %>%
+    dplyr::select(COMMON.NAME,SAMPLING.EVENT.IDENTIFIER,
+                  OBSERVER.ID,STATE,COUNTY,month,
+                  LATITUDE,LONGITUDE)
+  
   # remove probable mistakes
   source("00_scripts/rm_prob_mistakes.R")
-  data <- rm_prob_mistakes(data)
+  data_to_correct <- rm_prob_mistakes(data_to_correct)
   
   #saveRDS(data, "00_data/data_debug.RDS")
   # Swap the location latitude and longitude with centroid latitude and longitude
   # wherever applicable
   
   #data <- readRDS("00_data/data_debug.RDS")
+  
+  data = data %>%
+    semi_join(data_to_correct)
   
   centroids_sanitized_final <- readRDS(centroidspath)
   
@@ -307,40 +314,12 @@ readcleanrawdata = function(rawpath,
     )
   
   data <- data %>%
-    dplyr::select(-c(LATITUDE,
-                     LONGITUDE,
-                     centroid_longitude,
+    dplyr::select(-c(centroid_longitude,
                      centroid_latitude)) %>%
+    rename(LATITUDE.OLD = LATITUDE,
+           LONGITUDE.OLD = LONGITUDE) %>%
     rename(LATITUDE = new_latitude,
-           LONGITUDE = new_longitude)%>%
-    dplyr::select(c(
-      CATEGORY,
-      COMMON.NAME,
-      SCIENTIFIC.NAME,
-      OBSERVATION.COUNT,
-      LOCALITY.ID,
-      REVIEWED,
-      APPROVED,
-      EXOTIC.CODE,
-      LOCALITY.TYPE,
-      STATE,
-      COUNTY,
-      LATITUDE,
-      LONGITUDE,
-      TIME.OBSERVATIONS.STARTED,
-      OBSERVER.ID,
-      PROTOCOL.NAME,
-      DURATION.MINUTES,
-      EFFORT.DISTANCE.KM,
-      ALL.SPECIES.REPORTED,
-      group.id,
-      SAMPLING.EVENT.IDENTIFIER,
-      month,
-      day,
-      cyear,
-      year,
-      no.sp
-    ))
+           LONGITUDE = new_longitude)
   
   # create and write a file with common names and scientific names of all Indian species
   # useful for mapping
@@ -453,8 +432,7 @@ readcleanrawdata = function(rawpath,
     distinct(group.id, COMMON.NAME, .keep_all = TRUE) |> 
     filter(year <= latest_soib_my) %>% 
     rename(ST_NM = STATE,
-           DISTRICT = COUNTY) %>% 
-    dplyr::select(-SAMPLING.EVENT.IDENTIFIER)
+           DISTRICT = COUNTY)
   
   assign("data", data, .GlobalEnv)
   
@@ -547,7 +525,7 @@ addmapvars = function(datapath = "00_data/rawdata.RData",
 completelistcheck = function(data) {
   data = data %>% 
     # create 2 columns from the "TIME.OBSERVATIONS.STARTED' column
-    mutate(DATETIME = as_datetime(paste("2023-06-01", # any date, we just need the time
+    mutate(DATETIME = as_datetime(paste("2026-06-01", # any date, we just need the time
                                         TIME.OBSERVATIONS.STARTED)),
            hr = hour(DATETIME),
            min = minute(DATETIME)) %>% 
@@ -606,7 +584,7 @@ removevagrants = function(data)
 {
   # mapping of SoIB-species-of-interest to a range of variables/classifications
   # (manually created)
-  fullmap = read.csv("00_data/SoIB_mapping_2024.csv")
+  fullmap = read.csv("00_data/SoIB_mapping_2025.csv")
   
   migspecies = fullmap %>%
     filter(!Migratory.Status.Within.India %in% c("Resident",
@@ -615,7 +593,7 @@ removevagrants = function(data)
                                                  "Resident & Localized Summer Migrant",
                                                  "Altitudinal Migrant",
                                                  "Resident (Extirpated)")) %>%
-    pull(eBird.English.Name.2024)
+    pull(eBird.English.Name.2025)
   
   d = data %>%
     filter(COMMON.NAME %in% migspecies) %>%
@@ -690,7 +668,10 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = TRUE) {
     dplyr::select(-CATEGORY,-REVIEWED,-APPROVED,-ST_NM,-DISTRICT,
                   -LOCALITY.TYPE,-LOCALITY.ID,-pa.name,-maskWdl,-maskCrp,-maskOne,
                   -LATITUDE,-LONGITUDE,-PROTOCOL.NAME,-EXOTIC.CODE,-day,-cyear,
-                  -DURATION.MINUTES,-TIME.OBSERVATIONS.STARTED,-EFFORT.DISTANCE.KM)
+                  -DURATION.MINUTES,-TIME.OBSERVATIONS.STARTED,-EFFORT.DISTANCE.KM,
+                  -LATITUDE.OLD,-LONGITUDE.OLD,-OBSERVATION.DATE,-SAMPLING.EVENT.IDENTIFIER,
+                  -GROUP.IDENTIFIER,-NUMBER.OBSERVERS,-OBSERVER.ID,
+                  -OBSERVATION.COUNT)
   
   stats7 = paste(nrow(data[data$ALL.SPECIES.REPORTED == 1,]),
                  "filter 1 usable observations")
@@ -802,7 +783,7 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = TRUE) {
       mutate(ht = 1) %>% 
       dplyr::select(COMMON.NAME, ht)
     
-    # recent data (data from 2015 onwards), used for recent trends
+    # recent data (data from current year onwards), used for recent trends
     # gives list of species for which we have enough data and this analysis can be done
     datar = data0 %>%
       filter(ALL.SPECIES.REPORTED == 1, 
@@ -1583,7 +1564,7 @@ singlespeciesrun = function(container, reproducible, stats_dir, species_dir, dat
 # occupancy
 occupancyrun = function(data, i, speciesforocc, queen_neighbours)
 {
-  species = speciesforocc$eBird.English.Name.2024[i]
+  species = speciesforocc$eBird.English.Name.2025[i]
   status = speciesforocc$status[i]
 
   tic(glue("Modelled occupancy of {species}"))
@@ -1975,8 +1956,8 @@ scale_trends_to_bands <- function(data) {
 
 specname_to_india_checklist <- function(spec_names, already_show = TRUE) {
   
-  names_map <- read.csv("00_data/SoIB_mapping_2024.csv") %>% 
-    distinct(eBird.English.Name.2024, India.Checklist.Common.Name)
+  names_map <- read.csv("00_data/SoIB_mapping_2025.csv") %>% 
+    distinct(eBird.English.Name.2025, India.Checklist.Common.Name)
   
   df_names <- data.frame(OLD = spec_names)
   
@@ -1991,7 +1972,7 @@ specname_to_india_checklist <- function(spec_names, already_show = TRUE) {
   }
   
   df_names <- df_names %>% 
-    left_join(names_map, by = c("OLD" = "eBird.English.Name.2024")) %>% 
+    left_join(names_map, by = c("OLD" = "eBird.English.Name.2025")) %>% 
     rename(NEW = India.Checklist.Common.Name)
   
   if (any(is.na(df_names$NEW))) {
@@ -2006,13 +1987,13 @@ specname_to_india_checklist <- function(spec_names, already_show = TRUE) {
 # update IUCN Status based on latest updated in mapping sheet ---------------------------------------
 
 # input dataframe can be any mapping/main type object with list of species along with IUCN status
-# mutates IUCN Status column based on latest Status updated in SoIB_mapping_2024.csv
+# mutates IUCN Status column based on latest Status updated in SoIB_mapping_2025.csv
 # preserves column order in input data
 
 # col_specname must be eBird checklist species names
 
 get_latest_IUCN_status <- function(data, col_specname, col_iucn = NULL,
-                                     path_mapping = "00_data/SoIB_mapping_2024.csv") {
+                                     path_mapping = "00_data/SoIB_mapping_2025.csv") {
   
   if (!(is.character(col_specname) & 
         (is.character(col_iucn)) | is.null(col_iucn))) {
@@ -2030,7 +2011,7 @@ get_latest_IUCN_status <- function(data, col_specname, col_iucn = NULL,
   col_order <- names(data)
   
   # mapping <- read_csv(path_mapping) %>% 
-  #   dplyr::select("eBird.English.Name.2024", "IUCN.Category") %>% 
+  #   dplyr::select("eBird.English.Name.2025", "IUCN.Category") %>% 
   #   magrittr::set_colnames(col_newnames)
   mapping <- read_csv(path_mapping) %>% 
     dplyr::select("India.Checklist.Common.Name", "IUCN.Category")
@@ -2120,14 +2101,14 @@ update_species_lists = function(species_list_data, scientific_also = FALSE) {
   }
 
   if (!exists("fullmap")) {
-    fullmap <- read.csv("00_data/SoIB_mapping_2024.csv")
+    fullmap <- read.csv("00_data/SoIB_mapping_2025.csv")
   }
   
   
 
   # when rerunning for same year, need to return unmodified list
   # because species names already updated in prior run
-  if (length(setdiff(unique(species_list_data$COMMON.NAME),unique(ebird_tax_mapping()$eBird.English.Name.2024))) == 0) {
+  if (length(setdiff(unique(species_list_data$COMMON.NAME),unique(ebird_tax_mapping()$eBird.English.Name.2025))) == 0) {
 
     message("Species list is already updated to latest taxonomy. Returning original list.")
     
@@ -2170,12 +2151,12 @@ update_species_lists = function(species_list_data, scientific_also = FALSE) {
                           "Asian Tit" = "Cinereous Tit")
                ) %>%
         left_join(ebird_tax_mapping(), 
-                  by = c("COMMON.NAME" = "eBird.English.Name.2023")) |>
+                  by = c("COMMON.NAME" = "eBird.English.Name.2024")) |>
         left_join(fullmap %>% 
-                    distinct(eBird.English.Name.2024, eBird.Scientific.Name.2024)) %>% 
+                    distinct(eBird.English.Name.2025, eBird.Scientific.Name.2025)) %>% 
         dplyr::select(-COMMON.NAME,-SCIENTIFIC.NAME) %>% 
-        rename(COMMON.NAME = eBird.English.Name.2024,
-               SCIENTIFIC.NAME = eBird.Scientific.Name.2024) %>% 
+        rename(COMMON.NAME = eBird.English.Name.2025,
+               SCIENTIFIC.NAME = eBird.Scientific.Name.2025) %>% 
         relocate(COMMON.NAME, SCIENTIFIC.NAME) %>%
         dplyr::select(COMMON.NAME,SCIENTIFIC.NAME,Long.Term.Analysis,Current.Analysis,Selected.SoIB,
                       totalrange25km,proprange25km2000,proprange25km.current,proprange25km.latestyear,
@@ -2187,17 +2168,11 @@ update_species_lists = function(species_list_data, scientific_also = FALSE) {
       list_new <- species_list_data |>
         dplyr::select(COMMON.NAME,ht,rt) |>
         # to remove next time when taxonomies are properly aligned
-        mutate(COMMON.NAME = recode(COMMON.NAME,
-                                    "Indian Cuckooshrike" = "Large Cuckooshrike",
-                                    "Southern Nutcracker" = "Eurasian Nutcracker",
-                                    "Eastern Red-rumped Swallow" = "Red-rumped Swallow",
-                                    "Rufous-fronted Babbler" = "Buff-chested Babbler",
-                                    "Gray-crowned Goldfinch" = "European Goldfinch")) %>%
         left_join(ebird_tax_mapping(), 
-                  by = c("COMMON.NAME" = "eBird.English.Name.2023")) |> 
+                  by = c("COMMON.NAME" = "eBird.English.Name.2024")) |> 
         dplyr::select(-COMMON.NAME) |> 
-        relocate(eBird.English.Name.2024) |> # first column is species name
-        rename(COMMON.NAME = eBird.English.Name.2024) |>
+        relocate(eBird.English.Name.2025) |> # first column is species name
+        rename(COMMON.NAME = eBird.English.Name.2025) |>
         dplyr::select(COMMON.NAME,ht,rt) %>%
         distinct(COMMON.NAME, .keep_all = TRUE)
       

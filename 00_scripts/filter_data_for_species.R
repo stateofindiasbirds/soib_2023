@@ -1,4 +1,3 @@
-
 require(glue) 
 require(tidyverse)
 require(tictoc)
@@ -10,7 +9,7 @@ source('00_scripts/00_functions.R')
 
 # mapping of SoIB-species-of-interest to a range of variables/classifications
 # (manually created)
-fullmap = read.csv("00_data/SoIB_mapping_2024.csv")
+fullmap = read.csv("00_data/SoIB_mapping_2025.csv")
 
 
 # species frequently misidentified and therefore ignored in analyses ###
@@ -31,13 +30,13 @@ spec_resident = fullmap %>%
                                               "Resident & Localized Summer Migrant",
                                               "Resident & Within-India Migrant",
                                               "Resident (Extirpated)")) %>%
-  pull(eBird.English.Name.2024)
+  pull(eBird.English.Name.2025)
 
 # species filtered for certain habitat masks
 spec_woodland = fullmap %>%
   filter(Habitat.Specialization %in% c("Forest",
                                        "Forest & Plantation")) %>%
-  pull(eBird.English.Name.2024)
+  pull(eBird.English.Name.2025)
 
 # we are considering cropland and ONE habitats together to classify "openland species"
 spec_openland = fullmap %>%
@@ -45,7 +44,7 @@ spec_openland = fullmap %>%
                                        "Grassland",
                                        "Grassland & Scrub",
                                        "Open Habitat")) %>%
-  pull(eBird.English.Name.2024)
+  pull(eBird.English.Name.2025)
 
 
 # 0. main data filtering -----------------------------------------------------
@@ -85,13 +84,20 @@ stats6 = paste(length(unique(data[data$ALL.SPECIES.REPORTED == 1,]$group.id)),
 # removing false complete lists
 data = completelistcheck(data)
 
+load("00_data/vagrantdata.RData")
 
+vagrants = d %>%
+  mutate(vagrant = 1)
+
+data_total = data %>%
+  mutate(vagrant = 0) %>%
+  bind_rows(vagrants)
+
+data0 = data
 data_base = data
 
-
-data0 = data_base %>% dplyr::select(-REVIEWED,-APPROVED,-cyear)
 # this file is for uses outside of main eBird trends analyses, has extra columns
-save(data0, file = "00_data/dataforanalyses_extra.RData")
+save(data_total, file = "00_data/dataforanalyses_extra.RData")
 
 
 # 1. processing: full country -----------------------------------------------
@@ -102,6 +108,7 @@ toc()
 # 495 sec (2023)
 # 185 sec (2024)
 # 104 sec (2025)
+# 127 sec (2026)
 
 
 # 2. processing: woodland mask ----------------------------------------------
@@ -112,6 +119,7 @@ toc()
 # 240 sec (2023)
 # 86 sec (2024)
 # 46 sec (2025)
+# 55 sec (2026)
 
 
 # 3. processing: cropland mask ----------------------------------------------
@@ -122,6 +130,7 @@ toc()
 # 60 sec (2023)
 # 42 sec (2024)
 # 22 sec (2025)
+# 27 sec (2026)
 
 
 # 4. processing: ONEland mask -----------------------------------------------
@@ -132,6 +141,7 @@ toc()
 # 60 sec (2023)
 # 20 sec (2024)
 # 10 sec (2025)
+# 14 sec (2026)
 
 
 # 5. processing: PA mask ----------------------------------------------------
@@ -142,6 +152,7 @@ toc()
 # 80 sec (2023)
 # 24 sec (2024)
 # 13 sec (2025)
+# 15 sec (2026)
 
 
 # 6. processing: states ---------------------------------------------
@@ -166,3 +177,4 @@ toc(log = TRUE, quiet = TRUE)
 tic.log()
 # 253 sec (2024)
 # 121 sec (2025)
+# 137 sec (2026)
