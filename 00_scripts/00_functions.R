@@ -1581,14 +1581,7 @@ occupancyrun = function(data, i, speciesforocc, queen_neighbours)
   
   # expanding data for absences also
   data_exp = expand_dt(data_filt_mig, species) %>% 
-    filter(!is.na(gridg1)) %>%
-    # converting months to seasons
-    mutate(month = as.numeric(month)) %>%
-    mutate(month = case_when(month %in% c(12, 1, 2) ~ "Win",
-                             month %in% c(3, 4, 5) ~ "Sum",
-                             month %in% c(6, 7, 8) ~ "Mon",
-                             month %in% c(9, 10, 11) ~ "Aut")) %>% 
-    mutate(month = as.factor(month))
+    filter(!is.na(gridg1))
   
   # reordering the checklists within each grid to minimise bias
   data_exp = data_exp[sample(x = 1:nrow(data_exp)),] 
@@ -2184,102 +2177,239 @@ update_species_lists = function(species_list_data, scientific_also = FALSE) {
 
 }
 
-trend_calculation <- function(my_seed) {
+trend_calculation <- function(my_seed, sims) {
   
   set.seed(my_seed) # for bootMer simulations
   
+  
   if (model != "glm")
   {
+    
     if (model == "full")
     {
+      
       # 100km/25km random effects
-      m = glmer(freq ~ timegroups + season + season:log(no.sp) + (1|gridg3/gridg1), 
-                data = data_tot, family = binomial(link = 'cloglog'),
-                weights = n_lists,
-                nAGQ = 0, control = glmerControl(optimizer = "bobyqa"))  
+      result <- tryCatch({
+        
+        m <- glmer(
+          freq ~ timegroups + season + season:log(no.sp) + (1 | gridg3/gridg1),
+          data = data_tot,
+          family = binomial(link = "cloglog"),
+          weights = n_lists,
+          nAGQ = 0,
+          control = glmerControl(optimizer = "bobyqa")
+        )
+        
+        
+        # bootstrapping
+        pred_fun <- function(input_model) {
+          predict(
+            input_model,
+            newdata = ltemp,
+            re.form = NA,
+            allow.new.levels = TRUE,
+            type = "response"
+          )
+        }
+        
+        
+        # parallelization happens only here
+        pred_bootMer <- bootMer(
+          m,
+          nsim = sims,
+          FUN = pred_fun,
+          use.u = FALSE,
+          type = "parametric",
+          parallel = "multicore",
+          ncpus = par_cores
+        )
+        
+        
+        # expanding the bootMer object into a normal data frame
+        # with values per simulation
+        ltemp_pred <- ltemp %>%
+          slice(rep(1:n(), times = nrow(pred_bootMer$t))) %>%
+          mutate(
+            sim = rep(1:nrow(pred_bootMer$t), each = nrow(ltemp)),
+            pred = c(t(pred_bootMer$t))
+          )
+        
+        
+        ltemp_pred
+        
+      }, error = function(e) {
+        
+        message(
+          "Skipping species = ", species,
+          ", model = ", model,
+          ": ", e$message
+        )
+        
+        NULL
+      })
+      
     } else {
+      
       # only 25km random effects
-      m = glmer(freq ~ timegroups + season + season:log(no.sp) + (1|gridg1), 
-                data = data_tot, family = binomial(link = 'cloglog'),
-                weights = n_lists,
-                nAGQ = 0, control = glmerControl(optimizer = "bobyqa"))
+      result <- tryCatch({
+        
+        m <- glmer(
+          freq ~ timegroups + season + season:log(no.sp) + (1 | gridg1),
+          data = data_tot,
+          family = binomial(link = "cloglog"),
+          weights = n_lists,
+          nAGQ = 0,
+          control = glmerControl(optimizer = "bobyqa")
+        )
+        
+        
+        # bootstrapping
+        pred_fun <- function(input_model) {
+          predict(
+            input_model,
+            newdata = ltemp,
+            re.form = NA,
+            allow.new.levels = TRUE,
+            type = "response"
+          )
+        }
+        
+        
+        # parallelization happens only here
+        pred_bootMer <- bootMer(
+          m,
+          nsim = sims,
+          FUN = pred_fun,
+          use.u = FALSE,
+          type = "parametric",
+          parallel = "multicore",
+          ncpus = par_cores
+        )
+        
+        
+        # expanding the bootMer object into a normal data frame
+        # with values per simulation
+        ltemp_pred <- ltemp %>%
+          slice(rep(1:n(), times = nrow(pred_bootMer$t))) %>%
+          mutate(
+            sim = rep(1:nrow(pred_bootMer$t), each = nrow(ltemp)),
+            pred = c(t(pred_bootMer$t))
+          )
+        
+        
+        ltemp_pred
+        
+      }, error = function(e) {
+        
+        message(
+          "Skipping species = ", species,
+          ", model = ", model,
+          ": ", e$message
+        )
+        
+        NULL
+      })
     }
     
     
-    # bootstrapping
-    
-    pred_fun <- function(input_model) {
-      predict(input_model, newdata = ltemp, re.form = NA, 
-              allow.new.levels = TRUE, type = "response")
-    }
-    
-    # parallelization happens only here
-    pred_bootMer = bootMer(m, 
-                           nsim = sims, # for faster compute, estimate doesn't change much with high sims
-                           FUN = pred_fun, 
-                           use.u = FALSE, type = "parametric", 
-                           parallel = "multicore", ncpus = par_cores)
-    
-    # expanding the bootMer object into a normal data frame with
-    # values per simulation
-    ltemp_pred = ltemp %>%
-      slice(rep(1:n(), times = nrow(pred_bootMer$t))) %>%
-      mutate(
-        sim = rep(1:nrow(pred_bootMer$t), each = nrow(ltemp)),
-        pred = c(t(pred_bootMer$t))
-      )
   } else {
+    
     # only fixed effects
-    m = glm(freq ~ timegroups + season + season:log(no.sp), 
-            data = data_tot, family = binomial(link = 'cloglog'),
-            weights = n_lists)
-    
-    # bootstrapping
-    
-    pred_fun <- function(input_model) {
-      predict(input_model, newdata = ltemp, type = "response")
-    }
-    
-    pred_boot = replicate(sims, {
-      y = simulate(m)[[1]]
-      data_boot = data_tot %>%
-        mutate(freq = y)
-      fit = update(m, data = data_boot)
-      pred_fun(fit)
-    }, simplify = "matrix")
-    
-    # bootstrapping and parallelizing again here
-    pred_boot = mclapply(seq_len(sims), function(i) {
-      y = simulate(m)[[1]]
-      data_boot = data_tot %>%
-        mutate(freq = y)
-      fit = update(m, data = data_boot)
-      pred_fun(fit)
-    }, mc.cores = par_cores)
-    
-    pred_boot <- do.call(rbind, pred_boot)
-    
-    ltemp_pred = ltemp %>%
-      slice(rep(1:n(), times = nrow(pred_boot))) %>%
-      mutate(
-        sim = rep(seq_len(nrow(pred_boot)), each = nrow(ltemp)),
-        pred = c(t(pred_boot))
+    result <- tryCatch({
+      
+      m <- glm(
+        freq ~ timegroups + season + season:log(no.sp),
+        data = data_tot,
+        family = binomial(link = "cloglog"),
+        weights = n_lists
       )
-    
+      
+      
+      # bootstrapping
+      pred_fun <- function(input_model) {
+        predict(
+          input_model,
+          newdata = ltemp,
+          type = "response"
+        )
+      }
+      
+      
+      # bootstrapping and parallelizing
+      pred_boot <- mclapply(
+        seq_len(sims),
+        function(i) {
+          
+          y <- simulate(m)[[1]]
+          
+          data_boot <- data_tot %>%
+            mutate(freq = y)
+          
+          fit <- update(m, data = data_boot)
+          
+          pred_fun(fit)
+        },
+        mc.cores = par_cores
+      )
+      
+      
+      pred_boot <- do.call(rbind, pred_boot)
+      
+      
+      ltemp_pred <- ltemp %>%
+        slice(rep(1:n(), times = nrow(pred_boot))) %>%
+        mutate(
+          sim = rep(seq_len(nrow(pred_boot)), each = nrow(ltemp)),
+          pred = c(t(pred_boot))
+        )
+      
+      
+      ltemp_pred
+      
+    }, error = function(e) {
+      
+      message(
+        "Skipping species = ", species,
+        ", model = ", model,
+        ": ", e$message
+      )
+      
+      NULL
+    })
   }
   
+  
+  # If model fitting, prediction, or bootstrapping failed,
+  # stop this species/model iteration here.
+  if (is.null(result)) {
+    return(NULL)
+  }
+  
+  
+  ltemp_pred <- result
+  
+  
   # mean across seasons
-  ltemp_pred_comb = ltemp_pred %>%
-    group_by(sim,timegroups) %>%
+  ltemp_pred_comb <- ltemp_pred %>%
+    group_by(sim) %>%
+    filter(!any(is.na(across(everything())))) %>%
+    group_by(sim, timegroups) %>%
     reframe(pred = mean(pred)) %>%
-    right_join(tm) %>% 
+    right_join(tm) %>%
     left_join(databins_use %>% distinct(timegroups, year)) %>%
-    rename(timegroupsf = timegroups,
-           timegroups = year) %>% 
-    mutate(timegroupsf = factor(timegroupsf, 
-                                levels = databins_use$timegroups)) %>%
-    complete(timegroupsf) %>% 
-    arrange(sim,timegroupsf)
+    rename(
+      timegroupsf = timegroups,
+      timegroups = year
+    ) %>%
+    mutate(
+      timegroupsf = factor(
+        timegroupsf,
+        levels = databins_use$timegroups
+      )
+    ) %>%
+    complete(timegroupsf) %>%
+    arrange(sim, timegroupsf)
+  
   
   return(ltemp_pred_comb)
   
@@ -2393,7 +2523,7 @@ trends_projections <- function() {
 # repeat the bootstrapping to produce 5 different ltts
 ltt_sensitivity_sim <- function(my_seed) {
   
-  ltemp_pred_comb_sim = trend_calculation(my_seed)
+  ltemp_pred_comb_sim = trend_calculation(my_seed, sims = sims_boot)
   f1_rats_long_sim = standarized_trends_ltt(ltemp_pred_comb_sim)
   modtrends_sim = f1_rats_long_sim %>%
     filter(timegroups == soib_year_info("latest_year")) %>%

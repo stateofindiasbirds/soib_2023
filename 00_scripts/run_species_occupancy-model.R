@@ -20,8 +20,7 @@ our_neighbours <- g1_nb_q
 rm(g1_nb_r, g2_nb_q, g2_nb_r, g3_nb_q, g3_nb_r, g4_nb_q, g4_nb_r)
 
 data = data %>%
-  mutate(OBSERVATION.COUNT = replace(OBSERVATION.COUNT, !is.na(OBSERVATION.COUNT), "1")) %>% 
-  mutate(OBSERVATION.COUNT = as.numeric(OBSERVATION.COUNT))
+  mutate(OBSERVATION.COUNT = 1)
 
 
 # calculation -------------------------------------------------------------

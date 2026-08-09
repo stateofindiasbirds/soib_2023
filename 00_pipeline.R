@@ -102,195 +102,55 @@ toc()
 # 21 min (2024 annual update)
 # 12 min (2025 annual update)
 
-# PART 2 (subsample) ------------------------------------------------------------------
-
-# Preparing data for trends analysis
-
-
-# STEP 1: Subsample data for locations (create set of randomly selected GROUP.IDs)
-# a file with random GROUP.IDs is first created so that the more time consuming step (creating the data files)
-# can be repeated without sampling a different set of GROUP.IDs each time
-# Run:
-# - every time "sub_samp_locs.csv" is updated
-# Requires:
-# - tidyverse, parallel, foreach, doParallel, tictoc
-# - data files:
-#   - "sub_samp_locs.csv" for whole country and individual mask versions
-# Outputs:
-# - "randomgroupids.RData" for whole country and individual mask versions
-
-load("00_data/analyses_metadata.RData")
-
-# not functionising because parallelisation doesn't work inside functions
-cur_mask <- "none"
-tic("generated random group IDs for full country")
-source("00_scripts/create_random_groupids.R")
-toc() # 109 min
-
-cur_mask <- "woodland"
-tic("generated random group IDs for woodland")
-source("00_scripts/create_random_groupids.R")
-toc() # 2963 sec (49 min)
-
-cur_mask <- "cropland"
-tic("generated random group IDs for cropland")
-source("00_scripts/create_random_groupids.R")
-toc() # 1060 sec (18 min)
-
-cur_mask <- "ONEland"
-tic("generated random group IDs for ONEland")
-source("00_scripts/create_random_groupids.R")
-toc() # 615 sec (10 min)
-
-cur_mask <- "PA"
-tic("generated random group IDs for PA")
-source("00_scripts/create_random_groupids.R")
-toc() # 543 sec (9 min)
-
-# states
-tic.clearlog()
-tic("generated random group IDs for all states") # 91 min
-
-analyses_metadata %>% 
-  filter(MASK.TYPE == "state") %>% 
-  distinct(MASK) %>% 
-  pull(MASK) %>% 
-  # walking over each state
-  walk(~ {
-    
-    tic(glue("generated random group IDs for {.x} state"))
-    assign("cur_mask", .x, envir = .GlobalEnv)
-    source("00_scripts/create_random_groupids.R")
-    toc(log = TRUE, quiet = TRUE) 
-    
-  })
-
-toc(log = TRUE, quiet = TRUE) 
-tic.log()
-
-
-
-# STEP 2: Create subsampled data files using subsampled GROUP.IDs
-# Run:
-# - after above step (P2, S1)
-# Requires:
-# - tidyverse, tictoc
-# - data files:
-#   - "dataforanalyses.RData" for whole country and individual mask versions
-#   - "randomgroupids.RData" for whole country and individual mask versions
-# Outputs:
-# - "dataforsim/dataX.RData" for whole country and individual mask versions
-
-load("00_data/analyses_metadata.RData")
-
-
-cur_mask <- "none"
-my_assignment <- 1:1 # CHANGE FOR YOUR SUBSET
-tic(glue("Generated subsampled data for full country (# {min(my_assignment)}:{max(my_assignment)})"))
-source("00_scripts/create_random_datafiles.R")
-toc() # 124 min (~ 2 h) for 100
-
-
-cur_mask <- "woodland"
-tic(glue("Generated subsampled data for {cur_mask}"))
-source("00_scripts/create_random_datafiles.R")
-toc() 
-
-cur_mask <- "cropland"
-tic(glue("Generated subsampled data for {cur_mask}"))
-source("00_scripts/create_random_datafiles.R")
-toc() # 4.75 hours
-
-cur_mask <- "ONEland"
-tic(glue("Generated subsampled data for {cur_mask}"))
-source("00_scripts/create_random_datafiles.R")
-toc() # 3 hours
-
-cur_mask <- "PA"
-tic(glue("Generated subsampled data for {cur_mask}"))
-source("00_scripts/create_random_datafiles.R")
-toc() 
-
-
-# states
-not_my_states <- c(
-  c("Telangana", "Chhattisgarh", "Jammu and Kashmir", "Assam",  "Andhra Pradesh", "Puducherry", 
-    "Madhya Pradesh"),
-  c("Gujarat", "Uttarakhand", "West Bengal", "Maharashtra", "Karnataka", "Kerala", "Tamil Nadu", 
-    "Meghalaya", "Ladakh")
-)
-tic.clearlog()
-tic("Generated subsampled data for all states") # 4 hours for 21 states
-
-analyses_metadata %>% 
-  filter(MASK.TYPE == "state") %>% 
-  distinct(MASK) %>% 
-  filter(!MASK %in% not_my_states) %>% 
-  pull(MASK) %>% 
-  # walking over each state
-  walk(~ {
-    
-    tic(glue("Generated subsampled data for {.x} state"))
-    assign("cur_mask", .x, envir = .GlobalEnv)
-    source("00_scripts/create_random_datafiles.R")
-    toc(log = TRUE) 
-    
-  })
-
-toc(log = TRUE, quiet = TRUE) 
-tic.log()
-rm(not_my_states)
-
-
-
 # PART 3 (run) ------------------------------------------------------------------
 
 # STEP 1: Run trends models for all selected species
 # Run:
-# - after above step (P2, S2)
+# - PART 2 is now discontinued
 # Requires:
 # - tidyverse, tictoc, lme4, VGAM, parallel, foreach, doParallel
 # - data files:
-#   - "dataforsim/dataX.RData" for whole country and individual mask versions
+#   - "dataforanalyses.RData" for whole country and individual mask versions
 #   - "specieslists.RData" for whole country and individual mask versions
 # Outputs:
-# - "trends/trendsX.csv" for whole country and individual mask versions
+# - several species-specific outputs for whole country and individual mask versions
 
 load("00_data/analyses_metadata.RData")
+par_cores = 12
+sims_main = 20 # for the bootMer here, no subsampling!
+sims_boot = 20
+#speciesfortrends = c("White-throated Kingfisher")
 
 cur_mask <- "none"
-my_assignment <- 1:1 # CHANGE FOR YOUR SUBSET
-tic(glue("Species trends for full country (sims {min(my_assignment)}--{max(my_assignment)})"))
-source("00_scripts/run_species_trends.R")
-toc() # 102 hours
-rm(my_assignment)
+tic(glue("Species trends for full country"))
+source("00_scripts/produce_trends.R")
+toc()
 
 cur_mask <- "woodland"
 tic(glue("Species trends for {cur_mask}"))
-source("00_scripts/run_species_trends.R")
+source("00_scripts/produce_trends.R")
 toc() 
 
 cur_mask <- "cropland"
 tic(glue("Species trends for {cur_mask}"))
-source("00_scripts/run_species_trends.R")
+source("00_scripts/produce_trends.R")
 toc() 
 
 cur_mask <- "ONEland"
 tic(glue("Species trends for {cur_mask}"))
-source("00_scripts/run_species_trends.R")
+source("00_scripts/produce_trends.R")
 toc()
 
 cur_mask <- "PA"
 tic(glue("Species trends for {cur_mask}"))
-source("00_scripts/run_species_trends.R")
+source("00_scripts/produce_trends.R")
 toc() # 195 sec for 1 sim (~ 11 hours for 200 sim)
 
 
 not_my_states <- c(
-  c("Telangana", "Chhattisgarh", "Jammu and Kashmir", "Assam",  "Andhra Pradesh", "Puducherry", 
-    "Madhya Pradesh"),
-  c("Gujarat", "Uttarakhand", "West Bengal", "Maharashtra", "Karnataka", "Kerala", "Tamil Nadu", 
-    "Meghalaya", "Ladakh")
+  c("Karnataka")
+#  c("Gujarat", "Uttarakhand", "West Bengal", "Maharashtra", "Karnataka", "Kerala", "Tamil Nadu", 
+#    "Meghalaya", "Ladakh")
 )
 tic.clearlog()
 tic("Ran species trends for all states")
@@ -300,29 +160,21 @@ analyses_metadata %>%
   filter(MASK.TYPE == "state") %>% 
   distinct(MASK) %>% 
   filter(!MASK %in% not_my_states) %>% 
-  # filter(MASK %in% c("Tripura", "Punjab", "Jharkhand", "Nagaland")) %>% 
+  #filter(MASK %in% c("Tripura", "Punjab", "Jharkhand", "Nagaland")) %>% 
   pull(MASK) %>% 
   # walking over each state
   walk(~ {
     
     tic(glue("Ran species trends for {.x} state"))
     assign("cur_mask", .x, envir = .GlobalEnv)
-    source("00_scripts/run_species_trends.R")
+    source("00_scripts/produce_trends.R")
     toc(log = TRUE) 
     
   })
 
 toc(log = TRUE, quiet = TRUE) 
 tic.log()
-rm(not_my_states)
-
-# # for interrupted runs
-# cur_mask <- "Rajasthan"
-# my_assignment <- 753:1000
-# tic(glue("Remaining species trends for {cur_mask}"))
-# source("00_scripts/run_species_trends.R")
-# toc()
-
+#rm(not_my_states)
 
 
 # STEP 2: Run occupancy analyses (presence-based and model)

@@ -2,15 +2,9 @@
 ## for this to work
 ## All of this should come from the config file
 
-cur_mask = "none"
-speciesfortrends = c("White-throated Kingfisher",
-                     "Bugun Liocichla",
-                     "Nilgiri Sholakili",
-                     "Cotton Pygmy-Goose",
-                     "House Sparrow",
-                     "Red-headed Vulture")
 par_cores = 12
-sims = 50 # for the bootMer here, no subsampling!
+sims_main = 20 # for the bootMer here, no subsampling!
+sims_boot = 20 # for sensitivity
 
 ###### start of actual code
 
@@ -31,15 +25,13 @@ cat_folder <- cur_metadata$CAT.FOLDER
 
 load(cur_metadata$SPECLISTDATA.PATH)
 load(cur_metadata$DATA.PATH)
-
-data = data %>%
-  # converting months to seasons
-  mutate(season = as.numeric(month)) %>% 
-  mutate(season = case_when(season %in% c(12,1,2) ~ "Win",
-                            season %in% c(3,4,5) ~ "Sum",
-                            season %in% c(6,7,8) ~ "Mon",
-                            season %in% c(9,10,11) ~ "Aut")) %>% 
-  mutate(season = as.factor(season))
+wetland_filter = read.csv("00_data/wetland_classification.csv") %>%
+  dplyr::select(gridg0,grid_label) %>%
+  mutate(gridg0 = as.character(gridg0))
+  
+wetland_species = read.csv("00_data/soib_mapping_2025.csv") %>%
+  filter(Habitat.Specialization == "Wetland") %>%
+  pull(eBird.English.Name.2025)
 
 # Create a single dataframe out of specieslist and restrictedspecieslist
 # so that all information about model type is avalable in a
@@ -50,10 +42,12 @@ specieslist_fullmodel = specieslist %>%
   mutate(model = "full")
 
 specieslist_partmodel = restrictedspecieslist %>%
+  filter(!ht == 0 | !rt == 0) %>%
   filter(mixed == 1) %>% dplyr::select(-mixed) %>%
   mutate(model = "part")
 
 specieslist_glm = restrictedspecieslist %>%
+  filter(!ht == 0 | !rt == 0) %>%
   filter(mixed == 0) %>% dplyr::select(-mixed) %>%
   mutate(model = "glm")
 
@@ -89,13 +83,13 @@ ltemp_full = ltemp_full %>%
   bind_rows(to_add)
 
 # filtering according to selected species
-totalspecieslist_ordered = totalspecieslist_ordered %>%
-  filter(COMMON.NAME %in% speciesfortrends)
 
 # tictoc::tic("across species")
 
 for (species in totalspecieslist_ordered$COMMON.NAME)
 {
+  print(species)
+  
   ltemp_base = ltemp_full %>%
     mutate(COMMON.NAME = species, .before = 1)
   
@@ -125,6 +119,15 @@ for (species in totalspecieslist_ordered$COMMON.NAME)
     distinct(gridg3, month) %>% 
     left_join(datas) %>%
     suppressMessages()
+  
+  # constraining by habitat
+  if (species %in% wetland_species)
+  {
+    datas = datas %>%
+      left_join(wetland_filter) %>%
+      filter(grid_label == "wetland") %>%
+      dplyr::select(-grid_label)
+  }
 
   data_freq = datas %>%
     filter(COMMON.NAME == species, ALL.SPECIES.REPORTED == 1) %>%
@@ -193,7 +196,8 @@ for (species in totalspecieslist_ordered$COMMON.NAME)
     mutate(freq = s_lists/n_lists)
   
   # calculate trends
-  ltemp_pred_comb = trend_calculation(my_seed = 0)
+  ltemp_pred_comb = trend_calculation(my_seed = 0, sims = sims_main)
+  if (is.null(ltemp_pred_comb)) next
   
   # calculate standardised long-term trends
   f1_rats_long = standarized_trends_ltt(ltemp_pred_comb)
@@ -282,11 +286,13 @@ for (species in totalspecieslist_ordered$COMMON.NAME)
   write.csv(modtrends,ltt_path,row.names=F)
   write.csv(cattrends,cat_path,row.names=F)
   
-  write.csv(modtrends1,lttsens_path1,row.names=F)
-  write.csv(modtrends2,lttsens_path2,row.names=F)
-  write.csv(modtrends3,lttsens_path3,row.names=F)
-  write.csv(modtrends4,lttsens_path4,row.names=F)
-  write.csv(modtrends5,lttsens_path5,row.names=F)
+  if(!is.na(ht)) {
+    write.csv(modtrends1,lttsens_path1,row.names=F)
+    write.csv(modtrends2,lttsens_path2,row.names=F)
+    write.csv(modtrends3,lttsens_path3,row.names=F)
+    write.csv(modtrends4,lttsens_path4,row.names=F)
+    write.csv(modtrends5,lttsens_path5,row.names=F)
+  }
   
   write.csv(cattrends_sens,cursens_path,row.names=F)
 
