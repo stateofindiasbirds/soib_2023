@@ -18,10 +18,7 @@ cur_metadata <- get_metadata(cur_mask)
 occu_pres_pathonly <- cur_metadata$OCCU.PRES.PATHONLY
 occu_mod_pathonly <- cur_metadata$OCCU.MOD.PATHONLY
 speclist_path <- cur_metadata$SPECLISTDATA.PATH
-mainwocats_path <- file.path(
-  dirname(cur_metadata$SOIBMAIN.WOCATS.PATH),
-  "SoIB_main_wocats_trends.csv"
-) 
+mainwocats_path <- cur_metadata$SOIBMAIN.WOCATS.PATH
 
 # write paths
 occu_outpath <- cur_metadata$OCCU.OUTPATH

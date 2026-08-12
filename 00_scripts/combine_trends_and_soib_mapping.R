@@ -24,10 +24,7 @@ cat_pathonly <- cur_metadata$CAT.FOLDER
 
 # write paths
 trends_outpath <- cur_metadata$TRENDS.OUTPATH
-mainwocats_path <- file.path(
-  dirname(cur_metadata$SOIBMAIN.WOCATS.PATH),
-  "SoIB_main_wocats_trends.csv"
-) 
+mainwocats_path <- cur_metadata$SOIBMAIN.WOCATS.PATH
 
 # Occupancy information will be later added to this file to create the
 # SoIB_main_wocats.csv 
