@@ -85,6 +85,8 @@ ltemp_full = ltemp_full %>%
 # filtering according to selected species
 
 # tictoc::tic("across species")
+#totalspecieslist_ordered = totalspecieslist_ordered %>%
+#  filter(COMMON.NAME %in% speciesfortrends)
 
 for (species in totalspecieslist_ordered$COMMON.NAME)
 {

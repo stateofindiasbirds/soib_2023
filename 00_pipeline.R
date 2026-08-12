@@ -35,12 +35,15 @@ source("00_scripts/01_create_metadata.R")
 # Outputs:
 # - "indiaspecieslist.csv" (common and scientific names of all species)
 # - "eBird_location_data.csv"
-# - "rawdata.RData"
+# - "rawdata_obs.RData"
+# - "rawdata_chk.RData"
 
 tic("Reading and cleaning raw data")
-readcleanrawdata(rawpath = "00_data/ebd_IN_unv_smp_relAug-2025.txt", 
-                 sensitivepath = "00_data/ebd_sensitive_relAug-2025_IN.txt")
-toc() # 42 min
+readcleanrawdata(ebdpath = "00_data/ebd_IN_unv_smp_relJun-2026.txt", 
+                 samppath = "00_data/ebd_IN_unv_smp_relJun-2026_sampling.txt", 
+                 sensitivepath = "00_data/ebd_sensitive_relJun-2026.txt",
+                 centroidspath = "00_data/centroids_sanitized_relJun-2026.rds")
+toc() # 994s
 
 
 # for the following steps, there are two data files required, which need to be generated
@@ -70,7 +73,7 @@ toc() # 42 min
 
 tic("Adding map and grid variables to dataset")
 addmapvars()
-toc() # 11 min
+toc() # 161s
 
 
 # STEP 3: Process and filter data for analyses
@@ -101,6 +104,7 @@ toc()
 # 51 min (SoIB 2023)
 # 21 min (2024 annual update)
 # 12 min (2025 annual update)
+# 13 min (2026 annual update)
 
 # PART 3 (run) ------------------------------------------------------------------
 
@@ -119,7 +123,8 @@ load("00_data/analyses_metadata.RData")
 par_cores = 12
 sims_main = 20 # for the bootMer here, no subsampling!
 sims_boot = 20
-#speciesfortrends = c("White-throated Kingfisher")
+#speciesfortrends = c("Cotton Pygmy-Goose",
+#                     "Indian Courser")
 
 cur_mask <- "none"
 tic(glue("Species trends for full country"))
@@ -144,8 +149,7 @@ toc()
 cur_mask <- "PA"
 tic(glue("Species trends for {cur_mask}"))
 source("00_scripts/produce_trends.R")
-toc() # 195 sec for 1 sim (~ 11 hours for 200 sim)
-
+toc()
 
 not_my_states <- c(
   c("Karnataka")

@@ -246,7 +246,6 @@ NA,NA,"","","",NA,NA,NA,NA,NA,NA
 "Greater Painted-Snipe","Rostratula benghalensis","","","X",60,NA,0.29375,0.533333333333333,11.4166666666667,1.42932682718394
 "Pheasant-tailed Jacana","Hydrophasianus chirurgus","","X","X",88,0.0795454545454545,0.384943181818182,0.545454545454545,9.96590909090909,1.16802340366593
 "Bronze-winged Jacana","Metopidius indicus","","X","X",124,0.0887096774193548,0.469758064516129,0.67741935483871,9.06451612903226,0.948190031103765
-"Eurasian Whimbrel","Numenius phaeopus","","","X",17,0.117647058823529,0.389705882352941,0.588235294117647,8.47058823529412,2.72622443206337
 "Eurasian Curlew","Numenius arquata","","","X",18,0.111111111111111,0.326388888888889,0.388888888888889,8.66666666666667,2.02923469910513
 "Bar-tailed Godwit","Limosa lapponica","","","X",3,NA,0.416666666666667,0.666666666666667,9.66666666666667,4.71125366660628
 "Black-tailed Godwit","Limosa limosa","","","X",7,0.285714285714286,0.25,0.285714285714286,12.2857142857143,4.62070701660832
@@ -319,7 +318,6 @@ NA,NA,"","","",NA,NA,NA,NA,NA,NA
 "Brown Noddy","Anous stolidus","","","",NA,NA,NA,NA,NA,NA
 "Black Noddy","Anous minutus","","","",NA,NA,NA,NA,NA,NA
 "Lesser Noddy","Anous tenuirostris","","","",NA,NA,NA,NA,NA,NA
-"Blue-billed White-Tern","Gygis candida","","","",NA,NA,NA,NA,NA,NA
 "Sooty Tern","Onychoprion fuscatus","","","",NA,NA,NA,NA,NA,NA
 "Bridled Tern","Onychoprion anaethetus","","","",NA,NA,NA,NA,NA,NA
 "Little Tern","Sternula albifrons","","","X",14,0.0714285714285714,0.241071428571429,0.285714285714286,9.92857142857143,3.31596139905156
@@ -398,7 +396,6 @@ NA,NA,"","","",NA,NA,NA,NA,NA,NA
 "Indian Pond-Heron","Ardeola grayii","X","X","X",172,0.127906976744186,0.563953488372093,0.767441860465116,8.19186046511628,0.833636838072986
 "Chinese Pond-Heron","Ardeola bacchus","","","",NA,NA,NA,NA,NA,NA
 "Javan Pond-Heron","Ardeola speciosa","","","",NA,NA,NA,NA,NA,NA
-"Little Heron","Butorides atricapilla","","","X",54,0.0185185185185185,0.25462962962963,0.388888888888889,10.9814814814815,1.58049192901662
 "Black-crowned Night Heron","Nycticorax nycticorax","","X","X",114,0.043859649122807,0.394736842105263,0.587719298245614,9.73684210526316,1.02311509957698
 "White-eared Night Heron","Oroanassa magnifica","","","",NA,NA,NA,NA,NA,NA
 "Malayan Night Heron","Gorsachius melanolophus","","","",2,0.5,0.5,NA,19.5,2.94
@@ -506,7 +503,6 @@ NA,NA,"","","",NA,NA,NA,NA,NA,NA
 "Malabar Trogon","Harpactes fasciatus","","","",NA,NA,NA,NA,NA,NA
 "Red-headed Trogon","Harpactes erythrocephalus","X","X","X",9,0.333333333333333,0.361111111111111,0.333333333333333,15.4444444444444,4.17202203987881
 "Ward's Trogon","Harpactes wardi","","","X",2,NA,0.5,0.5,16.5,0.98
-"Common Hoopoe","Upupa epops","","X","X",136,0.0882352941176471,0.454963235294118,0.566176470588235,9.375,0.935864256352428
 "Great Hornbill","Buceros bicornis","X","X","X",15,0.266666666666667,0.433333333333333,0.533333333333333,14.9333333333333,2.98456592786586
 "Brown Hornbill","Anorrhinus austeni","","","",NA,NA,NA,NA,NA,NA
 "Indian Gray Hornbill","Ocyceros birostris","","","X",29,0.0344827586206897,0.275862068965517,0.379310344827586,12.1724137931034,2.21404703667702

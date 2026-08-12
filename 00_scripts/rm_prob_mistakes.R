@@ -1456,8 +1456,8 @@ rm_prob_mistakes <- function(data) {
     anti_join(mistake4) %>% 
     anti_join(mistake5) %>% 
     anti_join(mistake6) %>% 
-    # removing TEMP.REGION column
-    mutate(TEMP.REGION = NULL)
+    # selecting the two mapping columns
+    distinct(COMMON.NAME,SAMPLING.EVENT.IDENTIFIER)
   
   return(filtered)
   
