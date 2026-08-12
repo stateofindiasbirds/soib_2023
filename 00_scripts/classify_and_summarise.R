@@ -6,6 +6,7 @@ library(writexl)
 source('00_scripts/00_functions.R')
 interannual_update <- TRUE
 
+
 # setup -------------------------------------------------------------------
 
 # preparing data for specific mask (this is the only part that changes, but automatically)
@@ -15,12 +16,13 @@ cur_metadata <- get_metadata(cur_mask)
 speclist_path <- cur_metadata$SPECLISTDATA.PATH
 trends_pathonly <- cur_metadata$TRENDS.PATHONLY
 trends_outpath <- cur_metadata$TRENDS.OUTPATH
+mainwocats_path <- cur_metadata$SOIBMAIN.WOCATS.PATH
+lttsens_pathonly <- cur_metadata$LTTSENS.FOLDER
+cursens_pathonly <- cur_metadata$CURSENS.FOLDER
 
 # write paths
 lttsens_path <- cur_metadata$LTTSENS.PATH
 cursens_path <- cur_metadata$CURSENS.PATH 
-
-mainwocats_path <- cur_metadata$SOIBMAIN.WOCATS.PATH
 main_path <- cur_metadata$SOIBMAIN.PATH
 summaries_path <- cur_metadata$SUMMARY.PATH
 
@@ -39,6 +41,19 @@ main = read.csv(mainwocats_path) %>%
   mutate(across(c(Long.Term.Analysis, Current.Analysis, Selected.SoIB),
                 ~ replace_na(., "")))
 
+# the taxonomy-year species-name columns, e.g. "eBird.English.Name.2024" and
+# "eBird.Scientific.Name.2024", read off the mapping-derived main file rather
+# than assumed. Everything downstream refers to these instead of a literal year.
+soib_name_col <- get_soib_name_col(main)
+soib_sciname_col <- get_soib_name_col(main, prefix = "eBird.Scientific.Name")
+
+spec_lt = main %>%
+  filter(Long.Term.Analysis == "X") %>%
+  pull(all_of(soib_name_col))
+
+spec_ct = main %>%
+  filter(Current.Analysis == "X") %>%
+  pull(all_of(soib_name_col))
 
 ### for conditionals ###
 
@@ -54,7 +69,54 @@ run_res_trends_LTT <- ((1 %in% specieslist$ht) | (1 %in% restrictedspecieslist$h
 run_res_trends_CAT <- ((1 %in% specieslist$rt) | (1 %in% restrictedspecieslist$rt)) &
   file.exists(trends_outpath)
 
+# calculations: combining sensitivity outputs ------------------------------
 
+# long-term sensitivity: produce_trends.R writes 5 files per species
+# (sim1.csv .. sim5.csv, each COMMON.NAME + longtermlci/mean/rci); we
+# combine matching sim-number files across all species into modtrends1..5,
+# exactly the objects classify_and_summarise.R loads from lttsens_path.
+if (run_res_trends_LTT == TRUE) {
+  
+  modtrends1 <- list.files(lttsens_pathonly, pattern = "^sim1\\.csv$",
+                           recursive = TRUE, full.names = TRUE) %>%
+    map_df(read.csv) %>% filter(COMMON.NAME %in% spec_lt)
+  modtrends2 <- list.files(lttsens_pathonly, pattern = "^sim2\\.csv$",
+                           recursive = TRUE, full.names = TRUE) %>%
+    map_df(read.csv) %>% filter(COMMON.NAME %in% spec_lt)
+  modtrends3 <- list.files(lttsens_pathonly, pattern = "^sim3\\.csv$",
+                           recursive = TRUE, full.names = TRUE) %>%
+    map_df(read.csv) %>% filter(COMMON.NAME %in% spec_lt)
+  modtrends4 <- list.files(lttsens_pathonly, pattern = "^sim4\\.csv$",
+                           recursive = TRUE, full.names = TRUE) %>%
+    map_df(read.csv) %>% filter(COMMON.NAME %in% spec_lt)
+  modtrends5 <- list.files(lttsens_pathonly, pattern = "^sim5\\.csv$",
+                           recursive = TRUE, full.names = TRUE) %>%
+    map_df(read.csv) %>% filter(COMMON.NAME %in% spec_lt)
+  
+  save(modtrends1, modtrends2, modtrends3, modtrends4, modtrends5, 
+       file = lttsens_path)
+  
+}
+
+# current-trend sensitivity: produce_trends.R writes one file per species
+# (COMMON.NAME + a currentslopelci/mean/rci triplet per CAT year, in the
+# same order as soib_year_info("cat_years")); we stack them into the single
+# all-species csv classify_and_summarise.R expects at cursens_path.
+if (run_res_trends_CAT == TRUE) {
+  
+  sens <- list.files(cursens_pathonly, full.names = TRUE) %>%
+    map_df(read.csv)
+  
+  # ensuring every mapping species has a row (NA where sensitivity wasn't run),
+  # and that the first column is the taxonomy-year name column as expected
+  # downstream
+  sens <- main %>%
+    dplyr::select(all_of(soib_name_col)) %>%
+    left_join(sens, by = setNames("COMMON.NAME", soib_name_col))
+  
+  write.csv(sens, file = cursens_path, row.names = FALSE)
+  
+}
 # if habitat/conservation area mask, we skip resolve_occu completely (take from full-country)
 if (!cur_metadata$MASK.TYPE %in% c("country", "state")) {
   skip_res_occu <- TRUE 
@@ -73,10 +135,11 @@ if (skip_res_occu == TRUE) {
   
   # take relevant columns from wocats file of full-country
   tojoin <- read.csv(get_metadata("none")$SOIBMAIN.WOCATS.PATH) %>%
-    distinct(eBird.English.Name.2024, rangelci, rangemean, rangerci)
+    dplyr::select(all_of(soib_name_col), rangelci, rangemean, rangerci) %>%
+    distinct()
   
   # joining to main object
-  main <- main %>% left_join(tojoin)
+  main <- main %>% left_join(tojoin, by = soib_name_col)
   
   # checkpoint-object "main"
   main5_postoccu <- main
@@ -139,7 +202,7 @@ main = main %>%
     
     SoIB.Latest.Range.Status = case_when(
       is.na(rangemean) ~ NA_character_,
-      rangemean == 0 & !(eBird.English.Name.2024 %in% spec_vagrants) ~ "Historical",
+      rangemean == 0 & !(.data[[soib_name_col]] %in% spec_vagrants) ~ "Historical",
       # above is to prevent species that are not historical but classified as vagrants
       # from being classified as Historical (instead, Very Restricted)
       rangerci < 625 ~ "Very Restricted",
@@ -164,26 +227,27 @@ main = main %>%
 # have Range Status assigned. So, this part needs to be removed later.
 ###
 
-if (cur_metadata$MASK.TYPE == "state") {
-  
-  main_tokeep <- main %>% filter(is.na(SoIB.Latest.Range.Status) | SoIB.Latest.Range.Status == "Historical")
-  
-  main_toupdate <- anti_join(main, main_tokeep) %>% dplyr::select(-SoIB.Latest.Range.Status)
-  
-  main_nat <- get_metadata("none") %>%
-    pull(SOIBMAIN.PATH) %>%
-    read.csv() %>%
-    distinct(eBird.English.Name.2024, SoIB.Latest.Range.Status)
-  
-  main_update <- left_join(main_toupdate, main_nat)
-  
-  main_order = main %>% dplyr::select(eBird.English.Name.2024)
-  main <- main_order %>% 
-    left_join(bind_rows(main_tokeep, main_update))
-  
-  rm(main_tokeep, main_toupdate, main_nat, main_update, main_order)
-  
-}
+# if (cur_metadata$MASK.TYPE == "state") {
+#   
+#   main_tokeep <- main %>% filter(is.na(SoIB.Latest.Range.Status) | SoIB.Latest.Range.Status == "Historical")
+#   
+#   main_toupdate <- anti_join(main, main_tokeep) %>% dplyr::select(-SoIB.Latest.Range.Status)
+#   
+#   main_nat <- get_metadata("none") %>%
+#     pull(SOIBMAIN.PATH) %>%
+#     read.csv() %>%
+#     dplyr::select(all_of(soib_name_col), SoIB.Latest.Range.Status) %>%
+#     distinct()
+#   
+#   main_update <- left_join(main_toupdate, main_nat, by = soib_name_col)
+#   
+#   main_order = main %>% dplyr::select(all_of(soib_name_col))
+#   main <- main_order %>% 
+#     left_join(bind_rows(main_tokeep, main_update), by = soib_name_col)
+#   
+#   rm(main_tokeep, main_toupdate, main_nat, main_update, main_order)
+#   
+# }
 
 
 # classification: adjust SoIB Status based on sensitivity for trends ----------------
@@ -194,7 +258,7 @@ if (run_res_trends == TRUE) {
     
     # sensitivity check for long-term trends ###
     
-    load(lttsens_path)
+    #load(lttsens_path)
     
     modtrends1 = ltt_sens_class(modtrends1)
     modtrends2 = ltt_sens_class(modtrends2)
@@ -203,11 +267,11 @@ if (run_res_trends == TRUE) {
     modtrends5 = ltt_sens_class(modtrends5)
     
     sens_ltt <- main %>%
-      dplyr::select(eBird.English.Name.2024, SoIB.Latest.Long.Term.Status) %>%
+      dplyr::select(all_of(soib_name_col), SoIB.Latest.Long.Term.Status) %>%
       # the modtrendsN files only have species for which we have run LTT
       filter(!is.na(SoIB.Latest.Long.Term.Status),
              SoIB.Latest.Long.Term.Status != "Insufficient Data") %>%
-      rename(COMMON.NAME = eBird.English.Name.2024) %>%
+      rename(COMMON.NAME = !!sym(soib_name_col)) %>%
       bind_rows(modtrends1, modtrends2, modtrends3, modtrends4, modtrends5) %>%
       group_by(COMMON.NAME) %>%
       # how many different status categories have been assigned?
@@ -237,7 +301,7 @@ if (run_res_trends == TRUE) {
     
     
     main <- main %>%
-      left_join(sens_ltt, by = c("eBird.English.Name.2024" = "COMMON.NAME")) %>%
+      left_join(sens_ltt, by = setNames("COMMON.NAME", soib_name_col)) %>%
       # if Status assignment is not robust, take the most conservative one
       mutate(SoIB.Latest.Long.Term.Status = case_when(ROBUST == 0 ~ CONSERVATIVE.STATUS,
                                                  TRUE ~ SoIB.Latest.Long.Term.Status)) %>%
@@ -254,7 +318,7 @@ if (run_res_trends == TRUE) {
   
   # changes classifications based on sensitivity analyses
   
-  sens <- read.csv(cursens_path)
+  #sens <- read.csv(cursens_path)
   
   # classifying the sens values to SoIB categories
   sens_cat <- imap(soib_year_info("cat_years"), ~ {
@@ -277,15 +341,15 @@ if (run_res_trends == TRUE) {
         TRUE ~ "Stable"
         
       )) %>%
-      dplyr::select(eBird.English.Name.2024, SoIB.Latest.Current.Status.Sens) %>%
-      magrittr::set_colnames(c("eBird.English.Name.2024", glue("s{.x}")))
+      dplyr::select(all_of(soib_name_col), SoIB.Latest.Current.Status.Sens) %>%
+      magrittr::set_colnames(c(soib_name_col, glue("s{.x}")))
     
   }) %>%
-    reduce(full_join)
+    reduce(full_join, by = soib_name_col)
   
   sens_cat <- main %>%
-    dplyr::select(eBird.English.Name.2024, SoIB.Latest.Current.Status) %>%
-    left_join(sens_cat) %>%
+    dplyr::select(all_of(soib_name_col), SoIB.Latest.Current.Status) %>%
+    left_join(sens_cat, by = soib_name_col) %>%
     filter(!SoIB.Latest.Current.Status %in% c("Insufficient Data", "Trend Inconclusive"))
   
   
@@ -300,7 +364,9 @@ if (run_res_trends == TRUE) {
   ind6 = numeric(0)
   ind7 = numeric(0)
   
-  for (i in 1:length(sens_cat$eBird.English.Name.2024)) {
+  # seq_len() rather than 1:length(), so a zero-row sens_cat skips the loop
+  # instead of iterating over c(1, 0). Column 1 is the species-name column.
+  for (i in seq_len(nrow(sens_cat))) {
     
     categs = as.vector(sens_cat[i,-1])
     
@@ -341,9 +407,9 @@ if (run_res_trends == TRUE) {
   ind6 = ind6 %>% setdiff(ind.rem)
   ind7 = ind7 %>% setdiff(ind.rem)
   
-  spec_ind.rem <- sens_cat$eBird.English.Name.2024[ind.rem]
-  spec_ind6 <- sens_cat$eBird.English.Name.2024[ind6]
-  spec_ind7 <- sens_cat$eBird.English.Name.2024[ind7]
+  spec_ind.rem <- sens_cat[[soib_name_col]][ind.rem]
+  spec_ind6 <- sens_cat[[soib_name_col]][ind6]
+  spec_ind7 <- sens_cat[[soib_name_col]][ind7]
   
   
   
@@ -352,9 +418,9 @@ if (run_res_trends == TRUE) {
     # changing classification where needed
     mutate(SoIB.Latest.Current.Status = case_when(
       
-      eBird.English.Name.2024 %in% spec_ind.rem ~ "Trend Inconclusive",
-      eBird.English.Name.2024 %in% spec_ind6 ~ "Decline",
-      eBird.English.Name.2024 %in% spec_ind7 ~ "Increase",
+      .data[[soib_name_col]] %in% spec_ind.rem ~ "Trend Inconclusive",
+      .data[[soib_name_col]] %in% spec_ind6 ~ "Decline",
+      .data[[soib_name_col]] %in% spec_ind7 ~ "Increase",
       TRUE ~ SoIB.Latest.Current.Status
       
     ))
@@ -434,7 +500,7 @@ main = main %>%
   mutate(across(c(longtermlci, longtermmean, longtermrci),
                 ~ . - 100)) %>%
   # ensuring correct order of columns
-  relocate(eBird.English.Name.2024, eBird.Scientific.Name.2024, eBird.Code, Order, Family,
+  relocate(all_of(c(soib_name_col, soib_sciname_col)), eBird.Code, Order, Family,
            SoIB.Past.Priority.Status, SoIB.Past.Long.Term.Status, SoIB.Past.Current.Status, SoIB.Past.Range.Status,
            Breeding.Activity.Period, Non.Breeding.Activity.Period,
            Diet.Guild, India.Endemic, Subcontinent.Endemic, Himalayas.Endemic, Endemic.Region,
@@ -443,6 +509,9 @@ main = main %>%
            India.Checklist.Common.Name, India.Checklist.Scientific.Name,
            BLI.Common.Name, BLI.Scientific.Name, IUCN.Category, WPA.Schedule,
            CITES.Appendix, CMS.Appendix, Onepercent.Estimates,
+           Avilist.English.Name, Avilist.Scientific.Name, Avibase.ID, Selected.NRL,
+           Generation.Length, No.of.Subspecies, Percent.of.Global.Range,
+           India.Checklist.Sortorder,
            Long.Term.Analysis, Current.Analysis, Selected.SoIB,
            totalrange25km, proprange25km2000, proprange25km.current, proprange25km.latestyear,
            mean5km, ci5km,
@@ -472,8 +541,12 @@ nat_priority <- get_metadata("none")$SOIBMAIN.PATH %>%
   read.csv() %>% 
   # contains() because if running national for first time, column will have previous year, 
   # else current year
-  dplyr::select(contains("eBird.English.Name.20"), SoIB.Latest.Priority.Status) %>%
+  dplyr::select(matches("^eBird\\.English\\.Name\\.\\d{4}$"),
+                SoIB.Latest.Priority.Status) %>%
   unique()
+
+# taxonomy of the national file, which may lag the current run's taxonomy
+nat_priority_name_col <- get_soib_name_col(nat_priority)
 
 main <- main %>% 
   # SoIB past statuses not available for habs/states
@@ -483,10 +556,10 @@ main <- main %>%
                 ~ case_when(cur_mask != "none" ~ NA, TRUE ~ .))) %>% 
   # Priority Status for subnational levels should take the national-level values
   # but only if running latest year subnational AFTER latest year national run
-  {if (as.numeric(str_remove(names(nat_priority)[1], "eBird.English.Name.")) == 
-       soib_year_info("latest_year")) {
+  # i.e. only if the national file is already on the same taxonomy as this run
+  {if (nat_priority_name_col == soib_name_col) {
     dplyr::select(., -SoIB.Latest.Priority.Status) %>% 
-      left_join(nat_priority, by = "eBird.English.Name.2024") 
+      left_join(nat_priority, by = soib_name_col) 
   } else {
     .
   }} 
@@ -503,7 +576,21 @@ if (interannual_update == TRUE){
   
   main_past = read.csv(main_path)
   main_past_spec_col <- names(main_past)[1]
-  eBird_cur_tax = paste("eBird.English.Name.",soib_year_info("latest_year"),sep="")
+  # current taxonomy column, taken from the mapping-derived main object rather
+  # than rebuilt from a year. kept under the old name for readability below.
+  eBird_cur_tax = soib_name_col
+  
+  # ebird_tax_mapping() is what carries names from the past taxonomy to the
+  # current one, so it must have a column for this run's taxonomy. computed
+  # once and reused, and checked up front so a stale mapping fails with a
+  # clear message rather than an "unknown column" error deeper in.
+  tax_mapping <- ebird_tax_mapping()
+  
+  if (!soib_name_col %in% names(tax_mapping)) {
+    stop(glue("ebird_tax_mapping() has no '{soib_name_col}' column. \\
+              The taxonomy mapping needs updating to match the current \\
+              SoIB mapping file."))
+  }
   
   if (!file.exists(status_majupd_path)) { # for the 1st interannual update in one major update cycle
 
@@ -513,10 +600,10 @@ if (interannual_update == TRUE){
     status_maj_upd = main_past %>%
       dplyr::select(all_of(main_past_spec_col), SOIBv2.Long.Term.Status, SOIBv2.Current.Status,
                     SOIBv2.Range.Status, SOIBv2.Priority.Status) %>%
-      left_join(ebird_tax_mapping(), by = main_past_spec_col) %>%
+      left_join(tax_mapping, by = main_past_spec_col) %>%
       # SOIB.v2 to be updated to SoIB.Latest in the next annual update
       # Need to raise an issue here as the main files can't be edited
-      dplyr::select(eBird.English.Name.2024,
+      dplyr::select(all_of(soib_name_col),
                     SoIB.Major.Update.Long.Term.Status = SOIBv2.Long.Term.Status,
                     SoIB.Major.Update.Current.Status = SOIBv2.Current.Status,
                     SoIB.Major.Update.Range.Status = SOIBv2.Range.Status,
@@ -534,19 +621,19 @@ if (interannual_update == TRUE){
     
       # to ensure that it's brought to the correct taxonomy in the following years
       status_maj_upd <- status_maj_upd %>%
-        left_join(ebird_tax_mapping()) %>% 
-        group_by(eBird.English.Name.2024) %>% slice(1) %>%
-        dplyr::select(eBird_cur_tax, starts_with("SoIB.Major.Update"))
+        left_join(tax_mapping) %>% 
+        group_by(!!sym(soib_name_col)) %>% slice(1) %>%
+        dplyr::select(all_of(eBird_cur_tax), starts_with("SoIB.Major.Update"))
       
       write.csv(status_maj_upd, file = status_majupd_path, row.names = FALSE)
   }
   
   status_maj_upd <- status_maj_upd %>%
-    group_by(eBird.English.Name.2024) %>% slice(1)
+    group_by(!!sym(soib_name_col)) %>% slice(1)
     
   # add to current main data, order with the major update columns at the end
   main = main %>%
-    left_join(status_maj_upd, by = "eBird.English.Name.2024") %>%
+    left_join(status_maj_upd, by = soib_name_col) %>%
     # ensuring correct order of columns
     relocate(SoIB.Major.Update.Long.Term.Status, SoIB.Major.Update.Current.Status,
              SoIB.Major.Update.Range.Status, SoIB.Major.Update.Priority.Status,

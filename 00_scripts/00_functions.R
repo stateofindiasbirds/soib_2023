@@ -2748,3 +2748,31 @@ cat_sensitivity_sim <- function() {
   return(cattrends_sim)
   
 }
+
+# Species name column -----------------------------------------
+# This returns the species name column in the SoIB mapping file
+# without having to hard-code the year of the taxonomy
+# `x` can be a data frame or a character vector of column names. `prefix`
+# allows the same helper to fetch the scientific-name column
+
+get_soib_name_col <- function(x, prefix = "eBird.English.Name") {
+  
+  nms <- if (is.character(x)) x else names(x)
+  
+  matches <- stringr::str_subset(nms, glue("^{prefix}\\.\\d{{4}}$"))
+  
+  if (length(matches) == 0) {
+    stop(glue("No column matching '{prefix}.<year>' found. \\
+              Columns present: {toString(head(nms, 20))}"))
+  }
+  
+  if (length(matches) > 1) {
+    years <- as.numeric(stringr::str_extract(matches, "\\d{4}$"))
+    warning(glue("Multiple '{prefix}.<year>' columns found \\
+                 (years: {toString(sort(years))}). Using {max(years)}."))
+    matches <- matches[which.max(years)]
+  }
+  
+  matches
+  
+}
