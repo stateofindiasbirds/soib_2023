@@ -152,6 +152,9 @@ if (skip_res_occu == TRUE) {
 
 # any vagrant reported recently
 spec_vagrants <- d %>%
+  left_join(data_chk %>% dplyr::select(SAMPLING.EVENT.IDENTIFIER,
+                                       group.id,
+                                       year)) %>%
   filter(year > (soib_year_info("latest_year") - 5)) %>%
   distinct(COMMON.NAME) %>%
   pull(COMMON.NAME)

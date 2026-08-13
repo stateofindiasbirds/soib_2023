@@ -1682,13 +1682,9 @@ singlespeciesrun = function(container, reproducible, stats_dir, species_dir, dat
 
 
 # occupancy
-occupancyrun = function(data, i, speciesforocc, queen_neighbours)
+occupancyrun = function(data, species, status, queen_neighbours)
 {
-  species = speciesforocc$eBird.English.Name.2025[i]
-  status = speciesforocc$status[i]
 
-  tic(glue("Modelled occupancy of {species}"))
-  
   # filter data only within the known spatial and temporal range of the species
   data = data %>%
     filter(COMMON.NAME == species) %>%
@@ -1698,6 +1694,13 @@ occupancyrun = function(data, i, speciesforocc, queen_neighbours)
   data_filt_mig <- data %>% 
     # filter (or not) the data based on migratory status
     filt_data_for_mig(species, status)
+  
+  if(length(data_filt_mig$COMMON.NAME) == 0)
+  {
+    occpred_occupancy = NULL
+    return(occpred_occupancy)
+    break
+  }
   
   # expanding data for absences also
   data_exp = expand_dt(data_filt_mig, species) %>% 
@@ -1805,7 +1808,7 @@ occupancyrun = function(data, i, speciesforocc, queen_neighbours)
     
     occ_det = tryCatch({occu(~ log(cov1) * cov2 ~ prop_nb,
                              data = occdata_UFO,
-                             starts = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+                             starts = c(0, 0, 0, 0, 0, 0),
                              engine = "C")},
                        error = function(cond){"skip"})
     
@@ -1850,13 +1853,11 @@ occupancyrun = function(data, i, speciesforocc, queen_neighbours)
              occupancy = occ*inv.det,
              se = occ*inv.det*((det.se/inv.det) + (occ.se/occ)))
       
+  } else {
+    occpred_occupancy = NULL
   }
-
-  toc()
   
-  # to combine
-  tocomb = occpred_occupancy
-  return(tocomb)
+  return(occpred_occupancy)
   
 }
 

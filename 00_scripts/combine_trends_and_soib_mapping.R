@@ -13,7 +13,7 @@ source('00_scripts/00_functions.R')
 
 interannual_update <- TRUE
 cur_metadata <- get_metadata(cur_mask)
-mapping_path <- "00_data/SoIB_mapping_2024.csv"
+mapping_path <- "00_data/SoIB_mapping_2025.csv"
 
 # read paths
 base_path <- cur_metadata$FULLSPECLIST.PATH
@@ -289,5 +289,3 @@ if (run_res_trends == FALSE) {
 
 # saving info for trends columns
 write.csv(main, file = mainwocats_path, row.names = FALSE)
-
-

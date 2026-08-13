@@ -153,7 +153,7 @@ rm_prob_mistakes <- function(data) {
           "S55422829", "S137655719", "S219155239", "S214951539", "S27957329"
         )) |
         (COMMON.NAME == "Chestnut-bellied Sandgrouse" & SAMPLING.EVENT.IDENTIFIER %in% c(
-          "S137616888", "S64845421", "S52092547"
+          "S137616888", "S64845421", "S52092547", "S56568179", "S158752141"
         )) |
         (COMMON.NAME == "Greater Coucal" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S42608784", "S43386229"

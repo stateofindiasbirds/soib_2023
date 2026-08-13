@@ -207,7 +207,7 @@ source("00_scripts/run_species_occupancy-presence.R")
 toc()  
 tic("Ran modelled occupancy")
 source("00_scripts/run_species_occupancy-model.R")
-toc()  
+toc()
 
 
 # occupancy not run for hab masks at all. both presence and modelled data pulled from full-country.
@@ -215,11 +215,10 @@ toc()
 
 # states
 tic.clearlog()
-tic("Ran species occupancy for all states") # 5 h 25 min
-# Karnataka took ~13 min
+tic("Ran species occupancy for all states")
 
 analyses_metadata %>% 
-  filter(MASK.TYPE == "state") %>% 
+  filter(MASK.TYPE == "state") %>%
   distinct(MASK) %>% 
   # slice(1) %>% 
   pull(MASK) %>% 
@@ -239,7 +238,7 @@ analyses_metadata %>%
   })
 
 toc(log = TRUE, quiet = TRUE) 
-tic.log()
+tic.log() # 483s
 
 
 
@@ -260,7 +259,6 @@ load("00_data/analyses_metadata.RData")
 
 tic.clearlog()
 tic("Resolved trends & occupancy for all 42 masks")
-# full-country takes 5 h 11 min; woodland 2 h 10 min; PA 3 h 30 min
 
 print(glue("Activated future-walking using advanced Kenbunshoku Haki!"))
 
@@ -278,7 +276,8 @@ analyses_metadata %>%
     assign("interannual_update", interannual_update, envir = cur_env)
     
     tic(glue("Resolved trends & occupancy for {.x}"))
-    source("00_scripts/resolve_trends_and_occupancy.R", local = cur_env)
+    source("00_scripts/combine_trends_and_soib_mapping.R", local = cur_env)
+    source("00_scripts/combine_occupancy_and_soib_mapping.R", local = cur_env)
     toc()
     
   })
@@ -288,8 +287,6 @@ plan(sequential)
 
 toc(log = TRUE, quiet = TRUE) 
 tic.log()
-
-
 
 # STEP 2: Classify using trends and range status, and generate necessary outputs
 # Run:
@@ -303,6 +300,7 @@ tic.log()
 # Outputs: several
 
 load("00_data/analyses_metadata.RData")
+load("00_data/dataforanalyses_extra_chk.RData")
 
 tic.clearlog()
 tic("Finished classifying and summarising for all masks") # 2 min
