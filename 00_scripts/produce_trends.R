@@ -25,8 +25,16 @@ cat_folder <- cur_metadata$CAT.FOLDER
 
 load(cur_metadata$SPECLISTDATA.PATH)
 load(cur_metadata$DATA.PATH)
-wetland_filter = read.csv("00_data/wetland_classification.csv") %>%
-  dplyr::select(gridg0,grid_label) %>%
+
+## wetland grid selection file
+## details in "00_scripts/wetland_selection_check"
+
+wetland_filter = read.csv("00_data/grid_wetland_classification_intersection_all_states_seasonal_p50.csv")
+
+wetland_filter = wetland_filter %>%
+  arrange(desc(gridg0),desc(grid_label)) %>%
+  dplyr::distinct(gridg0,.keep_all = TRUE) %>%
+  dplyr::distinct(gridg0,grid_label) %>%
   mutate(gridg0 = as.character(gridg0))
   
 wetland_species = read.csv("00_data/soib_mapping_2025.csv") %>%
