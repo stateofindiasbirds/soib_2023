@@ -29,7 +29,7 @@ load(cur_metadata$DATA.PATH)
 ## wetland grid selection file
 ## details in "00_scripts/wetland_selection_check"
 
-wetland_filter = read.csv("00_data/grid_wetland_classification_intersection_all_states_seasonal_p50.csv")
+wetland_filter = read.csv("00_data/grid_wetland_classification_intersection_all_states_seasonal_p20.csv")
 
 wetland_filter = wetland_filter %>%
   arrange(desc(gridg0),desc(grid_label)) %>%

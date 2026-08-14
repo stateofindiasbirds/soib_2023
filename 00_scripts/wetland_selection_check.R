@@ -12,9 +12,9 @@
 # qualify if 50% of lists in any year are wetland lists
 # 19340 out of 58343
 # qualify if 50% of lists in any season in any year are wetland lists
-# 21771 out of 58343 ##### SELECTED!
+# 21771 out of 58343
 # qualify if 20% of lists in any season in any year are wetland lists
-# 23757 out of 58343
+# 23757 out of 58343 ##### SELECTED!
 
 library(tidyverse)
 
