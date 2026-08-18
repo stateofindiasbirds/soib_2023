@@ -384,65 +384,6 @@ readcleanrawdata = function(ebdpath,
   write.csv(locdat,"00_data/eBird_location_data.csv", row.names=FALSE)
   
   
-  # need to combine several closely related species and slashes/spuhs
-  # so, first changing their category to species since they will be combined next
-  data_obs = data_obs %>%
-    mutate(SCIENTIFIC.NAME = NULL, # needed it for printing indiaspecieslists
-           CATEGORY = case_when(COMMON.NAME %in% c(
-             "Green/Greenish Warbler", "Siberian/Amur Stonechat", "Red-necked/Little Stint",
-             "Western/Eastern Yellow Wagtail", "Common/Himalayan Buzzard",
-             "Western/Eastern Marsh Harrier", "Tibetan/Greater Sand-Plover", "Baikal/Spotted Bush Warbler",
-             "Lemon-rumped/Sichuan Leaf Warbler",
-             "Bank Swallow/Pale Martin", "Riparia sp.", "Greater/Mongolian Short-toed Lark",
-             "Taiga/Red-breasted Flycatcher", "Tricolored x Chestnut Munia (hybrid)", "Little/House Swift", 
-             "Pin-tailed/Swinhoe's Snipe", "Booted/Sykes's Warbler", "Iduna sp.", "Greater/Malabar Flameback",
-             "Indian/Oriental Cuckooshrike","European/Eastern Red-rumped Swallow",
-             "Hainan Blue/Blue-throated/Chinese Blue Flycatcher"
-           ) ~ "species",
-           TRUE ~ CATEGORY)) %>%
-    # combining species, slashes and spuhs
-    mutate(COMMON.NAME = case_when(
-      COMMON.NAME %in% c("Green Warbler", "Green/Greenish Warbler") ~ "Greenish Warbler",
-      COMMON.NAME %in% c("Amur Stonechat", "Siberian/Amur Stonechat") ~ "Siberian Stonechat",
-      COMMON.NAME %in% c("Red-necked Stint", "Red-necked/Little Stint") ~ "Little Stint",
-      COMMON.NAME %in% c("Eastern Yellow Wagtail", 
-                         "Western/Eastern Yellow Wagtail") ~ "Western Yellow Wagtail",
-      COMMON.NAME %in% c("Himalayan Buzzard", 
-                         "Common/Himalayan Buzzard") ~ "Common Buzzard",
-      COMMON.NAME %in% c("Eastern Marsh Harrier", 
-                         "Western/Eastern Marsh Harrier") ~ "Western Marsh Harrier",
-      COMMON.NAME %in% c("Greater Sand-Plover", 
-                         "Tibetan/Greater Sand-Plover") ~ "Tibetan Sand-Plover",
-      COMMON.NAME %in% c("Baikal Bush Warbler", 
-                         "Baikal/Spotted Bush Warbler") ~ "Spotted Bush Warbler",
-      COMMON.NAME %in% c("Sichuan Leaf Warbler", 
-                         "Lemon-rumped/Sichuan Leaf Warbler") ~ "Lemon-rumped Warbler",
-      COMMON.NAME %in% c("Pale Martin", "Bank Swallow/Pale Martin", 
-                         "Riparia sp.") ~ "Gray-throated Martin",
-      COMMON.NAME %in% c("Mongolian Short-toed Lark", 
-                         "Greater/Mongolian Short-toed Lark") ~ "Greater Short-toed Lark",
-      COMMON.NAME %in% c("Taiga Flycatcher", 
-                         "Taiga/Red-breasted Flycatcher") ~ "Red-breasted Flycatcher",
-      COMMON.NAME %in% c("Chestnut Munia", 
-                         "Tricolored x Chestnut Munia (hybrid)") ~ "Tricolored Munia",
-      COMMON.NAME %in% c("House Swift", "Little/House Swift") ~ "Little Swift",
-      COMMON.NAME %in% c("Swinhoe's Snipe", 
-                         "Pin-tailed/Swinhoe's Snipe") ~ "Pin-tailed Snipe",
-      COMMON.NAME %in% c("Sykes's Warbler", "Booted/Sykes's Warbler",
-                         "Iduna sp.") ~ "Booted Warbler",
-      COMMON.NAME %in% c("Malabar Flameback", 
-                         "Greater/Malabar Flameback") ~ "Greater Flameback",
-      COMMON.NAME %in% c("Nicobar Hooded Pitta") ~ "Western Hooded Pitta",
-      COMMON.NAME %in% c("Oriental Cuckooshrike", 
-                         "Indian/Oriental Cuckooshrike") ~ "Indian Cuckooshrike",
-      COMMON.NAME %in% c("European Red-rumped Swallow", 
-                         "European/Eastern Red-rumped Swallow") ~ "Eastern Red-rumped Swallow",
-      COMMON.NAME %in% c("Hainan Blue Flycatcher", 
-                         "Hainan Blue/Blue-throated/Chinese Blue Flycatcher") ~ "Blue-throated Flycatcher",
-      TRUE ~ COMMON.NAME
-    ))
-  
-  
   ## setup eBird data ##
   
   
