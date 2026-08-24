@@ -85,6 +85,7 @@ speciesforocc = fullmap %>%
   filter(eBird.English.Name.2025 %in% specieslist$COMMON.NAME)
 noofspecies = length(speciesforocc$eBird.English.Name.2025)
 
-data = data %>% filter(year > (soib_year_info("latest_year") - 5))
+data = data %>% filter(year > (soib_year_info("latest_year") - 5)) %>%
+  filter(!is.na(gridg1))
 
 vec = 1:noofspecies

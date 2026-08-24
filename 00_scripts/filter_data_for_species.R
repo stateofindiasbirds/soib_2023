@@ -50,6 +50,7 @@ spec_openland = fullmap %>%
 # 0. main data filtering -----------------------------------------------------
 
 load("00_data/data_obs.RData")
+load("00_data/data_obs_pel.RData")
 load("00_data/data_chk.RData")
 
 # for stats/summary of data filtering and properties at each step
@@ -71,7 +72,8 @@ data_chk = data_chk %>%
 
 
 # removing vagrants
-data_obs = removevagrants(data_obs,data_chk)
+data_obs = removevagrants(data_obs,data_chk,"00_data/vagrantdata.RData")
+data_obs_pel = removevagrants(data_obs_pel,data_chk,"00_data/vagrantdata_pelagics.RData")
 
 stats3 = paste(nrow(data_obs),"filter 1 observations")
 stats4 = paste(length(unique(data_obs$group.id)),"filter 1 unique checklists")
@@ -91,9 +93,16 @@ load("00_data/vagrantdata.RData")
 vagrants = d %>%
   mutate(vagrant = 1)
 
+load("00_data/vagrantdata_pelagics.RData")
+
+vagrants_pel = d %>%
+  mutate(vagrant = 1)
+
 data_total = data_obs %>%
   mutate(vagrant = 0) %>%
-  bind_rows(vagrants)
+  bind_rows(data_obs_pel %>% mutate(vagrant = 0)) %>%
+  bind_rows(vagrants) %>%
+  bind_rows(vagrants_pel)
 
 checklist_grids = data_chk %>%
   dplyr::distinct(SAMPLING.EVENT.IDENTIFIER,gridg0)

@@ -3,8 +3,8 @@
 ## All of this should come from the config file
 
 par_cores = 12
-sims_main = 20 # for the bootMer here, no subsampling!
-sims_boot = 20 # for sensitivity
+sims_main = 1000 # for the bootMer here, no subsampling!
+sims_boot = 100 # for sensitivity
 
 ###### start of actual code
 
@@ -98,7 +98,7 @@ ltemp_full = ltemp_full %>%
 
 for (species in totalspecieslist_ordered$COMMON.NAME)
 {
-  print(species)
+  print(paste(species,"in",cur_mask))
   
   ltemp_base = ltemp_full %>%
     mutate(COMMON.NAME = species, .before = 1)

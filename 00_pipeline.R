@@ -43,7 +43,7 @@ readcleanrawdata(ebdpath = "00_data/ebd_IN_unv_smp_relJun-2026.txt",
                  samppath = "00_data/ebd_IN_unv_smp_relJun-2026_sampling.txt", 
                  sensitivepath = "00_data/ebd_sensitive_relJun-2026.txt",
                  centroidspath = "00_data/centroids_sanitized_relJun-2026.rds")
-toc() # 994s
+toc() # 951s
 
 
 # for the following steps, there are two data files required, which need to be generated
@@ -121,8 +121,8 @@ toc()
 
 load("00_data/analyses_metadata.RData")
 par_cores = 12
-sims_main = 20 # for the bootMer here, no subsampling!
-sims_boot = 20
+sims_main = 1000 # for the bootMer here, no subsampling!
+sims_boot = 100
 #speciesfortrends = c("Cotton Pygmy-Goose",
 #                     "Indian Courser")
 
@@ -151,20 +151,26 @@ tic(glue("Species trends for {cur_mask}"))
 source("00_scripts/produce_trends.R")
 toc()
 
-not_my_states <- c(
-  c("Karnataka")
-#  c("Gujarat", "Uttarakhand", "West Bengal", "Maharashtra", "Karnataka", "Kerala", "Tamil Nadu", 
-#    "Meghalaya", "Ladakh")
+my_states <- c(
+  c("Assam","Maharashtra","Kerala","Tamil Nadu")
 )
+
+not_my_states <- c(
+  c("Karnataka","Gujarat","Uttarakhand",
+    "Sikkim","Mizoram","Manipur","Tripura","Nagaland","Punjab",
+    "Haryana","Himachal Pradesh","Andaman and Nicobar Islands",
+    "Bihar","Chandigarh","Lakshadweep","Arunachal Pradesh",
+    "West Bengal","Maharashtra","Kerala","Tamil Nadu","Assam")
+)
+
 tic.clearlog()
 tic("Ran species trends for all states")
-# Karnataka takes 4.5 min per 1 sim
 
 analyses_metadata %>% 
   filter(MASK.TYPE == "state") %>% 
   distinct(MASK) %>% 
   filter(!MASK %in% not_my_states) %>% 
-  #filter(MASK %in% c("Tripura", "Punjab", "Jharkhand", "Nagaland")) %>% 
+  #filter(MASK %in% my_states) %>% 
   pull(MASK) %>% 
   # walking over each state
   walk(~ {

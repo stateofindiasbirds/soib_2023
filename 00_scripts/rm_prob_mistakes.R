@@ -76,7 +76,7 @@ rm_prob_mistakes <- function(data) {
       "S203495170", "S111316155", "S169416018", "S169399895", "S155771635", "S214011504", 
       "S153867893", "S253072001", "S198075026", "S228864870", "S208463601", "S222067580", 
       "S98830317", "S225576061", "S223003481", "S229210207", "S243742726", "S202877624", 
-      "S229209773",
+      "S229209773", "S306226317",
       "S160166713", "S282832470", "S283440081", "S96381499", "S159337116", "S190619149",
       "S147153171", "S306386604", "S96353158", "S96353157", "S96353156", "S96353155",
       "S96353154", "S53923465", "S260563663", "S125485302", "S125444787", "S125442932",
@@ -732,6 +732,7 @@ rm_prob_mistakes <- function(data) {
         (COMMON.NAME == "Palani Laughingthrush" & SAMPLING.EVENT.IDENTIFIER %in% c(
           "S31676224", "S22431563", "S20614283", "S31503751"
         )) |
+        (COMMON.NAME == "Himalayan Thrush" & SAMPLING.EVENT.IDENTIFIER == "S252360191") |
         (COMMON.NAME == "Nilgiri Sholakili" & SAMPLING.EVENT.IDENTIFIER == "S17766545") |
         (COMMON.NAME == "White-bellied Sholakili" & SAMPLING.EVENT.IDENTIFIER == "S154433927") |
         (COMMON.NAME == "Jungle Babbler" & SAMPLING.EVENT.IDENTIFIER %in% c(
@@ -1427,11 +1428,11 @@ rm_prob_mistakes <- function(data) {
   mistake6 <- data %>% 
     filter(
         (COMMON.NAME == "Nicobar Serpent-Eagle" &
-           LATITUDE < 7.850891) |
+           LATITUDE > 7.850891) |
         (COMMON.NAME == "Nicobar Scops-Owl" &
-           LATITUDE < 7.850891) |
+           LATITUDE > 7.850891) |
         (COMMON.NAME == "Nicobar Parakeet" &
-           LATITUDE < 7.850891) |
+           LATITUDE > 7.850891) |
         (COMMON.NAME == "Greater Racket-tailed Drongo" & STATE == "Uttarakhand" & LONGITUDE < 78.761) |
         (COMMON.NAME == "Red-whiskered Bulbul" & (
           COUNTY == "Pune" & LONGITUDE > 74.1

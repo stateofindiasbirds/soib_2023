@@ -504,23 +504,34 @@ addmapvars = function(datapath1 = "00_data/rawdata_obs.RData",
   
   data_chk = data_chk %>% 
     left_join(temp) %>% 
-    # removes pelagics
-    filter(!is.na(INLAND)) %>% 
-    dplyr::select(-INLAND) %>% 
     left_join(habmasks_sf)
   
+  data_chk_pel = data_chk %>% 
+    # only pelagics
+    filter(is.na(INLAND)) %>% 
+    dplyr::select(-INLAND)
+  
+  data_chk = data_chk %>%
+    dplyr::select(-INLAND)
+  
+  data_obs_pel = data_obs %>%
+    filter(SAMPLING.EVENT.IDENTIFIER %in% data_chk_pel$SAMPLING.EVENT.IDENTIFIER)
+  
   data_obs = data_obs %>%
-    filter(SAMPLING.EVENT.IDENTIFIER %in% data_chk$SAMPLING.EVENT.IDENTIFIER)
+    filter(!SAMPLING.EVENT.IDENTIFIER %in% data_chk_pel$SAMPLING.EVENT.IDENTIFIER)
   
   ### 
   
   assign("data_obs",data_chk,.GlobalEnv)
+  assign("data_obs_pel",data_obs_pel,.GlobalEnv)
   assign("data_chk",data_chk,.GlobalEnv)
 
   save(data_obs, file="00_data/data_obs.RData")
+  save(data_obs_pel, file="00_data/data_obs_pel.RData")
   save(data_chk, file="00_data/data_chk.RData")
   
   rm(data_obs, pos = ".GlobalEnv")
+  rm(data_obs_pel, pos = ".GlobalEnv")
   rm(data_chk, pos = ".GlobalEnv")
   
 }
@@ -590,7 +601,7 @@ completelistcheck = function(data_chk) {
 ## remove vagrants
 ## to use in dataspeciesfilter()
 
-removevagrants = function(data_obs,data_chk)
+removevagrants = function(data_obs,data_chk,name)
 {
   # mapping of SoIB-species-of-interest to a range of variables/classifications
   # (manually created)
@@ -623,7 +634,7 @@ removevagrants = function(data_obs,data_chk)
     filter(year >= soib_year_info("cat_start")) %>%
     dplyr::select(all_of(names_obs))
   
-  save(d, file = "00_data/vagrantdata.RData")
+  save(d, file = name)
   
   data_obs = anti_join(data_obs, d)
   return(data_obs)
