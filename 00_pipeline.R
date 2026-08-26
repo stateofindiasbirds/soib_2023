@@ -139,7 +139,7 @@ toc()
 cur_mask <- "cropland"
 tic(glue("Species trends for {cur_mask}"))
 source("00_scripts/produce_trends.R")
-toc() 
+toc()
 
 cur_mask <- "ONEland"
 tic(glue("Species trends for {cur_mask}"))
