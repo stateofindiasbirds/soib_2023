@@ -217,9 +217,11 @@ species <- c (
   "Brown-cheeked Rail"
 )
 
-aoo_selected <- read.csv(file.path(datapath, "aoo_selected.csv"),
-                      stringsAsFactors = FALSE)
-
+aoo_selected <- read.csv(file.path(datapath, "species_aoo_prefilter.csv"),
+                      stringsAsFactors = FALSE) %>% 
+                        select (english_name)
+colnames(aoo_selected) <- c("Species")
+                      
 EOO <- readRDS(file.path(datapath,"eoo.RDS"))
 EOO <- EOO %>%
   filter(Species %in% aoo_selected$Species)

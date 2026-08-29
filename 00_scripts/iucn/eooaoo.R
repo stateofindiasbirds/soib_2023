@@ -22,11 +22,11 @@ source(file.path(scriptpath, "eoo.R"))
 # Makes a list of species for which there has been an EOO change
 source(file.path(scriptpath, "eoodiff.R"))
 
-# Uses EOO maps to filter out only the grids that overlap with EOO 
-source(file.path(scriptpath, "eooGrids.R"))
-
 # Use the grids from EOO and calculate AOO
 source(file.path(scriptpath, "aooprefilter.R"))
+
+# Uses EOO maps to filter out only the grids that overlap with EOO 
+source(file.path(scriptpath, "eooGrids.R"))
 
 # Use the grids from EOO and calculate AOO
 source(file.path(scriptpath, "aoo.R"))
@@ -34,17 +34,18 @@ source(file.path(scriptpath, "aoo.R"))
 # Maps the AOO Grids (which is the EOO area) with occupancy and also shows the AOO/EOO values
 source(file.path(scriptpath, "maps.R"))
 
-EOO <- readRDS(file.path(resultspath, "eoo.RDS")) %>% filter (EOOEndYear == 2025)
+EOO <- readRDS(file.path(resultspath, "eoo_df.RDS")) %>% filter (EOOEndYear == 2025)
 EOODiff <- readRDS(file.path(resultspath, "eoodiff.RDS")) %>% filter(str_detect(EOOYearBandChange, "to .*2025$"))
 AOO <- readRDS (file.path(resultspath, "aoo.RDS"))
+MaxEOO <- read_csv(file.path(scriptpath, "MaxEOO.csv")) %>% select (Species, MaxEOO)
 
-EOOAOO <- AOO %>% left_join(EOO, by = c("Species")) %>% left_join(EOODiff, c("Species"))
+EOOAOO <- EOO %>% left_join(AOO, by = c("Species")) %>% left_join(EOODiff, c("Species")) %>% left_join (MaxEOO, c("Species"))
 EOOAOO <- EOOAOO %>%
   mutate(
     MinAOO = round(MinAOO),
     MaxAOO = round(MaxAOO),
     LikelyEOO = round(LikelyEOO),
-    MaxEOO = NA,
+    MaxEOO = round(MaxEOO),
     EOOChange = round(EOOChange),
   ) %>% 
   select (Species, MinAOO, MaxAOO, MinEstimate_2km, EOOStartYear, LikelyEOO, MaxEOO, EOOYearBandChange, EOOChange, EOOChangePercent)

@@ -2,30 +2,31 @@ library(dplyr)
 library(readr)
 source("00_scripts/iucn/config_iucn.R")
 
-latestYear <- 2024 #Obtain this from a configuration 
 
 # ============================================================
 # 1. READ BASIC EOO/AOO DATA & PREPARE. ALWAYS AVAILABLE
 # ============================================================
 
-#############Map names###############
+# ============================================================
+# READ EOO/AOO AND SOIB DATA
+# ============================================================
 
-species_list <- read.csv(nrlspecieslistfile)
-#EOOAOO is generated directly using eBird names
-EOOAOO <- read.csv(eooaoofile)  %>%
-              mutate(
-                eBirdName = trimws(Species)
-              )
+# EOO/AOO is generated directly using eBird names
+EOOAOO <- read.csv(eooaoofile) %>%
+  mutate(
+    eBirdName = trimws(Species)
+  )
 
-# SoIB main file should be only for species selected for redlist
-soib_main <- read_csv(soibmainfile) %>% 
-                mutate(
-                  eBirdName  = trimws(eBird.English.Name.2024),
-                  EnglishName = trimws(India.Checklist.Common.Name)
-                ) %>%
-                filter(
-                  EnglishName %in% trimws(species_list$English.Name)
-                ) 
+# SoIB main file — only species selected for NRL
+soib_main <- read.csv(get_metadata("none")$SOIBMAIN.PATH) %>%
+  mutate(
+    eBirdName  = trimws(eBird.English.Name.2025),
+    EnglishName = trimws(India.Checklist.Common.Name)
+  ) %>%
+  filter(
+    Selected.NRL == 1
+  )
+
 
 # Map eBird names from EOOAOO to SoIB eBird names
 EOOAOO <- EOOAOO %>%
@@ -50,8 +51,9 @@ basiceooaoo <- EOOAOO %>%
     EOOChangePercent
   ) %>%
   mutate (
-    MinAOO = as.integer(round(MinAOO,0)),
-    MaxAOO = as.integer(round(MaxAOO,0)),
+    #AOO cant be more than EOO
+    MinAOO = ifelse (MinAOO > LikelyEOO, as.integer(round(LikelyEOO,0)), as.integer(round(MinAOO,0))),
+    MaxAOO = ifelse (MaxAOO > LikelyEOO, as.integer(round(LikelyEOO,0)), as.integer(round(MaxAOO,0))),
     LikelyEOO = as.integer(round(LikelyEOO,0)),
     MaxEOO = as.integer(round(MaxEOO,0))
   )
@@ -123,7 +125,9 @@ NoOfLocations <- if (file.exists(nooflocationsfile)) {
     ) %>% 
     select (
       EnglishName,
-      Locations)
+      MinLocations,
+      Locations,
+      MaxLocations)
 } else {
   tibble()
 }
@@ -350,11 +354,11 @@ criteriaB_data <- criteriaB_data %>%
     # ----------------------------
     # B2: AOO thresholds
     # ----------------------------
-    CR_B2 = !is.na(MinAOO) & MinAOO < 10,
+    CR_B2 = !is.na(MaxAOO) & MaxAOO < 10,
     
-    EN_B2 = !is.na(MinAOO) & MinAOO < 500,
+    EN_B2 = !is.na(MaxAOO) & MaxAOO < 500,
     
-    VU_B2 = !is.na(MinAOO) & MinAOO < 2000,
+    VU_B2 = !is.na(MaxAOO) & MaxAOO < 2000,
     
     NT_B2 =
       (!is.na(MinAOO) & MinAOO < 3000) |
@@ -569,6 +573,8 @@ criteriaB_output <- criteriaB_data %>%
     # --------------------------------------------------------
     SeverelyFragmented,
     Locations,
+    MinLocations,
+    MaxLocations,
     
     a_severely_fragmented,
     a_CR_locations,
