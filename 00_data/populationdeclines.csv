@@ -1,0 +1,12 @@
+Species,Method,Reversible,ReasonUnderstood,ReasonCeased,StartYear,EndYear,DeclinePercentRci,DeclinePercentMean,DeclinePercentLci,DirectObservation,AbundanceIndex,EOODecline,AOODecline,HabitatQuality,Exploitation,OtherEffects,Source
+White-rumped Vulture,Estimated,1,1,0,2002,2022,57,75,98,1,0,1,1,1,0,0,Prakash et al. 2024
+Indian Vulture,Estimated,1,1,0,2002,2022,13,37,78,1,0,1,1,1,0,0,Prakash et al. 2024
+Slender-billed Vulture,Inferred,1,1,0,1992,2002,88,93,94,1,0,1,1,1,0,0,Prakash et al. 2024
+Indian Vulture,Inferred,1,1,0,1992,2002,88,93,94,1,0,1,1,1,0,0,Prakash et al. 2024
+White-rumped Vulture,Estimated,1,1,0,1992,2002,99.5,99,99.9,1,0,1,1,1,0,0,Prakash et al. 2024
+White-winged Wood-Duck,Suspected,1,0,0,1995,2023,57,65,75,1,0,1,1,1,1,0,Ahmed et al. (2023)
+White-winged Wood-Duck,Projected,1,0,0,1995,2025,57,65,75,1,0,1,1,1,1,0,Ahmed et al. (2023)
+Great Indian Bustard,Estimated,1,1,0,1969,2008,76,76,76,1,0,1,1,1,1,0,SoIB 2023; Dutta et al. 2013
+Lesser Florican,Estimated,1,1,0,1982,2017,79,79,79,1,0,1,1,1,1,0,SoIB 2023; Dutta et al. 2018
+Lesser Florican,Projected,1,1,0,1982,2025,79,79,79,1,0,1,1,1,1,0,SoIB 2023; Dutta et al. 2018
+White-bellied Heron,Estimated,1,1,0,2007,2025,50,50,50,1,0,0,1,1,1,0,Menzis et al. 2026
