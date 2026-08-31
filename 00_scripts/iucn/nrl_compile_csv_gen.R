@@ -67,79 +67,68 @@ criteriaB_results <- read_csv(criteriaBResultsfile)
 criteriaC_results <- read_csv(criteriaCResultsfile)
 criteriaD_results <- read_csv(criteriaDResultsfile)
 
-species_list     <- read.csv(nrlspecieslistfile) %>% 
-                    mutate(EnglishName = `English.Name`)
+# ============================================================
+# READ SOIB DATA
+# ============================================================
 
+soib_main <- read_csv(get_metadata("none")$SOIBMAIN.PATH) %>% 
+  mutate(
+    EnglishName = trimws(India.Checklist.Common.Name),
+    eBirdName = trimws(eBird.English.Name.2025),
+    BirdLifeName = trimws(BLI.Scientific.Name),
+    ScientificName = trimws(India.Checklist.Scientific.Name),
     
-soib_main <- read_csv(soibmainfile) %>% 
-                mutate(
-                  EnglishName = India.Checklist.Common.Name,
-                  eBirdName = eBird.English.Name.2024,
-                  BirdLifeName = BLI.Scientific.Name,
-                  ScientificName = India.Checklist.Scientific.Name
-                ) %>%
-                filter(
-                  EnglishName %in% trimws(species_list$EnglishName)
-                ) 
+    # Formatting for final output
+    SubspeciesCount = as.integer(No.of.Subspecies),
+    GenerationLength = Generation.Length,
+    
+    regionalrange = case_when(
+      is.na(Percent.of.Global.Range) ~ NA_character_,
+      Percent.of.Global.Range < 0.01 ~ "< 1%",
+      TRUE ~ paste0(round(Percent.of.Global.Range * 100, 0), "%") 
+    )
+  ) %>%
+  filter(
+    Selected.NRL == 1
+  )
+
 soib_main %>%
   count(EnglishName) %>%
   filter(n > 1)
 
 soib_main <- soib_main %>% 
-                distinct(EnglishName, .keep_all = TRUE)
+  distinct(EnglishName, .keep_all = TRUE)
+
+
+# ============================================================
+# IUCN ASSESSMENTS
+# ============================================================
 
 iucn_assessments <- read_csv(assessmentsflattenedfile) %>% 
-                      mutate(
-                        EnglishName = `English Name`
-                      ) %>%
-                    filter(
-                      EnglishName %in% trimws(soib_main$EnglishName)
-                    ) 
+  mutate(
+    EnglishName = trimws(india_checklist_common_name_2025)
+  ) %>%
+  filter(
+    EnglishName %in% soib_main$EnglishName
+  )
 
 iucn_assessments %>%
   count(EnglishName) %>%
   filter(n > 1)
 
 iucn_assessments <- iucn_assessments %>% 
-                    select (EnglishName,
-                        red_list_category_code,
-                        criteria,
-                        url,
-                        supplementary_info_json_generational_length,
-                        supplementary_info_json_population_size,
-                        supplementary_info_json_estimated_extent_of_occurence,
-                        supplementary_info_json_estimated_area_of_occupancy,
-                        population_trend_description_en) %>%
-                      distinct(EnglishName, .keep_all = TRUE)
+  select(
+    EnglishName,
+    red_list_category_code,
+    criteria,
+    url,
+    supplementary_info_json_population_size,
+    supplementary_info_json_estimated_extent_of_occurence,
+    supplementary_info_json_estimated_area_of_occupancy,
+    population_trend_description_en
+  ) %>%
+  distinct(EnglishName, .keep_all = TRUE)
 
-percentrange <- read_csv(percentrangefile) %>% 
-                    select (sci_name, pp) %>%
-                    transmute (
-                      BirdLifeName = sci_name,
-                      regionalrange = case_when(
-                        is.na(pp) ~ NA_character_,
-                        pp < 0.01 ~ "< 1%",
-                        TRUE ~ paste0(round(pp * 100, 0), "%")
-                      )
-                    ) %>%
-                distinct(BirdLifeName, .keep_all = TRUE) %>%
-                inner_join(
-                  soib_main %>%
-                    select(BirdLifeName, EnglishName),
-                  by = "BirdLifeName"
-                ) %>%
-                select (EnglishName, regionalrange)
-
-
-subpopulations   <- read_csv(subpopulationsfile) %>% 
-                      mutate(
-                        ScientificName = Species) %>% 
-                        inner_join(
-                          soib_main %>%
-                            select(ScientificName, EnglishName),
-                          by = "ScientificName"
-                        ) %>%
-                        select (EnglishName, No_of_Subspecies)
 
 # ============================================================
 
@@ -151,23 +140,6 @@ cat("\n=============================\n")
 cat("ANTI-JOIN CHECKS\n")
 cat("=============================\n")
 
-# ------------------------------------------------------------
-
-# 1. species_list vs soib_main
-
-# ------------------------------------------------------------
-
-cat("\n--- species_list English names missing in soib_main ---\n")
-
-anti_join(
-  species_list %>%
-    select(EnglishName),
-  
-  soib_main %>%
-    select(EnglishName),
-  
-  by = "EnglishName"
-)
 
 # ------------------------------------------------------------
 
@@ -290,54 +262,6 @@ anti_join(
 ) %>%
   print(n = Inf)
 
-# ------------------------------------------------------------
-
-# 7. Subpopulation scientific-name joins
-
-# ------------------------------------------------------------
-
-cat("\n--- soib_mainnames missing in subpopulations ---\n")
-
-anti_join(
-  soib_main %>%
-    select(EnglishName),
-  
-  subpopulations %>%
-    select(EnglishName),
-  
-  by = "EnglishName"
-) 
-
-# ------------------------------------------------------------
-
-# 8. Global percentage English name joins
-
-# ------------------------------------------------------------
-
-cat("\n--- soib_mainnames missing in global percentage file ---\n")
-
-anti_join(
-  soib_main %>%
-    select(EnglishName),
-  
-  percentrange %>%
-    select(EnglishName),
-  
-  by = "EnglishName"
-) 
-
-# ============================================================
-# 2. NORMALIZE KEYS
-# ============================================================
-
-#soib_main <- soib_main %>%
-#  mutate(
-#    EnglishName    = trimws(eBird.English.Name.2024),
-#    ScientificName = trimws(eBird.Scientific.Name.2024),
-#    BirdLifeName   = trimws(BLI.Scientific.Name),
-#    
-#  ) %>%
-#  distinct(ScientificName, .keep_all = TRUE)
 
 criteriaA_results <- criteriaA_results %>%
   mutate(EnglishName = trimws(EnglishName)) %>%
@@ -355,12 +279,6 @@ criteriaD_results <- criteriaD_results %>%
   mutate(EnglishName = trimws(EnglishName)) %>%
   distinct(EnglishName, .keep_all = TRUE)
 
-subpopulations <- subpopulations %>%
-  mutate(
-    SubspeciesCount = as.integer(No_of_Subspecies)
-  ) %>%
-  distinct(EnglishName, .keep_all = TRUE)
-
 # ============================================================
 # 3. MERGE ALL DATA (SoIB AS BASE)
 # ============================================================
@@ -372,22 +290,28 @@ left_join(iucn_assessments,
                                        by = "EnglishName", relationship = "many-to-one") %>%
   
   # ---- Criteria A ----
-left_join(criteriaA_results %>%
-            select(EnglishName, 
-                   CriteriaA_Category, 
-                   CriteriaA_String,
-                   ActualDecline,
-                   OrgStartYear,
-                   OrgEndYear,
-                   StartYear,
-                   EndYear,
-                   Decline,
-                   DeclineMean,
-                   DeclineLci,
-                   Years3GEN
-                   ),
-          by = "EnglishName",
-          relationship = "many-to-one") %>%
+left_join(
+  criteriaA_results %>%
+    select(
+      EnglishName, 
+      CriteriaA_Category, 
+      CriteriaA_String,
+      ActualDecline,
+      OrgStartYear,
+      OrgEndYear,
+      StartYear,
+      EndYear,
+      Decline,
+      DeclineMean,
+      DeclineLci,
+      Years3GEN
+    ) %>%
+    rename(
+      Years3GEN_A = Years3GEN
+    ),
+  by = "EnglishName",
+  relationship = "many-to-one"
+) %>%
   
   # ---- Criteria B ----
 left_join(criteriaB_results %>%
@@ -398,27 +322,55 @@ left_join(criteriaB_results %>%
                    MaxAOO,
                    LikelyEOO,
                    MaxEOO,
+                   MinLocations,
                    Locations,
+                   MaxLocations,
                    EOOChangePercent,
                    EOOYearBandChange
                    ),
           by = "EnglishName",
           relationship = "many-to-one") %>%
   
-  # ---- Criteria C ----
-left_join(criteriaC_results %>%
-            select(EnglishName,
-                   CriteriaC_Category,
-                   CriteriaC_String,
-                   MinMaturePop,
-                   MaxMaturePop,
-                   BestMaturePop,
-                   `1GEN Decline`,
-                   `2GEN Decline`,
-                   Years1GEN,
-                   Years2GEN),
-          by = "EnglishName",
-          relationship = "many-to-one") %>%
+# ---- Criteria C ----
+left_join(
+  criteriaC_results %>%
+    select(
+      EnglishName,
+      CriteriaC_Category,
+      CriteriaC_String,
+      MinMaturePop,
+      MaxMaturePop,
+      BestMaturePop,
+      C1_1GEN_Decline,
+      C1_2GEN_Decline,
+      C1_3GEN_Decline,
+      C1Method,
+      Years1GEN,
+      Years2GEN,
+      Years3GEN,
+      ContinuingDecline,
+      ContinuingDeclineMethod,
+      ActualDecline,
+      ActualDeclineMean,
+      ActualDeclineLci,
+      ActualDeclineStartYear,
+      ActualDeclineEndYear,
+      ActualDeclineYears
+    ) %>%
+    rename(
+      Years1GEN_C = Years1GEN,
+      Years2GEN_C = Years2GEN,
+      Years3GEN_C = Years3GEN,
+      ActualDecline_C1 = ActualDecline,
+      ActualDeclineMean_C1 = ActualDeclineMean,
+      ActualDeclineLci_C1 = ActualDeclineLci,
+      ActualDeclineStartYear_C1 = ActualDeclineStartYear,
+      ActualDeclineEndYear_C1 = ActualDeclineEndYear,
+      ActualDeclineYears_C1 = ActualDeclineYears
+    ),
+  by = "EnglishName",
+  relationship = "many-to-one"
+) %>%
   
   # ---- Criteria D ----
 left_join(criteriaD_results %>%
@@ -427,16 +379,8 @@ left_join(criteriaD_results %>%
                    CriteriaD_String
                    ),
           by = "EnglishName",
-          relationship = "many-to-one") %>%
-  
-  # ---- Subspecies ----
-left_join(subpopulations,
-          by = "EnglishName",
-          relationship = "many-to-one") %>% 
-left_join(percentrange,
-          by = "EnglishName",
           relationship = "many-to-one")
-
+  
 # ============================================================
 # 4. FINAL OUTPUT TABLE (UNCHANGED STRUCTURE)
 # ============================================================
@@ -465,7 +409,7 @@ species <- merged %>%
         category_rank[min(match(vals, category_rank))]
       }
     ),
-    GlobalRedlist = ifelse (is.na(red_list_category_code), "Not Assessed", category_map[red_list_category_code]),
+    GlobalRedlist = IUCN.Category,
     AdjustedRegionalRedlist = "To be done",
     # --------------------------------------------------------
     # SOIB FIELDS
@@ -492,19 +436,58 @@ species <- merged %>%
     # DECLINE METRICS
     # --------------------------------------------------------
     #Stringly everything
-    #Note, Decline comes from Criteria A file, others from Criteria C
-    Decline3GEN = ifelse(is.na(Decline),"NA",paste0(round(Decline,1))),
-    Decline3GENMean = ifelse(is.na(DeclineMean),"NA",paste0(round(DeclineMean,1))),
-    Decline3GENLci = ifelse(is.na(DeclineLci),"NA",paste0(round(DeclineLci,1))),
-    Years3GEN = Years3GEN,
+    #Note, Decline comes from Criteria A & C file, others from Criteria C
+    Decline3GEN_A = ifelse(
+      is.na(Decline),
+      "NA",
+      paste0(round(Decline, 1))
+    ),
+    Decline3GEN = Decline3GEN_A,
     
-    Decline2GEN = ifelse(is.na(`2GEN Decline`),"NA",paste0(round(`2GEN Decline`,1))),
-    Years2GEN = Years2GEN,
+    Decline3GEN_A_Mean = ifelse(
+      is.na(DeclineMean),
+      "NA",
+      paste0(round(DeclineMean, 1))
+    ),
+    Decline3GENMean = Decline3GEN_A_Mean,
+    
+    Decline3GEN_A_Lci = ifelse(
+      is.na(DeclineLci),
+      "NA",
+      paste0(round(DeclineLci, 1))
+    ),
+    Decline3GENLci = Decline3GEN_A_Lci,
+    
+    Decline3GEN_A_Method = "Inferred",
+    Years3GEN = Years3GEN_A,
 
-    Decline1GEN = ifelse(is.na(`1GEN Decline`),"NA",paste0(round(`1GEN Decline`,1))),
-    Years1GEN = Years1GEN,
-
-    GenerationLength = supplementary_info_json_generational_length,
+    Decline1GEN = ifelse(
+      is.na(C1_1GEN_Decline),
+      "NA",
+      paste0(round(C1_1GEN_Decline, 1))
+    ),
+    
+    Years1GEN = Years1GEN_C,
+    
+    Decline2GEN = ifelse(
+      is.na(C1_2GEN_Decline),
+      "NA",
+      paste0(round(C1_2GEN_Decline, 1))
+    ),
+    
+    Years2GEN = Years2GEN_C,
+    
+    Decline3GEN_C = ifelse(
+      is.na(C1_3GEN_Decline),
+      "NA",
+      paste0(round(C1_3GEN_Decline, 1))
+    ),
+    
+    Decline3GEN_C1_Method = C1Method,
+    Decline3GEN_ContinuingDeclineMethod = ContinuingDeclineMethod,
+    Years3GEN = Years3GEN_C,
+    
+    GenerationLength = GenerationLength,
     ActualDeclinePercentage = ifelse (`SoIB.Latest.Current.Status` %in% c("Stable", "Decline", "Rapid Decline", "Rapid Increase", "Increase"),
                                       paste0(round(currentslopemean,2),
                                      "% (",
@@ -519,6 +502,25 @@ species <- merged %>%
                                  "",
                                  paste0(as.integer(OrgEndYear-OrgStartYear),"y, ",OrgStartYear,"-",OrgEndYear))),
     ContinuingDecline  = ifelse( is.na(currentslopelci), "Unknown",ifelse (currentslopelci > 0, "No", ifelse(currentsloperci < 0, "Yes", "Uncertain"))),
+    
+    ActualDeclinePercentage_C1 = ifelse(
+      is.na(ActualDecline_C1),
+      "NA",
+      paste0(round(ActualDecline_C1, 1), "%")
+    ),
+    
+    YearsActualDecline_C1 = ifelse(
+      is.na(ActualDeclineStartYear_C1) | is.na(ActualDeclineEndYear_C1),
+      "",
+      paste0(
+        as.integer(ActualDeclineYears_C1),
+        "y, ",
+        as.integer(ActualDeclineStartYear_C1),
+        "-",
+        as.integer(ActualDeclineEndYear_C1)
+      )
+    ),
+    
     # --------------------------------------------------------
     # POPULATION
     # --------------------------------------------------------
@@ -542,7 +544,10 @@ species <- merged %>%
     # --------------------------------------------------------
     MinAOO = format_num(MinAOO),
     MaxAOO = ifelse (is.na(MaxAOO) | (MaxAOO == 0), "" ,paste0("(Max ",format_num(MaxAOO), ")")),
+    MinLocations = MinLocations,
     Locations = Locations,
+    MaxLocations = MaxLocations,
+    
     
     # --------------------------------------------------------
     # POPULATION COUNTS
@@ -555,7 +560,7 @@ species <- merged %>%
     GlobalEOO = format_num(supplementary_info_json_estimated_extent_of_occurence),
     GlobalAOO = format_num(supplementary_info_json_estimated_area_of_occupancy),
     
-    GlobalRangePercent = regionalrange, #Awaiting info from Alex
+    GlobalRangePercent = regionalrange, 
     GlobalPopulationTrend = population_trend_description_en,
     
     MigratoryStatusIndia = Migratory.Status.Within.India,
@@ -622,9 +627,6 @@ species <- species %>%
     )
   )
 
-
-species <- species %>%
-  filter(EnglishName %in% species_list$EnglishName)
 
 # ============================================================
 # 6. WRITE OUTPUT

@@ -9,34 +9,31 @@ library(stringr)
 source("00_scripts/iucn/config_iucn.R")
 
 
-#############Map names###############
+############# Map names ###############
 
-species_list <- read.csv(nrlspecieslistfile)
-#EOOAOO is generated directly using eBird names
-EOOAOO <- read.csv(eooaoofile)  %>%
+# EOOAOO is generated directly using eBird names
+EOOAOO <- read_csv(eooaoofile) %>%
   mutate(
     eBirdName = trimws(Species)
   )
 
-# SoIB main file should be only for species selected for redlist
-soib_main <- read_csv(soibmainfile) %>% 
+# SoIB main file — only species selected for NRL
+soib_main <- read_csv(get_metadata("none")$SOIBMAIN.PATH) %>%
   mutate(
-    eBirdName  = trimws(eBird.English.Name.2024),
+    eBirdName = trimws(eBird.English.Name.2025),
     EnglishName = trimws(India.Checklist.Common.Name),
     ScientificName = trimws(India.Checklist.Scientific.Name)
-    
   ) %>%
   filter(
-    EnglishName %in% trimws(species_list$English.Name)
-  ) 
+    Selected.NRL == 1
+  )
 
-# Map eBird names from EOOAOO to SoIB eBird names
+# Map eBird names from EOOAOO to SoIB names
 EOOAOO <- EOOAOO %>%
   inner_join(
     soib_main,
     by = "eBirdName"
-  ) 
-
+  )
 
 # ============================================================
 # 1. READ INPUT DATA
@@ -199,7 +196,15 @@ criteriaD_data <- criteriaD_data %>%
     MaxMaturePop =
       MaxPop *
       `Max Breeding Pop Percent` *
-      ifelse(`Male Ratio` > 0.5, 1 - `Male Ratio`, `Male Ratio`) * 2
+      ifelse(`Male Ratio` > 0.5, 1 - `Male Ratio`, `Male Ratio`) * 2,
+    
+    BestMaturePop =
+      ifelse(
+        !is.na(MinMaturePop) & !is.na(MaxMaturePop) &
+          MinMaturePop > 0 & MaxMaturePop > 0,
+        round(sqrt(MinMaturePop * MaxMaturePop), 0),
+        NA
+      )
   )
 
 # ============================================================
@@ -231,9 +236,9 @@ criteriaD_data <- criteriaD_data %>%
 criteriaD_data <- criteriaD_data %>%
   mutate(
     
-    CR_D = !is.na(MaxMaturePop) & MaxMaturePop < 50,
-    EN_D = !is.na(MaxMaturePop) & MaxMaturePop < 250,
-    VU_D1 = !is.na(MaxMaturePop) & MaxMaturePop < 1000,
+    CR_D = !is.na(BestMaturePop) & BestMaturePop < 50,
+    EN_D = !is.na(BestMaturePop) & BestMaturePop < 250,
+    VU_D1 = !is.na(BestMaturePop) & BestMaturePop < 1000,
     
     NT_D1 =
       !is.na(MaxMaturePop) &

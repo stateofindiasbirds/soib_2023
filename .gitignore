@@ -10,6 +10,7 @@
 *.zip
 *.rar
 40_manuscripts/01_blueprint/dataforanalyses_extra_2023.RData
+00_data/*ebird_tracks*
 
 */data_rangemap_vagrants.csv
 00_data/BOW_image_list.csv
@@ -17,19 +18,34 @@
 01_analyses_states/SoIB_state_summary.docx
 30_certificates/India_eBirders_20230815.csv
 
+
 # RData files
+00_data/checklist_grids.csv
 00_data/rawdata.RData
 00_data/data.RData
 00_data/dataforanalyses_extra.RData
+00_data/rawdata_obs.RData
+00_data/data_obs.RData
+00_data/data_obs_pel.RData
+00_data/dataforanalyses_extra_obs.RData
+00_data/rawdata_chk.RData
+00_data/data_chk.RData
+00_data/dataforanalyses_extra_chk.RData
 00_data/maps_pa_sf.RData
 00_data/grids_st_sf.Rdata
 00_data/randomgroupids.RData
 00_data/vagrantdata.RData
+00_data/vagrantdata_pelagics.RData
+
+# RDS files
+00_data/centroids_sanitized_relJun-2026.rds
 
 # for any mask
+sub_samp_locs.csv
+sub_samp_grids.csv
 dataforanalyses_2023.RData
 dataforanalyses.RData-data_opt
-dataforanalyses.RData 
+dataforanalyses.RData
 randomgroupids.RData
 # list length
 randomgroupids_di.RData
@@ -45,6 +61,7 @@ occupancy-presence/
 */*/results/occupancy/
 20_website/archive/
 40_manuscripts/02_listlength/results/
+
 
 
 # image outputs
@@ -77,6 +94,7 @@ occupancy-presence/
 All Trends/
 All Maps/
 All Trend Graphs/
+st_data/
 #Chennai/
 #New Delhi/
 #Mumbai/

@@ -169,15 +169,30 @@ get_iucn_proj_cols <- function() {
 ## read and clean raw data and add important columns like group id, seasonality variables
 ## place raw txt file (India download) in working directory 
 
-readcleanrawdata = function(rawpath = "00_data/ebd_IN_unv_smp_relAug-2025.txt", 
-                            sensitivepath = "00_data/ebd_sensitive_relAug-2025_IN.txt")
+readcleanrawdata = function(ebdpath,
+                            samppath,
+                            sensitivepath,
+                            centroidspath)
 {
+  require(lubridate)
+  require(tidyverse)
+  #ebdpath = "00_data/ebd_IN_unv_smp_relJun-2026.txt"
+  #samppath = "00_data/ebd_IN_unv_smp_relJun-2026_sampling.txt"
+  #sensitivepath = "00_data/ebd_sensitive_relJun-2026.txt"
+  #centroidspath = "00_data/centroids_sanitized_relJun-2026.rds"
+  
   # select only necessary columns
-  preimp = c("CATEGORY","COMMON.NAME","SCIENTIFIC.NAME","OBSERVATION.COUNT",
-             "LOCALITY.ID","LOCALITY.TYPE","REVIEWED","APPROVED","STATE","COUNTY",
-             "LATITUDE","LONGITUDE","OBSERVATION.DATE","TIME.OBSERVATIONS.STARTED","OBSERVER.ID",
-             "PROTOCOL.NAME","DURATION.MINUTES","EFFORT.DISTANCE.KM","EXOTIC.CODE",
-             "NUMBER.OBSERVERS","ALL.SPECIES.REPORTED","GROUP.IDENTIFIER","SAMPLING.EVENT.IDENTIFIER")
+  preimp_obs = c("CATEGORY","COMMON.NAME","SCIENTIFIC.NAME","OBSERVATION.COUNT",
+                 "REVIEWED","APPROVED","EXOTIC.CODE","SAMPLING.EVENT.IDENTIFIER")
+  
+  preimp_obs_sens = c("CATEGORY","COMMON.NAME","SCIENTIFIC.NAME","OBSERVATION.COUNT",
+                      "REVIEWED","APPROVED","EXOTIC.CODE","SAMPLING.EVENT.IDENTIFIER",
+                      "COUNTRY")
+  
+  preimp_chk = c("LOCALITY.ID","LOCALITY.TYPE","COUNTRY","STATE","COUNTY",
+                 "LATITUDE","LONGITUDE","OBSERVATION.DATE","TIME.OBSERVATIONS.STARTED","OBSERVER.ID",
+                 "PROTOCOL.NAME","DURATION.MINUTES","EFFORT.DISTANCE.KM","NUMBER.OBSERVERS",
+                 "ALL.SPECIES.REPORTED","GROUP.IDENTIFIER","SAMPLING.EVENT.IDENTIFIER")
   
   # CATEGORY - species, subspecies, hybrid, etc.; COMMON.NAME - common name of species;
   # SCIENTIFIC NAME - scientific name; OBSERVATION.COUNT - count of each species observed in a list;
@@ -188,59 +203,76 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_unv_smp_relAug-2025.txt",
   # EFFORT.DISTANCE.KM - distance traveled; NUMBER.OBSERVERS - no. of birders;
   # ALL.SPECIES.REPORTED - indicates whether a checklist is complete or not;
   # GROUP.IDENTIFIER - unique ID for every set of shared checklists (NA when not shared);
-  # SAMPLING.EVENT.IDENTIFIER - unique checlist ID
+  # SAMPLING.EVENT.IDENTIFIER - unique checklist ID
   
-  nms = read.delim(rawpath, nrows = 1, sep = "\t", header = T, quote = "", stringsAsFactors = F, 
+  nms = read.delim(ebdpath, nrows = 1, sep = "\t", header = T, quote = "", stringsAsFactors = F, 
                    na.strings = c(""," ",NA))
   nms = names(nms)
-  nms[!(nms %in% preimp)] = "NULL"
-  nms[nms %in% preimp] = NA
+  nms[!(nms %in% preimp_obs)] = "NULL"
+  nms[nms %in% preimp_obs] = NA
   
   # read data from certain columns only
-  data = read.delim(rawpath, colClasses = nms, sep = "\t", header = T, quote = "", 
+  data_obs = read.delim(ebdpath, colClasses = nms, sep = "\t", header = T, quote = "", 
                     stringsAsFactors = F, na.strings = c(""," ",NA))
-
+  
   # read sensitive species data
   nms1 = read.delim(sensitivepath, nrows = 1, sep = "\t", header = T, quote = "", stringsAsFactors = F, 
                     na.strings = c(""," ",NA))
   nms1 = names(nms1)
-  nms1[!(nms1 %in% preimp)] = "NULL"
-  nms1[nms1 %in% preimp] = NA
+  nms1[!(nms1 %in% preimp_obs_sens)] = "NULL"
+  nms1[nms1 %in% preimp_obs_sens] = NA
   
-
+  
   # read sensitive species data
-
+  
   sesp = read.delim(sensitivepath, colClasses = nms1, sep = "\t", header = T, quote = "", 
-                    stringsAsFactors = F, na.strings = c(""," ",NA))
-
+                    stringsAsFactors = F, na.strings = c(""," ",NA)) %>%
+    filter(COUNTRY == "India") %>%
+    dplyr::select(-COUNTRY)
+  
   
   # merge both data frames
-  data = rbind(data, sesp) %>%
+  data_obs = rbind(data_obs, sesp) %>%
     # remove unapproved records and records of escapees
     filter(REVIEWED == 0 | APPROVED == 1) %>%
     filter(!EXOTIC.CODE %in% c("X"))
   
-
+  # read sampling data
+  nms2 = read.delim(samppath, nrows = 1, sep = "\t", header = T, quote = "", stringsAsFactors = F, 
+                    na.strings = c(""," ",NA))
+  nms2 = names(nms1)
+  nms2[!(nms2 %in% preimp_chk)] = "NULL"
+  nms2[nms2 %in% preimp_chk] = NA
+  
+  # read data from certain columns only
+  data_chk = read.delim(samppath, colClasses = nms2, sep = "\t", header = T, quote = "", 
+                        stringsAsFactors = F, na.strings = c(""," ",NA))
+  
+  
+  
   ## choosing important columns required for further analyses
   
-  imp = c("CATEGORY","COMMON.NAME","SCIENTIFIC.NAME","OBSERVATION.COUNT",
-          "LOCALITY.ID", "REVIEWED","APPROVED","EXOTIC.CODE",
-          "LOCALITY.TYPE","STATE","COUNTY",
-          "LATITUDE","LONGITUDE","OBSERVATION.DATE","TIME.OBSERVATIONS.STARTED",
-          "OBSERVER.ID","PROTOCOL.NAME",
-          "DURATION.MINUTES","EFFORT.DISTANCE.KM",
-          "ALL.SPECIES.REPORTED","group.id","SAMPLING.EVENT.IDENTIFIER")
+  imp_obs = c("CATEGORY","COMMON.NAME","OBSERVATION.COUNT",
+              "REVIEWED","APPROVED","SAMPLING.EVENT.IDENTIFIER",
+              "EXOTIC.CODE","group.id","no.sp")
   
-
+  imp_chk = c("LOCALITY.ID","LOCALITY.TYPE","STATE","COUNTY",
+              "LATITUDE","LONGITUDE","OBSERVATION.DATE",
+              "TIME.OBSERVATIONS.STARTED","OBSERVER.ID",
+              "PROTOCOL.NAME","DURATION.MINUTES","EFFORT.DISTANCE.KM",
+              "NUMBER.OBSERVERS","ALL.SPECIES.REPORTED","GROUP.IDENTIFIER",
+              "SAMPLING.EVENT.IDENTIFIER","group.id")
+  
+  
   # no of days in every month, and cumulative number
   days = c(31,28,31,30,31,30,31,31,30,31,30,31)
   cdays = c(0,31,59,90,120,151,181,212,243,273,304,334)
   
-  data = data %>%
+  data_chk = data_chk %>%
     # create a column "group.id" which can help remove duplicate checklists
     mutate(group.id = ifelse(is.na(GROUP.IDENTIFIER), 
                              SAMPLING.EVENT.IDENTIFIER, GROUP.IDENTIFIER)) %>%
-    dplyr::select(all_of(imp)) %>%
+    dplyr::select(all_of(imp_chk)) %>%
     # other useful columns
     # set date, add month, year and day columns using package LUBRIDATE
     mutate(OBSERVATION.DATE = as.Date(OBSERVATION.DATE), 
@@ -249,138 +281,165 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_unv_smp_relAug-2025.txt",
            #week = week(OBSERVATION.DATE),
            #fort = ceiling(day/14),
            cyear = year(OBSERVATION.DATE)) %>%
-    dplyr::select(-c("OBSERVATION.DATE")) %>%
-    mutate(year = ifelse(month > 5, cyear, cyear-1)) %>% # from June to May
+    mutate(year = ifelse(month > 5, cyear, cyear-1)) # from June to May
+   
+  group_id_map = data_chk %>%
+    distinct(SAMPLING.EVENT.IDENTIFIER,group.id)
+  
+  data_obs = data_obs %>%
+    left_join(group_id_map) %>%
     # add number of species/list length column (no.sp), for list length analyses (lla)
     group_by(group.id) %>% 
     mutate(no.sp = n_distinct(COMMON.NAME)) %>%
-    ungroup()
+    ungroup() %>%
+    dplyr::select(all_of(imp_obs))
   
+  data_chk = data_chk %>%
+    # converting months to seasons
+    mutate(season = as.numeric(month)) %>% 
+    mutate(season = case_when(season %in% c(12,1,2) ~ "Win",
+                              season %in% c(3,4,5) ~ "Sum",
+                              season %in% c(6,7,8) ~ "Mon",
+                              season %in% c(9,10,11) ~ "Aut")) %>% 
+    mutate(season = as.factor(season)) %>%
+    left_join(data_obs %>% dplyr::distinct(group.id,no.sp))
+  
+  data_obs = data_obs %>%
+    dplyr::select(-no.sp)
+  
+  data_to_correct_chk = data_chk %>%
+    dplyr::select(SAMPLING.EVENT.IDENTIFIER,
+                  OBSERVER.ID,STATE,COUNTY,month,
+                  LATITUDE,LONGITUDE)
+  
+  data_to_correct = data_obs %>%
+    dplyr::select(COMMON.NAME,SAMPLING.EVENT.IDENTIFIER) %>%
+    left_join(data_to_correct_chk)
   
   # remove probable mistakes
   source("00_scripts/rm_prob_mistakes.R")
-  data <- rm_prob_mistakes(data)
+  data_to_keep <- rm_prob_mistakes(data_to_correct)
   
+  #saveRDS(data, "00_data/data_debug.RDS")
+  # Swap the location latitude and longitude with centroid latitude and longitude
+  # wherever applicable
+  
+  #data <- readRDS("00_data/data_debug.RDS")
+  
+  data_obs = data_obs %>%
+    semi_join(data_to_keep)
+  
+  data_chk = data_chk %>%
+    semi_join(data_to_keep %>% distinct(SAMPLING.EVENT.IDENTIFIER))
+  
+  centroids_sanitized <- readRDS(centroidspath)
+  
+  data_chk <- data_chk %>%
+    left_join(centroids_sanitized %>%
+                dplyr::select(c(checklist_id,
+                                centroid_longitude,
+                                centroid_latitude,
+                                longitude_min,
+                                longitude_max,
+                                latitude_min,
+                                latitude_max,
+                                location_score
+                                )),
+              by = join_by(SAMPLING.EVENT.IDENTIFIER == checklist_id))
+  
+  data_chk <- data_chk %>%
+    mutate(
+      new_longitude = case_when(
+        location_score <= 2 ~ centroid_longitude,
+        TRUE ~ LONGITUDE
+      ),
+      new_latitude = case_when(
+        location_score <= 2 ~ centroid_latitude,
+        TRUE ~ LATITUDE
+      )
+    )
+  
+  data_chk <- data_chk %>%
+    rename(LONGITUDE.CENTROID = centroid_longitude,
+           LATITUDE.CENTROID = centroid_latitude) %>%
+    rename(LATITUDE.OLD = LATITUDE,
+           LONGITUDE.OLD = LONGITUDE) %>%
+    rename(LATITUDE = new_latitude,
+           LONGITUDE = new_longitude) %>%
+    rename(LONGITUDE.MIN = longitude_min,
+           LONGITUDE.MAX = longitude_max) %>%
+    rename(LATITUDE.MIN = latitude_min,
+           LATITUDE.MAX = latitude_max) %>%
+    rename(location.score = location_score)
   
   # create and write a file with common names and scientific names of all Indian species
   # useful for mapping
-  temp = data %>%
+  temp = data_obs %>%
     filter(CATEGORY == "species" | CATEGORY == "issf") %>%
-    distinct(COMMON.NAME,SCIENTIFIC.NAME)
+    distinct(COMMON.NAME)
   write.csv(temp,"00_data/indiaspecieslist.csv", row.names=FALSE)
   
   # create location file for LULC
-  locdat = data %>% distinct(LOCALITY.ID, LATITUDE, LONGITUDE)
+  locdat = data_chk %>% distinct(LOCALITY.ID, LATITUDE, LONGITUDE)
   write.csv(locdat,"00_data/eBird_location_data.csv", row.names=FALSE)
-
-  
-  # need to combine several closely related species and slashes/spuhs
-  # so, first changing their category to species since they will be combined next
-  data = data %>%
-    mutate(SCIENTIFIC.NAME = NULL, # needed it for printing indiaspecieslists
-           CATEGORY = case_when(COMMON.NAME %in% c(
-      "Green/Greenish Warbler", "Siberian/Amur Stonechat", "Red-necked/Little Stint",
-      "Western/Eastern Yellow Wagtail", "Common/Himalayan Buzzard",
-      "Western/Eastern Marsh Harrier", "Tibetan/Greater Sand-Plover", "Baikal/Spotted Bush Warbler",
-      "Lemon-rumped/Sichuan Leaf Warbler",
-      "Bank Swallow/Pale Martin", "Riparia sp.", "Greater/Mongolian Short-toed Lark",
-      "Taiga/Red-breasted Flycatcher", "Tricolored x Chestnut Munia (hybrid)", "Little/House Swift", 
-      "Pin-tailed/Swinhoe's Snipe", "Booted/Sykes's Warbler", "Iduna sp.", "Greater/Malabar Flameback",
-      "Indian/Oriental Cuckooshrike","European/Eastern Red-rumped Swallow",
-      "Hainan Blue/Blue-throated/Chinese Blue Flycatcher"
-      ) ~ "species",
-      TRUE ~ CATEGORY)) %>%
-    # combining species, slashes and spuhs
-    mutate(COMMON.NAME = case_when(
-      COMMON.NAME %in% c("Green Warbler", "Green/Greenish Warbler") ~ "Greenish Warbler",
-      COMMON.NAME %in% c("Amur Stonechat", "Siberian/Amur Stonechat") ~ "Siberian Stonechat",
-      COMMON.NAME %in% c("Red-necked Stint", "Red-necked/Little Stint") ~ "Little Stint",
-      COMMON.NAME %in% c("Eastern Yellow Wagtail", 
-                         "Western/Eastern Yellow Wagtail") ~ "Western Yellow Wagtail",
-      COMMON.NAME %in% c("Himalayan Buzzard", 
-                         "Common/Himalayan Buzzard") ~ "Common Buzzard",
-      COMMON.NAME %in% c("Eastern Marsh Harrier", 
-                         "Western/Eastern Marsh Harrier") ~ "Western Marsh Harrier",
-      COMMON.NAME %in% c("Greater Sand-Plover", 
-                         "Tibetan/Greater Sand-Plover") ~ "Tibetan Sand-Plover",
-      COMMON.NAME %in% c("Baikal Bush Warbler", 
-                         "Baikal/Spotted Bush Warbler") ~ "Spotted Bush Warbler",
-      COMMON.NAME %in% c("Sichuan Leaf Warbler", 
-                         "Lemon-rumped/Sichuan Leaf Warbler") ~ "Lemon-rumped Warbler",
-      COMMON.NAME %in% c("Pale Martin", "Bank Swallow/Pale Martin", 
-                          "Riparia sp.") ~ "Gray-throated Martin",
-      COMMON.NAME %in% c("Mongolian Short-toed Lark", 
-                         "Greater/Mongolian Short-toed Lark") ~ "Greater Short-toed Lark",
-      COMMON.NAME %in% c("Taiga Flycatcher", 
-                         "Taiga/Red-breasted Flycatcher") ~ "Red-breasted Flycatcher",
-      COMMON.NAME %in% c("Chestnut Munia", 
-                         "Tricolored x Chestnut Munia (hybrid)") ~ "Tricolored Munia",
-      COMMON.NAME %in% c("House Swift", "Little/House Swift") ~ "Little Swift",
-      COMMON.NAME %in% c("Swinhoe's Snipe", 
-                         "Pin-tailed/Swinhoe's Snipe") ~ "Pin-tailed Snipe",
-      COMMON.NAME %in% c("Sykes's Warbler", "Booted/Sykes's Warbler",
-                         "Iduna sp.") ~ "Booted Warbler",
-      COMMON.NAME %in% c("Malabar Flameback", 
-                         "Greater/Malabar Flameback") ~ "Greater Flameback",
-      COMMON.NAME %in% c("Nicobar Hooded Pitta") ~ "Western Hooded Pitta",
-      COMMON.NAME %in% c("Oriental Cuckooshrike", 
-                         "Indian/Oriental Cuckooshrike") ~ "Indian Cuckooshrike",
-      COMMON.NAME %in% c("European Red-rumped Swallow", 
-                         "European/Eastern Red-rumped Swallow") ~ "Eastern Red-rumped Swallow",
-      COMMON.NAME %in% c("Hainan Blue Flycatcher", 
-                         "Hainan Blue/Blue-throated/Chinese Blue Flycatcher") ~ "Blue-throated Flycatcher",
-      TRUE ~ COMMON.NAME
-    ))
   
   
   ## setup eBird data ##
   
-
+  
   # for automatically selecting the latest migratory year to use in 
   # current SoIB run (done annually)
-  full_soib_my <- data |> 
+  full_soib_my <- data_chk |> 
     distinct(year, month) |> 
     group_by(year) |> 
     reframe(n_month = n_distinct(month)) |> 
     filter(n_month == 12) |> 
     pull(year)
-
+  
   latest_soib_my <- max(full_soib_my)
   
   # median years for each historical timegroup
-  median_soib_hist_years <- data %>% 
+  median_soib_hist_years <- data_chk %>% 
     distinct(group.id, .keep_all = TRUE) %>% 
     filter(ALL.SPECIES.REPORTED == 1) %>%
     mutate(hist_period = case_when(year <= 1999 ~ 1,
-                                  year > 1999 & year <= 2006 ~ 2,
-                                  year > 2006 & year <= 2010 ~ 3,
-                                  year > 2010 & year <= 2012 ~ 4)) %>% 
+                                   year > 1999 & year <= 2006 ~ 2,
+                                   year > 2006 & year <= 2010 ~ 3,
+                                   year > 2010 & year <= 2012 ~ 4)) %>% 
     group_by(hist_period) %>% 
     reframe(median_year = round(median(year))) %>% 
     arrange(hist_period) %>% 
     pull(median_year)
-
+  
   save(full_soib_my, latest_soib_my, median_soib_hist_years, 
        file = "00_data/current_soib_migyears.RData")
   # this RData file gets updated each time readcleanrawdata() is run---
   # which is usually only once in each annual or "major" update
   # (intermediate changes usually don't run readcleanrawdata() so year won't change)
-
-
+  
+  
   ## remove repeats by retaining only a single group.id + species combination
   
-  data = data %>%
-    distinct(group.id, COMMON.NAME, .keep_all = TRUE) |> 
-    filter(year <= latest_soib_my) %>% 
-    rename(ST_NM = STATE,
-           DISTRICT = COUNTY) %>% 
-    dplyr::select(-SAMPLING.EVENT.IDENTIFIER)
+  data_obs = data_obs %>%
+    left_join(data_chk %>% dplyr::select(SAMPLING.EVENT.IDENTIFIER,year)) %>%
+    filter(year <= latest_soib_my) %>%
+    dplyr::select(-year)
+    #distinct(group.id, COMMON.NAME, .keep_all = TRUE)
   
-  assign("data", data, .GlobalEnv)
+  data_chk = data_chk %>%
+    filter(year <= latest_soib_my) %>%
+    rename(ST_NM = STATE,
+           DISTRICT = COUNTY)
+
+  
+  assign("data_obs", data_obs, .GlobalEnv)
+  assign("data_chk", data_chk, .GlobalEnv)
   
   # save workspace
-  save(data, file = "00_data/rawdata.RData")
-  rm(data, pos = ".GlobalEnv")
+  save(data_obs, file = "00_data/rawdata_obs.RData")
+  save(data_chk, file = "00_data/rawdata_chk.RData")
+  rm(data_obs, pos = ".GlobalEnv")
+  rm(data_chk, pos = ".GlobalEnv")
   
 }
 
@@ -393,14 +452,16 @@ readcleanrawdata = function(rawpath = "00_data/ebd_IN_unv_smp_relAug-2025.txt",
 # See the India Maps repo:
 # https://github.com/birdcountindia/india-maps/blob/main/scripts/create_maps_sf.R
 
-addmapvars = function(datapath = "00_data/rawdata.RData", 
+addmapvars = function(datapath1 = "00_data/rawdata_obs.RData",
+                      datapath2 = "00_data/rawdata_chk.RData", 
                       mappath1 = "00_data/grids_sf_full.RData", 
                       mappath2 = "00_data/grids_g0_sf.RData",
                       mappath3 = "00_data/maps_sf.RData",
                       papath = "00_data/maps_pa_sf.RData",
                       maskspath = "00_data/habmasks_sf.RData")
 {
-  load(datapath)
+  load(datapath1)
+  load(datapath2)
   
   # map details to add to eBird data
   load(mappath1)
@@ -418,7 +479,7 @@ addmapvars = function(datapath = "00_data/rawdata.RData",
   
   sf_use_s2(FALSE)
   
-  temp = data %>%
+  temp = data_chk %>%
     distinct(group.id, LONGITUDE, LATITUDE) %>% 
     distinct(group.id, .keep_all = TRUE) |> 
     # joining map vars to EBD
@@ -441,19 +502,37 @@ addmapvars = function(datapath = "00_data/rawdata.RData",
     magrittr::set_colnames(c("pa.name","gridg0","gridg1","gridg2","gridg3",
                              "gridg4","group.id","INLAND"))
   
-  data = data %>% 
+  data_chk = data_chk %>% 
     left_join(temp) %>% 
-    # removes pelagics
-    filter(!is.na(INLAND)) %>% 
-    dplyr::select(-INLAND) %>% 
     left_join(habmasks_sf)
+  
+  data_chk_pel = data_chk %>% 
+    # only pelagics
+    filter(is.na(INLAND)) %>% 
+    dplyr::select(-INLAND)
+  
+  data_chk = data_chk %>%
+    dplyr::select(-INLAND)
+  
+  data_obs_pel = data_obs %>%
+    filter(SAMPLING.EVENT.IDENTIFIER %in% data_chk_pel$SAMPLING.EVENT.IDENTIFIER)
+  
+  data_obs = data_obs %>%
+    filter(!SAMPLING.EVENT.IDENTIFIER %in% data_chk_pel$SAMPLING.EVENT.IDENTIFIER)
   
   ### 
   
-  assign("data",data,.GlobalEnv)
+  assign("data_obs",data_chk,.GlobalEnv)
+  assign("data_obs_pel",data_obs_pel,.GlobalEnv)
+  assign("data_chk",data_chk,.GlobalEnv)
 
-  save(data, file="00_data/data.RData")
-  rm(data, pos = ".GlobalEnv")
+  save(data_obs, file="00_data/data_obs.RData")
+  save(data_obs_pel, file="00_data/data_obs_pel.RData")
+  save(data_chk, file="00_data/data_chk.RData")
+  
+  rm(data_obs, pos = ".GlobalEnv")
+  rm(data_obs_pel, pos = ".GlobalEnv")
+  rm(data_chk, pos = ".GlobalEnv")
   
 }
 
@@ -464,10 +543,10 @@ addmapvars = function(datapath = "00_data/rawdata.RData",
 ## type can be "trends" or "range"
 ## to use in dataspeciesfilter()
 
-completelistcheck = function(data) {
-  data = data %>% 
+completelistcheck = function(data_chk) {
+  data_chk = data_chk %>% 
     # create 2 columns from the "TIME.OBSERVATIONS.STARTED' column
-    mutate(DATETIME = as_datetime(paste("2023-06-01", # any date, we just need the time
+    mutate(DATETIME = as_datetime(paste("2026-06-01", # any date, we just need the time
                                         TIME.OBSERVATIONS.STARTED)),
            hr = hour(DATETIME),
            min = minute(DATETIME)) %>% 
@@ -484,7 +563,7 @@ completelistcheck = function(data) {
   
   # exclude any list that may in fact be incomplete ###
   
-  grp = data %>%
+  grp = data_chk %>%
     # only need checklist metadata
     distinct(group.id, .keep_all = TRUE) |> 
     # list of on-paper complete lists
@@ -494,7 +573,7 @@ completelistcheck = function(data) {
     pull(group.id)
   
   # exclude records based on various criteria 
-  data = data %>%
+  data_chk = data_chk %>%
     mutate(ALL.SPECIES.REPORTED = case_when(
       # fake complete lists
       ALL.SPECIES.REPORTED == 1 & 
@@ -513,7 +592,7 @@ completelistcheck = function(data) {
     )) %>% 
     dplyr::select(-speed,-sut,-hr,-min,-end,-DATETIME)
 
-  return(data)
+  return(data_chk)
 
 }
 
@@ -522,11 +601,11 @@ completelistcheck = function(data) {
 ## remove vagrants
 ## to use in dataspeciesfilter()
 
-removevagrants = function(data)
+removevagrants = function(data_obs,data_chk,name)
 {
   # mapping of SoIB-species-of-interest to a range of variables/classifications
   # (manually created)
-  fullmap = read.csv("00_data/SoIB_mapping_2024.csv")
+  fullmap = read.csv("00_data/SoIB_mapping_2025.csv")
   
   migspecies = fullmap %>%
     filter(!Migratory.Status.Within.India %in% c("Resident",
@@ -535,22 +614,30 @@ removevagrants = function(data)
                                                  "Resident & Localized Summer Migrant",
                                                  "Altitudinal Migrant",
                                                  "Resident (Extirpated)")) %>%
-    pull(eBird.English.Name.2024)
+    pull(eBird.English.Name.2025)
   
-  d = data %>%
+  names_obs = names(data_obs)
+  
+  d = data_obs %>%
+    left_join(data_chk %>% dplyr::select(SAMPLING.EVENT.IDENTIFIER,
+                                         gridg4,month,year)) %>%
     filter(COMMON.NAME %in% migspecies) %>%
     group_by(gridg4, month, COMMON.NAME) %>%
     reframe(nyear = n_distinct(year)) %>%
     filter(nyear <= 3) %>% 
     dplyr::select(gridg4, month, COMMON.NAME)
   
-  d = left_join(d, data) %>%
-    filter(year >= soib_year_info("cat_start"))
+  d = d %>%
+    left_join(data_obs %>%
+                left_join(data_chk %>% dplyr::select(SAMPLING.EVENT.IDENTIFIER,
+                                                     gridg4,month,year))) %>%
+    filter(year >= soib_year_info("cat_start")) %>%
+    dplyr::select(all_of(names_obs))
   
-  save(d, file = "00_data/vagrantdata.RData")
+  save(d, file = name)
   
-  data = anti_join(data, d)
-  return(data)
+  data_obs = anti_join(data_obs, d)
+  return(data_obs)
 }
 
 
@@ -585,32 +672,50 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = TRUE) {
   if (cur_mask == "none"){
     data0 = data_base
   } else if (cur_mask == "woodland"){
-    data0 = data_base %>% filter(maskWdl == 1)
+    data0 = data_base %>% 
+      left_join(data_chk %>% dplyr::distinct(group.id,maskWdl)) %>%
+      filter(maskWdl == 1) %>% dplyr::select(-maskWdl)
   } else if (cur_mask == "cropland"){
-    data0 = data_base %>% filter(maskCrp == 1)
+    data0 = data_base %>%
+      left_join(data_chk %>% dplyr::distinct(group.id,maskCrp)) %>%
+      filter(maskCrp == 1) %>% dplyr::select(-maskCrp)
   } else if (cur_mask == "ONEland"){
-    data0 = data_base %>% filter(maskOne == 1)
+    data0 = data_base %>% 
+      left_join(data_chk %>% dplyr::distinct(group.id,maskOne)) %>%
+      filter(maskOne == 1) %>% dplyr::select(-maskOne)
   } else if (cur_mask == "PA"){
-    data0 = data_base %>% filter(!is.na(pa.name))
+    data0 = data_base %>% 
+      left_join(data_chk %>% dplyr::distinct(group.id,pa.name)) %>%
+      filter(!is.na(pa.name)) %>% dplyr::select(-pa.name)
   } else {
     # states
-    data0 = data_base %>% filter(ST_NM == cur_mask)
+    data0 = data_base %>% 
+      left_join(data_chk %>% dplyr::distinct(group.id,ST_NM)) %>%
+      filter(ST_NM == cur_mask) %>% dplyr::select(-ST_NM)
   } 
   
+  data = data0 %>%
+    left_join(data_chk %>% dplyr::select(group.id,
+                                         ALL.SPECIES.REPORTED,
+                                         year,
+                                         timegroups,
+                                         season,
+                                         gridg0,
+                                         gridg1,
+                                         gridg2,
+                                         gridg3,
+                                         gridg4,
+                                         no.sp,
+                                         month)) %>%
+    dplyr::select(-CATEGORY)
   
   # number of sampled grid cell at each resolution
-  sampledcells = c(length(unique(data0$gridg0)),
-                   length(unique(data0$gridg1)),
-                   length(unique(data0$gridg2)),
-                   length(unique(data0$gridg3)),
-                   length(unique(data0$gridg4)))
+  sampledcells = c(length(unique(data$gridg0)),
+                   length(unique(data$gridg1)),
+                   length(unique(data$gridg2)),
+                   length(unique(data$gridg3)),
+                   length(unique(data$gridg4)))
 
-  
-  data = data0 %>% 
-    dplyr::select(-CATEGORY,-REVIEWED,-APPROVED,-ST_NM,-DISTRICT,
-                  -LOCALITY.TYPE,-LOCALITY.ID,-pa.name,-maskWdl,-maskCrp,-maskOne,
-                  -LATITUDE,-LONGITUDE,-PROTOCOL.NAME,-EXOTIC.CODE,-day,-cyear,
-                  -DURATION.MINUTES,-TIME.OBSERVATIONS.STARTED,-EFFORT.DISTANCE.KM)
   
   stats7 = paste(nrow(data[data$ALL.SPECIES.REPORTED == 1,]),
                  "filter 1 usable observations")
@@ -636,12 +741,25 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = TRUE) {
   # writing filtered data files ---------------------------------------------
   
   # saving a full list of location IDs to be used if required
-  locs_write = data0 %>% 
+  locs_write = data0 %>%
+    left_join(data_chk %>% dplyr::select(group.id,LOCALITY.ID,
+                                         month,timegroups,
+                                         ALL.SPECIES.REPORTED)) %>%
     filter(ALL.SPECIES.REPORTED == 1) %>%
     distinct(LOCALITY.ID, group.id, month, timegroups)
   
+  grids_write = data0 %>%
+    left_join(data_chk %>% dplyr::select(group.id,gridg0,
+                                         month,timegroups,
+                                         ALL.SPECIES.REPORTED)) %>%
+    filter(ALL.SPECIES.REPORTED == 1) %>%
+    distinct(gridg0, group.id, month, timegroups)
+  
   write.csv(locs_write, row.names = F, 
             file = cur_metadata$LOCS.PATH)
+  
+  write.csv(grids_write, row.names = F, 
+            file = cur_metadata$GRIDS.PATH)
   
   
   # saving the full filtered data
@@ -701,6 +819,10 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = TRUE) {
     # historical data (data from before 2000 onwards), used for long-term trends
     # gives list of species for which we have enough data and this analysis can be done
     datah = data0 %>%
+      left_join(data_chk %>% dplyr::select(ALL.SPECIES.REPORTED,
+                                           timegroups,
+                                           LOCALITY.ID,
+                                           gridg4)) %>%
       filter(ALL.SPECIES.REPORTED == 1, 
              CATEGORY %in% c("species", "issf")) %>%
       group_by(COMMON.NAME, timegroups) %>%
@@ -715,9 +837,13 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = TRUE) {
       mutate(ht = 1) %>% 
       dplyr::select(COMMON.NAME, ht)
     
-    # recent data (data from 2015 onwards), used for recent trends
+    # recent data (data from current year onwards), used for recent trends
     # gives list of species for which we have enough data and this analysis can be done
     datar = data0 %>%
+      left_join(data_chk %>% dplyr::select(ALL.SPECIES.REPORTED,
+                                           year,
+                                           LOCALITY.ID,
+                                           gridg4)) %>%
       filter(ALL.SPECIES.REPORTED == 1, 
              CATEGORY %in% c("species", "issf"), 
              year >= soib_year_info("cat_start")) %>%
@@ -738,6 +864,9 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = TRUE) {
     
     # for other species that don't qualify simple rules above (restricted range)
     dataresth1 = data0 %>%
+      left_join(data_chk %>% dplyr::select(ALL.SPECIES.REPORTED,
+                                           timegroups,
+                                           gridg4)) %>%
       filter(ALL.SPECIES.REPORTED == 1, 
              CATEGORY %in% c("species", "issf")) %>%
       group_by(COMMON.NAME, timegroups) %>%
@@ -751,12 +880,15 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = TRUE) {
       dplyr::select(COMMON.NAME)
     
     datarestr1 = data0 %>%
+      left_join(data_chk %>% dplyr::select(ALL.SPECIES.REPORTED,
+                                           year,
+                                           gridg4)) %>%
       filter(ALL.SPECIES.REPORTED == 1, 
              CATEGORY %in% c("species", "issf"), 
              year >= soib_year_info("cat_start")) %>%
-      group_by(COMMON.NAME, timegroups) %>%
+      group_by(COMMON.NAME, year) %>%
       reframe(cells = n_distinct(gridg4)) %>%
-      group_by(COMMON.NAME, timegroups) %>%
+      group_by(COMMON.NAME, year) %>%
       filter(cells <= gridlimit) %>%
       group_by(COMMON.NAME) %>% 
       reframe(years = n()) %>%
@@ -779,6 +911,8 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = TRUE) {
       for (i in 1:length(speciesresth$species))
       {
         tempresth1 = data0 %>%
+          left_join(data_chk %>% dplyr::select(timegroups,
+                                               gridg1)) %>%
           filter(COMMON.NAME == speciesresth$species[i]) %>%
           distinct(gridg1) %>%
           left_join(data0) %>%
@@ -804,16 +938,18 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = TRUE) {
       for (i in 1:length(speciesrestr$species))
       {
         temprestr1 = data0 %>%
+          left_join(data_chk %>% dplyr::select(year,
+                                               gridg1)) %>%
           filter(COMMON.NAME == speciesrestr$species[i]) %>%
           distinct(gridg1) %>%
           left_join(data0) %>%
           filter(year >= soib_year_info("cat_start")) %>%
-          group_by(timegroups) %>% 
+          group_by(year) %>% 
           reframe(n = n_distinct(group.id)) %>%
-          group_by(timegroups) %>%
+          group_by(year) %>%
           filter(n > listlimit)
         
-        if (length(temprestr1$timegroups) == length(soib_year_info("cat_years")))
+        if (length(temprestr1$year) == length(soib_year_info("cat_years")))
           speciesrestr$validr[speciesrestr$species == speciesrestr$species[i]] = 1
         
       }
@@ -988,6 +1124,8 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = TRUE) {
     # randomcheck a and b are to determine whether the models for these restricted species 
     # will include random effects or not - "randomcheck_a" has those species that qualified
     randomcheck_a = data0 %>% 
+      left_join(data_chk %>% dplyr::select(ALL.SPECIES.REPORTED,
+                                           gridg1)) %>%
       filter(ALL.SPECIES.REPORTED == 1, 
              COMMON.NAME %in% restrictedspecieslist$COMMON.NAME) %>%
       group_by(COMMON.NAME) %>% 
@@ -995,7 +1133,9 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = TRUE) {
       group_by(COMMON.NAME) %>% 
       filter(n > 7)
       
-    randomcheck_b = data0 %>% 
+    randomcheck_b = data0 %>%
+      left_join(data_chk %>% dplyr::select(ALL.SPECIES.REPORTED,
+                                           gridg1)) %>%
       filter(ALL.SPECIES.REPORTED == 1, 
              COMMON.NAME %in% restrictedspecieslist$COMMON.NAME) %>%
       group_by(COMMON.NAME) %>% 
@@ -1181,7 +1321,7 @@ expandbyspecies = function(data, species)
 # faster version of this function using data.table and dtplyr
 # optimising runtime
 # previous expandbyspecies() to be retired entirely in next annual update
-expand_dt = function(data, species, singleyear = FALSE) {
+  expand_dt = function(data, species, singleyear = FALSE) {
 
   setDT(data)
 
@@ -1494,13 +1634,9 @@ singlespeciesrun = function(container, reproducible, stats_dir, species_dir, dat
 
 
 # occupancy
-occupancyrun = function(data, i, speciesforocc, queen_neighbours)
+occupancyrun = function(data, species, status, queen_neighbours)
 {
-  species = speciesforocc$eBird.English.Name.2024[i]
-  status = speciesforocc$status[i]
 
-  tic(glue("Modelled occupancy of {species}"))
-  
   # filter data only within the known spatial and temporal range of the species
   data = data %>%
     filter(COMMON.NAME == species) %>%
@@ -1511,16 +1647,16 @@ occupancyrun = function(data, i, speciesforocc, queen_neighbours)
     # filter (or not) the data based on migratory status
     filt_data_for_mig(species, status)
   
+  if(length(data_filt_mig$COMMON.NAME) == 0)
+  {
+    occpred_occupancy = NULL
+    return(occpred_occupancy)
+    break
+  }
+  
   # expanding data for absences also
   data_exp = expand_dt(data_filt_mig, species) %>% 
-    filter(!is.na(gridg1)) %>%
-    # converting months to seasons
-    mutate(month = as.numeric(month)) %>%
-    mutate(month = case_when(month %in% c(12, 1, 2) ~ "Win",
-                             month %in% c(3, 4, 5) ~ "Sum",
-                             month %in% c(6, 7, 8) ~ "Mon",
-                             month %in% c(9, 10, 11) ~ "Aut")) %>% 
-    mutate(month = as.factor(month))
+    filter(!is.na(gridg1))
   
   # reordering the checklists within each grid to minimise bias
   data_exp = data_exp[sample(x = 1:nrow(data_exp)),] 
@@ -1624,7 +1760,7 @@ occupancyrun = function(data, i, speciesforocc, queen_neighbours)
     
     occ_det = tryCatch({occu(~ log(cov1) * cov2 ~ prop_nb,
                              data = occdata_UFO,
-                             starts = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+                             starts = c(0, 0, 0, 0, 0, 0),
                              engine = "C")},
                        error = function(cond){"skip"})
     
@@ -1669,13 +1805,11 @@ occupancyrun = function(data, i, speciesforocc, queen_neighbours)
              occupancy = occ*inv.det,
              se = occ*inv.det*((det.se/inv.det) + (occ.se/occ)))
       
+  } else {
+    occpred_occupancy = NULL
   }
-
-  toc()
   
-  # to combine
-  tocomb = occpred_occupancy
-  return(tocomb)
+  return(occpred_occupancy)
   
 }
 
@@ -1888,8 +2022,8 @@ scale_trends_to_bands <- function(data) {
 
 specname_to_india_checklist <- function(spec_names, already_show = TRUE) {
   
-  names_map <- read.csv("00_data/SoIB_mapping_2024.csv") %>% 
-    distinct(eBird.English.Name.2024, India.Checklist.Common.Name)
+  names_map <- read.csv("00_data/SoIB_mapping_2025.csv") %>% 
+    distinct(eBird.English.Name.2025, India.Checklist.Common.Name)
   
   df_names <- data.frame(OLD = spec_names)
   
@@ -1904,7 +2038,7 @@ specname_to_india_checklist <- function(spec_names, already_show = TRUE) {
   }
   
   df_names <- df_names %>% 
-    left_join(names_map, by = c("OLD" = "eBird.English.Name.2024")) %>% 
+    left_join(names_map, by = c("OLD" = "eBird.English.Name.2025")) %>% 
     rename(NEW = India.Checklist.Common.Name)
   
   if (any(is.na(df_names$NEW))) {
@@ -1919,13 +2053,13 @@ specname_to_india_checklist <- function(spec_names, already_show = TRUE) {
 # update IUCN Status based on latest updated in mapping sheet ---------------------------------------
 
 # input dataframe can be any mapping/main type object with list of species along with IUCN status
-# mutates IUCN Status column based on latest Status updated in SoIB_mapping_2024.csv
+# mutates IUCN Status column based on latest Status updated in SoIB_mapping_2025.csv
 # preserves column order in input data
 
 # col_specname must be eBird checklist species names
 
 get_latest_IUCN_status <- function(data, col_specname, col_iucn = NULL,
-                                     path_mapping = "00_data/SoIB_mapping_2024.csv") {
+                                     path_mapping = "00_data/SoIB_mapping_2025.csv") {
   
   if (!(is.character(col_specname) & 
         (is.character(col_iucn)) | is.null(col_iucn))) {
@@ -1942,9 +2076,13 @@ get_latest_IUCN_status <- function(data, col_specname, col_iucn = NULL,
   
   col_order <- names(data)
   
+  # mapping <- read_csv(path_mapping) %>% 
+  #   dplyr::select("eBird.English.Name.2025", "IUCN.Category") %>% 
+  #   magrittr::set_colnames(col_newnames)
   mapping <- read_csv(path_mapping) %>% 
-    dplyr::select("eBird.English.Name.2024", "IUCN.Category") %>% 
-    magrittr::set_colnames(col_newnames)
+    dplyr::select("India.Checklist.Common.Name", "IUCN.Category")
+  # The previous command was leading to NAs in IUCN.Category due to differences
+  # in the eBird Names and India Checklist Names
   
   data_upd <- data %>% 
     # if IUCN column already exists, remove it before join
@@ -2029,14 +2167,14 @@ update_species_lists = function(species_list_data, scientific_also = FALSE) {
   }
 
   if (!exists("fullmap")) {
-    fullmap <- read.csv("00_data/SoIB_mapping_2024.csv")
+    fullmap <- read.csv("00_data/SoIB_mapping_2025.csv")
   }
   
   
 
   # when rerunning for same year, need to return unmodified list
   # because species names already updated in prior run
-  if (length(setdiff(unique(species_list_data$COMMON.NAME),unique(ebird_tax_mapping()$eBird.English.Name.2024))) == 0) {
+  if (length(setdiff(unique(species_list_data$COMMON.NAME),unique(ebird_tax_mapping()$eBird.English.Name.2025))) == 0) {
 
     message("Species list is already updated to latest taxonomy. Returning original list.")
     
@@ -2079,12 +2217,12 @@ update_species_lists = function(species_list_data, scientific_also = FALSE) {
                           "Asian Tit" = "Cinereous Tit")
                ) %>%
         left_join(ebird_tax_mapping(), 
-                  by = c("COMMON.NAME" = "eBird.English.Name.2023")) |>
+                  by = c("COMMON.NAME" = "eBird.English.Name.2024")) |>
         left_join(fullmap %>% 
-                    distinct(eBird.English.Name.2024, eBird.Scientific.Name.2024)) %>% 
+                    distinct(eBird.English.Name.2025, eBird.Scientific.Name.2025)) %>% 
         dplyr::select(-COMMON.NAME,-SCIENTIFIC.NAME) %>% 
-        rename(COMMON.NAME = eBird.English.Name.2024,
-               SCIENTIFIC.NAME = eBird.Scientific.Name.2024) %>% 
+        rename(COMMON.NAME = eBird.English.Name.2025,
+               SCIENTIFIC.NAME = eBird.Scientific.Name.2025) %>% 
         relocate(COMMON.NAME, SCIENTIFIC.NAME) %>%
         dplyr::select(COMMON.NAME,SCIENTIFIC.NAME,Long.Term.Analysis,Current.Analysis,Selected.SoIB,
                       totalrange25km,proprange25km2000,proprange25km.current,proprange25km.latestyear,
@@ -2096,17 +2234,11 @@ update_species_lists = function(species_list_data, scientific_also = FALSE) {
       list_new <- species_list_data |>
         dplyr::select(COMMON.NAME,ht,rt) |>
         # to remove next time when taxonomies are properly aligned
-        mutate(COMMON.NAME = recode(COMMON.NAME,
-                                    "Indian Cuckooshrike" = "Large Cuckooshrike",
-                                    "Southern Nutcracker" = "Eurasian Nutcracker",
-                                    "Eastern Red-rumped Swallow" = "Red-rumped Swallow",
-                                    "Rufous-fronted Babbler" = "Buff-chested Babbler",
-                                    "Gray-crowned Goldfinch" = "European Goldfinch")) %>%
         left_join(ebird_tax_mapping(), 
-                  by = c("COMMON.NAME" = "eBird.English.Name.2023")) |> 
+                  by = c("COMMON.NAME" = "eBird.English.Name.2024")) |> 
         dplyr::select(-COMMON.NAME) |> 
-        relocate(eBird.English.Name.2024) |> # first column is species name
-        rename(COMMON.NAME = eBird.English.Name.2024) |>
+        relocate(eBird.English.Name.2025) |> # first column is species name
+        rename(COMMON.NAME = eBird.English.Name.2025) |>
         dplyr::select(COMMON.NAME,ht,rt) %>%
         distinct(COMMON.NAME, .keep_all = TRUE)
       
@@ -2116,4 +2248,484 @@ update_species_lists = function(species_list_data, scientific_also = FALSE) {
   
   }
 
+}
+
+trend_calculation <- function(my_seed, sims) {
+  
+  set.seed(my_seed) # for bootMer simulations
+  
+  
+  if (model != "glm")
+  {
+    
+    if (model == "full")
+    {
+      
+      # 100km/25km random effects
+      result <- tryCatch({
+        
+        m <- glmer(
+          freq ~ timegroups + season + season:log(no.sp) + (1 | gridg3/gridg1),
+          data = data_tot,
+          family = binomial(link = "cloglog"),
+          weights = n_lists,
+          nAGQ = 0,
+          control = glmerControl(optimizer = "bobyqa")
+        )
+        
+        
+        # bootstrapping
+        pred_fun <- function(input_model) {
+          predict(
+            input_model,
+            newdata = ltemp,
+            re.form = NA,
+            allow.new.levels = TRUE,
+            type = "response"
+          )
+        }
+        
+        
+        # parallelization happens only here
+        pred_bootMer <- bootMer(
+          m,
+          nsim = sims,
+          FUN = pred_fun,
+          use.u = FALSE,
+          type = "parametric",
+          parallel = "multicore",
+          ncpus = par_cores
+        )
+        
+        
+        # expanding the bootMer object into a normal data frame
+        # with values per simulation
+        ltemp_pred <- ltemp %>%
+          slice(rep(1:n(), times = nrow(pred_bootMer$t))) %>%
+          mutate(
+            sim = rep(1:nrow(pred_bootMer$t), each = nrow(ltemp)),
+            pred = c(t(pred_bootMer$t))
+          )
+        
+        
+        ltemp_pred
+        
+      }, error = function(e) {
+        
+        message(
+          "Skipping species = ", species,
+          ", model = ", model,
+          ": ", e$message
+        )
+        
+        NULL
+      })
+      
+    } else {
+      
+      # only 25km random effects
+      result <- tryCatch({
+        
+        m <- glmer(
+          freq ~ timegroups + season + season:log(no.sp) + (1 | gridg1),
+          data = data_tot,
+          family = binomial(link = "cloglog"),
+          weights = n_lists,
+          nAGQ = 0,
+          control = glmerControl(optimizer = "bobyqa")
+        )
+        
+        
+        # bootstrapping
+        pred_fun <- function(input_model) {
+          predict(
+            input_model,
+            newdata = ltemp,
+            re.form = NA,
+            allow.new.levels = TRUE,
+            type = "response"
+          )
+        }
+        
+        
+        # parallelization happens only here
+        pred_bootMer <- bootMer(
+          m,
+          nsim = sims,
+          FUN = pred_fun,
+          use.u = FALSE,
+          type = "parametric",
+          parallel = "multicore",
+          ncpus = par_cores
+        )
+        
+        
+        # expanding the bootMer object into a normal data frame
+        # with values per simulation
+        ltemp_pred <- ltemp %>%
+          slice(rep(1:n(), times = nrow(pred_bootMer$t))) %>%
+          mutate(
+            sim = rep(1:nrow(pred_bootMer$t), each = nrow(ltemp)),
+            pred = c(t(pred_bootMer$t))
+          )
+        
+        
+        ltemp_pred
+        
+      }, error = function(e) {
+        
+        message(
+          "Skipping species = ", species,
+          ", model = ", model,
+          ": ", e$message
+        )
+        
+        NULL
+      })
+    }
+    
+    
+  } else {
+    
+    # only fixed effects
+    result <- tryCatch({
+      
+      m <- glm(
+        freq ~ timegroups + season + season:log(no.sp),
+        data = data_tot,
+        family = binomial(link = "cloglog"),
+        weights = n_lists
+      )
+      
+      
+      # bootstrapping
+      pred_fun <- function(input_model) {
+        predict(
+          input_model,
+          newdata = ltemp,
+          type = "response"
+        )
+      }
+      
+      
+      # bootstrapping and parallelizing
+      pred_boot <- mclapply(
+        seq_len(sims),
+        function(i) {
+          
+          y <- simulate(m)[[1]]
+          
+          data_boot <- data_tot %>%
+            mutate(freq = y)
+          
+          fit <- update(m, data = data_boot)
+          
+          pred_fun(fit)
+        },
+        mc.cores = par_cores
+      )
+      
+      
+      pred_boot <- do.call(rbind, pred_boot)
+      
+      
+      ltemp_pred <- ltemp %>%
+        slice(rep(1:n(), times = nrow(pred_boot))) %>%
+        mutate(
+          sim = rep(seq_len(nrow(pred_boot)), each = nrow(ltemp)),
+          pred = c(t(pred_boot))
+        )
+      
+      
+      ltemp_pred
+      
+    }, error = function(e) {
+      
+      message(
+        "Skipping species = ", species,
+        ", model = ", model,
+        ": ", e$message
+      )
+      
+      NULL
+    })
+  }
+  
+  
+  # If model fitting, prediction, or bootstrapping failed,
+  # stop this species/model iteration here.
+  if (is.null(result)) {
+    return(NULL)
+  }
+  
+  
+  ltemp_pred <- result
+  
+  
+  # mean across seasons
+  ltemp_pred_comb <- ltemp_pred %>%
+    group_by(sim) %>%
+    filter(!any(is.na(across(everything())))) %>%
+    group_by(sim, timegroups) %>%
+    reframe(pred = mean(pred)) %>%
+    right_join(tm) %>%
+    left_join(databins_use %>% distinct(timegroups, year)) %>%
+    rename(
+      timegroupsf = timegroups,
+      timegroups = year
+    ) %>%
+    mutate(
+      timegroupsf = factor(
+        timegroupsf,
+        levels = databins_use$timegroups
+      )
+    ) %>%
+    complete(timegroupsf) %>%
+    arrange(sim, timegroupsf)
+  
+  
+  return(ltemp_pred_comb)
+  
+}
+
+# standardized trends estimated from bootMer sims
+standarized_trends_ltt <- function(ltemp_pred_comb) {
+  
+  ratios = ltemp_pred_comb %>%
+    filter(timegroupsf == first_year) %>%
+    dplyr::select(-timegroupsf,-timegroups) %>%
+    rename(first = pred)
+  
+  f1_rats = ltemp_pred_comb %>%
+    left_join(ratios) %>%
+    mutate(tp0 = pred/first) %>% 
+    group_by(timegroups) %>% 
+    reframe(lci_std_tot = 100*as.numeric(quantile(tp0, 0.025)),
+            mean_std_tot = 100*median(tp0),
+            rci_std_tot = 100*as.numeric(quantile(tp0, 0.975)))
+  
+  # only standardise where long-term trends are present
+  if (is.na(ht))
+  {
+    f1_rats_long = f1_rats %>%
+      rename(lci_std = lci_std_tot,
+             mean_std = mean_std_tot,
+             rci_std = rci_std_tot) %>%
+      mutate(lci_std = NA,
+             mean_std = NA,
+             rci_std = NA)
+  } else {
+    f1_rats_long = f1_rats %>%
+      rename(lci_std = lci_std_tot,
+             mean_std = mean_std_tot,
+             rci_std = rci_std_tot)
+  }
+  
+  return(f1_rats_long)
+  
+}
+
+# standardise according to current trend baseline
+standarized_trends_cat <- function() {
+  
+  ltemp_pred_comb_recent = ltemp_pred_comb %>%
+    filter(timegroupsf %in% soib_year_info("cat_years"))
+  
+  ratios_recent = ltemp_pred_comb %>%
+    filter(timegroupsf == first_year_recent) %>%
+    dplyr::select(-timegroupsf,-timegroups) %>%
+    rename(first = pred)
+  
+  f1_rats_recent = ltemp_pred_comb_recent %>%
+    left_join(ratios_recent) %>%
+    mutate(tp0 = pred/first) %>% 
+    group_by(timegroups) %>% 
+    reframe(lci_std_recent = 100*as.numeric(quantile(tp0, 0.025)),
+            mean_std_recent = 100*median(tp0),
+            rci_std_recent = 100*as.numeric(quantile(tp0, 0.975)))
+  
+  return(f1_rats_recent)
+  
+} 
+
+# standardised trends projected into the future based on
+# recent trends
+trends_projections <- function() {
+  
+  ltemp_pred_comb_recent = ltemp_pred_comb %>%
+    filter(timegroupsf %in% soib_year_info("cat_years"))
+  
+  ratios_recent = ltemp_pred_comb %>%
+    filter(timegroupsf == first_year_recent) %>%
+    dplyr::select(-timegroupsf,-timegroups) %>%
+    rename(first = pred)
+  
+  # model is based on non-standardised trend values
+  f1_proj = ltemp_pred_comb_recent %>%
+    left_join(ratios_recent) %>%
+    mutate(tp0 = pred/first) %>%
+    group_by(sim) %>%
+    group_modify(~ {
+      datatopred = data.frame(timegroups = extra.years)
+      # exponential model unlike cat calculation
+      modelfit = lm(log(pred) ~ timegroups, data = .x)
+      pred_proj = predict(modelfit, newdata = datatopred, se = TRUE)
+      first_year_ext = .x %>% filter(timegroups == first_year_recent)
+      .x %>%
+        reframe(timegroups = datatopred$timegroups,
+                mean = pred_proj$fit,
+                se = pred_proj$se.fit,
+                # value in first year that's already there
+                val = first_year_ext$pred)
+      
+    }) %>%
+    # we want mean and SE of change in repfreq between years, so divide by first year value
+    mutate(lci_bt = 100*exp(mean - 1.96 * se)/val,
+           mean_bt = 100*exp(mean)/val,
+           rci_bt = 100*exp(mean + 1.96 * se)/val) %>%
+    group_by(timegroups) %>%
+    # median across sims
+    reframe(lci_ext_std = median(lci_bt),
+            mean_ext_std = median(mean_bt),
+            rci_ext_std = median(rci_bt))
+  
+  return(f1_proj)
+  
+} 
+
+# repeat the bootstrapping to produce 5 different ltts
+ltt_sensitivity_sim <- function(my_seed) {
+  
+  ltemp_pred_comb_sim = trend_calculation(my_seed, sims = sims_boot)
+  f1_rats_long_sim = standarized_trends_ltt(ltemp_pred_comb_sim)
+  modtrends_sim = f1_rats_long_sim %>%
+    filter(timegroups == soib_year_info("latest_year")) %>%
+    dplyr::select(lci_std, mean_std, rci_std) %>%
+    rename(longtermlci = lci_std,
+           longtermmean = mean_std,
+           longtermrci = rci_std)
+  
+  return(modtrends_sim)
+  
+}
+
+# calculate cat based on a linear model
+current_annual_trend_calculation <- function() {
+  
+  ltemp_pred_comb_recent = ltemp_pred_comb %>%
+    filter(timegroupsf %in% soib_year_info("cat_years"))
+  
+  ratios_recent = ltemp_pred_comb %>%
+    filter(timegroups == min(timegroups)) %>%
+    dplyr::select(-timegroupsf,-timegroups) %>%
+    rename(first = pred)
+  
+  # based on standardised trends unlike for projections
+  f1_cat = ltemp_pred_comb_recent %>%
+    left_join(ratios_recent) %>%
+    mutate(tp0 = pred/first) %>%
+    group_by(sim) %>%
+    group_modify(~ {
+      modelfit <- lm(tp0 ~ timegroups, data = .x)
+      
+      tibble(
+        mean = coef(summary(modelfit))[2, 1],
+        se = coef(summary(modelfit))[2, 2]
+      )
+    }) %>%
+    ungroup() %>%
+    reframe(currentmean = median(mean),
+            currentse = sqrt(sum(se^2)/n())) %>%
+    mutate(lci_cat = 100*(currentmean - 1.96 * currentse),
+           mean_cat = 100*currentmean,
+           rci_cat = 100*(currentmean + 1.96 * currentse))
+  
+  f1_cat = f1_cat %>%
+    reframe(currentslopelci = median(lci_cat),
+            currentslopemean = median(mean_cat),
+            currentsloperci = median(rci_cat)) %>%
+    mutate(COMMON.NAME = species, .before = 1)
+  
+  return(f1_cat)
+  
+}
+
+# create sensitivity file for cat by dropping one year
+# in each iteration
+cat_sensitivity_sim <- function() {
+  
+  years = soib_year_info("cat_years")
+  
+  cattrends_sim = purrr::imap_dfc(years, function(drop_year, i) {
+    
+    ltemp_pred_comb_recent = ltemp_pred_comb %>%
+      filter(timegroupsf %in% years,
+             timegroupsf != drop_year)
+    
+    ratios_recent = ltemp_pred_comb %>%
+      filter(timegroups == min(timegroups)) %>%
+      dplyr::select(-timegroupsf, -timegroups) %>%
+      rename(first = pred)
+    
+    out = ltemp_pred_comb_recent %>%
+      left_join(ratios_recent) %>%
+      mutate(tp0 = pred / first) %>%
+      group_by(sim) %>%
+      group_modify(~{
+        
+        modelfit = lm(tp0 ~ timegroups, data = .x)
+        
+        tibble(
+          mean = coef(summary(modelfit))[2, 1],
+          se   = coef(summary(modelfit))[2, 2]
+        )
+        
+      }) %>%
+      ungroup() %>%
+      reframe(currentmean = median(mean),
+              currentse = sqrt(sum(se^2)/n())) %>%
+      mutate(lci_cat = 100*(currentmean - 1.96 * currentse),
+             mean_cat = 100*currentmean,
+             rci_cat = 100*(currentmean + 1.96 * currentse)) %>%
+      transmute(
+        !!paste0("currentslopelci", i)  := median(lci_cat),
+        !!paste0("currentslopemean", i) := median(mean_cat),
+        !!paste0("currentsloperci", i)  := median(rci_cat)
+      )
+    
+    out
+    
+  }) %>%
+    mutate(COMMON.NAME = species, .before = 1)
+  
+  return(cattrends_sim)
+  
+}
+
+# Species name column -----------------------------------------
+# This returns the species name column in the SoIB mapping file
+# without having to hard-code the year of the taxonomy
+# `x` can be a data frame or a character vector of column names. `prefix`
+# allows the same helper to fetch the scientific-name column
+
+get_soib_name_col <- function(x, prefix = "eBird.English.Name") {
+  
+  nms <- if (is.character(x)) x else names(x)
+  
+  matches <- stringr::str_subset(nms, glue("^{prefix}\\.\\d{{4}}$"))
+  
+  if (length(matches) == 0) {
+    stop(glue("No column matching '{prefix}.<year>' found. \\
+              Columns present: {toString(head(nms, 20))}"))
+  }
+  
+  if (length(matches) > 1) {
+    years <- as.numeric(stringr::str_extract(matches, "\\d{4}$"))
+    warning(glue("Multiple '{prefix}.<year>' columns found \\
+                 (years: {toString(sort(years))}). Using {max(years)}."))
+    matches <- matches[which.max(years)]
+  }
+  
+  matches
+  
 }

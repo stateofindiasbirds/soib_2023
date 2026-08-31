@@ -165,6 +165,8 @@ round_model_estimates <- function(db) {
   db %>% 
     mutate(across(c("longtermlci","longtermmean","longtermrci","currentslopelci",
                     "currentslopemean","currentsloperci","rangelci","rangemean","rangerci"),
-                  ~ round(., 1)))
+                  ~ round(as.numeric(.), 1)))
+  
+  
   
 }

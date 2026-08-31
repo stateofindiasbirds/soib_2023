@@ -1,4 +1,4 @@
-"eBird.English.Name.2024","SoIB.Major.Update.Long.Term.Status","SoIB.Major.Update.Current.Status","SoIB.Major.Update.Range.Status","SoIB.Major.Update.Priority.Status"
+"eBird.English.Name.2025","SoIB.Major.Update.Long.Term.Status","SoIB.Major.Update.Current.Status","SoIB.Major.Update.Range.Status","SoIB.Major.Update.Priority.Status"
 "Abbott's Babbler","Insufficient Data","Trend Inconclusive","Moderate","Low"
 "Aberrant Bush Warbler","Insufficient Data","Trend Inconclusive","Moderate","Low"
 "Alexandrine Parakeet","Rapid Increase","Rapid Increase","Very Large","Low"
@@ -166,6 +166,7 @@
 "Blue Whistling-Thrush","Stable","Stable","Large","Low"
 "Blue-and-white Flycatcher",NA,NA,NA,NA
 "Blue-bearded Bee-eater","Trend Inconclusive","Stable","Moderate","Low"
+"Blue-billed White-Tern",NA,NA,NA,NA
 "Blue-breasted Quail",NA,NA,NA,NA
 "Blue-capped Redstart","Decline","Stable","Moderate","Moderate"
 "Blue-capped Rock-Thrush","Decline","Rapid Decline","Moderate","High"
@@ -319,6 +320,7 @@
 "Common Gull",NA,NA,NA,NA
 "Common Hawk-Cuckoo","Trend Inconclusive","Rapid Increase","Very Large","Low"
 "Common Hill Myna","Trend Inconclusive","Stable","Moderate","Low"
+"Common Hoopoe","Decline","Trend Inconclusive","Very Large","Moderate"
 "Common Iora","Trend Inconclusive","Increase","Very Large","Low"
 "Common Kingfisher","Trend Inconclusive","Trend Inconclusive","Very Large","Low"
 "Common Merganser","Rapid Decline","Rapid Decline","Moderate","High"
@@ -403,7 +405,6 @@
 "Eurasian Goshawk",NA,NA,NA,NA
 "Eurasian Griffon","Rapid Decline","Decline","Moderate","High"
 "Eurasian Hobby","Insufficient Data","Insufficient Data","Moderate","Low"
-"Eurasian Hoopoe","Decline","Trend Inconclusive","Very Large","Moderate"
 "Eurasian Jackdaw",NA,NA,NA,NA
 "Eurasian Jay","Insufficient Data","Trend Inconclusive","Moderate","Low"
 "Eurasian Kestrel","Rapid Decline","Rapid Decline","Very Large","High"
@@ -418,6 +419,7 @@
 "Eurasian Sparrowhawk","Decline","Stable","Large","Low"
 "Eurasian Spoonbill","Rapid Decline","Rapid Decline","Large","High"
 "Eurasian Tree Sparrow","Trend Inconclusive","Trend Inconclusive","Moderate","Low"
+"Eurasian Whimbrel","Rapid Decline","Trend Inconclusive","Moderate","Moderate"
 "Eurasian Wigeon","Decline","Decline","Large","Moderate"
 "Eurasian Woodcock",NA,NA,NA,NA
 "Eurasian Wren","Insufficient Data","Trend Inconclusive","Moderate","Low"
@@ -720,6 +722,7 @@
 "Little Forktail","Trend Inconclusive","Decline","Moderate","Moderate"
 "Little Grebe","Trend Inconclusive","Trend Inconclusive","Very Large","Low"
 "Little Gull",NA,NA,NA,NA
+"Little Heron","Decline","Trend Inconclusive","Large","Moderate"
 "Little Owl",NA,NA,NA,NA
 "Little Pied Flycatcher","Decline","Trend Inconclusive","Moderate","Moderate"
 "Little Ringed Plover","Rapid Decline","Rapid Decline","Very Large","High"
@@ -1146,7 +1149,6 @@
 "Striated Babbler","Trend Inconclusive","Trend Inconclusive","Moderate","Low"
 "Striated Bulbul","Insufficient Data","Decline","Moderate","Moderate"
 "Striated Grassbird","Stable","Trend Inconclusive","Moderate","Low"
-"Striated Heron","Decline","Trend Inconclusive","Large","Moderate"
 "Striated Laughingthrush","Insufficient Data","Trend Inconclusive","Moderate","Low"
 "Striated Yuhina","Insufficient Data","Insufficient Data","Moderate","Low"
 "Striolated Bunting","Insufficient Data","Insufficient Data","Moderate","Low"
@@ -1227,13 +1229,11 @@
 "Western Reef-Heron","Rapid Decline","Decline","Moderate","High"
 "Western Tragopan","Insufficient Data","Insufficient Data","Very Restricted","High"
 "Western Yellow Wagtail","Trend Inconclusive","Rapid Decline","Very Large","Moderate"
-"Whimbrel","Rapid Decline","Trend Inconclusive","Moderate","Moderate"
 "Whinchat",NA,NA,NA,NA
 "Whiskered Tern","Rapid Decline","Rapid Decline","Large","High"
 "Whiskered Yuhina","Trend Inconclusive","Stable","Moderate","Low"
 "Whistler's Warbler","Trend Inconclusive","Trend Inconclusive","Moderate","Low"
 "White Stork",NA,NA,NA,NA
-"White Tern",NA,NA,NA,NA
 "White Wagtail","Decline","Rapid Decline","Very Large","Moderate"
 "White-backed Thrush",NA,NA,NA,NA
 "White-bellied Blue Flycatcher","Rapid Decline","Decline","Moderate","High"

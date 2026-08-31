@@ -7,7 +7,10 @@
 gen_trend_plots <- function(plot_type = "single", 
                             cur_trend = NULL, cur_spec = NULL) {
   
-  # "cur_spec" in eBird name
+  #plot_type <- "multi"
+  # cur_trend <- "LTT"
+  # cur_spec <- "Asian Fairy-bluebird"
+  #"cur_spec" in eBird name
   
   # error checks ----------------------------------------------------------------------
   
@@ -30,7 +33,7 @@ gen_trend_plots <- function(plot_type = "single",
     
   } else {
     
-    if (!is.null(cur_trend) | !is.null(cur_trend)) {
+    if (!is.null(cur_trend) | !is.null(cur_spec)) { # SO: Changed the second cur_trend to cur_spec
       return("Specific trend types or species are not allowed for current plot type!")
     }
     
@@ -143,7 +146,7 @@ gen_trend_plots <- function(plot_type = "single",
              skip_spec_dq <- if (!is.null(cur_spec) & cur_spec != "all") {
                !(cur_spec %in% spec_qual)
              } else FALSE
-               
+             
              if (length(spec_qual) != 0 & skip_spec_dq == FALSE) {
                
                advanced_kenbunshoku <- if (length(spec_qual) >= 5) TRUE else FALSE
@@ -162,7 +165,7 @@ gen_trend_plots <- function(plot_type = "single",
                                    cur_plot_metadata = web_metadata, 
                                    haki = advanced_kenbunshoku)
                  }
-
+                 
                  if (advanced_kenbunshoku) {
                    print(glue("Activated future-walking using advanced Kenbunshoku Haki!"))
                    tic(glue("Future-walked over {length(spec_qual)} species (plotted {plot_type} for all species in {cur_mask})"))
@@ -341,7 +344,7 @@ gen_trend_plots_sysmon <- function(cur_case) {
       mutate(lci_std = mean_std, rci_std = mean_std) %>% 
       # convert to India Checklist name
       mutate(COMMON.NAME = specname_to_india_checklist(COMMON.NAME))
-
+    
   } else if (cur_case == "vembanad") {
     
     data_trends <- read.csv(path_data) %>% 
@@ -387,7 +390,7 @@ gen_trend_plots_sysmon <- function(cur_case) {
   if (!cur_case %in% c("spiti", "vembanad")) {
     
     soib_trend_plot_sysmon(plot_type = cur_case, cur_data_trends = data_trends,
-                    analysis_type = "sysmon")
+                           analysis_type = "sysmon")
     
   } else if (cur_case == "vembanad") {
     
@@ -395,18 +398,18 @@ gen_trend_plots_sysmon <- function(cur_case) {
       filter(COMMON.NAME %in% c("Black-headed Ibis", "Glossy Ibis", "Whiskered Tern"))
     
     soib_trend_plot_sysmon(plot_type = cur_case, cur_data_trends = data_trends_filt,
-                    analysis_type = "sysmon")
+                           analysis_type = "sysmon")
     
   } else {
     
     soib_trend_plot_sysmon(plot_type = cur_case, cur_data_trends = data_trends_extra,
-                    analysis_type = "sysmon")
+                           analysis_type = "sysmon")
     
   }
   
   
   # plotting single-species in some cases ---------------------------------------------
-
+  
   if (cur_case %in% c("nannaj", "spiti", "vembanad")) {
     
     assign("path_all", path_out, envir = .GlobalEnv)
@@ -427,25 +430,25 @@ gen_trend_plots_sysmon <- function(cur_case) {
         assign("path_out", path_out, envir = .GlobalEnv)
         
         soib_trend_plot_sysmon(plot_type = cur_case, cur_data_trends = data_trends_filt,
-                        analysis_type = "sysmon")
+                               analysis_type = "sysmon")
       })
     
   }
   
-
+  
   # vembanad plot of total counts -----------------------------------------------------
-
+  
   if (cur_case == "vembanad") {
     
     path_out <- str_replace(path_out_cache, ".png", glue("_tot.png"))
     assign("path_out", path_out, envir = .GlobalEnv)
     
     soib_trend_plot_sysmon(plot_type = cur_case, cur_data_trends = data_trends_extra,
-                    analysis_type = "sysmon")
+                           analysis_type = "sysmon")
     
   }
   
-
+  
   # cleaning environment ------------------------
   
   rm(list = setdiff(ls(envir = .GlobalEnv), "gen_trend_plots_sysmon"), 
@@ -459,14 +462,18 @@ gen_trend_plots_sysmon <- function(cur_case) {
 
 gen_range_maps <- function(mask_type = "country", which_mask = NULL, which_spec = "all") {
   
+  # mask_type = "country"
+  # which_mask = NULL
+  # which_spec = "Bar-headed Goose"
+  
   require(tidyverse)
   require(glue)
   require(tictoc)
-
+  
   source('00_scripts/00_functions.R')
   source('00_scripts/00_plot_functions.R')
-
-      
+  
+  
   # error checks ----------------------------------------------------------------------
   
   which_metadata <- get_metadata() %>% filter(MASK.TYPE == mask_type)
@@ -489,7 +496,7 @@ gen_range_maps <- function(mask_type = "country", which_mask = NULL, which_spec 
   
   
   # setup + map creation --------------------------------------------------------------
-
+  
   if (is.null(which_mask)) {
     
     which_mask <- which_metadata %>% 
@@ -505,9 +512,9 @@ gen_range_maps <- function(mask_type = "country", which_mask = NULL, which_spec 
   }
   
   walk(which_mask, ~ {
-
+    
     # setup data (only if don't exist) --------------------------------------------------
-
+    
     # setting up data for range maps 
     # (this only runs when the output CSVs don't already exist!)
     
@@ -547,7 +554,7 @@ gen_range_maps <- function(mask_type = "country", which_mask = NULL, which_spec 
       
       
       # setup -----------------------------------------------------------------------------
-
+      
       # later for plotting state-level range maps, we need info on which grids each species 
       # has been reported from. saving that information here, to be read in in plotting.
       info_state_spec_grid <- data0 %>% 
@@ -587,7 +594,7 @@ gen_range_maps <- function(mask_type = "country", which_mask = NULL, which_spec 
       
       
       # vagrants
-
+      
       d = d %>% 
         filter(COMMON.NAME %in% list_mig, 
                year > (soib_year_info("latest_year") - 5)) %>% 
@@ -652,7 +659,7 @@ gen_range_maps <- function(mask_type = "country", which_mask = NULL, which_spec 
       # this is to determine the migratory status of each cell without confirmed presence
       # the most frequent neighbouring status will be the assigned status for that cell
       for (i in list_mig) {
-        
+        #i <- "Bar-headed Goose"
         temp = occ.model.migrant %>% filter(COMMON.NAME == i)
         temp.dat = data_presence %>% filter(COMMON.NAME == i)
         
@@ -660,6 +667,7 @@ gen_range_maps <- function(mask_type = "country", which_mask = NULL, which_spec 
           
           for (j in unique(temp$gridg1))
           {
+            #j <- 10940
             nbs = our_neighbours[[j]]
             
             stats = temp.dat %>%
@@ -667,6 +675,11 @@ gen_range_maps <- function(mask_type = "country", which_mask = NULL, which_spec 
               count(status, sort = TRUE) %>%
               slice_max(n, with_ties = FALSE) %>%
               pull(status)
+            
+            if (length(stats) == 0) {
+              message("EMPTY stats for i = ", i, ", j = ", j)
+              next
+            }
             
             occ.model.migrant$status[occ.model.migrant$COMMON.NAME == i & 
                                        occ.model.migrant$gridg1 == j] = as.character(stats)
@@ -712,7 +725,7 @@ gen_range_maps <- function(mask_type = "country", which_mask = NULL, which_spec 
     
     
     # generate maps --------------------------------------------------------------------
-
+    
     soib_rangemap(which_spec = which_spec, cur_mask = .x)
     
   })

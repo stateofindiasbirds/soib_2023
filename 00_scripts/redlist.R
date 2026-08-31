@@ -2,12 +2,14 @@ library(tidyverse)
 library(rlang)
 library(glue)
 
+source("00_scripts/00_functions.R")
+
 # SoIB2 uses 2015 as the start for the current trend
 MaxYear <- soib_year_info("latest_year")
 MinYear <- soib_year_info("cat_start")
 Years <- soib_year_info("cat_years")
 TrendYears <- MaxYear - MinYear + 1
-threegenperiod <- 2 * (TrendYears - 1) - 1
+threegenperiod <- 2 * (TrendYears) - 1
 
 # for this use, only need Gen 10 onwards
 gen10plus <- (MinYear + 10):max(soib_year_info("iucn_projection"))
@@ -36,17 +38,19 @@ get_proj_decline_col <- function(gen) {
 
 
 # Read latest BLI 3gen values
-threegen <- read.csv("00_data/3genbli.csv") # No in repository. Contact paintedstork@gmail.com
+#threegen <- read.csv("00_data/3genbli.csv") # No in repository. Contact paintedstork@gmail.com
 soib <- read.csv(get_metadata("none")$SOIBMAIN.PATH)   # Available in rep. after SoIB2 runs
+
 
 # Remove unwanted fields from freq
 soib <- soib %>% 
-  select ("India.Checklist.Common.Name", "India.Checklist.Scientific.Name",
+  dplyr::select ("India.Checklist.Common.Name", "India.Checklist.Scientific.Name",
           "BLI.Scientific.Name", "Current.Analysis", "IUCN.Category",
           "Selected.SoIB", "totalrange25km", "proprange25km.current",
           "mean5km", "ci5km", "longtermrci", "longtermmean", "longtermlci",
-          "currentsloperci", "currentslopemean", "currentslopelci",
-          gen10plus_cols, "SoIB.Latest.Current.Status", "SoIB.Latest.Priority.Status")
+          "currentsloperci", "currentslopemean", "currentslopelci","Generation.Length",
+          all_of(gen10plus_cols), "SoIB.Latest.Current.Status", "SoIB.Latest.Priority.Status")%>% 
+  rename("GEN" = "Generation.Length")
 
 ###################################################################
 #  Find of which species is likely to meet some relevant thresholds
@@ -62,13 +66,13 @@ species <- soib %>%
     1.96 * abs(currentslopemean) > abs(currentsloperci-currentslopelci), 
     (SoIB.Latest.Current.Status %in% c("Stable", "Decline", "Rapid Decline"))
   ) %>%            
-  select('BLI.Scientific.Name') %>%
+  dplyr::select('BLI.Scientific.Name') %>%
   as.data.frame()
 
 
 
 # Join with the species for which comparable trend data exists.
-species <- inner_join (species, threegen, by = c("BLI.Scientific.Name" = "BLI"))
+#species <- inner_join (species, threegen, by = c("BLI.Scientific.Name" = "BLI"))
   
 soib <- inner_join (soib, species,by = c("BLI.Scientific.Name" = "BLI.Scientific.Name"))
 
@@ -159,7 +163,7 @@ redlist <- soib %>%
       TRUE ~ "No"
     )
   ) %>% 
-  select(
+  dplyr::select(
     "India.Checklist.Common.Name", "proprange25km.current", "mean5km",
     "longtermmean", "currentslopemean", "SoIB.Latest.Current.Status", "SoIB.Latest.Priority.Status", 
     GEN1, Decline1GEN, GEN2, Decline2GEN, GEN3, Decline3GEN, Decline3GENMean, Decline3GENLCI,
