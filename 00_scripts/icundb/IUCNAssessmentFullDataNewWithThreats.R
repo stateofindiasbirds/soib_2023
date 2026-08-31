@@ -33,6 +33,40 @@ species_list <- xlsx_data %>%
 all_results    <- list()
 failed_species <- list()
 
+# ---------- HELPER: pick assessment_id where latest == TRUE and scopes includes "Global" ----------
+get_global_latest_assessment_id <- function(assessments_df) {
+  if (is.null(assessments_df) || nrow(assessments_df) == 0) return(NA_integer_)
+  
+  for (j in seq_len(nrow(assessments_df))) {
+    is_latest <- isTRUE(assessments_df$latest[j])
+    
+    scopes_j  <- assessments_df$scopes[[j]]
+    is_global <- FALSE
+    
+    if (!is.null(scopes_j) && is.data.frame(scopes_j) && nrow(scopes_j) > 0) {
+      if ("description.en" %in% names(scopes_j)) {
+        # Case: flatten=TRUE fully flattened the nested "description" object
+        is_global <- any(scopes_j$description.en == "Global", na.rm = TRUE)
+      } else if ("description" %in% names(scopes_j)) {
+        # Case: "description" remained a nested list/data.frame with an "en" element
+        desc_col <- scopes_j$description
+        en_vals <- vapply(desc_col, function(d) {
+          if (is.list(d) && !is.null(d$en)) as.character(d$en)
+          else if (is.data.frame(d) && "en" %in% names(d)) as.character(d$en[1])
+          else NA_character_
+        }, character(1))
+        is_global <- any(en_vals == "Global", na.rm = TRUE)
+      }
+    }
+    
+    if (is_latest && is_global) {
+      return(assessments_df$assessment_id[j])
+    }
+  }
+  
+  return(NA_integer_)
+}
+
 # ---------- HELPER: safe GET with retry on rate-limit ----------
 safe_get <- function(url, query = NULL, token, max_retries = 2, wait_base = 10) {
   for (attempt in 1:max_retries) {
@@ -43,14 +77,14 @@ safe_get <- function(url, query = NULL, token, max_retries = 2, wait_base = 10) 
     )
     raw_text <- content(res, as = "text", encoding = "UTF-8")
     status   <- status_code(res)
-
+    
     # Check for valid JSON before returning
     is_json <- tryCatch({ fromJSON(raw_text); TRUE }, error = function(e) FALSE)
-
+    
     if (is_json && status == 200) {
       return(raw_text)
     }
-
+    
     # Rate-limited or server busy — wait and retry
     wait_secs <- wait_base * attempt
     cat(sprintf("  [Attempt %d] HTTP %d — non-JSON response: %s\n  Waiting %ds before retry...\n",
@@ -73,16 +107,16 @@ for (i in 1:nrow(species_list)) {
   india_checklist_scientific_name <- as.character(species_list$`India.Checklist.Scientific.Name.2025`[i])
   genus   <- species_list$genus_name[i]
   species <- species_list$species_name[i]
-
+  
   cat("Processing:", genus, species, "\n")
-
+  
   # ---------- FIRST API ----------
   raw1 <- safe_get(
     url   = "https://api.iucnredlist.org/api/v4/taxa/scientific_name",
     query = list(genus_name = genus, species_name = species),
     token = token
   )
-
+  
   if (is.null(raw1)) {
     failed_species[[length(failed_species) + 1]] <- data.frame(
       genus_name   = as.character(genus),
@@ -92,23 +126,35 @@ for (i in 1:nrow(species_list)) {
     )
     next
   }
-
+  
   json1 <- fromJSON(raw1, flatten = TRUE)
-
+  
   if (length(json1$assessments$assessment_id) == 0) {
     cat("  No assessment found\n")
     next
   }
-
-  assessment_id <- json1$assessments$assessment_id[1]
+  
+  assessment_id <- get_global_latest_assessment_id(json1$assessments)
+  
+  if (is.na(assessment_id)) {
+    cat("  No latest Global assessment found\n")
+    failed_species[[length(failed_species) + 1]] <- data.frame(
+      genus_name   = as.character(genus),
+      species_name = as.character(species),
+      reason       = "No assessment with latest=TRUE and scope=Global",
+      stringsAsFactors = FALSE
+    )
+    next
+  }
+  
   Sys.sleep(1)
-
+  
   # ---------- SECOND API ----------
   raw2 <- safe_get(
     url   = paste0("https://api.iucnredlist.org/api/v4/assessment/", assessment_id),
     token = token
   )
-
+  
   if (is.null(raw2)) {
     failed_species[[length(failed_species) + 1]] <- data.frame(
       genus_name   = as.character(genus),
@@ -118,16 +164,16 @@ for (i in 1:nrow(species_list)) {
     )
     next
   }
-
+  
   json2 <- fromJSON(raw2, flatten = TRUE)
-
+  
   # ---------- SAFE JSON CONVERTER ----------
   safe_json <- function(x) {
     if (is.null(x) || length(x) == 0) return(NA_character_)
     out <- toJSON(x, auto_unbox = TRUE)
     return(as.character(out))     # **************** FORCE CHARACTER
   }
-
+  
   # ---------- EXTRACT FIELDS (always character) ----------
   taxon_object_json       <- safe_json(json2$taxon)
   population_trend        <- safe_json(json2$population_trend)
@@ -150,7 +196,7 @@ for (i in 1:nrow(species_list)) {
   scopes                  <- safe_json(json2$scopes)
   stresses                <- safe_json(json2$stresses)
   systems                 <- safe_json(json2$systems)
-
+  
   # ---------- BUILD A 1-ROW LIST ----------
   row_list <- list(
     english_name                    = english_name,
@@ -187,7 +233,7 @@ for (i in 1:nrow(species_list)) {
     stresses = stresses,
     systems = systems
   )
-
+  
   # Add scalar top-level fields
   for (name in names(json2)) {
     value <- json2[[name]]
@@ -195,16 +241,16 @@ for (i in 1:nrow(species_list)) {
       row_list[[name]] <- as.character(value)[1]
     }
   }
-
+  
   # ---------- Convert to 1-row data frame (safe) ----------
   df_row <- as.data.frame(row_list, stringsAsFactors = FALSE)
-
+  
   all_results[[length(all_results) + 1]] <- df_row
 }
 
 final_df <- bind_rows(all_results)
 
-write.csv(final_df, "iucn_assessments_full_output.csv", row.names = FALSE)
+write.csv(final_df, "iucn_assessments_global_output.csv", row.names = FALSE)
 cat("Saved CSV successfully!\n")
 
 # ---------- SAVE FAILED SPECIES ----------
