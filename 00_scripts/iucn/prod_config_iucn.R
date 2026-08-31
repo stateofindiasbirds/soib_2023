@@ -1,4 +1,4 @@
-latestYear <- 2024 # Obtain this from a configuration 
+latestYear <- 2025 # Obtain this from a configuration 
 
 #Input Files
 

@@ -1,4 +1,6 @@
 library(stats)
+library(data.table)
+
 # This list of specie is used for testing. It can be overridden for all species
 test_species <- c (
   "Brahminy Kite",
@@ -886,59 +888,101 @@ proc_aoo <- function (obsv, targetSpeciesObsv, Checklist2Grid, ChecklistCount, C
 # ----------------------------------------------------------------------------------------------------
 #Read EBD and process
 # ----------------------------------------------------------------------------------------------------
-obsv    <- readRDS(file.path(datapath,"ebd.RDS"))
+obsv    <- readRDS(file.path(datapath,"ebd_sf.RDS"))
 
 obsv    <- obsv %>% 
   filter (PROTOCOL.NAME == 'Stationary' | PROTOCOL.NAME == 'Traveling') %>%
-  filter (EFFORT.DISTANCE.KM <= MaxDistanceThresholdforAOO)
+  filter (EFFORT.DISTANCE.KM <= MaxDistanceThresholdforAOO) %>%
+  st_drop_geometry() %>%
+  select(
+    COMMON.NAME,
+    EFFORT.DISTANCE.KM,
+    SAMPLING.EVENT.IDENTIFIER,
+    GROUP.ID,
+    LATITUDE,
+    LONGITUDE,
+    centroid_latitude,
+    centroid_longitude,
+    LATITUDE.MIN,
+    LONGITUDE.MIN,
+    LATITUDE.MAX,
+    LONGITUDE.MAX,
+    location_score,
+    PROTOCOL.NAME,
+    ALL.SPECIES.REPORTED
+  ) %>%
+  rename(
+    latitude_min = LATITUDE.MIN,
+    longitude_min = LONGITUDE.MIN,
+    latitude_max = LATITUDE.MAX,
+    longitude_max = LONGITUDE.MAX
+  )
 
 # ----------------------------------------------------------------------------------------------------
 #Read files and decide the species list for the run
 # ----------------------------------------------------------------------------------------------------
 
-species <- obsv$COMMON.NAME %>% unique() %>% grep(pattern = "[()/\\\\.]", value = TRUE, invert = TRUE)
+#species <- obsv$COMMON.NAME %>% unique() %>% grep(pattern = "[()/\\\\.]", value = TRUE, invert = TRUE)
 
-species <- readRDS(file.path(datapath,"eoo.RDS")) %>% 
+#species <- readRDS(file.path(datapath,"eoo.RDS")) %>% 
 #  filter(Species %in% test_species) %>%
-  select (Species) %>%
-  pull(Species) %>%
-  unique()
+#  select (Species) %>%
+#  pull(Species) %>%
+#  unique()
+
+species <- read.csv(file.path(datapath, "species_aoo_prefilter.csv"),
+                         stringsAsFactors = FALSE) %>% 
+                select (english_name) %>% pull() %>%unique()
+
 
 
 # ----------------------------------------------------------------------------------------------------
 #Read and process centroids
 # ----------------------------------------------------------------------------------------------------
-centroid <- readRDS(centroidfile)
-
-centroid <- centroid %>%
-  select(
-    checklist_id,
-    centroid_longitude,
-    centroid_latitude,
-    longitude_min,
-    longitude_max,
-    latitude_min,
-    latitude_max,
-    location_score
-  )
-
-
-obsv <- obsv %>%
-  left_join(
-    centroid,
-    by = c("SAMPLING.EVENT.IDENTIFIER" = "checklist_id")
-  )
+# Later introduce a configuration to seperately join the centroid file.
+if(0) 
+{
+  centroid <- readRDS(centroidfile)
+  
+  centroid <- centroid %>%
+    select(
+      checklist_id,
+      centroid_longitude,
+      centroid_latitude,
+      longitude_min,
+      longitude_max,
+      latitude_min,
+      latitude_max,
+      location_score
+    )
+  
+  
+  obsv <- obsv %>%
+    left_join(
+      centroid,
+      by = c("SAMPLING.EVENT.IDENTIFIER" = "checklist_id")
+    )
+}
 
 # ----------------------------------------------------------------------------------------------------
 # Checklist richness
 # ----------------------------------------------------------------------------------------------------
 
-ChecklistRichness <- obsv %>%
-  filter(ALL.SPECIES.REPORTED == 1) %>%
-  distinct(GROUP.ID, COMMON.NAME) %>%
-  count(GROUP.ID, name = "Richness")
+ChecklistRichness <- as.data.table(obsv)[
+  ALL.SPECIES.REPORTED == 1,
+  .(Richness = uniqueN(COMMON.NAME)),
+  by = GROUP.ID
+]
 
-colnames(ChecklistRichness)[1] <- "Checklist"
+setnames(ChecklistRichness, "GROUP.ID", "Checklist")
+
+# Optimize: Move to data.table to make it faster
+#ChecklistRichness <- obsv %>%
+#  filter(ALL.SPECIES.REPORTED == 1) %>%
+#  distinct(GROUP.ID, COMMON.NAME) %>%
+#  count(GROUP.ID, name = "Richness")
+
+#colnames(ChecklistRichness)[1] <- "Checklist"
 
 
 # ----------------------------------------------------------------------------------------------------
@@ -1175,7 +1219,7 @@ write.csv(
 )
 
 #####################Comparisons####################
-old <- readRDS(file.path(datapath, "aoo_all_species_bounding_box.RDS")) %>%
+old <- readRDS(file.path(datapath, "aoo_old.RDS")) %>%
   distinct_all()
 new <- readRDS(file.path(datapath, "aoo.RDS")) %>%
   distinct_all()
@@ -1197,3 +1241,6 @@ comparison <- old %>%
 
 comparison %>%
   arrange(desc(abs(MinPctChange)))
+
+write.csv(comparison %>%
+  arrange(desc(abs(MinPctChange))), "comparison_aoo.csv")

@@ -29,7 +29,7 @@ calculate_eoo_diff <- function(df) {
   
   return(df_processed)
 }
-df <- readRDS(file.path(resultspath, "eoo.RDS"))
+df <- readRDS(file.path(resultspath, "eoo_df.RDS"))
 
 # Example usage with the original dataframe (df)
 result <- calculate_eoo_diff(df)

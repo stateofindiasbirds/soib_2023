@@ -28,46 +28,22 @@ if(nrow(manual_decline) > 0)
 {
 
 # ============================================================
-# 2. READ 3GEN DATA AND SOIB TAXONOMIC MAPPING
+# 2. READ SOIB DATA AND PREPARE GENERATION LENGTH
 # ============================================================
 
-  threegen <- read.csv(threegenfile)
-  
-  soib <- read.csv(get_metadata("none")$SOIBMAIN.PATH)
-  
-  soib <- soib %>% 
-    select(
-      "India.Checklist.Common.Name",
-      "India.Checklist.Scientific.Name",
-      "BLI.Scientific.Name"
-    )
+soib <- read.csv(get_metadata("none")$SOIBMAIN.PATH)
 
+gen_data <- soib %>%
+  select(
+    EnglishName = India.Checklist.Common.Name,
+    GenerationLength = Generation.Length
+  ) %>%
+  mutate(
+    EnglishName = trimws(EnglishName)
+  )
 
-# ============================================================
-# 3. GENERATION LENGTH PREPARATION
-# ============================================================
-
-  gen_data <- threegen %>%
-    select(
-      BLI,
-      GEN
-    ) %>%
-    rename(
-      BLI.Scientific.Name = BLI,
-      GenerationLength = GEN
-    )
-
-# Map BLI → EnglishName using SOIB
-  gen_data <- soib %>%
-    select(
-      EnglishName = India.Checklist.Common.Name,
-      BLI.Scientific.Name
-    ) %>%
-    inner_join(gen_data, by = "BLI.Scientific.Name") %>%
-    mutate(EnglishName = trimws(EnglishName)) %>%
-    select(EnglishName, GenerationLength)
-
-
+# 3. Since we are using generation length directly from SoIB file, we dont need 3rd step
+#   
 # ============================================================
 # 4. APPLY GENERATION LENGTH TO MANUAL DATA
 # ============================================================
@@ -354,33 +330,60 @@ criteriaA_data <- criteriaA_data %>%
 # 11. ASSIGN CRITERION TYPE (A1–A4)
 # ============================================================
 
+
 criteriaA_data <- criteriaA_data %>%
   mutate(
-    IsPast = OrgEndYear <= latestYear,
-    IsFuture = StartYear > latestYear,
-    IsOngoing = OrgStartYear <= latestYear & OrgEndYear > latestYear,
     
-    CriterionType = case_when(
-      IsPast & Reversible == 1 & ReasonUnderstood == 1 & ReasonCeased == 1 ~ "A1",
-      IsPast ~ "A2",
-      IsFuture ~ "A3",
-      IsOngoing ~ "A4",
-      TRUE ~ NA_character_
-    )
+    # Timing of the decline
+    IsPast = EndYear <= latestYear,
+    
+    # Decline reaches the current assessment year
+    ReachesCurrent = OrgEndYear == latestYear,
+    
+    # Decline continues beyond current year
+    IsOngoing = StartYear < latestYear & EndYear >= latestYear,
+    
+    # Entirely future
+    IsFuture = StartYear == latestYear & EndYear > latestYear,
+    
+    # A1: past decline where cause is understood,
+    # ceased, and reversible
+    IsA1 = IsPast &
+      Reversible == 1 &
+      ReasonUnderstood == 1 &
+      ReasonCeased == 1,
+    
+    # A2: past decline not qualifying for A1
+    IsA2 = IsPast & !IsA1,
+    
+    # A3: future decline
+    IsA3 = IsFuture,
+    
+    # A4: decline that continues beyond the current year
+    IsA4 = IsOngoing | ReachesCurrent
   )
 
-
 # ============================================================
-# 12. ASSIGN IUCN CATEGORY (INCLUDING NT)
+# 12. ASSIGN IUCN CATEGORY
 # ============================================================
 
 criteriaA_data <- criteriaA_data %>%
   mutate(
+    
     Category = case_when(
-      Decline >= 80 ~ "CR",
-      Decline >= 50 ~ "EN",
-      Decline >= 30 ~ "VU",
-      Decline >= 20 ~ "NT",  # Added NT band (20–29%)
+      
+      # A1 thresholds
+      IsA1 & Decline > 90 ~ "CR",
+      IsA1 & Decline > 70 ~ "EN",
+      IsA1 & Decline > 50 ~ "VU",
+      IsA1 & Decline > 20 ~ "NT",
+      
+      # A2 / A3 / A4 thresholds
+      !IsA1 & Decline > 80 ~ "CR",
+      !IsA1 & Decline > 50 ~ "EN",
+      !IsA1 & Decline > 30 ~ "VU",
+      !IsA1 & Decline > 20 ~ "NT",
+      
       TRUE ~ NA_character_
     )
   )
@@ -413,17 +416,39 @@ criteriaA_data <- criteriaA_data %>%
 # ============================================================
 
 criteriaA_data <- criteriaA_data %>%
+  rowwise() %>%
   mutate(
-    Criteria = case_when(
-      !is.na(Subcriteria) & Subcriteria != "" ~ paste0(CriterionType, Subcriteria),
-      !is.na(CriterionType) ~ CriterionType,
-      TRUE ~ NA_character_
+    
+    A1_string = ifelse(
+      IsA1,
+      paste0("A1", Subcriteria),
+      NA_character_
+    ),
+    
+    A2_string = ifelse(
+      IsA2,
+      paste0("A2", Subcriteria),
+      NA_character_
+    ),
+    
+    A3_string = ifelse(
+      IsA3,
+      paste0("A3", Subcriteria),
+      NA_character_
+    ),
+    
+    A4_string = ifelse(
+      IsA4,
+      paste0("A4", Subcriteria),
+      NA_character_
+    ),
+    
+    CriteriaA_String = paste(
+      na.omit(c(A1_string, A2_string, A3_string, A4_string)),
+      collapse = "+ "
     )
   ) %>%
-  mutate(
-    CriteriaA_String = Criteria
-  )
-
+  ungroup()
 
 # ============================================================
 # 15. SELECT BEST RECORD PER SPECIES
