@@ -13,7 +13,7 @@ threegenperiod <- 2 * (TrendYears) - 1
 
 # for this use, only need Gen 10 onwards
 gen10plus <- (MinYear + 10):max(soib_year_info("iucn_projection"))
-gen10plus_cols <- get_iucn_proj_cols()[get_iucn_proj_cols() %>% 
+gen10plus_cols <- get_iucn_proj_cols()[get_iucn_proj_cols() %>%
                                          str_detect(glue("{str_flatten(gen10plus, '|')}"))]
 # columns to use for upper limit of proj values
 proj_upp_lim <- gen10plus_cols[gen10plus_cols %>% str_detect(".rci")]
@@ -21,17 +21,23 @@ proj_upp_lim <- gen10plus_cols[gen10plus_cols %>% str_detect(".rci")]
 
 # function to create projected_decline column from various years' proj values
 # Added extra protection for generating columns that are not present
+#
+# Still used exactly as before, but only for species whose GEN3 window
+# genuinely extends beyond the last real CAT year (see uses_real_data
+# below) -- for those, MinYear + GEN3 is guaranteed to be >
+# min(soib_year_info("iucn_projection")), so the lack of a lower-bound
+# clamp here is no longer reachable.
 get_proj_decline_col <- function(gen) {
 
   # Use the defined projection range from your stub
   proj_years <- soib_year_info("iucn_projection")
-  
+
   # Calculate potential projection year
   proj_year <- soib_year_info("cat_start") + floor(gen)
-  
+
   # Cap it to available projection years (e.g., up to 2029)
   proj_year <- ifelse(proj_year > max(proj_years), max(proj_years), proj_year)
-  
+
   proj_col_name <- glue("proj{proj_year}.rci")
   return(proj_col_name)
 }
@@ -41,16 +47,31 @@ get_proj_decline_col <- function(gen) {
 #threegen <- read.csv("00_data/3genbli.csv") # No in repository. Contact paintedstork@gmail.com
 soib <- read.csv(get_metadata("none")$SOIBMAIN.PATH)   # Available in rep. after SoIB2 runs
 
+soib_name_col <- get_soib_name_col(soib)
 
 # Remove unwanted fields from freq
-soib <- soib %>% 
+soib <- soib %>%
   dplyr::select ("India.Checklist.Common.Name", "India.Checklist.Scientific.Name",
           "BLI.Scientific.Name", "Current.Analysis", "IUCN.Category",
           "Selected.SoIB", "totalrange25km", "proprange25km.current",
           "mean5km", "ci5km", "longtermrci", "longtermmean", "longtermlci",
           "currentsloperci", "currentslopemean", "currentslopelci","Generation.Length",
-          all_of(gen10plus_cols), "SoIB.Latest.Current.Status", "SoIB.Latest.Priority.Status")%>% 
+          all_of(soib_name_col),
+          all_of(gen10plus_cols), "SoIB.Latest.Current.Status", "SoIB.Latest.Priority.Status")%>%
   rename("GEN" = "Generation.Length")
+
+# -----------------------------
+# real (non-extrapolated) value at the last real CAT year (MaxYear),
+# straight from trends.csv -- for species whose GEN3 window now falls
+# entirely within real data (MinYear + GEN3 <= MaxYear), this is used
+# instead of a proj{year}.rci lookup.
+# -----------------------------
+real_recent <- read.csv("01_analyses_full/results/trends.csv") %>%
+  filter(timegroups == MaxYear) %>%
+  dplyr::select(COMMON.NAME, real_rci_latest_year = rci_std_recent) %>%
+  rename(!!soib_name_col := COMMON.NAME)
+
+soib <- soib %>% left_join(real_recent, by = soib_name_col)
 
 ###################################################################
 #  Find of which species is likely to meet some relevant thresholds
@@ -58,14 +79,14 @@ soib <- soib %>%
 
 
 # Make a list of species for which soib data is available and declining
-species <- soib %>% 
+species <- soib %>%
   filter(
     Current.Analysis == "X", #Current trends available
     currentsloperci < 0, # Declining rci, which is used as a bound in redlisting
     mean5km > 8, # Atleast 1/3rd of a grid covered on an average
-    1.96 * abs(currentslopemean) > abs(currentsloperci-currentslopelci), 
+    1.96 * abs(currentslopemean) > abs(currentsloperci-currentslopelci),
     (SoIB.Latest.Current.Status %in% c("Stable", "Decline", "Rapid Decline"))
-  ) %>%            
+  ) %>%
   dplyr::select('BLI.Scientific.Name') %>%
   as.data.frame()
 
@@ -73,7 +94,7 @@ species <- soib %>%
 
 # Join with the species for which comparable trend data exists.
 #species <- inner_join (species, threegen, by = c("BLI.Scientific.Name" = "BLI"))
-  
+
 soib <- inner_join (soib, species,by = c("BLI.Scientific.Name" = "BLI.Scientific.Name"))
 
 soib <- soib %>%
@@ -94,11 +115,11 @@ redlist <- soib %>%
     Decline1GEN = ifelse(valid1GEN,
                          round(100 * (1 - (1 + currentsloperci/100)^GEN1),0),
                          NA),
-    
+
     Decline2GEN = ifelse(valid2GEN,
                          round(100 * (1 - (1 + currentsloperci/100)^GEN2),0),
                          NA),
-    
+
     Decline3GEN = ifelse(valid3GEN,
                          round(100 * (1 - (1 + currentsloperci/100)^GEN3),0),
                          NA),    Years1GEN = GEN1,
@@ -117,7 +138,7 @@ redlist <- soib %>%
       projected_mean_decline > 30 ~ "Vulnerable",
       projected_mean_decline > 20 ~ "Near Threatened",
       projected_mean_decline > 0 ~ "Least Concern"
-    ),    
+    ),
     projected_mean_decline = paste0(projected_mean_decline,"%"),
     longtermmean = -(100 - longtermmean),
     longtermlci  = -(100 - longtermlci),
@@ -139,12 +160,17 @@ redlist <- soib %>%
                      round(100*(mean5km-ci5km)/25,2),
                      ", ",
                      round(100*(mean5km+ci5km)/25,2) ,")"),
-    ci5km = round (ci5km, 2)) %>% 
-  # getting appropriate proj decline values
-  mutate(projected_decline = get_proj_decline_col(GEN3)) %>% 
-  rowwise() %>% 
-  mutate(projected_decline = floor(cur_data()[[projected_decline]]))  %>% 
-  ungroup() %>% 
+    ci5km = round (ci5km, 2)) %>%
+  # getting appropriate proj decline values -- real data when the GEN3
+  # window falls entirely within real CAT years (MinYear + GEN3 <=
+  # MaxYear), otherwise the usual proj{year}.rci lookup
+  mutate(
+    uses_real_data = (MinYear + GEN3) <= MaxYear,
+    projected_decline = ifelse(uses_real_data, NA_character_, get_proj_decline_col(GEN3))
+  ) %>%
+  rowwise() %>%
+  mutate(projected_decline = floor(if (uses_real_data) real_rci_latest_year else cur_data()[[projected_decline]]))  %>%
+  ungroup() %>%
   mutate(
     redlist_category1_exp = case_when(projected_decline > 80 ~ "Critically Endangered",
                                       projected_decline > 50 ~ "Endangered",
@@ -162,24 +188,16 @@ redlist <- soib %>%
       valid3GEN & Decline3GEN >= 8  ~ "Near Threatened",
       TRUE ~ "No"
     )
-  ) %>% 
+  ) %>%
   dplyr::select(
     "India.Checklist.Common.Name", "proprange25km.current", "mean5km",
-    "longtermmean", "currentslopemean", "SoIB.Latest.Current.Status", "SoIB.Latest.Priority.Status", 
+    "longtermmean", "currentslopemean", "SoIB.Latest.Current.Status", "SoIB.Latest.Priority.Status",
     GEN1, Decline1GEN, GEN2, Decline2GEN, GEN3, Decline3GEN, Decline3GENMean, Decline3GENLCI,
     valid1GEN, valid2GEN, valid3GEN,
     "redlist_category", "IUCN.Category", "redlist_different",
-    "redlist_category1_exp", "redlist_proj_different", "projected_decline",
+    "redlist_category1_exp", "redlist_proj_different", "projected_decline", "uses_real_data",
     criterionC_flag
   )
-
-#colnames(redlist) <- c (
-#  "Species", "Range Coverage", "Mean Grid Coverage", "Long-term Decline",
-#  "Current Annual Decline", "Current Status", "Conservation Priority",
-#  "3GEN", "3GEN Decline", "Redlist Category Proposed", "Current Redlist",
-#  "IUCN Different", "Red List using Exp projections", "Red List projections different",
-#  "Projected Decline"
-#)
 
 colnames(redlist) <- c(
   "Species",
@@ -189,7 +207,7 @@ colnames(redlist) <- c(
   "Current Annual Decline",
   "Current Status",
   "Conservation Priority",
-  
+
   "Years1GEN",
   "1GEN Decline",
   "Years2GEN",
@@ -201,14 +219,18 @@ colnames(redlist) <- c(
   "1GEN valid",
   "2GEN valid",
   "3GEN valid",
-  
+
   "Criteria A Redlist Category Proposed",
   "Current Redlist",
   "IUCN Different",
   "Red List using Exp projections",
   "Red List projections different",
   "Projected Decline",
+  "Uses Real Data (not projected)",
   "Criterion C Redlist Category Proposed"
 )
 
-write.csv(redlist, "01_analyses_full/results/redlist.csv", row.names = FALSE)
+write.csv(redlist, "01_analyses_full/results/redlist_real_recent_fix.csv", row.names = FALSE)
+
+message("Wrote ", nrow(redlist), " species to 01_analyses_full/results/redlist_real_recent_fix.csv (",
+        sum(redlist$`Uses Real Data (not projected)`), " using real 2025 data instead of a projection)")
