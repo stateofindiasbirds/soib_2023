@@ -560,7 +560,7 @@ main <- main %>%
   # Priority Status for subnational levels should take the national-level values
   # but only if running latest year subnational AFTER latest year national run
   # i.e. only if the national file is already on the same taxonomy as this run
-  {if (nat_priority_name_col == soib_name_col) {
+  {if (cur_mask!="none" && nat_priority_name_col == soib_name_col) {
     dplyr::select(., -SoIB.Latest.Priority.Status) %>% 
       left_join(nat_priority, by = soib_name_col) 
   } else {
