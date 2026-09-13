@@ -93,6 +93,7 @@ createrandomlocs = function(locs)
 
 soib_year_info <- function(what = "latest_year", container=FALSE) {
 
+  n_years_cat <- 10
   # catch input errors
   valid_inputs <- c("latest_year", "timegroup_lab", "timegroup_med", 
                     "cat_years", "cat_start", "iucn_projection")
@@ -136,10 +137,12 @@ soib_year_info <- function(what = "latest_year", container=FALSE) {
 
   # cutoff year for CAT
   # 2015 was cutoff in SoIB 2023. So in 2025, this will now be 10 years for CAT.
-  # We eventually want 10 years for CAT
+  # We eventually want 10 years for CAT.
+  # Edit: It appears that this decision needs to be revisited in 2027 before the
+  # next major update
   cat_years <- full_soib_my[full_soib_my >= 2015] |> 
     sort() |> 
-    tail(10)
+    tail(n_years_cat+1)
 
   if (what == "cat_years") return(cat_years)
     else if (what == "cat_start") return(min(cat_years))
