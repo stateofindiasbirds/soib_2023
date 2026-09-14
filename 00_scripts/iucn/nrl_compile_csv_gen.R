@@ -381,6 +381,7 @@ left_join(criteriaD_results %>%
           by = "EnglishName",
           relationship = "many-to-one")
   
+
 # ============================================================
 # 4. FINAL OUTPUT TABLE (UNCHANGED STRUCTURE)
 # ============================================================
@@ -414,9 +415,9 @@ species <- merged %>%
     # --------------------------------------------------------
     # SOIB FIELDS
     # --------------------------------------------------------
-    SoIBPriority = SoIB.Latest.Priority.Status,
-    LTC = SoIB.Latest.Long.Term.Status,
-    CAT = SoIB.Latest.Current.Status,
+    SoIBPriority = SoIB.Major.Update.Priority.Status,
+    LTC = SoIB.Major.Update.Long.Term.Status,
+    CAT = SoIB.Major.Update.Current.Status,
     
     # --------------------------------------------------------
     # CRITERIA

@@ -17,6 +17,26 @@ EOOAOO <- read.csv(eooaoofile) %>%
     eBirdName = trimws(Species)
   )
 
+# ============================================================
+# READ EXTERNAL EOO/AOO OVERRIDES IF AVAILABLE
+# ============================================================
+
+EOOAOOExt <- if (file.exists(eooaooextfile)) {
+  read.csv(eooaooextfile) %>%
+    mutate(
+      eBirdName = trimws(Species)
+    ) %>%
+    select(
+      eBirdName,
+      MinAOO_ext = MinAOO,
+      MaxAOO_ext = MaxAOO,
+      LikelyEOO_ext = LikelyEOO,
+      MaxEOO_ext = MaxEOO
+    )
+} else {
+  tibble()
+}
+
 # SoIB main file — only species selected for NRL
 soib_main <- read.csv(get_metadata("none")$SOIBMAIN.PATH) %>%
   mutate(
@@ -33,7 +53,50 @@ EOOAOO <- EOOAOO %>%
             inner_join(
               soib_main,
               by = "eBirdName"
-            ) 
+            ) %>%
+  safe_left_join(EOOAOOExt, by = "eBirdName")
+
+# ============================================================
+# APPLY EXTERNAL EOO/AOO OVERRIDES
+# ============================================================
+
+EOOAOO <- EOOAOO %>%
+  mutate(
+    
+    # --------------------------------------------------------
+    # AOO OVERRIDE
+    # If either external AOO value exists, use BOTH external
+    # MinAOO and MaxAOO values.
+    # --------------------------------------------------------
+    MinAOO = if_else(
+      !is.na(MinAOO_ext) | !is.na(MaxAOO_ext),
+      MinAOO_ext,
+      MinAOO
+    ),
+    
+    MaxAOO = if_else(
+      !is.na(MinAOO_ext) | !is.na(MaxAOO_ext),
+      MaxAOO_ext,
+      MaxAOO
+    ),
+    
+    # --------------------------------------------------------
+    # EOO OVERRIDE
+    # If external LikelyEOO exists, it overrides BOTH
+    # LikelyEOO and MaxEOO.
+    # --------------------------------------------------------
+    LikelyEOO = if_else(
+      !is.na(LikelyEOO_ext),
+      LikelyEOO_ext,
+      LikelyEOO
+    ),
+    
+    MaxEOO = if_else(
+      !is.na(LikelyEOO_ext),
+      MaxEOO_ext,
+      MaxEOO
+    )
+  )
 
 basiceooaoo <- EOOAOO %>%
   mutate(
@@ -54,8 +117,9 @@ basiceooaoo <- EOOAOO %>%
     #AOO cant be more than EOO
     MinAOO = ifelse (MinAOO > LikelyEOO, as.integer(round(LikelyEOO,0)), as.integer(round(MinAOO,0))),
     MaxAOO = ifelse (MaxAOO > LikelyEOO, as.integer(round(LikelyEOO,0)), as.integer(round(MaxAOO,0))),
+    EOOUncertainty <- 1 - (LikelyEOO / MaxEOO),
     LikelyEOO = as.integer(round(LikelyEOO,0)),
-    MaxEOO = as.integer(round(MaxEOO,0))
+    MaxEOO = as.integer(round(MaxEOO,0)),
   )
 
 
@@ -175,7 +239,7 @@ required_cols <- c(
   "EOOChange", "EOOYearBandChange",
   "AOOChange", "AOOYearBandChange", "AOOChangePercent",
   "AOHChange", "AOHYearBandChange", "AOHPercent",
-  "EOHChange", "EOHYearBandChange", "EOHPercent",
+  "EOHChange", "EOHYearBandChange", "EOHPercent", "EOOUncertainty",
   "NoOfLocationsChange", "NoOfLocationYearBandChange",
   "NoOfSubPopulationsChange", "NoOfSubPopYearBandChange",
   "Current.Analysis", "currentsloperci", "mean5km",
@@ -245,6 +309,7 @@ criteriaB_data <- criteriaB_data %>%
     b_i =
       !is.na(EOOChange) &
       EOOChange < 0 &
+      EOOUncertainty <= 2 * abs(EOOChange), # Uncertainity twice the change, then dont hit the threshold
       !is.na(EOOYearBandChange) &
       grepl(latestYear, EOOYearBandChange),
     

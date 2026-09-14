@@ -341,7 +341,7 @@ criteriaA_data <- criteriaA_data %>%
     ReachesCurrent = OrgEndYear == latestYear,
     
     # Decline continues beyond current year
-    IsOngoing = StartYear < latestYear & EndYear >= latestYear,
+    IsOngoing = StartYear < latestYear & EndYear > latestYear,
     
     # Entirely future
     IsFuture = StartYear == latestYear & EndYear > latestYear,
@@ -360,14 +360,79 @@ criteriaA_data <- criteriaA_data %>%
     IsA3 = IsFuture,
     
     # A4: decline that continues beyond the current year
-    IsA4 = IsOngoing | ReachesCurrent
+    IsA4 = IsOngoing
   )
+
+# ------------------------------------------------------------
+# Select the best record for each criterion type
+# ------------------------------------------------------------
+
+# A1: steepest qualifying past decline
+A1_best <- criteriaA_data %>%
+  filter(IsA1) %>%
+  group_by(EnglishName) %>%
+  slice_max(
+    order_by = Decline,
+    n = 1,
+    with_ties = FALSE
+  ) %>%
+  ungroup()
+
+
+# A2: steepest qualifying past decline
+A2_best <- criteriaA_data %>%
+  filter(IsA2) %>%
+  group_by(EnglishName) %>%
+  slice_max(
+    order_by = Decline,
+    n = 1,
+    with_ties = FALSE
+  ) %>%
+  ungroup()
+
+
+# A3: future decline
+A3_best <- criteriaA_data %>%
+  filter(IsA3) %>%
+  group_by(EnglishName) %>%
+  slice_max(
+    order_by = EndYear,
+    n = 1,
+    with_ties = FALSE
+  ) %>%
+  ungroup()
+
+
+# A4: decline extending beyond the current assessment year
+A4_best <- criteriaA_data %>%
+  filter(
+    IsA4,
+    EndYear > latestYear
+  ) %>%
+  group_by(EnglishName) %>%
+  slice_max(
+    order_by = EndYear,
+    n = 1,
+    with_ties = FALSE
+  ) %>%
+  ungroup()
+
+# ============================================================
+# 12. COMBINE BEST RECORDS FOR EACH CRITERION
+# ============================================================
+
+criteriaA_selected <- bind_rows(
+  A1_best,
+  A2_best,
+  A3_best,
+  A4_best
+)
 
 # ============================================================
 # 12. ASSIGN IUCN CATEGORY
 # ============================================================
 
-criteriaA_data <- criteriaA_data %>%
+criteriaA_selected <- criteriaA_selected %>%
   mutate(
     
     Category = case_when(
@@ -393,7 +458,7 @@ criteriaA_data <- criteriaA_data %>%
 # 13. BUILD SUBCRITERIA STRING (e.g., A2bcde)
 # ============================================================
 
-criteriaA_data <- criteriaA_data %>%
+criteriaA_selected <- criteriaA_selected %>%
   rowwise() %>%
   mutate(
     Subcriteria = ifelse(
@@ -415,7 +480,7 @@ criteriaA_data <- criteriaA_data %>%
 # 14. COMBINE CRITERION TYPE + SUBCRITERIA
 # ============================================================
 
-criteriaA_data <- criteriaA_data %>%
+criteriaA_selected <- criteriaA_selected %>%
   rowwise() %>%
   mutate(
     
@@ -450,11 +515,12 @@ criteriaA_data <- criteriaA_data %>%
   ) %>%
   ungroup()
 
+
 # ============================================================
-# 15. SELECT BEST RECORD PER SPECIES
+# 15. COMBINE SELECTED RECORDS INTO FINAL SPECIES ASSESSMENT
 # ============================================================
 
-criteriaA_final <- criteriaA_data %>%
+criteriaA_final <- criteriaA_selected %>%
   mutate(
     # Ranking system: severity first, then method robustness
     SeverityScore = case_when(
