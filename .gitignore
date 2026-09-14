@@ -119,12 +119,3 @@ hist_spread/ecoregions_reclass_viz.html
 hist_spread/reg_abs.csv
 Literature/
 .positai
-*.RDS
-*.rds
-.RData
-*.log
-wget-log
-git.token
-00_scripts/iucn/tmp/
-00_scripts/iucn/ashwinw/
-00_data/states_sf_admin_mapped/
