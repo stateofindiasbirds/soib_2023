@@ -15,7 +15,7 @@
     ifelse(is.na(x) | x == "", "", x)
   }
   # Combine IUCN criteria in the required format
-  combine_criteria <- function(sp) {
+  combine_criteria_old <- function(sp) {
     criteria_out <- c()
     
     for (crit in c("A","B","C","D")) {
@@ -49,6 +49,204 @@
     
     paste(criteria_out, collapse = "; ")
   }
+  
+  combine_criteria <- function(sp) {
+    
+    criteria_out <- list()
+    
+    for (crit in c("A", "B", "C", "D")) {
+      
+      crit_level  <- sp[[paste0("Criteria", crit, "_Category")]]
+      crit_string <- sp[[paste0("Criteria", crit, "_String")]]
+      
+      # Make sure both values are single, non-empty values
+      if (length(crit_level) == 0 || length(crit_string) == 0) {
+        next
+      }
+      
+      crit_level  <- as.character(crit_level[1])
+      crit_string <- as.character(crit_string[1])
+      
+      if (is.na(crit_level) || is.na(crit_string) ||
+          !nzchar(trimws(crit_level)) ||
+          !nzchar(trimws(crit_string))) {
+        next
+      }
+      
+      # Split criterion string on "+"
+      parts <- unlist(strsplit(crit_string, "\\+"))
+      parts <- trimws(parts)
+      
+      # Remove any empty parts
+      parts <- parts[nzchar(parts)]
+      
+      if (length(parts) == 0) {
+        next
+      }
+      
+      if (length(parts) > 1) {
+        
+        first <- parts[1]
+        
+        # Remove only the leading criterion letter
+        # from subsequent components
+        rest <- sub(
+          paste0("^", crit),
+          "",
+          parts[-1]
+        )
+        
+        rest <- trimws(rest)
+        rest <- rest[nzchar(rest)]
+        
+        if (length(rest) > 0) {
+          combined <- paste0(
+            first,
+            "+",
+            paste(rest, collapse = "+")
+          )
+        } else {
+          combined <- first
+        }
+        
+      } else {
+        combined <- parts[1]
+      }
+      
+      # Final safety check
+      if (is.na(combined) || !nzchar(combined)) {
+        next
+      }
+      
+      criteria_out[[crit]] <- list(
+        criterion = crit,
+        category  = crit_level,
+        string    = combined
+      )
+    }
+    
+    # Nothing usable
+    if (length(criteria_out) == 0) {
+      return(NA_character_)
+    }
+    
+    # Category strength: CR > EN > VU > NT
+    category_rank <- c(
+      "CR" = 1,
+      "EN" = 2,
+      "VU" = 3,
+      "NT" = 4
+    )
+    
+    # Keep only categories that have a defined rank
+    valid <- vapply(
+      criteria_out,
+      function(x) x$category %in% names(category_rank),
+      logical(1)
+    )
+    
+    criteria_out <- criteria_out[valid]
+    
+    if (length(criteria_out) == 0) {
+      return(NA_character_)
+    }
+    
+    # Sort by category strength
+    criteria_out <- criteria_out[
+      order(
+        vapply(
+          criteria_out,
+          function(x) category_rank[x$category],
+          numeric(1)
+        )
+      )
+    ]
+    
+    strongest_category <- criteria_out[[1]]$category
+    
+    # All criteria belonging to the strongest category
+    strongest <- criteria_out[
+      vapply(
+        criteria_out,
+        function(x) x$category == strongest_category,
+        logical(1)
+      )
+    ]
+    
+    # All weaker categories
+    weaker <- criteria_out[
+      vapply(
+        criteria_out,
+        function(x) category_rank[x$category] >
+          category_rank[strongest_category],
+        logical(1)
+      )
+    ]
+    
+    # --------------------------------------------------
+    # Combine criteria within the strongest category
+    # --------------------------------------------------
+    
+    strongest_parts <- vapply(
+      strongest,
+      function(x) x$string,
+      character(1)
+    )
+    
+    main_string <- strongest_parts[1]
+    
+    if (length(strongest_parts) > 1) {
+      
+      for (x in strongest_parts[-1]) {
+        
+        # Remove leading criterion letter if present
+        x <- sub("^[A-D]", "", x)
+        x <- trimws(x)
+        
+        if (nzchar(x)) {
+          main_string <- paste0(
+            main_string,
+            "+",
+            x
+          )
+        }
+      }
+    }
+    
+    strongest_output <- paste0(
+      strongest_category,
+      " ",
+      main_string
+    )
+    
+    # --------------------------------------------------
+    # Add weaker categories in brackets
+    # --------------------------------------------------
+    
+    if (length(weaker) == 0) {
+      return(strongest_output)
+    }
+    
+    weaker_output <- vapply(
+      weaker,
+      function(x) {
+        paste0(
+          x$category,
+          " ",
+          x$string
+        )
+      },
+      character(1)
+    )
+    
+    paste0(
+      strongest_output,
+      " (also met ",
+      paste(weaker_output, collapse = "; "),
+      ")"
+    )
+  }
+
   
   # Generate HTML for a species
   generate_html_pretty <- function(sp) {
@@ -113,18 +311,18 @@
       # REDLIST
       # --------------------------------------------------------
       
-      "        <div class='section-title'>Redlist</div>",
-      glue("        <div class='data-row'><span class='label'>Regional (Default):</span> <span class='value redlist-highlight'>{sp$RegionalRedlist}</span></div>"),
-      glue("        <div class='data-row'><span class='label'>Regional (Adjusted):</span> <span class='value'>{sp$AdjustedRegionalRedlist}</span></div>"),
+      "        <div class='section-title'>RedList</div>",
+      glue("        <div class='data-row'><span class='label'>National (Default):</span> <span class='value redlist-highlight'>{sp$RegionalRedlist}</span></div>"),
+      glue("        <div class='data-row'><span class='label'>National (Adjusted):</span> <span class='value'>{sp$AdjustedRegionalRedlist}</span></div>"),
       glue("        <div class='data-row'><span class='label'>Global (BirdLife):</span> <span class='value'><a href='{sp$GlobalRedlistURL}' target='_blank'>{sp$GlobalRedlist}</a></span></div>"),
-      glue("        <div class='data-row'><span class='label'>Migratory Status (India):</span> <span class='value'>{sp$MigratoryStatusIndia}</span></div>"),
+      glue("        <div class='data-row'><span class='label'>Migratory Status (within India):</span> <span class='value'>{sp$MigratoryStatusIndia}</span></div>"),
       
       # --------------------------------------------------------
       # IUCN CRITERIA
       # --------------------------------------------------------
       
       "        <div class='section-title'>IUCN Criteria Met</div>",
-      glue("        <div class='data-row'><span>Regional:</span><span class='iucn-value'>{combine_criteria(sp)}</span></div>"),
+      glue("        <div class='data-row'><span>National:</span><span class='iucn-value'>{combine_criteria(sp)}</span></div>"),
       glue("        <div class='data-row'><span>Global (BirdLife):</span><span class='iucn-value'>{sp$GlobalCriteriaString}</span></div>"),
       
       # --------------------------------------------------------
@@ -139,14 +337,14 @@
       glue("        <div class='data-row'><span class='label'>Global EOO (BirdLife):</span> <span class='global-value'>{sp$GlobalEOO}</span></div>"),
       glue("        <div class='data-row'><span class='label'>Global AOO (BirdLife):</span> <span class='global-value'>{sp$GlobalAOO}</span></div>"),
       glue("        <div class='data-row'><span class='label'>% of Global Range (BirdLife):</span> <span class='value'>{sp$GlobalRangePercent}</span></div>"),
-      glue("        <div class='data-row'><span class='label'>No. of Locations:</span> <span class='value'>{ifelse(is.na(sp$Locations), '> 10', ifelse(!is.na(sp$MinLocations) & !is.na(sp$MaxLocations), paste0(sp$Locations, ' (', sp$MinLocations, '–', sp$MaxLocations, ')'), sp$Locations))}</span></div>"),
+      glue("        <div class='data-row'><span class='label'>No. of Locations:</span> <span class='value'>{ifelse(is.na(sp$Locations), 'NA', ifelse(!is.na(sp$MinLocations) & !is.na(sp$MaxLocations), paste0(sp$Locations, ' (', sp$MinLocations, '–', sp$MaxLocations, ')'), sp$Locations))}</span></div>"),
       glue("        <div class='data-row'><span class='label'>No. of Subspecies (Synopsis):</span> <span class='value'>{sp$Subspecies}</span></div>"),
       
       # --------------------------------------------------------
       # STATE OF INDIA'S BIRDS
       # --------------------------------------------------------
       
-      "        <div class='section-title'>State of India's Birds</div>",
+      "        <div class='section-title'>State of India's Birds 2023</div>",
       "        <table class='soib-table'>",
       "          <tr><th>Priority</th><th>Long-term Change</th><th>Current Annual Trend</th></tr>",
       "          <tr>",
@@ -183,7 +381,7 @@
       glue("            <td>{sp$Years3GEN}</td>"),
       "          </tr>",
       "        </table>",      
-      glue("        <div class='data-row'><span class='label'>Actual Trend (%):</span> <span class='value'>{sp$ActualDeclinePercentage_C1} {na_blank(sp$YearsActualDecline_C1)}</span></div>"),
+      glue("        <div class='data-row'><span class='label'>Actual Trend (%):</span> <span class='value'>-{sp$ActualDeclinePercentage_C1} {na_blank(sp$YearsActualDecline_C1)}</span></div>"),
       
       # --------------------------------------------------------
       # POPULATION DECLINE — CRITERIA A
@@ -207,14 +405,14 @@
       glue("        <div class='data-row'><span class='label'>Generation Length (BirdLife):</span> <span class='value'>{sp$GenerationLength}</span></div>"),
       glue("        <div class='data-row'><span class='label'>Actual Trend (%):</span> <span class='value'>{sp$ActualDeclinePercentage} {na_blank(sp$YearsActualDecline)}</span></div>"),
       glue("        <div class='data-row'><span class='label'>Global Population Trend (BirdLife):</span> <span class='global-value'>{sp$GlobalPopulationTrend}</span></div>"),
-      glue("        <div class='data-row'><span class='label'>Continuing Decline (Regional):</span> <span class='value'>{sp$ContinuingDecline}</span></div>"),
+      glue("        <div class='data-row'><span class='label'>Continuing Decline (National):</span> <span class='value'>{sp$ContinuingDecline}</span></div>"),
       
       # --------------------------------------------------------
       # POPULATION
       # --------------------------------------------------------
       
       "        <div class='section-title'>Population (Mature Individuals) <span class='criteria-label'>Criteria C & D</span></div>",
-      glue("        <div class='data-row'><span class='label'>Regional Population:</span> <span class='value'>{sp$TotalLikelyPop} {na_blank(sp$TotalMaxPop)}</span></div>"),
+      glue("        <div class='data-row'><span class='label'>National Population:</span> <span class='value'>{sp$TotalLikelyPop} {na_blank(sp$TotalMaxPop)}</span></div>"),
       glue("        <div class='data-row'><span class='label'>Global Population (BirdLife):</span> <span class='value'>{sp$GlobalPopulation}</span></div>"),
       glue("        <div class='data-row'><span class='label'>1% biogeographic population (Wetlands Intl.):</span> <span class='value'>{sp$BiogPop1Percent}</span></div>"),
       

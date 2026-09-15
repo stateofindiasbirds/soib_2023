@@ -13,7 +13,7 @@ source(file.path(scriptpath, "config.R"))
 # LOAD DATA
 # -----------------------------
 
-EOO <- readRDS(file.path(scriptpath, "eoo.RDS"))
+EOO <- readRDS(file.path(scriptpath, "eoo.RDS")) %>% filter (Species == 'Great Indian Bustard')
 AOO <- readRDS(file.path(scriptpath, "aoo.RDS"))
 
 # Master sf grids
@@ -105,11 +105,23 @@ plotMap <- function(sp,
   # OCCUPANCY CATEGORIES
   # -----------------------------
   
-  present_ids <- AOO_sp[[paste0("GridIDs_P_", resolution, "km")]][[1]]
+  present_ids <- character(0)
+  uncertain_ids <- character(0)
   
-  uncertain_ids <- AOO_sp[[paste0("GridIDs_U_", resolution, "km")]][[1]]
+  if (!is.null(AOO_sp) && nrow(AOO_sp) > 0) {
+    
+    present_col <- paste0("GridIDs_P_", resolution, "km")
+    uncertain_col <- paste0("GridIDs_U_", resolution, "km")
+    
+    if (present_col %in% names(AOO_sp)) {
+      present_ids <- AOO_sp[[present_col]][[1]]
+    }
+    
+    if (uncertain_col %in% names(AOO_sp)) {
+      uncertain_ids <- AOO_sp[[uncertain_col]][[1]]
+    }
+  }
   
-  # Prevent NULL errors
   if (is.null(present_ids)) {
     present_ids <- character(0)
   }
@@ -268,13 +280,24 @@ plot3Maps <- function(sp,
     }
   )
   
-  subtitle_text <- paste(
-    "MinAOO:", round(AOO_sp$MinAOO, 0),
-    "| MaxAOO:", round(AOO_sp$MaxAOO, 0),
-    "| LikelyEOO:", round(EOO_sp$LikelyEOO, 0),
-    "| EOO Start:", EOO_sp$EOOStartYear
-  )
-  
+  if (nrow(AOO_sp) > 0) {
+    
+    subtitle_text <- paste(
+      "MinAOO:", round(AOO_sp$MinAOO[1], 0),
+      "| MaxAOO:", round(AOO_sp$MaxAOO[1], 0),
+      "| LikelyEOO:", round(EOO_sp$LikelyEOO[1], 0),
+      "| EOO Start:", EOO_sp$EOOStartYear[1]
+    )
+    
+  } else {
+    
+    subtitle_text <- paste(
+      "AOO: not available",
+      "| LikelyEOO:", round(EOO_sp$LikelyEOO[1], 0),
+      "| EOO Start:", EOO_sp$EOOStartYear[1]
+    )
+  }  
+
   combined_plot <- (
     
     wrap_plots(
@@ -306,6 +329,7 @@ AOO <- AOO %>%
   filter(MaxAOO < 30000)
 
 species <- AOO$Species
+species <- EOO$Species
 
 # -----------------------------
 # OUTPUT DIRECTORY
@@ -337,8 +361,9 @@ lapply(species, function(sp) {
   
   # Skip missing
   if (nrow(EOO_sp) == 0 ||
-      is.null(EOOGrids_sp) ||
-      nrow(AOO_sp) == 0) {
+      is.null(EOOGrids_sp) 
+      # nrow(AOO_sp) == 0
+      ) {
     
     cat("Skipping:", sp, "- missing data\n")
     return(NULL)

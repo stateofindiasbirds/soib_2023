@@ -6,6 +6,8 @@ popDeclinefile  <- "00_data/populationdeclines.csv"
 threegenfile    <- "00_data/3genbli.csv"
 soibredlistfile <- "01_analyses_full/results/redlist.csv"
 eooaoofile <- "01_analyses_full/results/eooaoo.csv"
+eooaooextfile <- "01_analyses_full/results/eooaooext.csv"
+
 soibmainfile <- get_metadata("none")$SOIBMAIN.PATH
 continuingdeclineexfile <- "01_analyses_full/results/continuingdeclineext.csv"
 severelyfragmentedfile <- "01_analyses_full/results/severelyfragmented.csv"

@@ -111,6 +111,8 @@ manual_trends <- manual_decline %>%
       "Projected"
     ),
     
+    C1Continuing = as.numeric(EndYear) >= latestYear,
+    
     # --------------------------------------------------------
     # C2:
     # Observed, Estimated, Inferred and Projected are eligible
@@ -500,7 +502,7 @@ criteriaC_data <- criteriaC_data %>%
 # ============================================================
 
 c1_trends <- manual_trends %>%
-  filter(C1Eligible) %>%
+  filter(C1Eligible & C1Continuing) %>%
   group_by(EnglishName) %>%
   summarise(
     
@@ -775,6 +777,7 @@ criteriaC_data <- criteriaC_data %>%
     VU_C1 =
       !is.na(C1_3GEN_Decline) &
       C1_3GEN_Decline >= 10,
+    
     
     # --------------------------------------------------------
     # Highest C1 category determines C1 method

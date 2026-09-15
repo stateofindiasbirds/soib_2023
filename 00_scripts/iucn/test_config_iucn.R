@@ -6,6 +6,7 @@ popDeclinefile  <- paste0(parentfolder, "00_data/populationdeclines.csv")
 threegenfile    <- "00_data/3genbli.csv"
 soibredlistfile <- paste0(parentfolder, "01_analyses_full/results/redlist.csv")
 eooaoofile <- paste0(parentfolder, "01_analyses_full/results/eooaoo.csv")
+eooaooextfile <- paste0(parentfolder, "01_analyses_full/results/eooaooext.csv")
 soibmainfile <- get_metadata("none")$SOIBMAIN.PATH
 continuingdeclineexfile <- paste0(parentfolder, "01_analyses_full/results/continuingdeclineext.csv")
 severelyfragmentedfile <- paste0(parentfolder, "01_analyses_full/results/severelyfragmented.csv")
