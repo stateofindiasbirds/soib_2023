@@ -7,6 +7,7 @@ library(readr)
 library(tidyr)
 library(stringr)
 source("00_scripts/iucn/config_iucn.R")
+source("00_scripts/iucn/population_utils.R")
 
 # ============================================================
 # 1. READ INPUT DATA
@@ -53,7 +54,7 @@ manual_decline <- if (file.exists(popDeclinefile)) {
       LTC = NA_character_,
       CAT = NA_character_
     ) %>%
-    filter(!is.na(Method))
+    dplyr::filter(!is.na(Method))
   
 } else {
   tibble()
@@ -71,7 +72,7 @@ soib_main <- read.csv(
   mutate(
     EnglishName = trimws(India.Checklist.Common.Name)
   ) %>%
-  filter(
+  dplyr::filter(
     Selected.NRL == 1
   )
 
@@ -85,7 +86,7 @@ fluctuations <- if (file.exists(extremefluctationsfile)) {
       EnglishName = trimws(Species),
       ExtremeFluctuation = ExtremeFluctuationsinNoOfMatureIndividuals
     ) %>% 
-    select(EnglishName, ExtremeFluctuation)
+    dplyr::select(EnglishName, ExtremeFluctuation)
 } else {
   tibble(EnglishName = character(), ExtremeFluctuation = logical())
 }
@@ -131,7 +132,7 @@ manual_trends <- manual_decline %>%
 # ============================================================
 
 gen_data <- read.csv(get_metadata("none")$SOIBMAIN.PATH) %>%
-  select(
+  dplyr::select(
     EnglishName = India.Checklist.Common.Name,
     GenerationLength = Generation.Length
   ) %>%
@@ -148,7 +149,7 @@ generation_windows <- gen_data %>%
     Years2GEN = pmax(5, round(2 * GenerationLength)),
     Years3GEN = pmax(10, round(3 * GenerationLength))
   ) %>%
-  select(
+  dplyr::select(
     EnglishName,
     Years1GEN,
     Years2GEN,
@@ -463,6 +464,42 @@ criteriaC_data <- criteriaC_data %>%
     
   )
 
+# ============================================================
+# IUCN ASSESSMENTS FOR GLOBAL POPULATION
+# ============================================================
+
+iucn_assessments <- read_csv(assessmentsflattenedfile) %>% 
+  mutate(
+    EnglishName = trimws(india_checklist_common_name_2025)
+  ) %>%
+  dplyr::filter(
+    EnglishName %in% soib_main$EnglishName
+  )
+
+iucn_assessments %>%
+  count(EnglishName) %>%
+  dplyr::filter(n > 1)
+
+iucn_assessments <- iucn_assessments %>% 
+  dplyr::select(
+    EnglishName,
+    supplementary_info_json_population_size
+  ) %>%
+  distinct(EnglishName, .keep_all = TRUE)
+
+population_parsed <- do.call(
+  rbind,
+  lapply(
+    iucn_assessments$supplementary_info_json_population_size,
+    parse_population
+  )
+)
+
+iucn_assessments <- cbind(
+  iucn_assessments,
+  population_parsed
+)
+
 
 # ============================================================
 # 4. PREPARE C1 AND C2 TREND RESULTS
@@ -502,7 +539,7 @@ criteriaC_data <- criteriaC_data %>%
 # ============================================================
 
 c1_trends <- manual_trends %>%
-  filter(C1Eligible & C1Continuing) %>%
+  dplyr::filter(C1Eligible & C1Continuing) %>%
   group_by(EnglishName) %>%
   summarise(
     
@@ -673,7 +710,7 @@ c1_trends <- manual_trends %>%
 # ============================================================
 
 c2_manual <- manual_trends %>%
-  filter(
+  dplyr::filter(
     C2Eligible,
     !is.na(EndYear),
     as.numeric(EndYear) >= latestYear,
@@ -747,19 +784,67 @@ criteriaC_data <- criteriaC_data %>%
   )
 
 # ============================================================
+#####MERGE GLOBAL POPULATION DATA
+# ============================================================
+criteriaC_data <- criteriaC_data |>
+  dplyr::left_join(
+    iucn_assessments |>
+      dplyr::select(
+        EnglishName,
+        GlobalMinPopulation,
+        GlobalMaxPopulation,
+        GlobalBestPopulation
+      ),
+    by = "EnglishName"
+  )
+
+# ============================================================
 # 5. EVALUATE CRITERION C CONDITIONS
 # ============================================================
 
 criteriaC_data <- criteriaC_data %>%
   mutate(
-    
+      # --------------------------------------------------------
+      # EFFECTIVE POPULATION VALUES
+      #
+      # Existing mature-population values take precedence.
+      # Global population is used only when mature-population
+      # information is unavailable.
+      # --------------------------------------------------------
+      
+      EffectiveMinPop = coalesce(
+        MinMaturePop,
+        GlobalMinPopulation
+      ),
+      
+      EffectiveMaxPop = coalesce(
+        MaxMaturePop,
+        GlobalMaxPopulation
+      ),
+      
+      EffectiveMinPop = coalesce(
+        MinMaturePop,
+        GlobalMinPopulation
+      ),
+      
+      EffectiveMaxPop = coalesce(
+        MaxMaturePop,
+        GlobalMaxPopulation
+      ),
+      
+      EffectiveBestPop = coalesce(
+        BestMaturePop,
+        GlobalBestPopulation
+      ),
+      
+
     # -------------------------
     # Population thresholds
     # -------------------------
     
-    CR_pop = MaxMaturePop < 250,
-    EN_pop = MaxMaturePop < 2500,
-    VU_pop = MaxMaturePop < 10000,
+    CR_pop = EffectiveMaxPop < 250,
+    EN_pop = EffectiveMaxPop < 2500,
+    VU_pop = EffectiveMaxPop < 10000,
     
     
     # -------------------------
@@ -998,11 +1083,11 @@ criteriaC_data <- criteriaC_data %>%
       # Population threshold
       # -------------------------
       
-      Pop_Met = !is.na(MaxMaturePop) & MaxMaturePop < 10000,
+      Pop_Met = !is.na( EffectiveMaxPop) &  EffectiveMaxPop < 10000,
       
       Pop_Near =
-        (!is.na(BestMaturePop) & (BestMaturePop <= 15000)) |
-        (!is.na(MinMaturePop) & (MinMaturePop < 10000)),
+        (!is.na(EffectiveBestPop ) & (EffectiveBestPop  <= 15000)) |
+        (!is.na(EffectiveMinPop ) & (EffectiveMinPop  < 10000)),
       
       
       # -------------------------
@@ -1081,15 +1166,15 @@ criteriaC_data <- criteriaC_data %>%
 
 # CR assigned but population too large
 CR_population_error <- criteriaC_data %>%
-  filter(CriteriaC_Category == "CR" & MaxMaturePop >= 250)
+  filter(CriteriaC_Category == "CR" &  EffectiveMaxPop >= 250)
 
 # EN assigned but population too large
 EN_population_error <- criteriaC_data %>%
-  filter(CriteriaC_Category == "EN" & MaxMaturePop >= 2500)
+  filter(CriteriaC_Category == "EN" &  EffectiveMaxPop >= 2500)
 
 # VU assigned but population too large
 VU_population_error <- criteriaC_data %>%
-  filter(CriteriaC_Category == "VU" & MaxMaturePop >= 10000)
+  filter(CriteriaC_Category == "VU" &  EffectiveMaxPop >= 10000)
 
 # Impossible subpopulation percentages
 subpop_percent_error <- criteriaC_data %>%
@@ -1100,7 +1185,7 @@ subpop_percent_error <- criteriaC_data %>%
 # ============================================================
 
 criteriaC_output <- criteriaC_data %>%
-  select(
+  dplyr::select(
     
     # --------------------------------------------------------
     # SPECIES

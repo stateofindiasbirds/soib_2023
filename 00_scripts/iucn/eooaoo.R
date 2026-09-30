@@ -34,10 +34,10 @@ source(file.path(scriptpath, "aoo.R"))
 # Maps the AOO Grids (which is the EOO area) with occupancy and also shows the AOO/EOO values
 source(file.path(scriptpath, "maps.R"))
 
-EOO <- readRDS(file.path(resultspath, "eoo_df.RDS")) %>% filter (EOOEndYear == 2025)
-EOODiff <- readRDS(file.path(resultspath, "eoodiff.RDS")) %>% filter(str_detect(EOOYearBandChange, "to .*2025$"))
+EOO <- readRDS(file.path(resultspath, "eoo_df.RDS")) %>% dplyr::filter (EOOEndYear == 2025)
+EOODiff <- readRDS(file.path(resultspath, "eoodiff.RDS")) %>% dplyr::filter(str_detect(EOOYearBandChange, "to .*2025$"))
 AOO <- readRDS (file.path(resultspath, "aoo.RDS"))
-MaxEOO <- read_csv(file.path(scriptpath, "MaxEOO.csv")) %>% select (Species, MaxEOO)
+MaxEOO <- read_csv(file.path(scriptpath, "MaxEOO.csv")) %>% dplyr::select (Species, MaxEOO)
 
 EOOAOO <- EOO %>% left_join(AOO, by = c("Species")) %>% left_join(EOODiff, c("Species")) %>% left_join (MaxEOO, c("Species"))
 EOOAOO <- EOOAOO %>%
@@ -48,5 +48,5 @@ EOOAOO <- EOOAOO %>%
     MaxEOO = round(MaxEOO),
     EOOChange = round(EOOChange),
   ) %>% 
-  select (Species, MinAOO, MaxAOO, MinEstimate_2km, EOOStartYear, LikelyEOO, MaxEOO, EOOYearBandChange, EOOChange, EOOChangePercent)
+  dplyr::select (Species, MinAOO, MaxAOO, MinEstimate_2km, EOOStartYear, LikelyEOO, MaxEOO, EOOYearBandChange, EOOChange, EOOChangePercent)
 write.csv(EOOAOO, file.path(resultspath, "eooaoo.csv"))

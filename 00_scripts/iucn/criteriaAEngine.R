@@ -34,7 +34,7 @@ if(nrow(manual_decline) > 0)
 soib <- read.csv(get_metadata("none")$SOIBMAIN.PATH)
 
 gen_data <- soib %>%
-  select(
+  dplyr::select(
     EnglishName = India.Checklist.Common.Name,
     GenerationLength = Generation.Length
   ) %>%
@@ -77,7 +77,7 @@ gen_data <- soib %>%
       NeedsExtension = Duration < Years3GEN,
       
       # Only these methods allow extrapolation (correct IUCN interpretation)
-      CanExtrapolate = Method %in% c("Observed", "Inferred", "Projected"),
+      CanExtrapolate = Method %in% c("Observed", "Estimated", "Inferred"),
       WasExtrapolated = NeedsExtension & CanExtrapolate
     )
 
@@ -199,7 +199,7 @@ gen_data <- soib %>%
       RangeCoverage = as.numeric(RangeCoverage)
       
     ) %>%
-    select(
+    dplyr::select(
       EnglishName,
       Method,
       Reversible,
@@ -269,7 +269,7 @@ redlist_decline <- read_csv(soibredlistfile) %>%
     LTC = `Long-term Decline`,
     CAT = `Current Annual Decline`
   ) %>%
-  select(
+  dplyr::select(
     EnglishName,
     Method,
     Reversible,
@@ -341,7 +341,7 @@ criteriaA_data <- criteriaA_data %>%
     ReachesCurrent = OrgEndYear == latestYear,
     
     # Decline continues beyond current year
-    IsOngoing = StartYear < latestYear & EndYear > latestYear,
+    IsOngoing = StartYear < latestYear & EndYear >= latestYear,
     
     # Entirely future
     IsFuture = StartYear == latestYear & EndYear > latestYear,
@@ -396,7 +396,7 @@ A3_best <- criteriaA_data %>%
   filter(IsA3) %>%
   group_by(EnglishName) %>%
   slice_max(
-    order_by = EndYear,
+    order_by = Decline,
     n = 1,
     with_ties = FALSE
   ) %>%
@@ -411,7 +411,7 @@ A4_best <- criteriaA_data %>%
   ) %>%
   group_by(EnglishName) %>%
   slice_max(
-    order_by = EndYear,
+    order_by = Decline,
     n = 1,
     with_ties = FALSE
   ) %>%
@@ -552,7 +552,7 @@ criteriaA_final <- criteriaA_selected %>%
 # ============================================================
 
 criteriaA_output <- criteriaA_final %>%
-  select(
+  dplyr::select(
     
     # Species
     EnglishName,

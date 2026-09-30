@@ -117,7 +117,7 @@ iucn_assessments %>%
   filter(n > 1)
 
 iucn_assessments <- iucn_assessments %>% 
-  select(
+  dplyr::select(
     EnglishName,
     red_list_category_code,
     criteria,
@@ -164,10 +164,10 @@ cat("\n--- iucn_assessments names missing in soib_main ---\n")
 
 anti_join(
   iucn_assessments %>%
-    select(EnglishName),
+    dplyr::select(EnglishName),
   
   soib_main %>%
-    select(EnglishName),
+    dplyr::select(EnglishName),
   
   by = "EnglishName"
 ) %>%
@@ -202,10 +202,10 @@ cat("\n--- soib_main English names missing in Criteria B ---\n")
 
 anti_join(
   soib_main %>%
-    select(EnglishName),
+    dplyr::select(EnglishName),
   
   criteriaB_results %>%
-    select(EnglishName),
+    dplyr::select(EnglishName),
   
   by = "EnglishName"
 ) %>%
@@ -215,10 +215,10 @@ cat("\n--- Criteria B English names missing in soib_main ---\n")
 
 anti_join(
   criteriaB_results %>%
-    select(EnglishName),
+    dplyr::select(EnglishName),
   
   soib_main %>%
-    select(EnglishName),
+    dplyr::select(EnglishName),
   
   by = "EnglishName"
 ) %>%
@@ -234,10 +234,10 @@ cat("\n--- Criteria C English names missing in soib_main ---\n")
 
 anti_join(
   criteriaC_results %>%
-    select(EnglishName),
+    dplyr::select(EnglishName),
   
   soib_main %>%
-    select(EnglishName),
+    dplyr::select(EnglishName),
   
   by = "EnglishName"
 ) %>%
@@ -253,10 +253,10 @@ cat("\n--- Criteria D English names missing in soib_main ---\n")
 
 anti_join(
   criteriaD_results %>%
-    select(EnglishName),
+    dplyr::select(EnglishName),
   
   soib_main %>%
-    select(EnglishName),
+    dplyr::select(EnglishName),
   
   by = "EnglishName"
 ) %>%
@@ -292,7 +292,7 @@ left_join(iucn_assessments,
   # ---- Criteria A ----
 left_join(
   criteriaA_results %>%
-    select(
+    dplyr::select(
       EnglishName, 
       CriteriaA_Category, 
       CriteriaA_String,
@@ -315,7 +315,7 @@ left_join(
   
   # ---- Criteria B ----
 left_join(criteriaB_results %>%
-            select(EnglishName,
+            dplyr::select(EnglishName,
                    CriteriaB_Category,
                    CriteriaB_String,
                    MinAOO,
@@ -334,7 +334,7 @@ left_join(criteriaB_results %>%
 # ---- Criteria C ----
 left_join(
   criteriaC_results %>%
-    select(
+    dplyr::select(
       EnglishName,
       CriteriaC_Category,
       CriteriaC_String,
@@ -356,7 +356,7 @@ left_join(
       ActualDeclineStartYear,
       ActualDeclineEndYear,
       ActualDeclineYears
-    ) %>%
+    )  %>%
     rename(
       Years1GEN_C = Years1GEN,
       Years2GEN_C = Years2GEN,
@@ -374,7 +374,7 @@ left_join(
   
   # ---- Criteria D ----
 left_join(criteriaD_results %>%
-            select(EnglishName,
+            dplyr::select(EnglishName,
                    CriteriaD_Category,
                    CriteriaD_String
                    ),
@@ -468,16 +468,16 @@ species <- merged %>%
       paste0(round(C1_1GEN_Decline, 1))
     ),
     
-    Years1GEN = Years1GEN_C,
-    
+    Years1GEN = ifelse (is.na(Years1GEN_C),  pmax(3, round(GenerationLength)), Years1GEN_C),
+
     Decline2GEN = ifelse(
       is.na(C1_2GEN_Decline),
       "NA",
       paste0(round(C1_2GEN_Decline, 1))
     ),
     
-    Years2GEN = Years2GEN_C,
-    
+    Years2GEN = ifelse (is.na(Years2GEN_C),  pmax(5, 2*round(GenerationLength)), Years2GEN_C),
+
     Decline3GEN_C = ifelse(
       is.na(C1_3GEN_Decline),
       "NA",
@@ -486,42 +486,83 @@ species <- merged %>%
     
     Decline3GEN_C1_Method = C1Method,
     Decline3GEN_ContinuingDeclineMethod = ContinuingDeclineMethod,
-    Years3GEN = Years3GEN_C,
+    Years3GEN = ifelse (is.na(Years3GEN_C),  pmax(10, 3*round(GenerationLength)), Years3GEN_C),
     
     GenerationLength = GenerationLength,
-    ActualDeclinePercentage = ifelse (`SoIB.Latest.Current.Status` %in% c("Stable", "Decline", "Rapid Decline", "Rapid Increase", "Increase"),
-                                      paste0(round(currentslopemean,2),
-                                     "% (",
-                                     round(currentsloperci,2),
-                                     ", ",
-                                     round(currentslopelci,2),") pa, "),
-                                     ifelse (is.na(ActualDecline), NA, ActualDecline)),
-
-    YearsActualDecline = ifelse (`SoIB.Latest.Current.Status` %in% c("Stable", "Decline", "Rapid Decline", "Rapid Increase", "Increase"),
-                                      paste0(as.integer(latestYear-2015),"y, ",2015,"-",latestYear),
-                                 ifelse (is.na(ActualDecline) | is.na(OrgStartYear) | is.na(OrgEndYear),
-                                 "",
-                                 paste0(as.integer(OrgEndYear-OrgStartYear),"y, ",OrgStartYear,"-",OrgEndYear))),
-    ContinuingDecline  = ifelse( is.na(currentslopelci), "Unknown",ifelse (currentslopelci > 0, "No", ifelse(currentsloperci < 0, "Yes", "Uncertain"))),
-    
-    ActualDeclinePercentage_C1 = ifelse(
-      is.na(ActualDecline_C1),
-      "NA",
-      paste0(round(ActualDecline_C1, 1), "%")
-    ),
-    
-    YearsActualDecline_C1 = ifelse(
-      is.na(ActualDeclineStartYear_C1) | is.na(ActualDeclineEndYear_C1),
-      "",
-      paste0(
-        as.integer(ActualDeclineYears_C1),
-        "y, ",
-        as.integer(ActualDeclineStartYear_C1),
-        "-",
-        as.integer(ActualDeclineEndYear_C1)
+    ActualDeclinePercentage = ifelse(
+      !is.na(ActualDecline),
+      ActualDecline,
+      ifelse(
+        `SoIB.Latest.Current.Status` %in% c(
+          "Stable", "Decline", "Rapid Decline",
+          "Rapid Increase", "Increase"
+        ),
+        paste0(
+          round(currentslopemean, 2),
+          "% (",
+          round(currentsloperci, 2),
+          ", ",
+          round(currentslopelci, 2),
+          ") pa, "
+        ),
+        NA
       )
     ),
     
+    YearsActualDecline = ifelse(
+      !is.na(ActualDecline),
+      paste0(
+        as.integer(OrgEndYear - OrgStartYear),
+        "y, ",
+        OrgStartYear,
+        "-",
+        OrgEndYear
+      ),
+      ifelse(
+        `SoIB.Latest.Current.Status` %in% c(
+          "Stable", "Decline", "Rapid Decline",
+          "Rapid Increase", "Increase"
+        ),
+        paste0(
+          as.integer(latestYear - 2015),
+          "y, ",
+          2015,
+          "-",
+          latestYear
+        ),
+        ""
+      )
+    ),
+    
+    ActualDeclinePercentage_C1 = ActualDecline_C1,
+    ActualDeclineMean_C1 = ActualDeclineMean_C1,
+    ActualDeclineLci_C1 = ActualDeclineLci_C1,
+    ActualDeclineStartYear_C1 = ActualDeclineStartYear_C1,
+    ActualDeclineEndYear_C1 = ActualDeclineEndYear_C1,
+    YearsActualDecline_C1 = ActualDeclineYears_C1,
+    
+    ContinuingDecline = ifelse(
+      # Actual decline extends to the current assessment year
+      !is.na(ActualDecline) &
+        !is.na(OrgEndYear) &
+        OrgEndYear >= latestYear,
+      "Yes",
+      ifelse(
+        # Current SoIB slope indicates decline
+        !is.na(currentsloperci) &
+          currentsloperci < 0,
+        "Yes",
+        ifelse(
+          is.na(currentslopelci),
+          "Unknown",
+          ifelse(
+            currentslopelci > 0,
+            "No",
+            "Uncertain"
+          )
+        )
+      )
+    ),
     # --------------------------------------------------------
     # POPULATION
     # --------------------------------------------------------
@@ -611,12 +652,34 @@ if (file.exists(raritiesfile)) {
   
   # Cleanup
   species <- species %>%
-    select(-ends_with(".rar"), -.in_rarities)
+    dplyr::select(-ends_with(".rar"), -.in_rarities)
   
   cat("Rarities file applied.\n")
   
 } else {
   cat("Rarities file not found, skipping overrides.\n")
+}
+
+if (file.exists(threatstatusoverridefile)) {
+  
+  threatstatusoveride <- read_csv(threatstatusoverridefile, show_col_types = FALSE) %>%
+    mutate(EnglishName = trimws(EnglishName))
+  
+  species <- species %>%
+    left_join(threatstatusoveride, by = "EnglishName", suffix = c("", ".override")) %>%
+    mutate(
+      RegionalRedlist = if_else(
+        !is.na(RegionalRedlist.override),
+        RegionalRedlist.override,
+        RegionalRedlist
+      )
+    ) %>%
+    select(-RegionalRedlist.override)
+  
+  cat("Regional Red List overrides applied.\n")
+  
+} else {
+  cat("Threat status override file not found, skipping overrides.\n")
 }
 
 species <- species %>%
