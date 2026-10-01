@@ -143,14 +143,14 @@ redlist <- read_csv("01_analyses_full/results/redlist.csv") %>%
 
 
 redlist <- redlist %>%
-  filter(Years3GEN <= 14) %>%
+  filter(Years3GEN <= 19) %>%
   dplyr::select("eBird.English.Name.2025", "3GEN Decline", "Criteria A Redlist Category Proposed") %>%
   ### TEMP: correcting Near-threatened (already corrected in source script)
   mutate(`Criteria A Redlist Category Proposed` = case_when(
     `Criteria A Redlist Category Proposed` == "Near-threatened" ~ "Near Threatened",
     TRUE ~ `Criteria A Redlist Category Proposed`
   )) %>%
-  # every species in redlist.csv (Years3GEN <= 14) is now shown, rather than
+  # every species in redlist.csv (Years3GEN <= 19) is now shown, rather than
   # nulling out all but a hardcoded "final 15 proposed in report" list --
   # that list was stale (only 7 of 15 still appear in the current
   # redlist.csv after the CAT-anchor fix) and its origin/justification
@@ -602,22 +602,8 @@ readme_datatype <- main_db_21 %>%
   reframe(across(everything(), ~ class(.))) %>% 
   pivot_longer(everything(), names_to = "Field", values_to = "Class")
 
-# range of values
-readme_range <- main_db_21 %>% 
-  mutate(`Range Coverage CI (Current)` = NA) %>% 
-  dplyr::select(-MASK.LABEL) %>% 
-  reframe(across(!where(is.factor),
-                 ~ range(na.omit(.)) %>% str_flatten_comma()),
-          across(where(is.factor),
-                 ~ c(first(levels(.)), 
-                     last(levels(.))) %>% str_flatten_comma())) %>% 
-  distinct() %>% 
-  pivot_longer(everything(), names_to = "Field", values_to = "Range (min, max)") %>% 
-  mutate(`Range (min, max)` = case_when(Field == "Range Coverage CI (Current)" ~ NA, 
-                                        TRUE ~ `Range (min, max)`))
-
 # which fields are only for national sheet?
-readme_nat_excl <- main_db_21 %>% 
+readme_nat_excl <- main_db_21 %>%
   mutate(NATIONAL = ifelse(MASK.LABEL == "India", TRUE, FALSE)) %>% 
   group_by(NATIONAL) %>% 
   reframe(across(everything(), ~ all(is.na(.)))) %>% 
@@ -697,16 +683,10 @@ readme <- tribble(
   "SoIB 2020 Distribution Range Size Status", "Distribution Range Size Status of species from SoIB 2020 assessment"
   
 ) %>% 
-  left_join(readme_datatype, by = "Field") %>% 
-  left_join(readme_nat_excl, by = "Field") %>% 
-  left_join(readme_range, by = "Field") %>% 
-  relocate(Meaning, .after = last_col()) %>% 
-  mutate(`Range (min, max)` = case_when(Class == "character" ~ "", 
-                                        # converting logical ranges (0, 1) to TRUE/FALSE
-                                        Class == "logical" ~ "TRUE, FALSE",
-                                        TRUE ~ `Range (min, max)`)) %>% 
-  mutate(across(c(Class, `Range (min, max)`), 
-                ~ replace_na(., ""))) %>% 
+  left_join(readme_datatype, by = "Field") %>%
+  left_join(readme_nat_excl, by = "Field") %>%
+  relocate(Meaning, .after = last_col()) %>%
+  mutate(across(Class, ~ replace_na(., ""))) %>%
   rename(`Field Name` = Field,
          Description = Meaning)
 
@@ -999,20 +979,6 @@ readme_datatype <- main_db_12 %>%
   reframe(across(everything(), ~ class(.))) %>% 
   pivot_longer(everything(), names_to = "Field", values_to = "Class")
 
-# range of values
-readme_range <- main_db_12 %>% 
-  mutate(`Range Coverage CI (Current)` = NA) %>% 
-  dplyr::select(-MASK.LABEL) %>% 
-  reframe(across(!where(is.factor),
-                 ~ range(na.omit(.)) %>% str_flatten_comma()),
-          across(where(is.factor),
-                 ~ c(first(levels(.)), 
-                     last(levels(.))) %>% str_flatten_comma())) %>% 
-  distinct() %>% 
-  pivot_longer(everything(), names_to = "Field", values_to = "Range (min, max)") %>% 
-  mutate(`Range (min, max)` = case_when(Field == "Range Coverage CI (Current)" ~ NA, 
-                                        TRUE ~ `Range (min, max)`))
-
 # which fields are only for national sheet?
 readme_nat_excl <- main_db_12 %>% 
   mutate(NATIONAL = ifelse(MASK.LABEL == "India", TRUE, FALSE)) %>% 
@@ -1093,16 +1059,10 @@ readme <- tribble(
   "SoIB 2020 Distribution Range Size Status", "Distribution Range Size Status of species from SoIB 2020 assessment"
   
 ) %>% 
-  left_join(readme_datatype, by = "Field") %>% 
-  left_join(readme_nat_excl, by = "Field") %>% 
-  left_join(readme_range, by = "Field") %>% 
-  relocate(Meaning, .after = last_col()) %>% 
-  mutate(`Range (min, max)` = case_when(Class == "character" ~ "", 
-                                        # converting logical ranges (0, 1) to TRUE/FALSE
-                                        Class == "logical" ~ "TRUE, FALSE",
-                                        TRUE ~ `Range (min, max)`)) %>% 
-  mutate(across(c(Class, `Range (min, max)`), 
-                ~ replace_na(., ""))) %>% 
+  left_join(readme_datatype, by = "Field") %>%
+  left_join(readme_nat_excl, by = "Field") %>%
+  relocate(Meaning, .after = last_col()) %>%
+  mutate(across(Class, ~ replace_na(., ""))) %>%
   rename(`Field Name` = Field,
          Description = Meaning)
 

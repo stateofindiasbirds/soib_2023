@@ -24,7 +24,14 @@ read_fn <- function(file_path) {
   if (file.exists(file_path)) {
     
     read_csv(file_path, guess_max = Inf,
-             col_types = "ccccccccccccccccccdddccccccccdcccddddddddddddddddddddddddddddddddddddcccc") 
+             col_types = "ccccccccccccccccccdddccccccccdcccddddddddddddddddddddddddddddddddddddcccc",
+             # SoIB_main.csv's Avilist.English.Name field for White-winged
+             # Redstart ("Güldenstädt's Redstart") is Latin-1-encoded, not
+             # UTF-8, in every mask/state's file -- verified no other field
+             # anywhere has genuine (valid) non-ASCII content, so reading
+             # the whole file as Latin-1 safely fixes this without risking
+             # any other data
+             locale = locale(encoding = "latin1"))
     # if not specified, cols with many NAs read as logical
     
   } else {
