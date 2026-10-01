@@ -183,6 +183,7 @@
       )
     ]
     
+
     # --------------------------------------------------
     # Combine criteria within the strongest category
     # --------------------------------------------------
@@ -193,22 +194,41 @@
       character(1)
     )
     
+    # Sort in IUCN order: A → B → C → D,
+    # then by criterion number within each criterion
+    criterion_letter <- substr(strongest_parts, 1, 1)
+    
+    criterion_number <- suppressWarnings(
+      as.numeric(sub("^[A-D]([1-4]).*$", "\\1", strongest_parts))
+    )
+    
+    criterion_number[is.na(criterion_number)] <- 99
+    
+    strongest_parts <- strongest_parts[
+      order(
+        match(criterion_letter, c("A", "B", "C", "D")),
+        criterion_number
+      )
+    ]
+    
     main_string <- strongest_parts[1]
+    main_criterion <- substr(strongest_parts[1], 1, 1)
     
     if (length(strongest_parts) > 1) {
       
       for (x in strongest_parts[-1]) {
         
-        # Remove leading criterion letter if present
-        x <- sub("^[A-D]", "", x)
         x <- trimws(x)
+        x_criterion <- substr(x, 1, 1)
         
-        if (nzchar(x)) {
-          main_string <- paste0(
-            main_string,
-            "+",
-            x
-          )
+        if (x_criterion == main_criterion) {
+          # Same criterion: drop repeated letter and use +
+          x <- sub("^[A-D]", "", x)
+          main_string <- paste0(main_string, "+", x)
+
+        } else {
+          # Different criterion: retain letter and use ; 
+          main_string <- paste0(main_string, "; ", x)
         }
       }
     }
@@ -230,10 +250,53 @@
     weaker_output <- vapply(
       weaker,
       function(x) {
+        
+        parts <- unlist(strsplit(x$string, "\\+"))
+        parts <- trimws(parts)
+        
+        # Sort in IUCN order: A → B → C → D,
+        # then by criterion number within each criterion
+        criterion_letter <- substr(parts, 1, 1)
+        
+        criterion_number <- suppressWarnings(
+          as.numeric(sub("^[A-D]([1-4]).*$", "\\1", parts))
+        )
+        
+        criterion_number[is.na(criterion_number)] <- 99
+        
+        parts <- parts[
+          order(
+            match(criterion_letter, c("A", "B", "C", "D")),
+            criterion_number
+          )
+        ]
+        
+        combined <- parts[1]
+        main_criterion <- substr(parts[1], 1, 1)
+        
+        if (length(parts) > 1) {
+          
+          for (part in parts[-1]) {
+            
+            part <- trimws(part)
+            part_criterion <- substr(part, 1, 1)
+            
+            if (part_criterion == main_criterion) {
+              # Same criterion: drop repeated letter and use +
+              part <- sub("^[A-D]", "", part)
+              combined <- paste0(combined, "+", part)
+
+            } else {
+              # Different criterion: retain letter and use ; 
+              combined <- paste0(combined, "; ", part)
+            }
+          }
+        }
+        
         paste0(
           x$category,
           " ",
-          x$string
+          combined
         )
       },
       character(1)
@@ -245,8 +308,7 @@
       paste(weaker_output, collapse = "; "),
       ")"
     )
-  }
-
+}
   
   # Generate HTML for a species
   generate_html_pretty <- function(sp) {
@@ -367,7 +429,7 @@
       # POPULATION DECLINE — CRITERIA C
       # --------------------------------------------------------
       
-      glue("        <div class='section-title'>Population Decline {ifelse(is.na(sp$Decline3GEN_C1_Method), '', paste0('(', sp$Decline3GEN_C1_Method, ')'))} <span class='criteria-label'>Criteria A & C1</span></div>"),
+      glue("        <div class='section-title'>Continuing Population Decline {ifelse(is.na(sp$Decline3GEN_C1_Method), '', paste0('(', sp$Decline3GEN_C1_Method, ')'))} <span class='criteria-label'>Criteria A & C1</span></div>"),
       "        <table>",
       "          <tr><th style='text-align:left;'>Generations</th><th>1</th><th>2</th><th>3</th></tr>",
       "          <tr><th style='text-align:left;'>Decline %</th>",
@@ -381,7 +443,7 @@
       glue("            <td>{sp$Years3GEN}</td>"),
       "          </tr>",
       "        </table>",      
-      glue("        <div class='data-row'><span class='label'>Actual Trend (%):</span> <span class='value'>-{sp$ActualDeclinePercentage_C1} {na_blank(sp$YearsActualDecline_C1)}</span></div>"),
+      glue("        <div class='data-row'><span class='label'>Actual Trend (%):</span> <span class='value'>{sp$ActualDeclinePercentage_C1} {na_blank(sp$YearsActualDecline_C1)}</span></div>"),
       
       # --------------------------------------------------------
       # POPULATION DECLINE — CRITERIA A
@@ -479,9 +541,66 @@
     "White-bellied Heron",
     "White-eyed Buzzard",
     "White-rumped Vulture",
-    "Yunnan Nuthatch"
-  )  
+    "Yunnan Nuthatch",
+    "Pink-headed Duck",
+    "White-winged Wood-Duck",
+    "Baer's Pochard",
+    "Bengal Florican",
+    "Masked Finfoot",
+    "Sociable Lapwing",
+    "Finn's Baya",
+    "Red-headed Vulture",
+    "Yellow-breasted Bunting",
+    "Green Peafowl"
+  )
+
+  filter_species <- c(
+    "Western Tragopan",
+    "Andaman Teal",
+    "Nicobar Megapode",
+    "Chestnut-breasted Partridge",
+    "Western Tragopan",
+    "Blyth's Tragopan",
+    "Cheer Pheasant",
+    "Swamp Francolin",
+    "Pale-capped Pigeon",
+    "Andaman Wood-Pigeon",
+    "Andaman Green-Pigeon",
+    "Nicobar Imperial-Pigeon",
+    "Dark-rumped Swift",
+    "Sarus Crane",
+    "Great Thick-knee",
+    "River Lapwing"
+  )
   
+  filter_species <- c(
+    "Sind Woodpecker",
+    "Derbyan Parakeet",
+    "Western Tragopan",
+    "Indian Skimmer",
+    "Black-bellied Tern",
+    "Nicobar Parakeet",
+    "Nicobar Scops-Owl",
+    "Nicobar Serpent-Eagle",
+    "Nicobar Sparrowhawk",
+    "Red-necked Falcon",
+    "Laggar Falcon",
+    "Ashy-crowned Sparrow-Lark",
+    "Isabelline Shrike",
+    "Common Starling",
+    "Russet Sparrow",
+    "Variable Wheatear",
+    "White-tailed Stonechat",
+    "Montagu's Harrier",
+    "Black-naped Oriole",
+    "Black-crested Bulbul",
+    "Pallid Harrier",
+    "Crimson Sunbird",
+    "Common Pochard",
+    "Palani Laughingthrush",
+    "Nilgiri Sholakili",
+    "White-bellied Sholakili"
+  )    
   
   for(i in 1:nrow(species)) {
     

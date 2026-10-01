@@ -65,7 +65,7 @@ generate_grids <- function(grid_size_km, geography) {
   grid_sf <- grid_sf[keep, ]
   
   # Keep only ID
-  grid_sf <- grid_sf %>% select(GridID)
+  grid_sf <- grid_sf %>% dplyr::select(GridID)
   
   return(grid_sf)
 }

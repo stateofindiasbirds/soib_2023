@@ -24,8 +24,8 @@ calculate_eoo_diff <- function(df) {
     ) %>%
     
     # Filter out rows where there is no next year band to compare
-    filter(!is.na(NextYearBand)) %>%
-    select(Species, EOOYearBandChange, EOOChange, EOOChangePercent)
+    dplyr::filter(!is.na(NextYearBand)) %>%
+    dplyr::select(Species, EOOYearBandChange, EOOChange, EOOChangePercent)
   
   return(df_processed)
 }
@@ -34,6 +34,6 @@ df <- readRDS(file.path(resultspath, "eoo_df.RDS"))
 # Example usage with the original dataframe (df)
 result <- calculate_eoo_diff(df)
 
-declingspecies <- result %>% filter (EOOChangePercent < 0) 
+declingspecies <- result %>% dplyr::filter (EOOChangePercent < 0) 
 
 saveRDS(declingspecies, file.path(resultspath, "eoodiff.RDS"))
