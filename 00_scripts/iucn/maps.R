@@ -9,11 +9,37 @@ datapath   <- "00_data"
 
 source(file.path(scriptpath, "config.R"))
 
+test_species <- c (
+  "Banasura Laughingthrush",
+  "Nilgiri Laughingthrush",
+  "Ashambu Laughingthrush",
+  "Mangrove Pitta",
+  "Bugun Liocichla",
+  "Buffy Fish Owl",
+  "Mount Victoria Babax",
+  "Yunnan Nuthatch",
+  "Sind Woodpecker",
+  "Derbyan Parakeet",
+  "Long-billed Bush Warbler",
+  "Andaman Masked-Owl",
+  "Naga Wren-Babbler",
+  "Nilgiri Pipit",
+  "Nilgiri Sholakili",
+  "White-bellied Sholakili",
+  "Nicobar Imperial-Pigeon",
+  "Mishmi Wren-Babbler",
+  "Andaman Woodpecker",
+  "Marsh Babbler",
+  "Swamp Grass Babbler",
+  "Kashmir Nuthatch"
+)
+
 # -----------------------------
 # LOAD DATA
 # -----------------------------
 
-EOO <- readRDS(file.path(scriptpath, "eoo.RDS")) %>% filter (Species == 'Great Indian Bustard')
+EOO <- readRDS(file.path(scriptpath, "eoo.RDS")) 
+#EOO <- EOO %>% dplyr::filter (Species %in% test_species)
 AOO <- readRDS(file.path(scriptpath, "aoo.RDS"))
 
 # Master sf grids

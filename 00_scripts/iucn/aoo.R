@@ -1,32 +1,33 @@
 library(stats)
 library(data.table)
+library(dplyr)
 
 # This list of specie is used for testing. It can be overridden for all species
 test_species <- c (
-  "Brahminy Kite",
-#  "White-browed Bulbul",
-#  "Yellow-browed Bulbul",
-#  "Malabar Gray Hornbill",
-#  "Lesser Coucal",
-#  "Oriental Scops-Owl",
-#  "Rufous-bellied Eagle",
-  "Sanderling",
-#  "White-cheeked Barbet",
-#  "Malabar Barbet",
-#  "Bay-backed Shrike",
-  "Jerdon's Baza",
-#  "Legge's Hawk-Eagle",
-#  "Lesser Fish-Eagle",
-#  "Spot-bellied Eagle-Owl",
-  "Golden-headed Cisticola"
+    "Banasura Laughingthrush",
+    "Nilgiri Laughingthrush",
+    "Ashambu Laughingthrush",
+    "Mangrove Pitta",
+    "Bugun Liocichla",
+    "Buffy Fish Owl",
+    "Mount Victoria Babax",
+    "Yunnan Nuthatch",
+    "Sind Woodpecker",
+    "Derbyan Parakeet",
+    "Long-billed Bush Warbler",
+    "Andaman Masked-Owl",
+    "Naga Wren-Babbler",
+    "Nilgiri Pipit",
+    "Nilgiri Sholakili",
+    "White-bellied Sholakili",
+    "Nicobar Imperial-Pigeon",
+    "Mishmi Wren-Babbler",
+    "Andaman Woodpecker",
+    "Marsh Babbler",
+    "Swamp Grass Babbler",
+    "Kashmir Nuthatch"
 )
 
-test_species <- c (test_species, c(
-  "Banasura Laughingthrush",
-  "Nilgiri Laughingthrush",
-  "Ashambu Laughingthrush",
-  "Black-headed Greenfinch"
-))
 
 scriptpath <- "00_scripts/iucn/"
 datapath   <- "00_scripts/iucn/"
@@ -161,7 +162,7 @@ prepare_checklist_grid <- function(obsv) {
         }
       )      
     ) %>%
-    select(GROUP.ID, Grid_2km, Grid_4km, Grid_8km, TrackCells_4km, TrackCells_8km, ALL.SPECIES.REPORTED, location_score) %>% 
+    dplyr::select(GROUP.ID, Grid_2km, Grid_4km, Grid_8km, TrackCells_4km, TrackCells_8km, ALL.SPECIES.REPORTED, location_score) %>% 
     mutate(
       Grid_2km = as.character(Grid_2km),
       Grid_4km = as.character(Grid_4km),
@@ -172,13 +173,13 @@ prepare_checklist_grid <- function(obsv) {
   
   # Step 2: Checklist counts per grid
   ChecklistCount <- Checklist2Grid %>%
-    filter(Complete == 1) %>%
+    dplyr::filter(Complete == 1) %>%
     pivot_longer(
       cols = c(Grid_2km, Grid_4km, Grid_8km),
       names_to = "GridResolution",
       values_to = "GridID"
     ) %>%
-    filter(!is.na(GridID)) %>%
+    dplyr::filter(!is.na(GridID)) %>%
     mutate(
       GridResolution = case_when(
         GridResolution == "Grid_2km" ~ 2,
@@ -296,7 +297,7 @@ proc_aoo <- function (obsv, targetSpeciesObsv, Checklist2Grid, ChecklistCount, C
                                            values_to = "GridID", 
                                            names_prefix = "Grid_") %>%
                                 # Step 3: Filter out rows where GridID is NA (no matching grid for that resolution)
-                                filter(!is.na(GridID)) %>%
+                                dplyr::filter(!is.na(GridID)) %>%
                                 # Step 4: Convert the GridResolution column to numeric
                                 mutate(GridResolution = case_when(
                                   GridResolution == "2km" ~ 2,
@@ -305,7 +306,7 @@ proc_aoo <- function (obsv, targetSpeciesObsv, Checklist2Grid, ChecklistCount, C
                                   TRUE ~ NA_real_  # This will handle any unexpected values
                                 )) %>%
                                 # Step 5: Select only relevant columns
-                                select(Species, GridResolution, GridID, Complete)
+                                dplyr::select(Species, GridResolution, GridID, Complete)
   
   message("ChecklistPresenceInGrid ", nrow(ChecklistPresenceInGrid))
   
@@ -337,7 +338,7 @@ proc_aoo <- function (obsv, targetSpeciesObsv, Checklist2Grid, ChecklistCount, C
     )
   
   UT_4km <- ChecklistTrackCells %>%
-    filter(location_score %in% c(0,1), lengths(TrackCells_4km) > 1) %>%
+    dplyr::filter(location_score %in% c(0,1), lengths(TrackCells_4km) > 1) %>%
     rowwise() %>%
     mutate(
       GridID = list(
@@ -355,7 +356,7 @@ proc_aoo <- function (obsv, targetSpeciesObsv, Checklist2Grid, ChecklistCount, C
     )
   
   UT_8km <- ChecklistTrackCells %>%
-    filter(location_score %in% c(0,1,2), lengths(TrackCells_8km) > 1) %>%
+    dplyr::filter(location_score %in% c(0,1,2), lengths(TrackCells_8km) > 1) %>%
     rowwise() %>%
     mutate(
       GridID = list(
@@ -389,7 +390,7 @@ proc_aoo <- function (obsv, targetSpeciesObsv, Checklist2Grid, ChecklistCount, C
   # Step 4: Calculate species presence in a grid
   SpeciesPresenceInGrid <- ChecklistPresenceInGrid %>%
       distinct(Species, GridResolution, GridID, .keep_all = TRUE) %>%
-        select(Species, GridResolution, GridID)
+        dplyr::select(Species, GridResolution, GridID)
   message("SpeciesPresenceInGrid ", nrow(SpeciesPresenceInGrid))
   
   diag_row$PresenceGrids <-
@@ -397,7 +398,7 @@ proc_aoo <- function (obsv, targetSpeciesObsv, Checklist2Grid, ChecklistCount, C
   
   # Step 5: Calculate number of complete checklists with species present
   species_checklists <-   ChecklistPresenceInGrid %>%
-                          filter(Complete == 1) %>%
+                          dplyr::filter(Complete == 1) %>%
                           group_by(Species, GridResolution, GridID) %>%
                           summarize(PresenceCount = n(), .groups = 'drop') 
   message("species_checklists ", nrow(species_checklists))
@@ -405,9 +406,9 @@ proc_aoo <- function (obsv, targetSpeciesObsv, Checklist2Grid, ChecklistCount, C
   # Step 6: Calculate species frequency in the grids.
   SpeciesPresenceInGridWithFreq <- species_checklists %>%
                                       inner_join(ChecklistCount, by = c("GridResolution", "GridID")) %>%
-                                      filter (ChecklistCount > MinChecklistCount) %>% #Minimum number of checklists to consider for analysis is 5
+                                      dplyr::filter (ChecklistCount > MinChecklistCount) %>% #Minimum number of checklists to consider for analysis is 5
                                       mutate(Frequency = PresenceCount / ChecklistCount) %>%
-                                      select(Species, GridResolution, GridID, Frequency)
+                                      dplyr::select(Species, GridResolution, GridID, Frequency)
   message("SpeciesPresenceInGridWithFreq ", nrow(SpeciesPresenceInGridWithFreq))
   
   
@@ -517,15 +518,15 @@ proc_aoo <- function (obsv, targetSpeciesObsv, Checklist2Grid, ChecklistCount, C
     diag_row$MaxDetectability <- max(species_detection_data$Detectability, na.rm = TRUE)
     
     GridDetectability <- species_detection_data %>%
-      select(Checklist, Detectability) %>%
+      dplyr::select(Checklist, Detectability) %>%
       inner_join(Checklist2Grid, by = "Checklist") %>%
-      filter(Complete == 1) %>%
+      dplyr::filter(Complete == 1) %>%
       pivot_longer(
         cols = c(Grid_2km, Grid_4km, Grid_8km),
         names_to = "GridResolution",
         values_to = "GridID"
       ) %>%
-      filter(!is.na(GridID)) %>%
+      dplyr::filter(!is.na(GridID)) %>%
       mutate(
         GridResolution = case_when(
           GridResolution == "Grid_2km" ~ 2,
@@ -539,7 +540,7 @@ proc_aoo <- function (obsv, targetSpeciesObsv, Checklist2Grid, ChecklistCount, C
         .groups = "drop"
       ) %>%
       mutate(
-        Species = first(targetSpeciesObsv$Species)
+        Species = dplyr::first(targetSpeciesObsv$Species)
       )
     
     message(
@@ -607,7 +608,7 @@ proc_aoo <- function (obsv, targetSpeciesObsv, Checklist2Grid, ChecklistCount, C
   if(use_model)
   {
     diag_thresholds <- SpeciesOverallGridEffortThreshold %>%
-      select(GridResolution, OverallThreshold)
+      dplyr::select(GridResolution, OverallThreshold)
     
     if(2 %in% diag_thresholds$GridResolution)
     {
@@ -641,13 +642,13 @@ proc_aoo <- function (obsv, targetSpeciesObsv, Checklist2Grid, ChecklistCount, C
                               mutate(
                                 Absence = if_else(ChecklistCount >= OverallThreshold, 1, 0)
                               ) %>%
-                              select(Species, GridResolution, GridID, Absence)
+                              dplyr::select(Species, GridResolution, GridID, Absence)
   message("SpeciesAbsenceInGrid ", nrow(SpeciesAbsenceInGrid))
   
   diag_row$AbsenceGrids <-
     nrow(
       SpeciesAbsenceInGrid %>%
-        filter(Absence == 1)
+        dplyr::filter(Absence == 1)
     )
   
   species_grids <- load_species_grids(unique(targetSpeciesObsv$Species))
@@ -693,7 +694,7 @@ proc_aoo <- function (obsv, targetSpeciesObsv, Checklist2Grid, ChecklistCount, C
     # Absence
     left_join(
       SpeciesAbsenceInGrid %>%
-        filter(Absence == 1) %>%
+        dplyr::filter(Absence == 1) %>%
         mutate(Absent = TRUE),
       by = c("Species", "GridResolution", "GridID")
     ) %>%
@@ -708,7 +709,7 @@ proc_aoo <- function (obsv, targetSpeciesObsv, Checklist2Grid, ChecklistCount, C
       )
     ) %>%
     
-    select(
+    dplyr::select(
       Species,
       GridResolution,
       GridID,
@@ -734,73 +735,73 @@ proc_aoo <- function (obsv, targetSpeciesObsv, Checklist2Grid, ChecklistCount, C
   
   diag_row$P_2km <-
     occ_summary %>%
-    filter(GridResolution == 2, Occupancy == "P") %>%
+    dplyr::filter(GridResolution == 2, Occupancy == "P") %>%
     pull(n) %>%
     sum(na.rm = TRUE)
   
   diag_row$P_4km <-
     occ_summary %>%
-    filter(GridResolution == 4, Occupancy == "P") %>%
+    dplyr::filter(GridResolution == 4, Occupancy == "P") %>%
     pull(n) %>%
     sum(na.rm = TRUE)
   
   diag_row$P_8km <-
     occ_summary %>%
-    filter(GridResolution == 8, Occupancy == "P") %>%
+    dplyr::filter(GridResolution == 8, Occupancy == "P") %>%
     pull(n) %>%
     sum(na.rm = TRUE)
   
   diag_row$UT_2km <-
     occ_summary %>%
-    filter(GridResolution == 2, Occupancy == "UT") %>%
+    dplyr::filter(GridResolution == 2, Occupancy == "UT") %>%
     pull(n) %>%
     sum(na.rm = TRUE)
   
   diag_row$UT_4km <-
     occ_summary %>%
-    filter(GridResolution == 4, Occupancy == "UT") %>%
+    dplyr::filter(GridResolution == 4, Occupancy == "UT") %>%
     pull(n) %>%
     sum(na.rm = TRUE)
   
   diag_row$UT_8km <-
     occ_summary %>%
-    filter(GridResolution == 8, Occupancy == "UT") %>%
+    dplyr::filter(GridResolution == 8, Occupancy == "UT") %>%
     pull(n) %>%
     sum(na.rm = TRUE)
   
   diag_row$A_2km <-
     occ_summary %>%
-    filter(GridResolution == 2, Occupancy == "A") %>%
+    dplyr::filter(GridResolution == 2, Occupancy == "A") %>%
     pull(n) %>%
     sum(na.rm = TRUE)
   
   diag_row$A_4km <-
     occ_summary %>%
-    filter(GridResolution == 4, Occupancy == "A") %>%
+    dplyr::filter(GridResolution == 4, Occupancy == "A") %>%
     pull(n) %>%
     sum(na.rm = TRUE)
   
   diag_row$A_8km <-
     occ_summary %>%
-    filter(GridResolution == 8, Occupancy == "A") %>%
+    dplyr::filter(GridResolution == 8, Occupancy == "A") %>%
     pull(n) %>%
     sum(na.rm = TRUE)
   
   diag_row$U_2km <-
     occ_summary %>%
-    filter(GridResolution == 2, Occupancy == "U") %>%
+    dplyr::filter(GridResolution == 2, Occupancy == "U") %>%
     pull(n) %>%
     sum(na.rm = TRUE)
   
   diag_row$U_4km <-
     occ_summary %>%
-    filter(GridResolution == 4, Occupancy == "U") %>%
+    dplyr::filter(GridResolution == 4, Occupancy == "U") %>%
     pull(n) %>%
     sum(na.rm = TRUE)
   
   diag_row$U_8km <-
     occ_summary %>%
-    filter(GridResolution == 8, Occupancy == "U") %>%
+    dplyr::filter(GridResolution == 8, Occupancy == "U") %>%
     pull(n) %>%
     sum(na.rm = TRUE)
   
@@ -815,8 +816,8 @@ proc_aoo <- function (obsv, targetSpeciesObsv, Checklist2Grid, ChecklistCount, C
   AOOEstimates <- SpeciesOccupancyInGrid %>%
                       group_by(Species, GridResolution) %>%
                       summarize(
-                        MinEstimate = sum(Occupancy == "P") * grid_areas[as.character(first(GridResolution))],
-                        MaxEstimate = sum(Occupancy %in% c("P", "UT", "U")) * grid_areas[as.character(first(GridResolution))],
+                        MinEstimate = sum(Occupancy == "P") * grid_areas[as.character(dplyr::first(GridResolution))],
+                        MaxEstimate = sum(Occupancy %in% c("P", "UT", "U")) * grid_areas[as.character(dplyr::first(GridResolution))],
                         GridIDs_P = list(GridID[Occupancy == "P"]),  # Collect grid IDs for occupancy "P"
                         GridIDs_UT = list(GridID[Occupancy == "UT"]),
                         GridIDs_U = list(GridID[Occupancy == "U"]),  # Collect grid IDs for occupancy "U"
@@ -890,11 +891,12 @@ proc_aoo <- function (obsv, targetSpeciesObsv, Checklist2Grid, ChecklistCount, C
 # ----------------------------------------------------------------------------------------------------
 obsv    <- readRDS(file.path(datapath,"ebd_sf.RDS"))
 
+# We need to grid the checklists. Hence, effort parameters are important. Hence, incidental and historical checklists are eliminated
 obsv    <- obsv %>% 
-  filter (PROTOCOL.NAME == 'Stationary' | PROTOCOL.NAME == 'Traveling') %>%
-  filter (EFFORT.DISTANCE.KM <= MaxDistanceThresholdforAOO) %>%
+  dplyr::filter (PROTOCOL.NAME == 'Stationary' | PROTOCOL.NAME == 'Traveling') %>%
+  dplyr::filter (EFFORT.DISTANCE.KM <= MaxDistanceThresholdforAOO) %>%
   st_drop_geometry() %>%
-  select(
+  dplyr::select(
     COMMON.NAME,
     EFFORT.DISTANCE.KM,
     SAMPLING.EVENT.IDENTIFIER,
@@ -926,14 +928,15 @@ obsv    <- obsv %>%
 
 #species <- readRDS(file.path(datapath,"eoo.RDS")) %>% 
 #  filter(Species %in% test_species) %>%
-#  select (Species) %>%
+#  dplyr::select (Species) %>%
 #  pull(Species) %>%
 #  unique()
 
 species <- read.csv(file.path(datapath, "species_aoo_prefilter.csv"),
                          stringsAsFactors = FALSE) %>% 
-                select (english_name) %>% pull() %>%unique()
+                dplyr::select (english_name) %>% pull() %>%unique()
 
+#species <- species [species %in% test_species]
 
 
 # ----------------------------------------------------------------------------------------------------
@@ -945,7 +948,7 @@ if(0)
   centroid <- readRDS(centroidfile)
   
   centroid <- centroid %>%
-    select(
+    dplyr::select(
       checklist_id,
       centroid_longitude,
       centroid_latitude,
@@ -1006,7 +1009,7 @@ obsv <- obsv %>%
 
 # Observations made in a constrained manner
 obsv_2km <- obsv %>% 
-  filter (EFFORT.DISTANCE.KM <= 2)
+  dplyr::filter (EFFORT.DISTANCE.KM <= 2)
 
 # ----------------------------------------------------------------------------------------------------
 ################# Centroid metrics #######################
@@ -1106,13 +1109,13 @@ mean(old_grid_8 != new_grid_8, na.rm = TRUE)
 
 # List of observations of target species
 targetSpeciesObsv <- obsv %>% 
-  filter (COMMON.NAME %in% species) %>% 
-  select('COMMON.NAME', 'GROUP.ID')
+  dplyr::filter (COMMON.NAME %in% species) %>% 
+  dplyr::select('COMMON.NAME', 'GROUP.ID')
 colnames (targetSpeciesObsv) <- c ("Species", "Checklist")
 
 targetSpeciesObsv_2km <- obsv_2km %>% 
-  filter (COMMON.NAME %in% species) %>% 
-  select('COMMON.NAME', 'GROUP.ID')
+  dplyr::filter (COMMON.NAME %in% species) %>% 
+  dplyr::select('COMMON.NAME', 'GROUP.ID')
 colnames (targetSpeciesObsv_2km) <- c ("Species", "Checklist")
 
 prep_full <- prepare_checklist_grid (obsv)
@@ -1127,7 +1130,7 @@ results <- map(species, function(sp) {
   
   targetSpeciesObsv_sp <-
     targetSpeciesObsv %>%
-    filter(Species == sp)
+    dplyr::filter(Species == sp)
   
   proc_aoo(
     obsv,
@@ -1151,7 +1154,7 @@ prep_full_2km <- readRDS(file.path(datapath, "prepared_checklist_grid_2km.rds"))
 results_2km <- map(species, function(sp) {
   
   targetSpeciesObsv_2km_sp <- targetSpeciesObsv_2km %>%
-    filter(Species == sp)
+    dplyr::filter(Species == sp)
   
   proc_aoo(
     obsv_2km,
@@ -1180,7 +1183,7 @@ C_value_table <- AOOEstimates_2km %>%
                       
                     ) %>%
                     # Select only Species, C_Min, and C_Max for the final table
-                    select(Species, C_value)
+                    dplyr::select(Species, C_value)
 
 
 # Final AOO table extrapolating usign C-value
@@ -1192,7 +1195,7 @@ AOO_table <- AOOEstimates %>%
                         MaxAOO = MaxEstimate_4km * 10^(C_value * log10(4/16))
                       ) %>%
                       # Select only the required columns
-                      select(Species, 
+                      dplyr::select(Species, 
                                 MinAOO, MaxAOO, 
                                 MinEstimate_2km, 
                                 GridIDs_P_2km, GridIDs_P_4km, GridIDs_P_8km,
@@ -1225,10 +1228,10 @@ new <- readRDS(file.path(datapath, "aoo.RDS")) %>%
   distinct_all()
 
 comparison <- old %>%
-  select(Species, MinAOO_old = MinAOO, MaxAOO_old = MaxAOO) %>%
+  dplyr::select(Species, MinAOO_old = MinAOO, MaxAOO_old = MaxAOO) %>%
   inner_join(
     new %>%
-      select(Species, MinAOO_new = MinAOO, MaxAOO_new = MaxAOO),
+      dplyr::select(Species, MinAOO_new = MinAOO, MaxAOO_new = MaxAOO),
     by = "Species"
   ) %>%
   mutate(
