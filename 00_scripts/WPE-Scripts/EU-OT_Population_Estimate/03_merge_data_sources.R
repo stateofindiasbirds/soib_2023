@@ -114,3 +114,5 @@ merged_data <- merged_data %>%
     MONTH.NUM = match(MONTH, month.abb),
     SEASON.YEAR = ifelse(MONTH.NUM %in% 1:3, YEAR - 1, YEAR)
   )
+
+View(merged_data)
