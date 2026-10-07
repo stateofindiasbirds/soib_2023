@@ -3,21 +3,32 @@ estimation_units <- read_sheet(eut_and_ot, sheet = "estimation_units")
 eu_results <- estimation_units
 operation_table <- read_sheet(eut_and_ot, sheet = "operation_table")
 
+# Clean operation_table
+operation_table <- operation_table %>%
+  mutate(across(
+    c(OPERATION_MIN, OPERATION_MAX),
+    ~ gsub("[\r\n\t\u00A0\u200B]", " ", .x)
+  ))
+
 #################################################
 # Custom functions
 #################################################
 
 SUM <- function(...) {
-  sum(..., na.rm = TRUE)
+  x <- c(...)
+  if (all(is.na(x))) NA_real_ else sum(x, na.rm = TRUE)
 }
 MAX <- function(...) {
-  max(..., na.rm = TRUE)
+  x <- c(...)
+  if (all(is.na(x))) NA_real_ else max(x, na.rm = TRUE)
 }
 MIN <- function(...) {
-  min(..., na.rm = TRUE)
+  x <- c(...)
+  if (all(is.na(x))) NA_real_ else min(x, na.rm = TRUE)
 }
 MEAN <- function(...) {
-  mean(..., na.rm = TRUE)
+  x <- c(...)
+  if (all(is.na(x))) NA_real_ else mean(x, na.rm = TRUE)
 }
 
 # Operation Table - Formula evaluation
