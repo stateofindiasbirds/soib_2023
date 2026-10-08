@@ -3,7 +3,7 @@ library(jsonlite)
 library(dplyr)
 library(readxl)
 
-token <- "wqHFfTu6ahmRAjmia8reNPyCxyZLn6V6apFW"
+token <- "#ReplaceWithAPIToken"
 
 # Read BLI.Scientific.Name.2025 from the India sheet of the xlsx file
 xlsx_data <- read_excel("02_SoIB_2025_main_v0.xlsx", sheet = "India")
