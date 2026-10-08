@@ -2,66 +2,172 @@ library(dplyr)
 library(readr)
 source("00_scripts/iucn/config_iucn.R")
 
-latestYear <- 2024 #Obtain this from a configuration 
+
+safe_left_join <- function(x, y, by) {
+  if (is.null(y) || nrow(y) == 0) return(x)
+  if (!by %in% names(y)) return(x)
+  dplyr::left_join(x, y, by = by)
+}
 
 # ============================================================
 # 1. READ BASIC EOO/AOO DATA & PREPARE. ALWAYS AVAILABLE
 # ============================================================
 
-#############Map names###############
+# ============================================================
+# READ EOO/AOO AND SOIB DATA
+# ============================================================
 
-species_list <- read.csv(nrlspecieslistfile)
-#EOOAOO is generated directly using eBird names
-EOOAOO <- read.csv(eooaoofile)  %>%
-              mutate(
-                eBirdName = trimws(Species)
-              )
+# EOO/AOO is generated directly using eBird names
+EOOAOO <- read.csv(eooaoofile) %>%
+  mutate(
+    eBirdName = trimws(Species),
+    uncertainMinAOO = 1,
+    uncertainMaxAOO = 0
+  )
 
-# SoIB main file should be only for species selected for redlist
-soib_main <- read_csv(soibmainfile) %>% 
-                mutate(
-                  eBirdName  = trimws(eBird.English.Name.2024),
-                  EnglishName = trimws(India.Checklist.Common.Name)
-                ) %>%
-                filter(
-                  EnglishName %in% trimws(species_list$English.Name)
-                ) 
+# ============================================================
+# READ EXTERNAL EOO/AOO OVERRIDES IF AVAILABLE
+# ============================================================
+
+EOOAOOExt <- if (file.exists(eooaooextfile)) {
+  read.csv(eooaooextfile) %>%
+    mutate(
+      eBirdName = trimws(Species)
+    ) %>%
+    dplyr::select(
+      eBirdName,
+      MinAOO_ext = MinAOO,
+      MaxAOO_ext = MaxAOO,
+      uncertainMinAOO_ext = uncertainMinAOO,
+      uncertainMaxAOO_ext = uncertainMaxAOO,
+      LikelyEOO_ext = LikelyEOO,
+      MaxEOO_ext = MaxEOO
+    )
+} else {
+  tibble()
+}
+
+# SoIB main file — only species selected for NRL
+soib_main <- read.csv(get_metadata("none")$SOIBMAIN.PATH) %>%
+  mutate(
+    eBirdName  = trimws(eBird.English.Name.2025),
+    EnglishName = trimws(India.Checklist.Common.Name)
+  ) %>%
+  dplyr::filter(
+    Selected.NRL == 1
+  )
+
 
 # Map eBird names from EOOAOO to SoIB eBird names
 EOOAOO <- EOOAOO %>%
             inner_join(
               soib_main,
               by = "eBirdName"
-            ) 
+            ) %>%
+  safe_left_join(EOOAOOExt, by = "eBirdName")
+
+# ============================================================
+# APPLY EXTERNAL EOO/AOO OVERRIDES
+# ============================================================
+
+EOOAOO <- EOOAOO %>%
+  mutate(
+    
+    # --------------------------------------------------------
+    # AOO OVERRIDE
+    # If either external AOO value exists, use BOTH external
+    # MinAOO and MaxAOO values.
+    # --------------------------------------------------------
+    MinAOO = if_else(
+      !is.na(MinAOO_ext) | !is.na(MaxAOO_ext),
+      MinAOO_ext,
+      MinAOO
+    ),
+    
+    MaxAOO = if_else(
+      !is.na(MinAOO_ext) | !is.na(MaxAOO_ext),
+      MaxAOO_ext,
+      MaxAOO
+    ),
+    
+    # External uncertainty flags override the defaults
+    uncertainMinAOO = if_else(
+      !is.na(MinAOO_ext) | !is.na(MaxAOO_ext),
+      uncertainMinAOO_ext,
+      uncertainMinAOO
+    ),
+    
+    uncertainMaxAOO = if_else(
+      !is.na(MinAOO_ext) | !is.na(MaxAOO_ext),
+      uncertainMaxAOO_ext,
+      uncertainMaxAOO
+    ),
+    
+    # --------------------------------------------------------
+    # EOO OVERRIDE
+    # If external LikelyEOO exists, it overrides BOTH
+    # LikelyEOO and MaxEOO.
+    # --------------------------------------------------------
+    LikelyEOO = if_else(
+      !is.na(LikelyEOO_ext),
+      LikelyEOO_ext,
+      LikelyEOO
+    ),
+    
+    MaxEOO = if_else(
+      !is.na(LikelyEOO_ext),
+      MaxEOO_ext,
+      MaxEOO
+    )
+  )
 
 basiceooaoo <- EOOAOO %>%
   mutate(
     EnglishName = trimws(EnglishName)
   ) %>%
-  select(
+  dplyr::select(
     EnglishName,
     MinAOO,
     MaxAOO,
-    MinEstimate_2km, # Number of 2x2 km grids
+    MinEstimate_2km,
     LikelyEOO,
     MaxEOO,
     EOOYearBandChange,
     EOOChange,
-    EOOChangePercent
+    EOOChangePercent,
+    uncertainMinAOO,
+    uncertainMaxAOO
   ) %>%
-  mutate (
-    MinAOO = as.integer(round(MinAOO,0)),
-    MaxAOO = as.integer(round(MaxAOO,0)),
-    LikelyEOO = as.integer(round(LikelyEOO,0)),
-    MaxEOO = as.integer(round(MaxEOO,0))
+  mutate(
+    # AOO: ceiling to a multiple of 4 km²
+    MinAOO = as.integer(ceiling(MinAOO / 4) * 4),
+    MaxAOO = as.integer(ceiling(MaxAOO / 4) * 4),
+    
+    # EOO: minimum 4 km²
+    LikelyEOO = ifelse(
+      is.na(LikelyEOO) | LikelyEOO < 4,
+      4,
+      LikelyEOO
+    ),
+    
+    MaxEOO = as.integer(round(MaxEOO, 0)),
+    
+    # IUCN: EOO must not be smaller than MaxAOO
+    # Keep LikelyEOO unchanged when MaxAOO is NA
+    LikelyEOO = dplyr::if_else(
+      !is.na(MaxAOO) & LikelyEOO < MaxAOO,
+      MaxAOO,
+      LikelyEOO
+    ),
+    
+    # Calculate after final EOO adjustment
+    EOOUncertainty = 1 - (LikelyEOO / MaxEOO)
   )
-
-
 # ============================================================
 # 2. PREPARE POPULATION DECLINE DATA. ALWAYS AVAILABLE
 # ============================================================
 soib_decline <- soib_main %>%
-    select(
+    dplyr::select(
       EnglishName,
       Current.Analysis,
       currentsloperci,
@@ -79,7 +185,7 @@ ContinuingDeclineExt <- if (file.exists(continuingdeclineexfile)) {
     mutate(
       EnglishName = trimws(Species)
     ) %>% 
-    select (
+    dplyr::select (
       EnglishName,
       AOOYearBandChange,	
       AOOChange,	
@@ -106,7 +212,7 @@ SeverelyFragmented <- if (file.exists(severelyfragmentedfile)) {
     mutate(
       EnglishName = trimws(Species)
     ) %>% 
-    select (
+    dplyr::select (
       EnglishName,
       SeverelyFragmented)
 } else {
@@ -121,9 +227,11 @@ NoOfLocations <- if (file.exists(nooflocationsfile)) {
     mutate(
       EnglishName = trimws(Species)
     ) %>% 
-    select (
+    dplyr::select (
       EnglishName,
-      Locations)
+      MinLocations,
+      Locations,
+      MaxLocations)
 } else {
   tibble()
 }
@@ -136,7 +244,7 @@ fluctuations <- if (file.exists(extremefluctationsfile)) {
     mutate(
       EnglishName = trimws(Species)
     ) %>% 
-    select (
+    dplyr::select (
       EnglishName,
       ExtremeFluctuationsinEOO,
       ExtremeFluctuationsinAOO,
@@ -146,12 +254,6 @@ fluctuations <- if (file.exists(extremefluctationsfile)) {
     )
 } else {
   tibble()
-}
-
-safe_left_join <- function(x, y, by) {
-  if (is.null(y) || nrow(y) == 0) return(x)
-  if (!by %in% names(y)) return(x)
-  dplyr::left_join(x, y, by = by)
 }
 
 # ============================================================
@@ -171,7 +273,7 @@ required_cols <- c(
   "EOOChange", "EOOYearBandChange",
   "AOOChange", "AOOYearBandChange", "AOOChangePercent",
   "AOHChange", "AOHYearBandChange", "AOHPercent",
-  "EOHChange", "EOHYearBandChange", "EOHPercent",
+  "EOHChange", "EOHYearBandChange", "EOHPercent", "EOOUncertainty",
   "NoOfLocationsChange", "NoOfLocationYearBandChange",
   "NoOfSubPopulationsChange", "NoOfSubPopYearBandChange",
   "Current.Analysis", "currentsloperci", "mean5km",
@@ -241,6 +343,7 @@ criteriaB_data <- criteriaB_data %>%
     b_i =
       !is.na(EOOChange) &
       EOOChange < 0 &
+      EOOUncertainty <= 2 * abs(EOOChange), # Uncertainity twice the change, then dont hit the threshold
       !is.na(EOOYearBandChange) &
       grepl(latestYear, EOOYearBandChange),
     
@@ -346,20 +449,43 @@ criteriaB_data <- criteriaB_data %>%
       (!is.na(LikelyEOO) & LikelyEOO < 30000) |
       (!is.na(MaxEOO) & MaxEOO < 22000),
     
+    #B2: AOO inferred from LikelyEOO
+    
+    CR_B2_inferred =
+      is.na(MaxAOO) & !is.na(LikelyEOO) & LikelyEOO < 10,
+    
+    EN_B2_inferred =
+      is.na(MaxAOO) & !is.na(LikelyEOO) & LikelyEOO < 500,
+    
+    VU_B2_inferred =
+      is.na(MaxAOO) & !is.na(LikelyEOO) & LikelyEOO < 2000,
+    
+    # We dont infer B2 infer for Near Threatened
     
     # ----------------------------
     # B2: AOO thresholds
     # ----------------------------
-    CR_B2 = !is.na(MinAOO) & MinAOO < 10,
+    CR_B2 = CR_B2_inferred | !is.na(MaxAOO) & MaxAOO < 10,
     
-    EN_B2 = !is.na(MinAOO) & MinAOO < 500,
+    EN_B2 = EN_B2_inferred | !is.na(MaxAOO) & MaxAOO < 500,
     
-    VU_B2 = !is.na(MinAOO) & MinAOO < 2000,
+    VU_B2 = VU_B2_inferred | !is.na(MaxAOO) & MaxAOO < 2000,
     
     NT_B2 =
-      (!is.na(MinAOO) & MinAOO < 3000) |
-      (!is.na(MaxAOO) & MaxAOO < 2200)
-    
+      case_when(
+        # Coding as per BirdLife rules
+        # MaxAOO is certain: require the 2,200 km² threshold
+        !uncertainMaxAOO ~
+          !is.na(MaxAOO) & MaxAOO < 2200,
+        
+        # MaxAOO is uncertain, but MinAOO is certain:
+        # allow the 3,000 km² proximity threshold
+        !uncertainMinAOO ~
+          !is.na(MinAOO) & MinAOO < 3000,
+        
+        # Both bounds uncertain
+        TRUE ~ FALSE
+      )
   )
 
 # ============================================================
@@ -530,7 +656,7 @@ criteriaB_data <- criteriaB_data %>%
 # ============================================================
 
 criteriaB_output <- criteriaB_data %>%
-  select(
+  dplyr::select(
     
     # --------------------------------------------------------
     # SPECIES
@@ -569,6 +695,8 @@ criteriaB_output <- criteriaB_data %>%
     # --------------------------------------------------------
     SeverelyFragmented,
     Locations,
+    MinLocations,
+    MaxLocations,
     
     a_severely_fragmented,
     a_CR_locations,

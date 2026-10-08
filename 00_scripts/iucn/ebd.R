@@ -88,7 +88,7 @@ ebd_v <- ebd %>%
           group_by(COMMON.NAME, cell_id, MONTH) %>%
           summarize(year_count = n_distinct(SOIB_YEAR), .groups = 'drop') %>%
           filter(year_count <= 3) %>%
-          select(COMMON.NAME, cell_id, MONTH)
+          dplyr::select(COMMON.NAME, cell_id, MONTH)
 
 # Exclude the vagrant records from the original dataset by removing records from those cells
 ebd   <- ebd %>%
@@ -97,7 +97,7 @@ ebd   <- ebd %>%
                    cell_id = paste0(round(LATITUDE_200, 1), "_", round(LONGITUDE_200, 1))) %>%
             anti_join(ebd_v, by = c("COMMON.NAME", "cell_id", "MONTH")) %>%
             # Remove the 'cell_id' column as it's not needed in the final dataset
-            select(-cell_id, -LATITUDE_200, -LONGITUDE_200)
+            dplyr::select(-cell_id, -LATITUDE_200, -LONGITUDE_200)
 # This process can result in a few list loss. If list had only vagrants to that cell. Not a useful list anyways.
 
 # For EOO, we need data as an SF

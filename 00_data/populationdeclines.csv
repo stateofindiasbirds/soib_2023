@@ -1,0 +1,21 @@
+Species,Method,Reversible,ReasonUnderstood,ReasonCeased,StartYear,EndYear,DeclinePercentRci,DeclinePercentMean,DeclinePercentLci,DirectObservation,AbundanceIndex,EOODecline,AOODecline,HabitatQuality,Exploitation,OtherEffects,Source
+White-bellied Sholakili,Projected,1,1,0,2025,2050,26,35,45,0,0,0,0,1,0,0,Sreekumar & Nameer (2022)
+Cheer Pheasant,Projected,1,1,0,2025,2050,1,1,1,0,0,0,0,1,1,0,Presumed
+Western Tragopan,Projected,1,1,0,2025,2050,5,20,35,0,0,0,0,1,1,0,Singh et al. 2020
+White-rumped Vulture,Estimated,1,1,0,2002,2022,56.9,90.3,98.2,1,0,1,1,1,0,1,Prakash et al. 2024
+White-rumped Vulture,Estimated,1,1,0,1992,2022,99.5,99.8,99.9,1,0,1,1,1,0,1,Prakash et al. 2024
+Red-headed Vulture,Estimated,1,1,0,1992,2002,61,91,98,1,0,1,1,1,0,1,Cutbert et al. 2006
+Red-headed Vulture,Estimated,1,1,0,1992,2011,20,78,98,1,0,1,1,1,0,1,Galligan et al. 2014
+Indian Vulture,Estimated,1,1,0,2002,2022,13,37,78,1,0,1,1,1,0,1,Prakash et al. 2024
+Slender-billed Vulture,Inferred,1,1,0,1992,2002,88,93,94,1,0,1,1,1,0,1,Prakash et al. 2024
+Indian Vulture,Inferred,1,1,0,1992,2002,88,93,94,1,0,1,1,1,0,1,Prakash et al. 2024
+White-rumped Vulture,Estimated,1,1,0,1992,2002,96.6,97.9,99.8,1,0,1,1,1,0,1,Prakash et al. 2024
+White-winged Wood-Duck,Suspected,1,0,0,1995,2023,57,65,75,1,0,1,1,1,1,0,Ahmed et al. (2023)
+White-winged Wood-Duck,Projected,1,0,0,1995,2025,57,65,75,1,0,1,1,1,1,0,Ahmed et al. (2023)
+Great Indian Bustard,Estimated,1,1,0,1969,2008,75,75,75,1,0,1,1,1,1,0,SoIB 2023; Dutta et al. 2013
+Great Indian Bustard,Estimated,1,1,0,1969,2018,88,89,91,1,0,1,1,1,1,0,SoIB 2023; Dutta et al. 2013;2025
+Great Indian Bustard,Estimated,1,1,0,1969,2024,87,89,91,1,0,1,1,1,1,0,SoIB 2023; Dutta et al. 2013;2025
+Great Indian Bustard,Projected,1,1,0,1969,2026,87,89,91,1,0,1,1,1,1,0,SoIB 2023; Dutta et al. 2013;2025
+Lesser Florican,Estimated,1,1,0,1982,2017,79,79,79,1,0,1,1,1,1,0,SoIB 2023; Dutta et al. 2018
+Lesser Florican,Projected,1,1,0,1982,2025,79,79,79,1,0,1,1,1,1,0,SoIB 2023; Dutta et al. 2018
+Common Pochard,Projected,1,0,0,2015,2033,41,53,62,0,1,0,0,0,1,0,SoIB 2023

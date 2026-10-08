@@ -7,36 +7,35 @@ library(readr)
 library(tidyr)
 library(stringr)
 source("00_scripts/iucn/config_iucn.R")
+source("00_scripts/iucn/population_utils.R")
 
 
-#############Map names###############
 
-species_list <- read.csv(nrlspecieslistfile)
-#EOOAOO is generated directly using eBird names
-EOOAOO <- read.csv(eooaoofile)  %>%
+############# Map names ###############
+
+# EOOAOO is generated directly using eBird names
+EOOAOO <- read_csv(eooaoofile) %>%
   mutate(
     eBirdName = trimws(Species)
   )
 
-# SoIB main file should be only for species selected for redlist
-soib_main <- read_csv(soibmainfile) %>% 
+# SoIB main file — only species selected for NRL
+soib_main <- read_csv(get_metadata("none")$SOIBMAIN.PATH) %>%
   mutate(
-    eBirdName  = trimws(eBird.English.Name.2024),
+    eBirdName = trimws(eBird.English.Name.2025),
     EnglishName = trimws(India.Checklist.Common.Name),
     ScientificName = trimws(India.Checklist.Scientific.Name)
-    
   ) %>%
   filter(
-    EnglishName %in% trimws(species_list$English.Name)
-  ) 
+    Selected.NRL == 1
+  )
 
-# Map eBird names from EOOAOO to SoIB eBird names
+# Map eBird names from EOOAOO to SoIB names
 EOOAOO <- EOOAOO %>%
   inner_join(
     soib_main,
     by = "eBirdName"
-  ) 
-
+  )
 
 # ============================================================
 # 1. READ INPUT DATA
@@ -63,6 +62,42 @@ if (nrow(population_data) == 0) {
 }
 
 # ============================================================
+# IUCN ASSESSMENTS FOR GLOBAL POPULATION
+# ============================================================
+
+iucn_assessments <- read_csv(assessmentsflattenedfile) %>% 
+  mutate(
+    EnglishName = trimws(india_checklist_common_name_2025)
+  ) %>%
+  dplyr::filter(
+    EnglishName %in% soib_main$EnglishName
+  )
+
+iucn_assessments %>%
+  count(EnglishName) %>%
+  dplyr::filter(n > 1)
+
+iucn_assessments <- iucn_assessments %>% 
+  dplyr::select(
+    EnglishName,
+    supplementary_info_json_population_size
+  ) %>%
+  distinct(EnglishName, .keep_all = TRUE)
+
+population_parsed <- do.call(
+  rbind,
+  lapply(
+    iucn_assessments$supplementary_info_json_population_size,
+    parse_population
+  )
+)
+
+iucn_assessments <- cbind(
+  iucn_assessments,
+  population_parsed
+)
+
+# ============================================================
 # 2. READ AOO DATA
 # ============================================================
 
@@ -70,7 +105,7 @@ basicaoo <- EOOAOO %>%
   mutate(
     EnglishName = trimws(EnglishName)
   ) %>%
-  select(
+  dplyr::select(
     EnglishName,
     MaxAOO
   )
@@ -81,7 +116,7 @@ basicaoo <- EOOAOO %>%
 plausiblethreat <- if (file.exists(plausiblethreatfile)) {
   read_csv(plausiblethreatfile) %>%  
   mutate(EnglishName = trimws(Species)) %>%
-  select(
+    dplyr::select(
     EnglishName,
     TimeToVU,
     TimeToEN,
@@ -99,7 +134,7 @@ threegen <- read.csv(threegenfile)
 
 
 soib_main <- soib_main %>% 
-  select(
+  dplyr::select(
     "EnglishName",
     "ScientificName",
     "BLI.Scientific.Name",
@@ -117,7 +152,7 @@ soib_main <- soib_main %>%
 # ============================================================
 
 gen_data <- threegen %>%
-  select(
+  dplyr::select(
     BLI,
     GEN
   ) %>%
@@ -128,13 +163,13 @@ gen_data <- threegen %>%
 
 # Map BLI → EnglishName using SOIB (NO FILTERING)
 gen_data <- soib_main %>%
-  select(
+  dplyr::select(
     EnglishName,
     BLI.Scientific.Name
   ) %>%
   inner_join(gen_data, by = "BLI.Scientific.Name") %>%
   mutate(EnglishName = trimws(EnglishName)) %>%
-  select(EnglishName, GenerationLength)
+  dplyr::select(EnglishName, GenerationLength)
 
 # ============================================================
 # 6. READ LOCATIONS
@@ -143,7 +178,7 @@ gen_data <- soib_main %>%
 NoOfLocations <- if (file.exists(nooflocationsfile)) {
   read_csv(nooflocationsfile) %>%  
     mutate(EnglishName = trimws(Species)) %>% 
-    select(EnglishName, Locations)
+    dplyr::select(EnglishName, Locations)
 } else {
   tibble(EnglishName = character(), Locations = integer())
 }
@@ -153,10 +188,10 @@ NoOfLocations <- if (file.exists(nooflocationsfile)) {
 # ============================================================
 
 master_species <- bind_rows(
-  population_data %>% select(EnglishName),
-  plausiblethreat %>% select(EnglishName),
-  basicaoo %>% select(EnglishName),
-  NoOfLocations %>% select(EnglishName)
+  population_data %>% dplyr::select(EnglishName),
+  plausiblethreat %>% dplyr::select(EnglishName),
+  basicaoo %>% dplyr::select(EnglishName),
+  NoOfLocations %>% dplyr::select(EnglishName)
 ) %>%
   distinct() %>%
   mutate(EnglishName = trimws(EnglishName))
@@ -166,7 +201,7 @@ anti_join(
   master_species,
   
   soib_main %>%
-    select(EnglishName),
+    dplyr::select(EnglishName),
   
   by = "EnglishName"
 ) %>%
@@ -182,6 +217,21 @@ criteriaD_data <- master_species %>%
   left_join(gen_data, by = "EnglishName") %>%
   left_join(NoOfLocations, by = "EnglishName") %>%
   left_join(plausiblethreat, by = "EnglishName")
+
+# ============================================================
+#####MERGE GLOBAL POPULATION DATA
+# ============================================================
+criteriaD_data <- criteriaD_data |>
+  dplyr::left_join(
+    iucn_assessments |>
+      dplyr::select(
+        EnglishName,
+        GlobalMinPopulation,
+        GlobalMaxPopulation,
+        GlobalBestPopulation,
+      ),
+    by = "EnglishName"
+  )
 
 
 # ============================================================
@@ -199,7 +249,38 @@ criteriaD_data <- criteriaD_data %>%
     MaxMaturePop =
       MaxPop *
       `Max Breeding Pop Percent` *
-      ifelse(`Male Ratio` > 0.5, 1 - `Male Ratio`, `Male Ratio`) * 2
+      ifelse(`Male Ratio` > 0.5, 1 - `Male Ratio`, `Male Ratio`) * 2,
+    
+    BestMaturePop =
+      ifelse(
+        !is.na(MinMaturePop) & !is.na(MaxMaturePop) &
+          MinMaturePop > 0 & MaxMaturePop > 0,
+        round(sqrt(MinMaturePop * MaxMaturePop), 0),
+        NA
+      ),
+    
+    # --------------------------------------------------------
+    # EFFECTIVE POPULATION VALUES
+    #
+    # Existing mature-population values take precedence.
+    # Global IUCN population is used only when the corresponding
+    # mature-population value is unavailable.
+    # --------------------------------------------------------
+    
+    EffectiveMinPop = coalesce(
+      MinMaturePop,
+      GlobalMinPopulation
+    ),
+    
+    EffectiveMaxPop = coalesce(
+      MaxMaturePop,
+      GlobalMaxPopulation
+    ),
+    
+    EffectiveBestPop = coalesce(
+      BestMaturePop,
+      GlobalBestPopulation
+    )
   )
 
 # ============================================================
@@ -231,15 +312,15 @@ criteriaD_data <- criteriaD_data %>%
 criteriaD_data <- criteriaD_data %>%
   mutate(
     
-    CR_D = !is.na(MaxMaturePop) & MaxMaturePop < 50,
-    EN_D = !is.na(MaxMaturePop) & MaxMaturePop < 250,
-    VU_D1 = !is.na(MaxMaturePop) & MaxMaturePop < 1000,
+    CR_D = !is.na(EffectiveBestPop) & EffectiveBestPop < 50,
+    EN_D = !is.na(EffectiveBestPop) & EffectiveBestPop < 250,
+    VU_D1 = !is.na(EffectiveBestPop) & EffectiveBestPop < 1000,
     
     NT_D1 =
-      !is.na(MaxMaturePop) &
+      !is.na(EffectiveMaxPop) &
       (
-        (MaxMaturePop < 1500 & MaxMaturePop >= 1000) |
-          (MinMaturePop < 1000 & MaxMaturePop > 1500)
+        (EffectiveMaxPop < 1500 & EffectiveMaxPop >= 1000) |
+          (EffectiveMinPop  < 1000 & EffectiveMaxPop > 1500)
       ),
     
     VU_D2 =
@@ -318,7 +399,7 @@ criteriaD_data <- criteriaD_data %>%
 # ============================================================
 
 criteriaD_output <- criteriaD_data %>%
-  select(
+  dplyr::select(
     
     # --------------------------------------------------------
     # SPECIES

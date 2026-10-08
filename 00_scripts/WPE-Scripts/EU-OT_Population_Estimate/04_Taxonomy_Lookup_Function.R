@@ -56,4 +56,3 @@ get_species_variants <- function(species_name,
   
   return(variants)
 }
-

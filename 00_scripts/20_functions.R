@@ -24,7 +24,14 @@ read_fn <- function(file_path) {
   if (file.exists(file_path)) {
     
     read_csv(file_path, guess_max = Inf,
-             col_types = "ccccccccccccccccccdddccccccccdcccddddddddddddddddddddddddddddddddddddcccc") 
+             col_types = "ccccccccccccccccccdddccccccccdcccddddddddddddddddddddddddddddddddddddcccc",
+             # SoIB_main.csv's Avilist.English.Name field for White-winged
+             # Redstart ("Güldenstädt's Redstart") is Latin-1-encoded, not
+             # UTF-8, in every mask/state's file -- verified no other field
+             # anywhere has genuine (valid) non-ASCII content, so reading
+             # the whole file as Latin-1 safely fixes this without risking
+             # any other data
+             locale = locale(encoding = "latin1"))
     # if not specified, cols with many NAs read as logical
     
   } else {
@@ -135,21 +142,25 @@ join_mask_codes <- function(data) {
 # keystates object must exist in environment
 
 is_curspec_key4state <- function(data) {
-  
-  key_db <- keystates %>% 
-    distinct(ST_NM, eBird.English.Name.2024) %>% 
+
+  # reverted to India.Checklist.Common.Name (the join key used from 2023
+  # until a Dec 2025 change broke it -- key_state_species_full.csv has
+  # never had an eBird.English.Name column of any vintage, only
+  # ST_NM/India.Checklist.Common.Name/prop.range)
+  key_db <- keystates %>%
+    distinct(ST_NM, India.Checklist.Common.Name) %>%
     mutate(KEY = TRUE)
-  
-  data <- data %>% 
-    left_join(get_metadata() %>% distinct(MASK, MASK.TYPE)) %>% 
-    join_mask_codes() %>% 
-    left_join(key_db, 
-              by = c("MASK.LABEL" = "ST_NM", "eBird.English.Name.2024")) %>% 
-    complete(KEY, fill = list(KEY = FALSE)) %>% 
+
+  data <- data %>%
+    left_join(get_metadata() %>% distinct(MASK, MASK.TYPE)) %>%
+    join_mask_codes() %>%
+    left_join(key_db,
+              by = c("MASK.LABEL" = "ST_NM", "India.Checklist.Common.Name")) %>%
+    complete(KEY, fill = list(KEY = FALSE)) %>%
     mutate(KEY = case_when(MASK.TYPE == "state" ~ KEY,
-                           TRUE ~ NA)) %>% 
+                           TRUE ~ NA)) %>%
     dplyr::select(-c(MASK.TYPE, MASK.CODE, MASK.LABEL))
-  
+
 }
 
 
@@ -165,6 +176,8 @@ round_model_estimates <- function(db) {
   db %>% 
     mutate(across(c("longtermlci","longtermmean","longtermrci","currentslopelci",
                     "currentslopemean","currentsloperci","rangelci","rangemean","rangerci"),
-                  ~ round(., 1)))
+                  ~ round(as.numeric(.), 1)))
+  
+  
   
 }

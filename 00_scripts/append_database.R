@@ -6,9 +6,10 @@ taxmap = read.csv("00_data/eBird_taxonomy_mapping.csv")
 
 past_database = read.csv("20_website/website_database.csv")
 
-past_map = past_map %>%
+past_map_1 = past_map %>%
   dplyr::select(eBird.English.Name.2023,India.Checklist.Common.Name) %>%
   group_by(India.Checklist.Common.Name) %>% slice(1)
+
 map = map %>%
   dplyr::select(eBird.English.Name.2024,
                 IUCN.Category)

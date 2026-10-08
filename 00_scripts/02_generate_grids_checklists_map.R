@@ -6,6 +6,7 @@ library(spdep)
 library(glue)
 
 load("00_data/dataforanalyses_extra.RData")
+#load("00_data/dataforanalyses_extra_2023.RData")
 load("00_data/maps_sf.RData")
 sf_use_s2(FALSE) # not using spherical geometries
 

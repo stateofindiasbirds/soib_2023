@@ -1,6 +1,6 @@
 # To pick the ebd file. May need configuration to pick the RDS directly and transform the column names
-CurMonth <- 7
-CurYear <- 2024
+CurMonth <- 5
+CurYear <- 2026
 dir <- "..\\..\\..\\data\\"
 unzip <- 0
 ebdfile <- paste0("ebd_IN-KL_smp_rel",month.abb[CurMonth],"-",CurYear)
@@ -29,7 +29,13 @@ aoo_grid_sizes_km <- c(8, 4, 2)
 lastYearforEOOCalculation <- 2000
 
 # No records after 2023 used in EOO & AOO calculation
-maxYearforProcessing <- 2023
+maxYearforProcessing <- 2025
 
 # MAximum distance to be used for EOO Calculation
 MaxChecklistDistanceforEOO <- 10
+
+MaxTrackCellsForExpansion <- 4
+
+modelForSpeciesAbsence <- TRUE
+
+centroidfile <- "00_data/centroids_sanitized_final.rds"

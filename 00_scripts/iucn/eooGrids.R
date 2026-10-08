@@ -89,7 +89,7 @@ create_grid_dataframe <- function(eoo, grid_sizes_km, grids_sf) {
             Species = species_name,
             GridResolution = grid_size_km
           ) %>%
-          select(Species, GridResolution, GridID)
+          dplyr::select(Species, GridResolution, GridID)
         
         # grid_map
         grid_map_entry <- data.frame(
@@ -191,13 +191,19 @@ create_grid_dataframe <- function(eoo, grid_sizes_km, grids_sf) {
  
 }
 
-species <- c (
+test_species <- c (
   "Banasura Laughingthrush",
   "Nilgiri Laughingthrush",
   "Ashambu Laughingthrush",
-  "Black-headed Greenfinch",
-  "Andaman Masked-Owl",
   "Mangrove Pitta",
+  "Bugun Liocichla",
+  "Buffy Fish Owl",
+  "Mount Victoria Babax",
+  "Yunnan Nuthatch",
+  "Sind Woodpecker",
+  "Derbyan Parakeet",
+  "Long-billed Bush Warbler",
+  "Andaman Masked-Owl",
   "Naga Wren-Babbler",
   "Nilgiri Pipit",
   "Nilgiri Sholakili",
@@ -207,25 +213,20 @@ species <- c (
   "Andaman Woodpecker",
   "Marsh Babbler",
   "Swamp Grass Babbler",
-  "Pale-capped Pigeon",
-  "Kashmir Nuthatch",
-  "Gray-crowned Prinia",
-  "White-bellied Blue Flycatcher",
-  "Upland Pipit",
-  "Yellow-eyed Pigeon",
-  "White-browed Tit-Warbler",
-  "Brown-cheeked Rail"
+  "Kashmir Nuthatch"
 )
 
-aoo_selected <- read.csv(file.path(datapath, "aoo_selected.csv"),
-                      stringsAsFactors = FALSE)
-
+aoo_selected <- read.csv(file.path(datapath, "species_aoo_prefilter.csv"),
+                      stringsAsFactors = FALSE) %>% 
+                        dplyr::select (english_name)
+colnames(aoo_selected) <- c("Species")
+                      
 EOO <- readRDS(file.path(datapath,"eoo.RDS"))
 EOO <- EOO %>%
-  filter(Species %in% aoo_selected$Species)
+  dplyr::filter(Species %in% aoo_selected$Species)
 
 # Testing. uncomment
-#EOO <- EOO %>% filter (Species %in% species)
+#EOO <- EOO %>% filter (Species %in% test_species)
 
 in_grids <- readRDS(file.path(datapath,"in_grids.RDS"))
 # Create the grid data frame

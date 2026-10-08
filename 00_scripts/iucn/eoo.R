@@ -48,7 +48,7 @@ obsv <- obsv %>%
           SOIB_YEAR >= lastYearforEOOCalculation,
           DAY <= SeasonEndDay | DAY >= SeasonStartDay)
 
-obsv <- obsv %>% select (COMMON.NAME, SOIB_YEAR, geometry)
+obsv <- obsv %>% dplyr::select (COMMON.NAME, SOIB_YEAR, geometry)
 
 # Calculates EOO of all species in data using one start Year and species specific end years as filters
 compute_eoo_parallel <- function(data, years, radius, pointsOnCircle, noCores) {
@@ -79,7 +79,7 @@ compute_eoo_parallel <- function(data, years, radius, pointsOnCircle, noCores) {
     ) %>%
     collect() %>%
     as.data.frame() %>%
-    select(COMMON.NAME, area_km2, mcp)  # Select relevant columns
+    dplyr::select(COMMON.NAME, area_km2, mcp)  # Select relevant columns
   
   # Rename columns
   colnames(eoo) <- c("Species", "EOO", "EOOMap")
@@ -111,7 +111,7 @@ compute_eoo <- function(data, years, radius, pointsOnCircle) {
       area_km2 = as.numeric(st_area(st_transform(mcp, crs = 32643)) / 1e6)  
     ) %>% 
     as.data.frame() %>%
-    select(COMMON.NAME, area_km2, mcp)  # Select relevant columns
+    dplyr::select(COMMON.NAME, area_km2, mcp)  # Select relevant columns
   
   # Rename columns
   colnames(eoo) <- c("Species", "EOO", "EOOMap")
@@ -232,7 +232,7 @@ repeat {
   obsv <- obsv %>% 
               left_join (eoo_summary, by = c("COMMON.NAME" = "Species")) %>% 
               filter (SOIB_YEAR < EOOStartYear) %>%
-              select (COMMON.NAME, SOIB_YEAR, geometry)
+              dplyr::select (COMMON.NAME, SOIB_YEAR, geometry)
   
   
   # Remove species observations whose EOOStartYear is lastYearforEOOCalculation
@@ -275,12 +275,12 @@ obsv <- obsv %>%
           SOIB_YEAR >= lastYearforEOOCalculation,
           DAY <= SeasonEndDay | DAY >= SeasonStartDay)
 
-obsv <- obsv %>% select (COMMON.NAME, SOIB_YEAR, geometry)
+obsv <- obsv %>% dplyr::select (COMMON.NAME, SOIB_YEAR, geometry)
 
 
 # Function to calculate max eoo
 tryCatch({
-          eoo_max <- compute_eoo(obsv, years_df, 10, 5) %>% as.data.frame() %>% select ("Species", "EOO")
+          eoo_max <- compute_eoo(obsv, years_df, 10, 5) %>% as.data.frame() %>% dplyr::select ("Species", "EOO")
           colnames(eoo_max) <- c("Species", "MaxEOO")
           eoo_agg_df <- eoo_agg_df %>% inner_join (eoo_max, by = c("Species"))
           },

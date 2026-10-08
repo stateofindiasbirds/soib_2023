@@ -1,0 +1,9 @@
+{
+  "input_file": "ebird_tracks_IN_2026-07-08.csv",
+  "input_sha256": "101f8457f79386d76db6c158830046c115fa9a34b5f87caa23c4ee65759d166b",
+  "n_total_raw": 2689345,
+  "n_remove_not_in_ebd": 28043,
+  "n_keep_from_original": 2619081,
+  "n_swap_and_keep": 799,
+  "n_remove_outside_india": 41422
+}

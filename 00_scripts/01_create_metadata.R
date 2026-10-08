@@ -31,6 +31,7 @@ analyses_metadata <- data.frame(MASK = c("none",
   )) %>% 
   mutate(FULLSPECLIST.PATH = glue("{FOLDER}fullspecieslist.csv"),
          LOCS.PATH = glue("{FOLDER}sub_samp_locs.csv"),
+         GRIDS.PATH = glue("{FOLDER}sub_samp_grids.csv"),
          SPECLISTDATA.PATH = glue("{FOLDER}specieslists.RData"),
          DATA.PATH = glue("{FOLDER}dataforanalyses.RData"),
          RAND.GROUP.IDS.PATH.ONLY = glue("{FOLDER}randomgroupids/"),
@@ -44,6 +45,12 @@ analyses_metadata <- data.frame(MASK = c("none",
            ),
          OCCU.MOD.PATHONLY = "01_analyses_full/occupancy-model/",
          RESULTS = glue("{FOLDER}results/"),
+         
+         TIMESERIES.FOLDER = glue("{TRENDS.PATHONLY}timeseries/"),
+         LTT.FOLDER = glue("{TRENDS.PATHONLY}long-term-trend/"),
+         CAT.FOLDER = glue("{TRENDS.PATHONLY}current-annual-trend/"),
+         LTTSENS.FOLDER = glue("{TRENDS.PATHONLY}long-term-sensitivity/"),
+         CURSENS.FOLDER = glue("{TRENDS.PATHONLY}current-sensitivity/"),
          
          OCCU.OUTPATH = glue("{RESULTS}occupancy/"),
          
@@ -82,6 +89,26 @@ walk2(analyses_metadata$FOLDER, analyses_metadata$RESULTS, ~ {
   
   if (!dir.exists(.y)) {dir.create(.y, recursive = TRUE)}
   
+})
+
+walk2(analyses_metadata$LTT.FOLDER, analyses_metadata$CAT.FOLDER, ~ {
+  
+  if (!dir.exists(.x)) {dir.create(.x, recursive = TRUE)}
+  
+  if (!dir.exists(.y)) {dir.create(.y, recursive = TRUE)}
+  
+})
+
+walk2(analyses_metadata$LTTSENS.FOLDER, analyses_metadata$CURSENS.FOLDER, ~ {
+  
+  if (!dir.exists(.x)) {dir.create(.x, recursive = TRUE)}
+  
+  if (!dir.exists(.y)) {dir.create(.y, recursive = TRUE)}
+  
+})
+
+walk(analyses_metadata$TIMESERIES.FOLDER, ~ {
+  if (!dir.exists(.x)) {dir.create(.x, recursive = TRUE)}
 })
 
 walk(analyses_metadata$OCCU.OUTPATH, ~ {

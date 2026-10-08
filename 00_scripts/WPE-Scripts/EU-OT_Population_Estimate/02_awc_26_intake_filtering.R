@@ -41,15 +41,15 @@ awc26_data <- awc26_data %>%
   
   filter(
     SCIENTIFIC.NAME %in%
-      species_list_ebird$SCIENTIFIC.NAME
+      species_list$SCIENTIFIC.NAME
   )
 
 # Standard Basic Filters
 # Is this only for certain methodology? (retained for now. Will move to species config file)
-# awc26_data = awc26_data %>% filter(ALL.SPECIES.REPORTED == 1)
+awc26_data = awc26_data %>% filter(ALL.SPECIES.REPORTED == 1)
 
 # Is this only for certain methodology? (retained for now. Will move to species config file)
-# awc26_data = awc26_data %>% filter(PROTOCOL.NAME %in% c("Traveling","Stationary"))
+awc26_data = awc26_data %>% filter(PROTOCOL.NAME %in% c("Traveling","Stationary"))
 
 # Treating X as 1 observation count
 awc26_data <- awc26_data %>%
@@ -81,7 +81,7 @@ awc26_data <- awc26_data %>%
     desc(OBSERVATION.COUNT),
     SAMPLING.EVENT.IDENTIFIER
   ) %>%
-  group_by(CHECKLIST.ID, SCIENTIFIC.NAME) %>% #group by species also.
+  group_by(CHECKLIST.ID) %>% #group by species also.
   slice(1) %>%
   ungroup()
 

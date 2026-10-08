@@ -7,6 +7,23 @@ if (cur_metadata$MASK.TYPE != "country") {
 if (!dir.exists(cur_metadata$OCCU.MOD.PATHONLY)) {
   dir.create(cur_metadata$OCCU.MOD.PATHONLY, 
              recursive = T)
+} else {
+  
+  # in interannual updates, we need to delete all past-year output files
+  # because species names change every year with taxonomy updates.
+  # hence, although most species' files will simply get overwritten, for many
+  # species we will end up with multiple files, one for each taxonomy update
+  # (if not interannual update, everything will be in a new repo so no need for this.)
+  if (interannual_update == TRUE) {
+    
+    files_to_del <- list.files(cur_metadata$OCCU.MOD.PATHONLY, full.names = TRUE)
+    
+    if (length(files_to_del) != 0) {
+      file.remove(files_to_del)
+    }
+    
+  }
+  
 }
 
 ###
@@ -20,53 +37,28 @@ our_neighbours <- g1_nb_q
 rm(g1_nb_r, g2_nb_q, g2_nb_r, g3_nb_q, g3_nb_r, g4_nb_q, g4_nb_r)
 
 data = data %>%
-  mutate(OBSERVATION.COUNT = replace(OBSERVATION.COUNT, !is.na(OBSERVATION.COUNT), "1")) %>% 
-  mutate(OBSERVATION.COUNT = as.numeric(OBSERVATION.COUNT))
+  mutate(OBSERVATION.COUNT = 1)
 
+speciesforocc %>%
+  {walk2(.$eBird.English.Name.2025, .$status, ~ {
+    
+    tic(glue("Model-based occupancy for {.x}"))
+    
+    # File names for individual files
+    write_path <- cur_metadata %>%
+      summarise(OCCU.MOD.PATH = glue("{OCCU.MOD.PATHONLY}{.x}_{.y}.csv")) %>%
+      pull(OCCU.MOD.PATH)
+    
+    occu0 = occupancyrun(data = data, 
+                         species = .x,
+                         status = .y,
+                         queen_neighbours = g1_nb_q)
 
-# calculation -------------------------------------------------------------
+    toc()
 
-n.chunks = 80
-
-chunks = split(vec, cut(seq_along(vec), n.chunks, labels = FALSE))
-
-for (k in 1:n.chunks)
-{
-  
-  # file names for individual files
-  write_path <- cur_metadata %>% 
-    dplyr::summarise(OCCU.MOD.PATH = glue("{OCCU.MOD.PATHONLY}chunk_{k}.csv")) %>% 
-    pull(OCCU.MOD.PATH)
-
-  # start parallel
-  n.cores = parallel::detectCores()/2 - 2
-  # create the cluster
-  my.cluster = parallel::makeCluster(
-    n.cores, 
-    type = "PSOCK"
-  )
-  # register it to be used by %dopar%
-  doParallel::registerDoParallel(cl = my.cluster)
-  
-  # # check if it is registered (optional)
-  # foreach::getDoParRegistered()
-  # # how many workers are available? (optional)
-  # foreach::getDoParWorkers()
-  
-  start = Sys.time()
-  occu0 = foreach(i = chunks[[k]], .combine = 'rbind', .errorhandling = 'remove') %dopar%
-    occupancyrun(data = data, 
-                 i = i,
-                 speciesforocc = speciesforocc,
-                 queen_neighbours = g1_nb_q)
-  end = Sys.time()
-  print(end-start)
-  
-  parallel::stopCluster(cl = my.cluster)
-  
-  print(k)
-  write.csv(occu0, file = write_path, row.names = F)
-  
-  gc()
-  
-}
+    
+    if (length(occu0$COMMON.NAME) > 0) {
+      write.csv(occu0, file = write_path, row.names = FALSE)
+    }
+    
+  })}

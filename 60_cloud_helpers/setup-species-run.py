@@ -129,11 +129,15 @@ for fname in ['dataforanalyses.RData-data_opt',
     print(f"{src_fname} -> {tgt_fname}")
     shutil.copy(src_fname, tgt_fname)
 
-print(f'Copying {num_assignments}({assignment_min}:{assignment_max}) random group ids from ../{mask_dir} to {tgt_mask_dir}')
+rgid_subdir = "randomgroupids"
+src_rgid_dir = os.path.join('..', mask_dir, rgid_subdir)
+tgt_rgid_dir = os.path.join(tgt_mask_dir, rgid_subdir)
+Path(tgt_rgid_dir).mkdir(parents=True, exist_ok=True)
+print(f'Copying {num_assignments}({assignment_min}:{assignment_max}) random group ids from {src_rgid_dir} to {tgt_rgid_dir}')
 for i in range(assignment_min,assignment_max+1):
     rgid = f"rgids-{i}.RData"
-    src_fname = os.path.join('..',mask_dir, rgid)
-    tgt_fname = os.path.join(tgt_mask_dir,rgid)
+    src_fname = os.path.join(src_rgid_dir, rgid)
+    tgt_fname = os.path.join(tgt_rgid_dir, rgid)
     shutil.copy(src_fname, tgt_fname)
 
 print("Copying common data files")

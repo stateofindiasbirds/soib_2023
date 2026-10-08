@@ -164,7 +164,7 @@ calEOOYear <- function (species, years){
   data_f <- eoo_locmig_sum %>% filter (COMMON.NAME %in% species,
                                        year >= years)
   if(nrow(data_f)>5){
-    #data_f <- data_f %>% select(LATITUDE, LONGTIUDE)
+    #data_f <- data_f %>% dplyr::select(LATITUDE, LONGTIUDE)
     coordinates(data_f) <- c("LONGITUDE", "LATITUDE")
     proj4string(data_f) <- CRS("+init=epsg:4326")
     data_f<-spTransform(data_f, CRS("+init=epsg:32644"))
@@ -469,7 +469,7 @@ calmaxEOOYear <- function (species, years){
                                 year >= years)
   data_f <- na.omit(data_f)
   if(nrow(data_f)>5){
-    #data_f <- data_f %>% select(LATITUDE, LONGTIUDE)
+    #data_f <- data_f %>% dplyr::select(LATITUDE, LONGTIUDE)
     z<-findNpointsOnaCircle(data_f$LATITUDE, data_f$LONGITUDE, data_f$EFFORT.DISTANCE.KM, nrow(data_f)*360)
     coordinates(z)<-c("LONGITUDE", "LATITUDE")
     proj4string(z) <- CRS("+init=epsg:4326")
@@ -587,7 +587,7 @@ calmaxEOOYear <- function (species, years){
                                 year >= years)
   data_f <- na.omit(data_f)
   if(nrow(data_f)>5){
-    #data_f <- data_f %>% select(LATITUDE, LONGTIUDE)
+    #data_f <- data_f %>% dplyr::select(LATITUDE, LONGTIUDE)
     z<-findNpointsOnaCircle(data_f$LATITUDE, data_f$LONGITUDE, data_f$EFFORT.DISTANCE.KM, nrow(data_f)*360)
     coordinates(z)<-c("LONGITUDE", "LATITUDE")
     proj4string(z) <- CRS("+init=epsg:4326")
@@ -703,7 +703,7 @@ calmaxEOOYear <- function (species, years){
                                 year >= years)
   data_f <- na.omit(data_f)
   if(nrow(data_f)>5){
-    #data_f <- data_f %>% select(LATITUDE, LONGTIUDE)
+    #data_f <- data_f %>% dplyr::select(LATITUDE, LONGTIUDE)
     z<-findNpointsOnaCircle(data_f$LATITUDE, data_f$LONGITUDE, data_f$EFFORT.DISTANCE.KM, nrow(data_f)*360)
     coordinates(z)<-c("LONGITUDE", "LATITUDE")
     proj4string(z) <- CRS("+init=epsg:4326")

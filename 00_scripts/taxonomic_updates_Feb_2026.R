@@ -1,6 +1,6 @@
 # These updates are based on an email from Alen on Jan 30, 2026 requesting scientific name changes for 3 species
 
-SoIB_mapping_2024 <- read.csv("00_data/SoIB_mapping_2024.csv", header = T)
+SoIB_mapping_2024 <- read.csv("00_data/SoIB_mapping_2024.csv", header = T) # Previous file
 
 SoIB_mapping_2024_update <- SoIB_mapping_2024 %>% 
   mutate(eBird.Scientific.Name.2024 = case_when(eBird.Scientific.Name.2024 == "Anthropoides virgo" ~ "Grus virgo",

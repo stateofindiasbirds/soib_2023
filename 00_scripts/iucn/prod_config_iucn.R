@@ -1,4 +1,4 @@
-latestYear <- 2024 # Obtain this from a configuration 
+latestYear <- 2025 # Obtain this from a configuration 
 
 #Input Files
 
@@ -6,6 +6,8 @@ popDeclinefile  <- "00_data/populationdeclines.csv"
 threegenfile    <- "00_data/3genbli.csv"
 soibredlistfile <- "01_analyses_full/results/redlist.csv"
 eooaoofile <- "01_analyses_full/results/eooaoo.csv"
+eooaooextfile <- "01_analyses_full/results/eooaooext.csv"
+
 soibmainfile <- get_metadata("none")$SOIBMAIN.PATH
 continuingdeclineexfile <- "01_analyses_full/results/continuingdeclineext.csv"
 severelyfragmentedfile <- "01_analyses_full/results/severelyfragmented.csv"
@@ -14,9 +16,10 @@ extremefluctationsfile <- "01_analyses_full/results/extremefluctuations.csv"
 populationsfile <- "00_data/populations.csv"
 plausiblethreatfile <- "01_analyses_full/results/plausiblethreat.csv"
 
-assessmentsflattenedfile <- "00_data/IUCN_assessments_Flattened_With SoIB Names.csv"
+assessmentsflattenedfile <- "00_data/IUCN_assessments_flattened.csv"
 subpopulationsfile <- "00_data/species_with_subspecies_count.csv"
 raritiesfile <- "00_data/rarities_nrl.csv" 
+threatstatusoverridefile <- "00_data/threat_status_override_nrl.csv" 
 percentrangefile <- "00_data/percent_species_ranges_India.csv"
 
 criteriaAResultsfile <- "01_analyses_full/results/criteriaA_results.csv"

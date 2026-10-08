@@ -40,7 +40,7 @@ filter(
 
 # 2. Keep only years 2020–2025
 filter(
-  YEAR >= 2019 &
+  YEAR >= 2020 &
     YEAR <= 2025
 ) %>%
 
@@ -242,8 +242,8 @@ awc20_25_data <- awc20_25_data %>%
 # Load the district shapefile object
 load(district_shapefile)
 # check object name
-# ls()
-# names(dists_sf)
+ls()
+names(dists_sf)
 
 
 # Convert AWC data into spatial points
@@ -258,8 +258,8 @@ awc_points <- st_as_sf(
 )
 
 # Ensure shapefile CRS matches
-# st_crs(awc_points)
-# st_crs(dists_sf)
+st_crs(awc_points)
+st_crs(dists_sf)
 
 # If they dont match
 dists_sf <- st_transform(

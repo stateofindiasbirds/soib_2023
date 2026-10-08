@@ -5,69 +5,72 @@ library(purrr)
 library(lubridate)
 
 source("config.R")
-# source("species_config.R")
+#source("species_config.R") --> will add this later
 
 #################################################
 # STEP 1 - Read eBird data
-# Read EVERYTHING as character
 #################################################
 
 ebird_data <- read.csv(
   ebird,
   header = TRUE,
   stringsAsFactors = FALSE,
-  colClasses = "character",
   na.strings = c("", " ", NA)
 )
 
 #################################################
-# Required CAF bird list (for filtering later)
+# Standardize eBird dates
 #################################################
 
-species_list_ebird <- read.csv(CAF_species_list_ebird_names, 
-                               header = T, 
-                               stringsAsFactors = F, na.strings = c(""," ",NA))
+if(grepl("-", ebird_data$OBSERVATION.DATE[1])) {
+  
+  ebird_data <- ebird_data %>%
+    mutate(
+      OBSERVATION.DATE = ymd(OBSERVATION.DATE)
+    )
+  
+} else {
+  
+  ebird_data <- ebird_data %>%
+    mutate(
+      OBSERVATION.DATE = mdy(OBSERVATION.DATE)
+    )
+}
 
-species_list_ebird <- species_list_ebird %>%
-  mutate(SCIENTIFIC.NAME = tolower(str_trim(SCIENTIFIC.NAME)))
-
-####################################################
-# STEP 2 - Read sensitive species data IF IT EXISTS
-# Read EVERYTHING as character
-####################################################
+#################################################
+# Read sensitive species file IF IT EXISTS
+#################################################
 
 if(file.exists(sensitive)) {
   
   message("Sensitive species file found. Reading data.")
-  
   sensitive_sp <- read.delim(
     sensitive,
     sep = "\t",
     header = TRUE,
     quote = "",
     stringsAsFactors = FALSE,
-    colClasses = "character",
     na.strings = c("", " ", NA)
   )
   
-  #################################################
-  # Keep India records and CAF species only
-  #################################################
+  ##############################################################
+  # Standardize sensitive species dates and logical columns
+  # Filter to required dates
+  ##############################################################
   
   sensitive_sp <- sensitive_sp %>%
-    
-    filter(COUNTRY.CODE == "IN") %>%
-    
-    mutate(SCIENTIFIC.NAME =
-             tolower(str_trim(SCIENTIFIC.NAME))
-    ) %>%
-    
-    filter(SCIENTIFIC.NAME %in%
-             species_list_ebird$SCIENTIFIC.NAME
-    )
+    mutate(OBSERVATION.DATE = ymd(OBSERVATION.DATE),
+           ALL.SPECIES.REPORTED = as.logical(ALL.SPECIES.REPORTED),
+           HAS.MEDIA            = as.logical(HAS.MEDIA),
+           APPROVED             = as.logical(APPROVED),
+           REVIEWED             = as.logical(REVIEWED),
+           EXOTIC.CODE          = as.character(EXOTIC.CODE)) %>%
+    filter(
+        OBSERVATION.DATE >= as.Date("2020-01-01") &
+        OBSERVATION.DATE <  as.Date("2026-05-01"))
   
   #################################################
-  # Match columns before merging
+  # NEW: Match columns before merging
   #################################################
   
   common_cols <- intersect(
@@ -88,177 +91,65 @@ if(file.exists(sensitive)) {
   
 }
 
-#################################################
-# STEP 3 - Standardize datatypes AFTER merging
-#################################################
+##################################
+# STEP 2 - Standard Basic Filters
+##################################
 
-# -------------------------------
-# Standardize dates
-# Handles both:
-# 2020-01-01
-# 01/01/2020
-# -------------------------------
+# Is this only for certain methodology? (retained for now. Will move to species config file)
+ebird_data = ebird_data %>% filter(ALL.SPECIES.REPORTED == TRUE)
 
-ebird_data <- ebird_data %>%
-  mutate(OBSERVATION.DATE = parse_date_time(
-    OBSERVATION.DATE,
-    orders = c("ymd", "mdy")
-  ) %>%
-    as.Date()
-  )
 
-# -------------------------------
-# Filter to required date range
-# -------------------------------
+# Is this only for certain methodology? (retained for now. Will move to species config file)
+ebird_data = ebird_data %>% filter(PROTOCOL.NAME %in% c("Traveling","Stationary"))
 
-ebird_data <- ebird_data %>%
-  filter(OBSERVATION.DATE >= as.Date("2019-11-01") &
-           OBSERVATION.DATE < as.Date("2026-05-01"))
-
-# -------------------------------
-# Convert logical columns
-# -------------------------------
-
-logical_cols <- c(
-  "ALL.SPECIES.REPORTED",
-  "HAS.MEDIA",
-  "APPROVED",
-  "REVIEWED"
-)
-
-logical_cols <- logical_cols[
-  logical_cols %in% names(ebird_data)
-]
-
-ebird_data[logical_cols] <- lapply(
-  ebird_data[logical_cols],
-  function(x) {
-    toupper(trimws(x)) %in% c(
-      "TRUE",
-      "T",
-      "1"
-    )
-  }
-)
-
-# -------------------------------
-# Convert numeric columns
-# -------------------------------
-
+# Treating 'X' as 1 observation count
 ebird_data <- ebird_data %>%
   mutate(
-    LATITUDE = as.numeric(LATITUDE),
-    LONGITUDE = as.numeric(LONGITUDE),
-    DURATION.MINUTES = as.numeric(DURATION.MINUTES),
-    EFFORT.DISTANCE.KM = as.numeric(EFFORT.DISTANCE.KM),
-    NUMBER.OBSERVERS = as.numeric(NUMBER.OBSERVERS)
-  )
-
-# -------------------------------
-# Treat 'X' as 1 observation count
-# -------------------------------
-
-ebird_data <- ebird_data %>%
-  mutate(
-    OBSERVATION.COUNT = ifelse(OBSERVATION.COUNT == "X", "1", OBSERVATION.COUNT),
+    OBSERVATION.COUNT = ifelse(OBSERVATION.COUNT == "X","1",OBSERVATION.COUNT),
     OBSERVATION.COUNT = as.numeric(OBSERVATION.COUNT)
   )
 
-#################################################
-# STEP 4 - Standard Basic Filters
-#################################################
-# Is this only for certain methodology? (retained for now. Will move to species config file)
-# Complete checklists only
-#ebird_data <- ebird_data %>%
-#  filter(ALL.SPECIES.REPORTED == TRUE)
-
-# Traveling and Stationary protocols only
-# ebird_data <- ebird_data %>%
-#  filter(PROTOCOL.NAME %in% c("Traveling", "Stationary"))
-
-#################################################
-# STEP 5 - Remove rows with missing values
-#################################################
-
+# Filter NA fields
 ebird_data <- ebird_data %>%
-  filter(
+  dplyr::filter(
     !is.na(LATITUDE),
     !is.na(LONGITUDE),
     !is.na(OBSERVATION.COUNT),
     !is.na(SAMPLING.EVENT.IDENTIFIER)
   )
 
-#####################################################
-# STEP 6 - Create a new column called 'CHECKLIST.ID'
-#####################################################
-
+# Create a new column called 'CHECKLIST.ID'
 ebird_data$CHECKLIST.ID <- ifelse(
-  is.na(ebird_data$GROUP.IDENTIFIER) |
-    ebird_data$GROUP.IDENTIFIER == "",
-  ebird_data$SAMPLING.EVENT.IDENTIFIER,
-  ebird_data$GROUP.IDENTIFIER
+  is.na(ebird_data$`GROUP.IDENTIFIER`),
+  ebird_data$`SAMPLING.EVENT.IDENTIFIER`,
+  ebird_data$`GROUP.IDENTIFIER`
 )
 
-#################################################
-# STEP 7 - Remove duplicate checklists
-# Retain the one with highest observation count.
+# Remove duplicate checklists. Retain the one with highest observation count.
 # Note: SEI can be different for the same checklist ID. Remember for future analysis
-#################################################
-
 ebird_data <- ebird_data %>%
   arrange(
     CHECKLIST.ID,
     desc(OBSERVATION.COUNT),
     SAMPLING.EVENT.IDENTIFIER
   ) %>%
-  group_by(CHECKLIST.ID, SCIENTIFIC.NAME) %>%
+  group_by(CHECKLIST.ID) %>% #group by species also.
   slice(1) %>%
   ungroup()
 
-#################################################
-# STEP 8 - Keep only required columns
-#################################################
+# Keep only necessary columns
+ebird_data = ebird_data %>% select(COMMON.NAME,SCIENTIFIC.NAME,OBSERVATION.COUNT,STATE,STATE.CODE,COUNTY,COUNTY.CODE,
+                                               LOCALITY,LOCALITY.ID,LOCALITY.TYPE,LATITUDE,LONGITUDE,OBSERVATION.DATE,TIME.OBSERVATIONS.STARTED,
+                                               OBSERVER.ID,SAMPLING.EVENT.IDENTIFIER,PROJECT.IDENTIFIERS,PROTOCOL.NAME,DURATION.MINUTES,
+                                               EFFORT.DISTANCE.KM,NUMBER.OBSERVERS,GROUP.IDENTIFIER,CHECKLIST.ID)
 
-ebird_data <- ebird_data %>%
-  select(
-    COMMON.NAME,
-    SCIENTIFIC.NAME,
-    OBSERVATION.COUNT,
-    STATE,
-    STATE.CODE,
-    COUNTY,
-    COUNTY.CODE,
-    LOCALITY,
-    LOCALITY.ID,
-    LOCALITY.TYPE,
-    LATITUDE,
-    LONGITUDE,
-    OBSERVATION.DATE,
-    TIME.OBSERVATIONS.STARTED,
-    OBSERVER.ID,
-    SAMPLING.EVENT.IDENTIFIER,
-    PROJECT.IDENTIFIERS,
-    PROTOCOL.NAME,
-    DURATION.MINUTES,
-    EFFORT.DISTANCE.KM,
-    NUMBER.OBSERVERS,
-    GROUP.IDENTIFIER,
-    CHECKLIST.ID
-  )
-
-###################################################
-# STEP 9 - Add month, year and day of year columns
-###################################################
-
+# Add date, month and year columns
 ebird_data <- ebird_data %>%
   mutate(
-    MONTH = as.character(month(OBSERVATION.DATE,label = TRUE)),
+    MONTH = as.character(month(OBSERVATION.DATE, label = TRUE)),
     YEAR = year(OBSERVATION.DATE),
-    DAY.OF.YEAR = yday(OBSERVATION.DATE)
+    DAY.OF.YEAR = as.numeric(format(OBSERVATION.DATE, "%j"))
   )
-
-#################################################
-# Final output
-#################################################
-
 View(ebird_data)
+
+

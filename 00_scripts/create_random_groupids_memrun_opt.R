@@ -2,7 +2,8 @@ library(parallel)
 
 # preparing data for specific mask (this is the only part that changes, but automatically)
 cur_metadata <- get_metadata(cur_mask)
-read_path <- cur_metadata$LOCS.PATH
+if (sub.type == "locs"){read_path <- cur_metadata$LOCS.PATH} 
+if (sub.type == "grids"){read_path <- cur_metadata$GRIDS.PATH}
 write_path <- cur_metadata$RAND.GROUP.IDS.PATH.ONLY
 speclist_path <- cur_metadata$SPECLISTDATA.PATH
 
@@ -18,8 +19,18 @@ convert_group_id <- function(x) {
   return(base + as.integer(substr(x,2,12)))
 }
 
-idx_col <- function(row) {
-  return(paste0(row["LOCALITY.ID"],as.character(row["month"]),row["timegroups"]))
+if (sub.type == "locs")
+{
+  idx_col <- function(row) {
+    return(paste0(row["LOCALITY.ID"],as.character(row["month"]),row["timegroups"]))
+  }
+}
+
+if (sub.type == "grids")
+{
+  idx_col <- function(row) {
+    return(paste0(row["gridg0"],as.character(row["month"]),row["timegroups"]))
+  }
 }
 
 group_values <- function(df) {
@@ -62,12 +73,12 @@ write_rgids_xz <- function(write_path, rgids) {
 set.seed(0)
 
 if (to_run == TRUE) {
-
+  
   # create the set of random locations (doesn't work inside a function)
   require(tidyverse)
-
+  
   source('00_scripts/00_functions.R')
-
+  
   message(paste("Loading:", read_path))
   locs = read.csv(read_path)
   locs$keys = apply(locs, 1, idx_col)
@@ -75,18 +86,25 @@ if (to_run == TRUE) {
   key_index <- match(locs$keys, indexes$keys)
   locs$idx <- key_index
   locs$group.id <- convert_group_id(locs$group.id)
-
+  
   # remove unneeded columns
-  locs[c("keys", "month","timegroups","LOCALITY.ID")] <- list(NULL)
+  if (sub.type == "locs")
+  {
+    locs[c("keys", "month","timegroups","LOCALITY.ID")] <- list(NULL)
+  }
+  if (sub.type == "grids")
+  {
+    locs[c("keys", "month","timegroups","gridg0")] <- list(NULL)
+  }  
   gc()
-
+  
   locs <- locs %>% group_by(idx)
   message("Generating random samples...")
   # Sampling 1000, one for each run, with replacement is much
   # faster than doing one at a time
   rtable <-locs %>%
-	   slice_sample(n = 1000, replace=TRUE) %>%
-	   ungroup()
+    slice_sample(n = 1000, replace=TRUE) %>%
+    ungroup()
   # rearrange the 1000 to represent each run
   rgids <- matrix(rtable$group.id, ncol=1000, byrow=TRUE)
   rm(rtable)
@@ -98,23 +116,23 @@ if (to_run == TRUE) {
   if(!dir.exists(target_dir)) {
     dir.create(target_dir, recursive = TRUE)
   }
-
+  
   # Use xz compression for large datasets (1000 sets >= 100 MB)
   # For small datasets (e.g. states) the benefits are minimal
-#  if(nrow(rgids)>=50000) {
-#    write_rgids_xz(target_path, rgids)
-#  } else {
-#    write_rgids(target_path, rgids)
-#  }
+  #  if(nrow(rgids)>=50000) {
+  #    write_rgids_xz(target_path, rgids)
+  #  } else {
+  #    write_rgids(target_path, rgids)
+  #  }
   write_rgids(target_dir, rgids)
   #mcparallel(write_rgids(write_path, rgids))
-
+  
   # Cleanup
   rm(rgids)
   gc()
-
+  
 } else {
-
+  
   print(glue("Skipping creation of random group IDs for {cur_mask}"))
-
+  
 }
