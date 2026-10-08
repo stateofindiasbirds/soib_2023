@@ -33,6 +33,9 @@ run_procedure <- function(row, data, function_registry, mapping_df) {
   return(result)
 }
 
+# Assign 1km grid cells to every record (once, before the EU loop)
+merged_data <- add_1km_grid(merged_data)
+
 # STEP 3 - Run all estimation units
 results_list <- list()
 
