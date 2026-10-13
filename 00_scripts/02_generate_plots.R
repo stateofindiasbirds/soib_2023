@@ -249,13 +249,17 @@ gen_trend_plots <- function(plot_type = "single",
              
              plot_load_filter_data(plot_type, cur_trend, "none")
              
-             cur_plot_metadata <- cur_plot_metadata %>% 
+             # taxonomy-year species-name column, resolved from the current
+             # data rather than a hardcoded year (e.g. eBird.English.Name.2025)
+             soib_name_col <- get_soib_name_col(data_main)
+             
+             cur_plot_metadata <- cur_plot_metadata %>%
                # joining species or species groups for current composite
-               left_join(data_main) %>% 
+               left_join(data_main) %>%
                dplyr::select(starts_with("PLOT."), FILE.NAME, GROUP,
-                             eBird.English.Name.2024, SoIB.Latest.Priority.Status) %>% 
-               filter(eBird.English.Name.2024 %in% spec_qual) %>% 
-               rename(PLOT.SPEC = eBird.English.Name.2024)
+                             all_of(soib_name_col), SoIB.Latest.Priority.Status) %>%
+               filter(.data[[soib_name_col]] %in% spec_qual) %>%
+               rename(PLOT.SPEC = !!sym(soib_name_col))
              
              # saving summary of current composite groups
              cur_summary <- init_summary %>% filter(COMPOSITE.NO == .x)
@@ -301,10 +305,10 @@ gen_trend_plots <- function(plot_type = "single",
     
   }
   
-  # cleaning environment ------------------------
-  
-  rm(list = setdiff(ls(envir = .GlobalEnv), "gen_trend_plots"), 
-     envir = .GlobalEnv)
+  # environment cleanup removed -- it used to wipe every global object
+  # except this function itself (including things callers set up, like
+  # interannual_update), which broke any subsequent call made in the same
+  # session/script (e.g. two gen_trend_plots() calls in a row)
   
 }
 
@@ -449,10 +453,10 @@ gen_trend_plots_sysmon <- function(cur_case) {
   }
   
   
-  # cleaning environment ------------------------
-  
-  rm(list = setdiff(ls(envir = .GlobalEnv), "gen_trend_plots_sysmon"), 
-     envir = .GlobalEnv)
+  # environment cleanup removed -- it used to wipe every global object
+  # except this function itself (including things callers set up, like
+  # interannual_update), which broke any subsequent call made in the same
+  # session/script
   
   
 }
@@ -538,19 +542,56 @@ gen_range_maps <- function(mask_type = "country", which_mask = NULL, which_spec 
       
       load(path_speclists)
       load("00_data/vagrantdata.RData")
-      load("00_data/dataforanalyses_extra.RData")
+      
+      # dataforanalyses_extra.RData was split into separate checklist- and
+      # observation-level files (data_chk / data_total). Reconstruct data0
+      # (grid-level presence, used below) and d (point-level presence --
+      # this deliberately overwrites the narrower vagrant-only "d" just
+      # loaded above, same as the original combined file did) by joining
+      # the two on their shared checklist key, group.id.
+      load("00_data/dataforanalyses_extra_chk.RData")  # -> data_chk
+      load("00_data/dataforanalyses_extra_obs.RData")  # -> data_total
+      
+      # group.id identifies a *shared* checklist (several observers, several
+      # SAMPLING.EVENT.IDENTIFIERs, one group.id), so data_chk still has one
+      # row per underlying checklist within a group -- multiple rows per
+      # group.id. data_total is already one row per species-per-group.id.
+      # Location/date are identical across a shared group's checklists by
+      # definition, so collapse data_chk to one row per group.id before
+      # joining, otherwise the join fans out and double/triple-counts
+      # species reported via shared checklists.
+      data_chk_by_group <- data_chk %>%
+        dplyr::distinct(group.id, .keep_all = TRUE)
+      
+      data0 <- data_total %>%
+        dplyr::select(group.id, COMMON.NAME) %>%
+        left_join(data_chk_by_group %>% dplyr::select(group.id, ST_NM, gridg1, day, year),
+                  by = "group.id") %>%
+        dplyr::select(-group.id)
+      
+      d <- data_total %>%
+        dplyr::select(group.id, COMMON.NAME) %>%
+        left_join(data_chk_by_group %>% dplyr::select(group.id, day, year, LATITUDE, LONGITUDE),
+                  by = "group.id") %>%
+        dplyr::select(-group.id)
+      
+      rm(data_total, data_chk, data_chk_by_group)
       
       load("00_data/grids_sf_nb.RData")
       our_neighbours <- g1_nb_q
       rm(g1_nb_r, g2_nb_q, g2_nb_r, g3_nb_q, g3_nb_r, g4_nb_q, g4_nb_r)
       
+      # taxonomy-year species-name column, resolved from the current data
+      # rather than a hardcoded year (e.g. eBird.English.Name.2024)
+      main_df <- read.csv(path_main)
+      soib_name_col <- get_soib_name_col(main_df)
       
-      list_mig = read.csv(path_main) %>% 
-        dplyr::select(eBird.English.Name.2024, Migratory.Status.Within.India) %>%
-        filter(Migratory.Status.Within.India != "Resident", 
-               eBird.English.Name.2024 %in% specieslist$COMMON.NAME) %>%
-        distinct(eBird.English.Name.2024) %>% 
-        pull(eBird.English.Name.2024)
+      list_mig = main_df %>%
+        dplyr::select(all_of(soib_name_col), Migratory.Status.Within.India) %>%
+        filter(Migratory.Status.Within.India != "Resident",
+               .data[[soib_name_col]] %in% specieslist$COMMON.NAME) %>%
+        distinct(.data[[soib_name_col]]) %>%
+        pull(.data[[soib_name_col]])
       
       
       # setup -----------------------------------------------------------------------------
@@ -733,10 +774,10 @@ gen_range_maps <- function(mask_type = "country", which_mask = NULL, which_spec 
   toc()
   
   
-  # cleaning environment ------------------------
-  
-  rm(list = setdiff(ls(envir = .GlobalEnv), "gen_range_maps"), 
-     envir = .GlobalEnv)
+  # environment cleanup removed -- it used to wipe every global object
+  # except this function itself (including functions like soib_trend_plot,
+  # which a subsequent bare call in the same script would then fail to
+  # find), which broke anything called after this in the same session/script
   
 }
 
