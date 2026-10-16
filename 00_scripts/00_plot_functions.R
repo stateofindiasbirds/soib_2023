@@ -75,9 +75,9 @@ to_walk <- function(.x,
   web_spec <- str_replace_all(converted_spec,
                               c(" " = "-", "'" = "_"))
   
-  path_map <- glue("{cur_metadata$MAP.FOLDER}{web_spec}_{cur_metadata$MASK.CODE}_map_2025.png")
+  path_map <- glue("{cur_metadata$MAP.FOLDER}{web_spec}_{cur_metadata$MASK.CODE}_map_2026.png")
   
-  path_map_web <- glue("{cur_metadata$WEB.MAP.FOLDER}{web_spec}_{cur_metadata$MASK.CODE}_map_2025.jpg")
+  path_map_web <- glue("{cur_metadata$WEB.MAP.FOLDER}{web_spec}_{cur_metadata$MASK.CODE}_map_2026.jpg")
   
   
   cur_plot_base <- plot_base +
@@ -94,68 +94,68 @@ to_walk <- function(.x,
     scale_colour_identity() +
     ggtheme_soibrangemap()
   
- # For country
-
+  # For country
+  
   if (cur_metadata$MASK.TYPE == "country") {
- 
+    
     cur_plot <- cowplot::ggdraw(cur_plot_base) +
       cowplot::draw_image(
-        "SoIB 2025 Update - no jagged edges.png",
+        "SoIB_logo.png",
         x = 0.65,          # right edge
         y = 0.35,          # top edge
         hjust = 0,
         vjust = 0,
         width = 0.12    # adjust size here
       )
-  
-  # writing maps
-  ggsave(filename = path_map, plot = cur_plot,
-         dpi = 300, bg = "white",
-         width = 8, height = 8, units = "in")
-  
-  ggsave(filename = path_map_web, plot = cur_plot,
-         dpi = 300, bg = "white",
-         width = 8, height = 8, units = "in")
-  
+    
+    # writing maps
+    ggsave(filename = path_map, plot = cur_plot,
+           dpi = 300, bg = "white",
+           width = 8, height = 8, units = "in")
+    
+    ggsave(filename = path_map_web, plot = cur_plot,
+           dpi = 300, bg = "white",
+           width = 8, height = 8, units = "in")
+    
   } 
   
   if (cur_metadata$MASK.TYPE == "state") {
     
-  # Top row containing logo
-  logo_row <- cowplot::ggdraw() +
-    cowplot::draw_image(
-      "SoIB_logo.png",
-      x = 1,          # right edge
-      y = 1,          # top edge
-      hjust = 1,
-      vjust = 1,
-      width = 0.25    # adjust size here
+    # Top row containing logo
+    logo_row <- cowplot::ggdraw() +
+      cowplot::draw_image(
+        "SoIB_logo.png",
+        x = 1,          # right edge
+        y = 1,          # top edge
+        hjust = 1,
+        vjust = 1,
+        width = 0.25    # adjust size here
+      )
+    
+    # Combine logo row + map
+    cur_plot <- cowplot::plot_grid(
+      logo_row,
+      cur_plot_base,
+      ncol = 1,
+      rel_heights = c(1, 8)
     )
-  
-  # Combine logo row + map
-  cur_plot <- cowplot::plot_grid(
-    logo_row,
-    cur_plot_base,
-    ncol = 1,
-    rel_heights = c(1, 8)
-  )
-  
-  ggsave(filename = path_map,
-         plot = cur_plot,
-         dpi = 300,
-         bg = "white",
-         width = 8, #8,
-         height = 8,
-         units = "in")
-  
-  ggsave(filename = path_map_web,
-         plot = cur_plot,
-         dpi = 300,
-         bg = "white",
-         width = 8,
-         height = 8,
-         units = "in")
-  
+    
+    ggsave(filename = path_map,
+           plot = cur_plot,
+           dpi = 300,
+           bg = "white",
+           width = 8, #8,
+           height = 8,
+           units = "in")
+    
+    ggsave(filename = path_map_web,
+           plot = cur_plot,
+           dpi = 300,
+           bg = "white",
+           width = 8,
+           height = 8,
+           units = "in")
+    
   }
   
   if (!haki) {
@@ -438,6 +438,10 @@ plot_import_data <- function(mask, import_trend = fn_cur_trend, import_plot_type
     data_trends <- read.csv(cur_metadata$TRENDS.OUTPATH) %>%
       add_mask_titles(mask)
     
+    # taxonomy-year species-name column, resolved from the current data
+    # rather than a hardcoded year (e.g. eBird.English.Name.2025)
+    soib_name_col <- get_soib_name_col(data_main)
+    
     # filtering for qualified species ---------------------------------------------------
     
     # - not plotting data deficient; inconclusive will be plotted in single-species
@@ -469,12 +473,12 @@ plot_import_data <- function(mask, import_trend = fn_cur_trend, import_plot_type
           filter(.,
                  !(SoIB.Latest.Long.Term.Status %in% status_to_filter),
                  Long.Term.Analysis == "X")  
-        }} %>% 
-        dplyr::select(eBird.English.Name.2024) %>% 
+        }} %>%
+        dplyr::select(all_of(soib_name_col)) %>%
         add_mask_titles(mask)
       
-      data_trends <- data_trends %>% 
-        filter(COMMON.NAME %in% spec_qual$eBird.English.Name.2024,
+      data_trends <- data_trends %>%
+        filter(COMMON.NAME %in% spec_qual[[soib_name_col]],
                timegroups <= soib_year_info("latest_year"))
       
     } else if (import_trend == "CAT") {
@@ -488,12 +492,12 @@ plot_import_data <- function(mask, import_trend = fn_cur_trend, import_plot_type
           filter(.,
                  !(SoIB.Latest.Current.Status %in% status_to_filter),
                  Current.Analysis == "X")
-        }} %>% 
-        dplyr::select(eBird.English.Name.2024) %>% 
+        }} %>%
+        dplyr::select(all_of(soib_name_col)) %>%
         add_mask_titles(mask)
       
-      data_trends <- data_trends %>% 
-        filter(COMMON.NAME %in% spec_qual$eBird.English.Name.2024,
+      data_trends <- data_trends %>%
+        filter(COMMON.NAME %in% spec_qual[[soib_name_col]],
                timegroups >= soib_year_info("cat_start") & timegroups <= soib_year_info("latest_year"))
       
     }
@@ -591,6 +595,10 @@ plot_load_filter_data <- function(fn_plot_type, fn_cur_trend, fn_cur_mask = "non
   data_main <- map(data_processed, pluck, "data_main") %>% bind_rows()
   data_trends <- map(data_processed, pluck, "data_trends") %>% bind_rows()
   
+  # taxonomy-year species-name column, resolved from the current data
+  # rather than a hardcoded year (e.g. eBird.English.Name.2025)
+  soib_name_col <- get_soib_name_col(data_main)
+  
   # for mask comparison, even though we have filtered each mask's trends for its qual. spp.,
   # we want an additional filter so that comparisons are only made for those species in masks
   # that are also there in full-country data
@@ -605,24 +613,24 @@ plot_load_filter_data <- function(fn_plot_type, fn_cur_trend, fn_cur_mask = "non
     
     spec_qual <- map(data_processed, pluck, "spec_qual") %>% bind_rows()
     
-    spec_qual_country <- spec_qual %>% filter(MASK == "none") %>% pull(eBird.English.Name.2024)
-    spec_qual_masks <- spec_qual %>% filter(MASK != "none") %>% pull(eBird.English.Name.2024)
+    spec_qual_country <- spec_qual %>% filter(MASK == "none") %>% pull(.data[[soib_name_col]])
+    spec_qual_masks <- spec_qual %>% filter(MASK != "none") %>% pull(.data[[soib_name_col]])
     
     spec_qual <- intersect(spec_qual_country, spec_qual_masks)
     
     data_trends <- data_trends %>% filter(COMMON.NAME %in% spec_qual)
-    data_main <- data_main %>% filter(eBird.English.Name.2024 %in% spec_qual)
+    data_main <- data_main %>% filter(.data[[soib_name_col]] %in% spec_qual)
     
   } else {
     
-    spec_qual <- map(data_processed, pluck, "spec_qual") %>% 
-      bind_rows() %>% 
+    spec_qual <- map(data_processed, pluck, "spec_qual") %>%
+      bind_rows() %>%
       {if (fn_plot_type == "single_mask") {
-        filter(., MASK != "none") 
+        filter(., MASK != "none")
       } else {
         .
-      }} %>% 
-      pull(eBird.English.Name.2024)
+      }} %>%
+      pull(.data[[soib_name_col]])
     
   }
   
@@ -701,8 +709,11 @@ fetch_plot_metadata <- function(plot_type) {
     data_processed <- plot_import_data("none", cur_trend, plot_type)
     data_main <- data_processed %>% pluck("data_main") %>% bind_rows()
     
+    # taxonomy-year species-name column, resolved from the current data
+    # rather than a hardcoded year (e.g. eBird.English.Name.2024)
+    soib_name_col <- get_soib_name_col(data_main)
     
-    data1 <- data_main %>% 
+    data1 <- data_main %>%
       mutate(GROUP = case_when(Diet.Guild == "" ~ NA_character_, 
                                Diet.Guild == "Fruit & Nect" ~ "Fruit & Nectar",
                                TRUE ~ Diet.Guild)) %>% 
@@ -739,7 +750,7 @@ fetch_plot_metadata <- function(plot_type) {
     data4 <- data_main %>% 
       mutate(GROUP = fct_collapse(
         
-        eBird.English.Name.2024,
+        .data[[soib_name_col]],
         
         "Near Resident or Palearctic Migrant" = c(
           "Indian Thick-knee","Great Thick-knee","Beach Thick-knee","Black-winged Stilt",
@@ -777,8 +788,8 @@ fetch_plot_metadata <- function(plot_type) {
       mutate(GROUP = case_when(!GROUP %in% c("Near Resident or Palearctic Migrant",
                                              "Arctic Migrant") ~ NA_character_,
                                TRUE ~ GROUP)) %>% 
-      filter(!is.na(GROUP)) %>% 
-      distinct(GROUP, eBird.English.Name.2024) %>% 
+      filter(!is.na(GROUP)) %>%
+      distinct(GROUP, .data[[soib_name_col]]) %>%
       mutate(PLOT.NAME = "Shorebird Migratory Behaviours")
     
     data5 <- data_main %>% 
@@ -799,29 +810,29 @@ fetch_plot_metadata <- function(plot_type) {
     
     plot_load_filter_data(plot_type, cur_trend, "woodland")
     
-    data6 <- data_main %>% 
-      rename(GROUP = MASK.TITLE) %>% 
-      filter(!is.na(GROUP)) %>% 
-      distinct(GROUP, eBird.English.Name.2024) %>% 
+    data6 <- data_main %>%
+      rename(GROUP = MASK.TITLE) %>%
+      filter(!is.na(GROUP)) %>%
+      distinct(GROUP, .data[[soib_name_col]]) %>%
       mutate(PLOT.NAME = "Woodland")
     
     
     #plot_load_filter_data(plot_type, cur_trend, c("ONEland", "cropland"))
     #getting an error here so removing this step for now
     
-    data7 <- data_main %>% 
-      rename(GROUP = MASK.TITLE) %>% 
-      filter(!is.na(GROUP)) %>% 
-      distinct(GROUP, eBird.English.Name.2024) %>% 
+    data7 <- data_main %>%
+      rename(GROUP = MASK.TITLE) %>%
+      filter(!is.na(GROUP)) %>%
+      distinct(GROUP, .data[[soib_name_col]]) %>%
       mutate(PLOT.NAME = "Open Natural Ecosystems & Cropland")
     
     
     plot_load_filter_data(plot_type, cur_trend, "PA")
     
-    data8 <- data_main %>% 
-      rename(GROUP = MASK.TITLE) %>% 
-      filter(!is.na(GROUP)) %>% 
-      distinct(GROUP, eBird.English.Name.2024) %>% 
+    data8 <- data_main %>%
+      rename(GROUP = MASK.TITLE) %>%
+      filter(!is.na(GROUP)) %>%
+      distinct(GROUP, .data[[soib_name_col]]) %>%
       mutate(PLOT.NAME = "Protected Areas")
     
     
@@ -967,13 +978,18 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
   
   # convert to India Checklist names --------------------------------------------------
   
-  if (!plot_type %in% c("composite", "stamp")) { 
+  if (!plot_type %in% c("composite", "stamp")) {
     # because composite doesn't have any species names at this stage
-    data_trends <- data_trends %>% 
+    
+    # taxonomy-year species-name column, resolved from the current data
+    # rather than a hardcoded year (e.g. eBird.English.Name.2025)
+    soib_name_col <- get_soib_name_col(data_main)
+    
+    data_trends <- data_trends %>%
       mutate(COMMON.NAME = specname_to_india_checklist(COMMON.NAME, already_show = FALSE))
-    data_main <- data_main %>% 
-      mutate(eBird.English.Name.2024 = specname_to_india_checklist(eBird.English.Name.2024, already_show = FALSE))
-    cur_spec <- cur_spec %>% 
+    data_main <- data_main %>%
+      mutate(!!soib_name_col := specname_to_india_checklist(.data[[soib_name_col]], already_show = FALSE))
+    cur_spec <- cur_spec %>%
       specname_to_india_checklist(already_show = FALSE)
   }
   
@@ -1032,18 +1048,18 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     if (plot_type == "single_mask") {
       
       if(interannual_update == TRUE){
-        plot_full_country <- data_main %>% 
-          filter(eBird.English.Name.2024 %in% cur_spec,
-                 MASK == "none") %>% 
+        plot_full_country <- data_main %>%
+          filter(.data[[soib_name_col]] %in% cur_spec,
+                 MASK == "none") %>%
           {if (cur_trend == "LTT") {
             pull(., SoIB.Major.Update.Long.Term.Status)
           } else if (cur_trend == "CAT") {
             pull(., SoIB.Major.Update.Current.Status)
           }}
       } else {
-        plot_full_country <- data_main %>% 
-          filter(eBird.English.Name.2024 %in% cur_spec,
-                 MASK == "none") %>% 
+        plot_full_country <- data_main %>%
+          filter(.data[[soib_name_col]] %in% cur_spec,
+                 MASK == "none") %>%
           {if (cur_trend == "LTT") {
             pull(., SoIB.Latest.Long.Term.Status)
           } else if (cur_trend == "CAT") {
@@ -1074,10 +1090,28 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
   
   # other plot settings (LTT vs CAT)
   if (cur_trend == "LTT") {
-    
-    timegroups_lab <- c("before 2000", "2000-2006", "2007-2010", "2011-2012", 
-                        "", "2014", "", "2016", "", "2018", "", 
-                        "2020", "", "2022", "", "2024")
+
+    # built from soib_year_info("latest_year") instead of a hand-maintained
+    # literal, which had gone stale (hardcoded "2024" as the last labeled
+    # year, with "2025" tacked on right after it with no blank in between --
+    # the two ended up rendered overlapping on the axis).
+    # Matches the pattern already used in real (non-stamp) LTT plots, e.g.
+    # 02_graphs/01_single/01_none/long-term trends/Alexandrine-Parakeet_in_LTT_trend.png,
+    # which labels 2014, 2016, 2018, 2020, 2023, 2025: step by 2 years from
+    # 2014, but drop any of those that fall within 4 years of the end, and
+    # always finish with the exact pair (latest_year - 2, latest_year). When
+    # latest_year is even this reduces to plain every-2-years; when it's odd
+    # (like this cycle's 2025) it introduces one irregular +3 gap right
+    # before the final, always-2-apart pair.
+    ltt_years <- 2013:soib_year_info("latest_year")
+    ltt_forward <- seq(2014, soib_year_info("latest_year"), by = 2)
+    ltt_forward <- ltt_forward[ltt_forward <= soib_year_info("latest_year") - 4]
+    ltt_labeled_years <- c(ltt_forward,
+                           soib_year_info("latest_year") - 2,
+                           soib_year_info("latest_year"))
+    ltt_yearly_lab <- ifelse(ltt_years %in% ltt_labeled_years, as.character(ltt_years), "")
+    timegroups_lab <- c("before 2000", "2000-2006", "2007-2010", "2011-2012",
+                        ltt_yearly_lab)
     timegroups_bracket_min <- c(1999, 2006, 2010, 2012, seq(2013, soib_year_info("latest_year")-1)) + 0.5
     timegroups_bracket_max <- c(2006, 2010, 2012, seq(2013, soib_year_info("latest_year"))) + 0.5
     plot_ytitle_margin <- margin(0, -0.6, 0, 0.4, "cm")
@@ -1092,7 +1126,11 @@ soib_trend_plot <- function(plot_type, cur_trend, cur_spec,
     
   } else if (cur_trend == "CAT") {
     
-    timegroups_lab <- c("2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024")
+    # built from soib_year_info("latest_year") -- the old literal stopped at
+    # "2024" and was one element short of timegroups_bracket_min/max below
+    # (which are already dynamic), a length mismatch that silently misaligns
+    # labels against brackets once latest_year advances past 2024
+    timegroups_lab <- as.character(soib_year_info("cat_start"):soib_year_info("latest_year"))
     timegroups_bracket_min <- seq(2015, soib_year_info("latest_year")-1) + 0.5
     timegroups_bracket_max <- seq(2016, soib_year_info("latest_year")) + 0.5
     plot_ytitle_margin <- margin(0, 0.6, 0, 0.4, "cm")
@@ -2152,7 +2190,11 @@ soib_rangemap <- function(which_spec = "all",
     )
     
     if (advanced_kenbunshoku) {
-      
+
+      # default future.globals.maxSize (500 MiB) is too small for full-country
+      # occ_final/vagrant_presence/admin_sf exported to each worker
+      options(future.globals.maxSize = 3 * 1024^3)
+
       plan(multisession,
            workers = parallel::detectCores()/2)
       

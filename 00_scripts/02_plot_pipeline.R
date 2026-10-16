@@ -1,3 +1,13 @@
+# Same sequence of calls as 02_plot_pipeline.R -- no changes needed here,
+# since the actual bug lived in gen_trend_plots()/gen_trend_plots_sysmon()/
+# gen_range_maps() themselves (00_scripts/02_generate_plots.R), not in how
+# this script calls them. Those three functions used to wipe every global
+# object except themselves at the end of each call (including
+# interannual_update, and -- for gen_range_maps() -- functions like
+# soib_trend_plot() that a later bare call in this script depends on), so
+# every call here after the first one would fail. That cleanup has been
+# removed, so this script can now run start to finish in one go.
+
 require(tidyverse)
 
 interannual_update = TRUE

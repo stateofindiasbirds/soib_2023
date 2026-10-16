@@ -767,7 +767,8 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = TRUE) {
   
   # saving the full filtered data
   save(data, sampledcells, databins, 
-       file = cur_metadata$DATA.PATH)
+       file = cur_metadata$DATA.PATH,
+       compress = TRUE)
   
   
   # processing species filter (updates for major SoIB versions) ----------------
@@ -1273,7 +1274,8 @@ dataspeciesfilter = function(cur_mask = "none", singleyear = TRUE) {
   # these is an essential dataframe that is called whenever information is required
   # about which analysis to perfrom for a species
   save(specieslist, restrictedspecieslist, stats, 
-       file = cur_metadata$SPECLISTDATA.PATH)
+       file = cur_metadata$SPECLISTDATA.PATH, 
+       compress = T)
   
 }
 
@@ -2161,96 +2163,91 @@ ebird_tax_mapping <- function() {
 # and so gets iterated across masks during each corresponding run
 
 
-update_species_lists = function(species_list_data, scientific_also = FALSE) {
-
+update_species_lists <- function(species_list_data, scientific_also = FALSE) {
+  
   # works for both specieslist and restrictedspecieslist, and fullspecieslist
-
+  
   if (interannual_update == FALSE) {
     stop("Currently running 'major' SoIB update, so specieslists needs to be rerun properly!")
   }
-
+  
   if (!exists("fullmap")) {
     fullmap <- read.csv("00_data/SoIB_mapping_2025.csv")
   }
   
+  tax <- ebird_tax_mapping()
   
-
-  # when rerunning for same year, need to return unmodified list
-  # because species names already updated in prior run
-  if (length(setdiff(unique(species_list_data$COMMON.NAME),unique(ebird_tax_mapping()$eBird.English.Name.2025))) == 0) {
-
-    message("Species list is already updated to latest taxonomy. Returning original list.")
+  # checked in this order: a species already on its current name is found
+  # immediately and left completely alone; only species that don't match
+  # 2025 fall through to check progressively older columns
+  year_cols <- c("eBird.English.Name.2025", "eBird.English.Name.2024",
+                 "eBird.English.Name.2023", "eBird.English.Name.2022")
+  
+  # for each name in names_vec, find which year_cols column it matches
+  # (if any), and return that row's current (2025) name
+  resolve_current_name <- function(names_vec) {
     
-    if (scientific_also == TRUE)
-    {
-      species_list_data <- species_list_data |>
-        dplyr::select(COMMON.NAME,SCIENTIFIC.NAME,Long.Term.Analysis,Current.Analysis,Selected.SoIB,
-                      totalrange25km,proprange25km2000,proprange25km.current,proprange25km.latestyear,
-                      mean5km,ci5km) %>%
-        distinct(COMMON.NAME, .keep_all = TRUE)
-    } else {
-      species_list_data <- species_list_data |>
-        dplyr::select(COMMON.NAME,ht,rt,any_of("mixed")) %>%
-        distinct(COMMON.NAME, .keep_all = TRUE)
-    }
-
-    return(species_list_data)
-
-  } else {
-
-    if (scientific_also == TRUE) {
+    result <- rep(NA_character_, length(names_vec))
+    
+    for (col in year_cols) {
       
-      list_new <- species_list_data %>%
-        dplyr::select(COMMON.NAME,SCIENTIFIC.NAME,Long.Term.Analysis,Current.Analysis,Selected.SoIB,
-                      totalrange25km,proprange25km2000,proprange25km.current,proprange25km.latestyear,
-                      mean5km,ci5km) %>%
-        # to remove next time when taxonomies are properly aligned
-        mutate(COMMON.NAME = recode(COMMON.NAME,
-                          "Indian Cuckooshrike" = "Large Cuckooshrike",
-                          "Southern Nutcracker" = "Eurasian Nutcracker",
-                          "Eastern Red-rumped Swallow" = "Red-rumped Swallow",
-                          "Rufous-fronted Babbler" = "Buff-chested Babbler",
-                          "Gray-crowned Goldfinch" = "European Goldfinch",
-                          "Mongolian Gull" = "Herring Gull",
-                          "Siberian Pipit" = "American Pipit",
-                          "Asian Houbara" = "Macqueen's Bustard",
-                          "Eurasian Bittern" = "Great Bittern",
-                          "Eastern Cattle-Egret" = "Eastern Cattle Egret",
-                          "Eastern Barn Owl" = "Barn Owl",
-                          "Asian Tit" = "Cinereous Tit")
-               ) %>%
-        left_join(ebird_tax_mapping(), 
-                  by = c("COMMON.NAME" = "eBird.English.Name.2024")) |>
-        left_join(fullmap %>% 
-                    distinct(eBird.English.Name.2025, eBird.Scientific.Name.2025)) %>% 
-        dplyr::select(-COMMON.NAME,-SCIENTIFIC.NAME) %>% 
-        rename(COMMON.NAME = eBird.English.Name.2025,
-               SCIENTIFIC.NAME = eBird.Scientific.Name.2025) %>% 
-        relocate(COMMON.NAME, SCIENTIFIC.NAME) %>%
-        dplyr::select(COMMON.NAME,SCIENTIFIC.NAME,Long.Term.Analysis,Current.Analysis,Selected.SoIB,
-                      totalrange25km,proprange25km2000,proprange25km.current,proprange25km.latestyear,
-                      mean5km,ci5km) %>%
-        distinct(COMMON.NAME, .keep_all = TRUE)
-
-    } else {
+      still_unresolved <- is.na(result)
+      if (!any(still_unresolved)) break
       
-      list_new <- species_list_data |>
-        dplyr::select(COMMON.NAME,ht,rt) |>
-        # to remove next time when taxonomies are properly aligned
-        left_join(ebird_tax_mapping(), 
-                  by = c("COMMON.NAME" = "eBird.English.Name.2024")) |> 
-        dplyr::select(-COMMON.NAME) |> 
-        relocate(eBird.English.Name.2025) |> # first column is species name
-        rename(COMMON.NAME = eBird.English.Name.2025) |>
-        dplyr::select(COMMON.NAME,ht,rt) %>%
-        distinct(COMMON.NAME, .keep_all = TRUE)
+      match_idx <- match(names_vec[still_unresolved], tax[[col]])
+      found <- !is.na(match_idx)
+      
+      idx_to_fill <- which(still_unresolved)[found]
+      result[idx_to_fill] <- tax$eBird.English.Name.2025[match_idx[found]]
       
     }
-      
-    return(list_new)
-  
+    
+    result
+    
   }
-
+  
+  common_names <- species_list_data$COMMON.NAME
+  resolved <- resolve_current_name(common_names)
+  
+  unresolved <- unique(common_names[is.na(resolved)])
+  if (length(unresolved) > 0) {
+    warning(glue::glue(
+      "update_species_lists(): {length(unresolved)} species could not be ",
+      "matched to any taxonomy year (2022-2025) and will be DROPPED: ",
+      "{paste(unresolved, collapse = ', ')}"
+    ))
+  }
+  
+  if (scientific_also == TRUE) {
+    
+    list_new <- species_list_data %>%
+      dplyr::select(COMMON.NAME,SCIENTIFIC.NAME,Long.Term.Analysis,Current.Analysis,Selected.SoIB,
+                    totalrange25km,proprange25km2000,proprange25km.current,proprange25km.latestyear,
+                    mean5km,ci5km) %>%
+      dplyr::mutate(COMMON.NAME = resolved) %>%
+      dplyr::filter(!is.na(COMMON.NAME)) %>%
+      dplyr::left_join(fullmap %>%
+                         dplyr::distinct(eBird.English.Name.2025, eBird.Scientific.Name.2025),
+                       by = c("COMMON.NAME" = "eBird.English.Name.2025")) %>%
+      dplyr::rename(SCIENTIFIC.NAME.NEW = eBird.Scientific.Name.2025) %>%
+      dplyr::mutate(SCIENTIFIC.NAME = SCIENTIFIC.NAME.NEW) %>%
+      dplyr::select(COMMON.NAME,SCIENTIFIC.NAME,Long.Term.Analysis,Current.Analysis,Selected.SoIB,
+                    totalrange25km,proprange25km2000,proprange25km.current,proprange25km.latestyear,
+                    mean5km,ci5km) %>%
+      dplyr::distinct(COMMON.NAME, .keep_all = TRUE)
+    
+  } else {
+    
+    list_new <- species_list_data %>%
+      dplyr::select(COMMON.NAME, ht, rt, dplyr::any_of("mixed")) %>%
+      dplyr::mutate(COMMON.NAME = resolved) %>%
+      dplyr::filter(!is.na(COMMON.NAME)) %>%
+      dplyr::distinct(COMMON.NAME, .keep_all = TRUE)
+    
+  }
+  
+  return(list_new)
+  
 }
 
 trend_calculation <- function(my_seed, sims) {

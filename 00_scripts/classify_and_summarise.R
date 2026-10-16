@@ -188,16 +188,30 @@ main = main %>%
       # TRUE ~ "Trend Inconclusive"
     ),
     
+    # SoIB.Latest.Current.Status = case_when(
+    #   is.na(currentslopemean) ~ "Insufficient Data",
+    #   (currentsloperci-currentslopelci) > 6 ~ "Trend Inconclusive", # arbitrary
+    #   # decline and increase threshold values
+    #   # decreases
+    #   currentsloperci <= -2.7 ~ "Rapid Decline",
+    #   currentsloperci > -2.7 & currentsloperci <= -1.1 ~ "Decline",
+    #   # increases
+    #   currentslopelci >= 1.6 ~ "Rapid Increase",
+    #   currentslopelci < 1.6 & currentslopelci >= 0.9 ~ "Increase",
+    #   # if slope with SE is fully positive or negative, can't be stable
+    #   currentsloperci < 0 | currentslopelci > 0 ~ "Trend Inconclusive",
+    #   TRUE ~ "Stable"
+    # )
     SoIB.Latest.Current.Status = case_when(
       is.na(currentslopemean) ~ "Insufficient Data",
       (currentsloperci-currentslopelci) > 6 ~ "Trend Inconclusive", # arbitrary
       # decline and increase threshold values
       # decreases
-      currentsloperci <= -2.7 ~ "Rapid Decline",
-      currentsloperci > -2.7 & currentsloperci <= -1.1 ~ "Decline",
+      currentsloperci <= -2.3 ~ "Rapid Decline",
+      currentsloperci > -2.3 & currentsloperci <= -1 ~ "Decline",
       # increases
-      currentslopelci >= 1.6 ~ "Rapid Increase",
-      currentslopelci < 1.6 & currentslopelci >= 0.9 ~ "Increase",
+      currentslopelci >= 1.3 ~ "Rapid Increase",
+      currentslopelci < 1.3 & currentslopelci >= 0.7 ~ "Increase",
       # if slope with SE is fully positive or negative, can't be stable
       currentsloperci < 0 | currentslopelci > 0 ~ "Trend Inconclusive",
       TRUE ~ "Stable"

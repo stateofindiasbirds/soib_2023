@@ -196,6 +196,18 @@ if (run_res_trends == FALSE) {
       filter(COMMON.NAME %in% spec_lt) %>%
       dplyr::select(COMMON.NAME, longtermlci, longtermmean, longtermrci)
 
+    temp <- temp %>%
+      mutate(
+        across(
+          c(longtermlci, longtermrci, longtermmean),
+          ~ ifelse(
+            if_any(c(longtermlci, longtermrci, longtermmean), ~ .x > 1000 | .x < -1000),
+            NA,
+            .x
+          )
+        )
+      )
+    
     main <- main %>%
       left_join(temp, by = setNames("COMMON.NAME", soib_name_col))
 
@@ -221,8 +233,36 @@ if (run_res_trends == FALSE) {
       filter(COMMON.NAME %in% spec_ct) %>%
       dplyr::select(COMMON.NAME, currentslopelci, currentslopemean, currentsloperci)
 
+    temp <- temp %>%
+      mutate(
+        across(
+          c(currentslopelci, currentslopemean, currentsloperci),
+          ~ ifelse(
+            if_any(c(currentslopelci, currentslopemean, currentsloperci), ~ .x > 1000 | .x < -1000),
+            NA,
+            .x
+          )
+        )
+      )
+    
+    # species for which currentslopelci, mean and rci are NA
+    
+    species_cat_na <- temp %>% 
+      filter(is.na(temp$currentslopelci)) %>%
+      pull(COMMON.NAME)
+    
     main <- main %>%
       left_join(temp, by = setNames("COMMON.NAME", soib_name_col))
+    
+    main <- main %>%
+      mutate(across(
+        c(longtermlci, longtermrci, longtermmean),
+        ~ ifelse(
+          .data[[soib_name_col]] %in% species_cat_na,
+          NA,
+          .x
+        )
+      ))
 
   }
 
