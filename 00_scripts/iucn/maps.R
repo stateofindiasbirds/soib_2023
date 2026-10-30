@@ -10,36 +10,36 @@ datapath   <- "00_data"
 source(file.path(scriptpath, "config.R"))
 
 test_species <- c (
-  "Banasura Laughingthrush",
-  "Nilgiri Laughingthrush",
-  "Ashambu Laughingthrush",
-  "Mangrove Pitta",
-  "Bugun Liocichla",
-  "Buffy Fish Owl",
-  "Mount Victoria Babax",
-  "Yunnan Nuthatch",
-  "Sind Woodpecker",
-  "Derbyan Parakeet",
-  "Long-billed Bush Warbler",
-  "Andaman Masked-Owl",
-  "Naga Wren-Babbler",
-  "Nilgiri Pipit",
-  "Nilgiri Sholakili",
-  "White-bellied Sholakili",
-  "Nicobar Imperial-Pigeon",
-  "Mishmi Wren-Babbler",
-  "Andaman Woodpecker",
+  "Jerdon's Babbler",
   "Marsh Babbler",
+  "Black-breasted Parrotbill",
+  "Jerdon's Bushchat",
+  "Slender-billed Babbler",
+  "Finn's Weaver",
+  "Nilgiri Pipit",
   "Swamp Grass Babbler",
-  "Kashmir Nuthatch"
-)
+  "Rufous-vented Grass Babbler")
 
+sensitive_species <- c ("Sarus Crane",
+                        "Finn's Weaver",
+                        "Black-bellied Tern",
+                        "Great Hornbill",
+                        "Asian Houbara",
+                        "Derbyan Parakeet",
+                        "Sociable Lapwing",
+                        "Great Indian Bustard",
+                        "Saker Falcon",
+                        "Lesser Florican",
+                        "Green Avadavat",
+                        "Yellow-breasted Bunting")
+
+test_species <- sensitive_species
 # -----------------------------
 # LOAD DATA
 # -----------------------------
 
 EOO <- readRDS(file.path(scriptpath, "eoo.RDS")) 
-#EOO <- EOO %>% dplyr::filter (Species %in% test_species)
+EOO <- EOO %>% dplyr::filter (Species %in% test_species)
 AOO <- readRDS(file.path(scriptpath, "aoo.RDS"))
 
 # Master sf grids
@@ -102,7 +102,7 @@ plotMap <- function(sp,
   # -----------------------------
   
   species_grid_ids <- EOOGrids_sp %>%
-    filter(GridResolution == resolution) %>%
+    dplyr::filter(GridResolution == resolution) %>%
     pull(GridID) %>%
     as.character()
   
@@ -125,7 +125,7 @@ plotMap <- function(sp,
   
   grid_data <- grid_sf %>%
     mutate(GridID = as.character(GridID)) %>%
-    filter(GridID %in% species_grid_ids)
+    dplyr::filter(GridID %in% species_grid_ids)
   
   # -----------------------------
   # OCCUPANCY CATEGORIES
@@ -279,6 +279,83 @@ plotMap <- function(sp,
 }
 
 # -----------------------------
+# FUNCTION TO CREATE FULL INDIA EOO MAP
+# -----------------------------
+
+plotEOO <- function(sp,
+                    EOOGrids_sp,
+                    india_map,
+                    in_grids)
+{
+  
+  # Use 8 km master grid for the EOO display
+  resolution <- 8
+  grid_sf <- in_grids[[as.character(resolution)]]
+  
+  # Get EOO grid IDs
+  eoo_grid_ids <- EOOGrids_sp %>%
+    dplyr::filter(GridResolution == resolution) %>%
+    dplyr::pull(GridID) %>%
+    as.character()
+  
+  # Extract matching EOO polygons
+  eoo_data <- grid_sf %>%
+    dplyr::mutate(GridID = as.character(GridID)) %>%
+    dplyr::filter(GridID %in% eoo_grid_ids)
+  
+  # Plot full India with EOO highlighted
+  plot <- ggplot() +
+    
+    geom_sf(
+      data = india_map,
+      fill = "grey97",
+      color = "grey60",
+      linewidth = 0.2
+    ) +
+    
+    geom_sf(
+      data = eoo_data,
+      fill = "#E69F00",
+      color = "grey25",
+      linewidth = 0.12
+    ) +
+    
+    # Full India extent; do not zoom to the species range
+    coord_sf(expand = FALSE) +
+    
+    ggtitle("EOO") +
+    
+    theme_minimal() +
+    
+    theme(
+      axis.text = element_blank(),
+      axis.title = element_blank(),
+      axis.ticks = element_blank(),
+      panel.grid = element_blank(),
+      legend.position = "none",
+      plot.title = element_text(
+        hjust = 0.5,
+        face = "bold",
+        size = 11
+      ),
+      plot.background = element_rect(
+        fill = "white",
+        color = NA
+      ),
+      panel.background = element_rect(
+        fill = "white",
+        color = NA
+      )
+    )
+  
+  return(plot)
+}
+
+# -----------------------------
+# FUNCTION TO CREATE 3 MAPS
+# -----------------------------
+
+# -----------------------------
 # FUNCTION TO CREATE 3 MAPS
 # -----------------------------
 
@@ -290,9 +367,19 @@ plot3Maps <- function(sp,
                       in_grids)
 {
   
-  plots <- lapply(
-    aoo_grid_sizes_km,
-    
+  # First map: full India EOO
+  eoo_plot <- plotEOO(
+    sp,
+    EOOGrids_sp,
+    india_map,
+    in_grids
+  )
+  
+  # Second and third maps: 8 km and 4 km occupancy
+  resolutions <- c(8, 4)
+  
+  occupancy_plots <- lapply(
+    resolutions,
     function(grid_size_km) {
       
       plotMap(
@@ -306,6 +393,10 @@ plot3Maps <- function(sp,
     }
   )
   
+  # Combine all three maps in the required order
+  plots <- c(list(eoo_plot), occupancy_plots)
+  
+  # Summary subtitle
   if (nrow(AOO_sp) > 0) {
     
     subtitle_text <- paste(
@@ -322,8 +413,8 @@ plot3Maps <- function(sp,
       "| LikelyEOO:", round(EOO_sp$LikelyEOO[1], 0),
       "| EOO Start:", EOO_sp$EOOStartYear[1]
     )
-  }  
-
+  }
+  
   combined_plot <- (
     
     wrap_plots(
@@ -352,7 +443,7 @@ plot3Maps <- function(sp,
 # -----------------------------
 
 AOO <- AOO %>%
-  filter(MaxAOO < 30000)
+  dplyr::filter(MaxAOO < 30000)
 
 species <- AOO$Species
 species <- EOO$Species
@@ -377,17 +468,17 @@ lapply(species, function(sp) {
   
   # Species data
   EOO_sp <- EOO %>%
-    filter(Species == sp)
+    dplyr::filter(Species == sp)
   
   AOO_sp <- AOO %>%
-    filter(Species == sp)
+    dplyr::filter(Species == sp)
   
   # Load species grid file
   EOOGrids_sp <- load_species_grid_data(sp)
   
   # Skip missing
   if (nrow(EOO_sp) == 0 ||
-      is.null(EOOGrids_sp) 
+      0 #is.null(EOOGrids_sp) 
       # nrow(AOO_sp) == 0
       ) {
     

@@ -1,4 +1,34 @@
 EnglishName,MinPop,MaxPop,Largest SubPop,Min Breeding Pop Percent,Max Breeding Pop Percent,Male Ratio,Year of Estimation,Source
+Dalmatian Pelican,6000,9000,NA,.67,.67,0.5,2017;BirdLife
+Indian Spotted Eagle,10000,10000,NA,1,1,0.5,2023,BirdLife
+Greater Adjutant,1160,1260,999,1,1,0.5,2023,BirdLife
+Lesser Adjutant,2000,5000,NA,1,1,0.5,2023,BirdLife
+Grey-crowned Prinia,1200,3000,2000,1,1,0.5,2025,BirdLife
+White-naped Tit,10000,20000,999,1,1,0.5,2024,BirdLife
+Brown-winged Kingfisher,5000,7500,NA,0.8,0.8,0.5,2016,Allison (2014)
+Asian Houbara,3000,3500,3250,0.8,0.8,0.5,2016,Allison (2014)
+Marbled Duck,50,150,90,0.75,0.75,0.5,2026,SoIB WPE
+Sociable Lapwing,70,500,180,0.9,0.9,0.5,2026,SoIB WPE
+Grey Plover,1250,8250,3200,0.9,0.9,0.5,2026,SoIB WPE
+Bar-tailed Godwit,1350,7500,3150,0.67,0.67,0.5,2026,SoIB WPE
+Eurasian Oystercatcher,2500,2500,2500,0.8,0.8,0.5,2026,SoIB WPE
+Broad-billed Sandpiper,500,1000,700,0.75,0.75,0.5,2026,SoIB WPE
+Great Knot,1450,4400,2500,1,1,0.5,2026,SoIB WPE
+Great Slaty Woodpecker,3000,21000,999,0.8,0.8,0.5,2008,Lammertink et al. 2008;BirdLife
+Black-necked Crane,65,75,65,1,1,0.5,2017,Mahar et al. 2017;BNHS
+Slender-billed Babbler,2800,6600,1000,1,1,0.5,2006,BirdLife
+Pallas's Fish-Eagle,1000,2499,1580,1,1,0.5,2016,BirdLife
+Indian Grassbird,2000,6000,1000,1,1,0.5,2018,BirdLife
+Black-breasted Parrotbill,1000,4000,1000,1,1,0.5,2023,BirdLife
+Green Munia,6000,15000,1200,1,1,0.5,2000,BirdLife
+Finn's Weaver,250,999,490,1,1,0.5,2017,BirdLife
+Saker Falcon,500,2500,NA,1,1,0.5,2026,Assumption
+White-browed Bushchat,2400,14000,5800,1,1,0.5,2025,BirdLife
+White-throated Bushchat,800,1250,1000,1,1,0.5,2015,Clements & Rose (2015);Baral et al. (2021)
+Swamp Grass Babbler,1000,10000,3200,1,1,0.5,2025,BirdLife
+Nilgiri Pipit,2200,4400,NA,0.9,0.9,0.5,2025,BirdLife;Lele et al. 2023
+Bristled Grassbird,4500,6000,5200,1,1,0.5,2025,BirdLife
+Indian Skimmer,2450,2900,2665,1,1,0.5,2020,BirdLife
 White-winged Wood-Duck,50,150,50,0.5,0.5,0.5,2023,Ahmed et al. (2023); BirdLife
 Jerdon's Courser,1,67,NA,0.75,0.75,0.5,2024,BirdLife
 Bugun Liocichla,15,50,18,0.50,1.00,0.5,2024,BirdLife; Umesh Srinivasan
@@ -14,19 +44,41 @@ Slender-billed Vulture,900,1100,NA,0.66,0.66,0.5,2015,Prakash et al. 2019;BirdLi
 Indian Vulture,7500,22500,NA,0.66,0.66,0.5,2015,Prakash et al. 2019;BirdLife
 Baer's Pochard,NA,NA,NA,NA,NA,NA,NA,Dummy Row
 Red-headed Vulture,NA,NA,NA,NA,NA,NA,NA,Dummy Row
-Sociable Lapwing,NA,NA,NA,NA,NA,NA,NA,Dummy Row
 Finn's Weaver,NA,NA,NA,NA,NA,NA,NA,Dummy Row
 Andaman Teal,NA,NA,NA,NA,NA,NA,NA,Dummy Row
 Western Tragopan,6400,19000,11000,0.5,0.5,0.5,2007,BirdLife
-Blyth's Tragopan,NA,NA,NA,NA,NA,NA,NA,Dummy Row
-Cheer Pheasant,1250,3750,NA,0.8,0.8,0.5,2007,Sathyakumar & Kaul 2007
+Cheer Pheasant,1250,3750,2165,0.8,0.8,0.5,2007,Sathyakumar & Kaul 2007
 Swamp Francolin,NA,NA,NA,NA,NA,NA,NA,Dummy Row
 Pale-capped Pigeon,NA,NA,NA,NA,NA,NA,NA,Dummy Row
 Andaman Wood-Pigeon,NA,NA,NA,NA,NA,NA,NA,Dummy Row
 Nicobar Serpent-Eagle,NA,NA,NA,NA,NA,NA,NA,Dummy Row
 Naga Wren-Babbler,NA,NA,NA,NA,NA,NA,NA,Dummy Row
+Tawny-breasted Wren-Babbler,NA,NA,NA,NA,NA,NA,NA,Dummy Row
 Nicobar Sparrowhawk,NA,NA,NA,NA,NA,NA,NA,Dummy Row
-Indian Skimmer,NA,NA,NA,NA,NA,NA,NA,Dummy Row
-Black-bellied Tern,NA,NA,NA,NA,NA,NA,NA,Dummy Row
 Nicobar Scops-Owl,NA,NA,NA,NA,NA,NA,NA,Dummy Row
-
+Black-bellied Tern,NA,NA,NA,NA,NA,NA,NA,Dummy Row
+Rusty-bellied Shortwing,NA,NA,NA,NA,NA,NA,NA,Dummy Row
+Cachar Wedge-billed Babbler,NA,NA,NA,NA,NA,NA,NA,Dummy Row
+Sikkim Wedge-billed Babbler,NA,NA,NA,NA,NA,NA,NA,Dummy Row
+Nilgiri Laughingthrush,NA,NA,NA,NA,NA,NA,NA,Dummy Row
+Blyth's Tragopan,NA,NA,NA,NA,NA,NA,NA,Dummy Row
+Chestnut-breasted Partridge,NA,NA,NA,NA,NA,NA,NA,Dummy Row
+Chestnut-backed Laughingthrush,NA,NA,NA,NA,NA,NA,NA,Dummy Row
+Dark-rumped Swift,NA,NA,NA,NA,NA,NA,NA,Dummy Row
+Andaman Treepie,NA,NA,NA,NA,NA,NA,NA,Dummy Row
+Grey-sided Thrush,NA,NA,NA,NA,NA,NA,NA,Dummy Row
+Nicobar Jungle Flycatcher,NA,NA,NA,NA,NA,NA,NA,Dummy Row
+Beautiful Nuthatch,NA,NA,NA,NA,NA,NA,NA,Dummy Row
+Andaman Cuckooshrike,NA,NA,NA,NA,NA,NA,NA,Dummy Row
+Andaman Woodpecker,NA,NA,NA,NA,NA,NA,NA,Dummy Row
+Andaman Green-Pigeon,NA,NA,NA,NA,NA,NA,NA,Dummy Row
+Mishmi Wren-Babbler,NA,NA,NA,NA,NA,NA,NA,Dummy Row
+Nicobar Imperial-Pigeon,NA,NA,NA,NA,NA,NA,NA,Dummy Row
+Nicobar Parakeet,NA,NA,NA,NA,NA,NA,NA,Dummy Row
+Black-bellied Sandgrouse,NA,NA,NA,NA,NA,NA,NA,Dummy Row
+Blyth's Kingfisher,NA,NA,NA,NA,NA,NA,NA,Dummy Row
+Grey-headed Parakeet,NA,NA,NA,NA,NA,NA,NA,Dummy Row
+Long-billed Bush Warbler,NA,NA,NA,NA,NA,NA,NA,Dummy Row
+Mountain Hawk-Eagle,NA,NA,NA,NA,NA,NA,NA,Dummy Row
+Bearded Vulture,NA,NA,NA,NA,NA,NA,NA,Dummy Row
+Cinereous Vulture,NA,NA,NA,NA,NA,NA,NA,Dummy Row

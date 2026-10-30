@@ -1,9 +1,12 @@
 Species,Method,Reversible,ReasonUnderstood,ReasonCeased,StartYear,EndYear,DeclinePercentRci,DeclinePercentMean,DeclinePercentLci,DirectObservation,AbundanceIndex,EOODecline,AOODecline,HabitatQuality,Exploitation,OtherEffects,Source
+Malabar Grey Hornbill,Estimated,1,1,0,2005,2018,39,47,56,0,1,0,0,1,0,0,Mudappa & Raman (2023)
+Nilgiri Pipit,Suspected,0,1,0,1993,2003,28,28,28,0,0,0,0,1,0,0,Arasumani et al. (2018)
+Nilgiri Pipit,Suspected,0,1,0,2003,2014,32,32,32,0,0,0,0,1,0,0,Arasumani et al. (2018)
 White-bellied Sholakili,Projected,1,1,0,2025,2050,26,35,45,0,0,0,0,1,0,0,Sreekumar & Nameer (2022)
-Cheer Pheasant,Projected,1,1,0,2025,2050,1,1,1,0,0,0,0,1,1,0,Presumed
 Western Tragopan,Projected,1,1,0,2025,2050,5,20,35,0,0,0,0,1,1,0,Singh et al. 2020
 White-rumped Vulture,Estimated,1,1,0,2002,2022,56.9,90.3,98.2,1,0,1,1,1,0,1,Prakash et al. 2024
 White-rumped Vulture,Estimated,1,1,0,1992,2022,99.5,99.8,99.9,1,0,1,1,1,0,1,Prakash et al. 2024
+Egyptian Vulture,Estimated,1,1,0,1992,2002,58,80,90,1,0,1,1,1,0,1,Cutbert et al. 2006
 Red-headed Vulture,Estimated,1,1,0,1992,2002,61,91,98,1,0,1,1,1,0,1,Cutbert et al. 2006
 Red-headed Vulture,Estimated,1,1,0,1992,2011,20,78,98,1,0,1,1,1,0,1,Galligan et al. 2014
 Indian Vulture,Estimated,1,1,0,2002,2022,13,37,78,1,0,1,1,1,0,1,Prakash et al. 2024
@@ -18,4 +21,13 @@ Great Indian Bustard,Estimated,1,1,0,1969,2024,87,89,91,1,0,1,1,1,1,0,SoIB 2023;
 Great Indian Bustard,Projected,1,1,0,1969,2026,87,89,91,1,0,1,1,1,1,0,SoIB 2023; Dutta et al. 2013;2025
 Lesser Florican,Estimated,1,1,0,1982,2017,79,79,79,1,0,1,1,1,1,0,SoIB 2023; Dutta et al. 2018
 Lesser Florican,Projected,1,1,0,1982,2025,79,79,79,1,0,1,1,1,1,0,SoIB 2023; Dutta et al. 2018
-Common Pochard,Projected,1,0,0,2015,2033,41,53,62,0,1,0,0,0,1,0,SoIB 2023
+Common Pochard,Inferred,1,0,0,2015,2030,35,46,56,0,1,0,0,0,1,0,SoIB 2023
+Curlew Sandpiper,Inferred,1,0,0,2015,2031,36.1,52.6,65.0,0,1,0,0,1,0,0,SoIB 2025
+Black-capped Kingfisher,Inferred,1,0,0,2015,2025,31.2,44.6,55.7,0,1,0,0,1,0,0,SoIB 2025
+Eurasian Oystercatcher,Inferred,1,0,0,2015,2055,46.50,69.30,82.83,0,1,0,0,1,0,0,SoIB 2025
+Jerdon's Babbler,Inferred,1,0,0,2015,2025,39,55,67,0,1,0,0,0,0,0,SoIB 2023
+Steppe Eagle,Suspected,1,0,0,1992,2025,45,51.3,56.6,0,1,0,0,0,0,1,SoIB 2023
+Great Hornbill,Projected,1,0,0,2002,2065,29,29,29,0,0,1,1,1,0,0,Tracewski et al. 2016
+Malabar Pied-Hornbill,Inferred,1,0,0,2015,2036,23,54,72,0,1,1,1,1,0,0,SoIB 2023
+Andaman Treepie,Inferred,1,0,0,2015,2029,20,52,71,0,1,0,0,0,0,0,SoIB 2023
+Lesser Flamingo,Inferred,1,0,0,2015,2055,36,57,72,0,1,0,0,0,0,0,SoIB 2025

@@ -18,6 +18,7 @@ plausiblethreatfile <- "01_analyses_full/results/plausiblethreat.csv"
 
 assessmentsflattenedfile <- "00_data/IUCN_assessments_flattened.csv"
 subpopulationsfile <- "00_data/species_with_subspecies_count.csv"
+subpopulationsprecentfile <- "00_data/subpopulations.csv"
 raritiesfile <- "00_data/rarities_nrl.csv" 
 threatstatusoverridefile <- "00_data/threat_status_override_nrl.csv" 
 percentrangefile <- "00_data/percent_species_ranges_India.csv"

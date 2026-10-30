@@ -366,7 +366,8 @@ left_join(
       ActualDeclineLci_C1 = ActualDeclineLci,
       ActualDeclineStartYear_C1 = ActualDeclineStartYear,
       ActualDeclineEndYear_C1 = ActualDeclineEndYear,
-      ActualDeclineYears_C1 = ActualDeclineYears
+      ActualDeclineYears_C1 = ActualDeclineYears,
+      ContinuingDecline_C = ContinuingDecline
     ),
   by = "EnglishName",
   relationship = "many-to-one"
@@ -476,7 +477,7 @@ species <- merged %>%
       paste0(round(C1_2GEN_Decline, 1))
     ),
     
-    Years2GEN = ifelse (is.na(Years2GEN_C),  pmax(5, 2*round(GenerationLength)), Years2GEN_C),
+    Years2GEN = ifelse (is.na(Years2GEN_C),  pmax(5, round(2*GenerationLength)), Years2GEN_C),
 
     Decline3GEN_C = ifelse(
       is.na(C1_3GEN_Decline),
@@ -486,7 +487,7 @@ species <- merged %>%
     
     Decline3GEN_C1_Method = C1Method,
     Decline3GEN_ContinuingDeclineMethod = ContinuingDeclineMethod,
-    Years3GEN = ifelse (is.na(Years3GEN_C),  pmax(10, 3*round(GenerationLength)), Years3GEN_C),
+    Years3GEN = ifelse (is.na(Years3GEN_C),  pmax(10, round(3*GenerationLength)), Years3GEN_C),
     
     GenerationLength = GenerationLength,
     ActualDeclinePercentage = ifelse(
@@ -554,11 +555,19 @@ species <- merged %>%
         "Yes",
         ifelse(
           is.na(currentslopelci),
-          "Unknown",
+          ifelse(
+            is.na(ContinuingDecline_C),
+            "Unknown",
+            ifelse(ContinuingDecline_C, "Yes", "No")
+          ),
           ifelse(
             currentslopelci > 0,
             "No",
-            "Uncertain"
+            ifelse(
+              is.na(ContinuingDecline_C),
+              "Uncertain",
+              ifelse(ContinuingDecline_C, "Yes", "No")
+            )
           )
         )
       )

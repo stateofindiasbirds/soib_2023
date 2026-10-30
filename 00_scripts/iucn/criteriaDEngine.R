@@ -316,13 +316,17 @@ criteriaD_data <- criteriaD_data %>%
     EN_D = !is.na(EffectiveBestPop) & EffectiveBestPop < 250,
     VU_D1 = !is.na(EffectiveBestPop) & EffectiveBestPop < 1000,
     
+#    NT_D1 =
+#      !is.na(EffectiveMaxPop) &
+#      (
+#        (EffectiveMaxPop < 1500 & EffectiveMaxPop >= 1000) |
+#          (EffectiveMinPop  < 1000 & EffectiveMaxPop > 1500)
+#      ),
+
     NT_D1 =
-      !is.na(EffectiveMaxPop) &
-      (
-        (EffectiveMaxPop < 1500 & EffectiveMaxPop >= 1000) |
-          (EffectiveMinPop  < 1000 & EffectiveMaxPop > 1500)
-      ),
-    
+      (!is.na(EffectiveBestPop) & EffectiveBestPop < 1500) |
+      (!is.na(EffectiveMinPop) & EffectiveMinPop < 1000),
+
     VU_D2 =
       PlausibleThreat_VU &
       (

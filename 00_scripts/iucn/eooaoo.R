@@ -3,6 +3,7 @@ library(dplyr)
 
 scriptpath <- "00_scripts/iucn/"
 resultspath <- "01_analyses_full/results"
+datapath <- "00_data"
 
 # Configurations for the algorithm
 source(file.path(scriptpath, "config.R"))
@@ -49,4 +50,14 @@ EOOAOO <- EOOAOO %>%
     EOOChange = round(EOOChange),
   ) %>% 
   dplyr::select (Species, MinAOO, MaxAOO, MinEstimate_2km, EOOStartYear, LikelyEOO, MaxEOO, EOOYearBandChange, EOOChange, EOOChangePercent)
+
+
+# Remove AOO for pelagic species
+removeaoo_sp <- read.csv(file.path(datapath,"ignoreaoo.csv"))
+EOOAOO <- EOOAOO %>%
+  mutate(
+    MinAOO = if_else(Species %in% removeaoo_sp$Species, NA_real_, MinAOO),
+    MaxAOO = if_else(Species %in% removeaoo_sp$Species, NA_real_, MaxAOO)
+  )
+
 write.csv(EOOAOO, file.path(resultspath, "eooaoo.csv"))

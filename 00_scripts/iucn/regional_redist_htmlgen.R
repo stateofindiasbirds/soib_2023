@@ -573,34 +573,83 @@
     "River Lapwing"
   )
   
+  # Pending species
   filter_species <- c(
-    "Sind Woodpecker",
-    "Derbyan Parakeet",
-    "Western Tragopan",
-    "Indian Skimmer",
-    "Black-bellied Tern",
-    "Nicobar Parakeet",
-    "Nicobar Scops-Owl",
+    'House Crow',
+    "Large-billed Crow",
     "Nicobar Serpent-Eagle",
-    "Nicobar Sparrowhawk",
-    "Red-necked Falcon",
-    "Laggar Falcon",
-    "Ashy-crowned Sparrow-Lark",
-    "Isabelline Shrike",
-    "Common Starling",
-    "Russet Sparrow",
-    "Variable Wheatear",
-    "White-tailed Stonechat",
-    "Montagu's Harrier",
-    "Black-naped Oriole",
-    "Black-crested Bulbul",
-    "Pallid Harrier",
-    "Crimson Sunbird",
-    "Common Pochard",
-    "Palani Laughingthrush",
-    "Nilgiri Sholakili",
-    "White-bellied Sholakili"
-  )    
+    "Green Munia" )    
+  
+  filter_species <- c(
+    "Curlew Sandpiper",
+    "Black-necked Crane",
+    "Great Knot",
+    "Broad-billed Sandpiper",
+    "Marbled Duck",
+    "Eurasian Oystercatcher",
+    "Malabar Pied Hornbill",
+    "Malabar Grey Hornbill",
+    "Black-capped Kingfisher",
+    "Grey Plover",
+    "Sociable Lapwing",
+    "Asian Dowitcher",
+    "Ruddy Turnstone",
+    "White-naped Tit",
+    "Great Slaty Woodpecker",
+    "Greater Spotted Eagle"
+    )
+
+  filter_species <- c(
+    "Great Hornbill",
+    "Wreathed Hornbill",
+    "Rufous-necked Hornbill",
+    "Brown Hornbill",
+    "Cheer Pheasant",
+    "Blyth's Tragopan",
+    "Asian Houbara",
+    "Brown-winged Kingfisher"
+    )
+   
+  filter_species <- c(
+    "Bar-headed Goose",
+    "Demoiselle Crane",
+    "Dark-rumped Swift",
+    "Osprey",
+    "Eurasian Spoonbill",
+    "Swinhoe's Storm-Petrel",
+    "Green Imperial-Pigeon",
+    "Chestnut-breasted Partridge",
+    "Short-toed Snake-Eagle",
+    "Bonelli's Eagle",
+    "Andaman Treepie",
+    "Grey-crowned Prinia"
+  )
+  
+  filter_species <- c(
+    "Andaman Wood-Pigeon",
+    "Andaman Woodpecker",
+    "Andaman Cuckooshrike",
+    "Chestnut-backed Laughingthrush",
+    "Beautiful Nuthatch",
+    "Nicobar Jungle Flycatcher"
+  )
+  
+  filter_species <- c(
+    "Great Thick-knee",
+    "Northern Lapwing",
+    "Eurasian Curlew",
+    "Bar-tailed Godwit",
+    "Dalmatian Pelican",
+    "Bearded Vulture",
+    "Cinereous Vulture",
+    "Nicobar Serpent-Eagle",
+    "Indian Spotted Eagle",
+    "Imperial Eagle",
+    "Nicobar Hooded Pitta",
+    "Plain Leaf Warbler",
+    "Arctic Warbler",
+    "White-crowned Forktail"
+  )
   
   for(i in 1:nrow(species)) {
     

@@ -28,9 +28,19 @@ test_species <- c (
     "Kashmir Nuthatch"
 )
 
+test_species <- c (
+"Finn's Weaver",
+"Saker Falcon",
+"Great Indian Bustard",
+"Black-breasted Parrotbill",
+"Jerdon's Bushchat",
+"Nilgiri Pipit",
+"Grey-crowned Prinia"
+)
 
 scriptpath <- "00_scripts/iucn/"
 datapath   <- "00_scripts/iucn/"
+dataglobal <- "00_data"
 
 library (tidyverse)
 library (lubridate)
@@ -39,6 +49,15 @@ library(sf)
 library(dplyr)
 source(file.path(scriptpath, "config.R"))
 source(file.path(scriptpath, "aoo_utils.R"))
+source(file.path(scriptpath, "aoo_excluder.R"))
+
+ExpertAbsenceGrids <- get_expert_absence_grids()
+
+# Basic diagnostic
+#print(
+#  ExpertAbsenceGrids %>%
+#    dplyr::count(Species, GridResolution)
+#)
 
 load_species_grids <- function(species_names) {
   
@@ -699,16 +718,22 @@ proc_aoo <- function (obsv, targetSpeciesObsv, Checklist2Grid, ChecklistCount, C
       by = c("Species", "GridResolution", "GridID")
     ) %>%
     
+    # Expert-filled absences
+    left_join(
+      ExpertAbsenceGrids,
+      by = c("Species", "GridResolution", "GridID")
+    ) %>%
+    
     # Final occupancy assignment
     mutate(
       Occupancy = case_when(
         !is.na(Present) ~ "P",             # Presence always wins
         !is.na(TrackUncertainty) ~ "UT",   # Track-derived uncertainty
         !is.na(Absent) ~ "A",              # Absence
+        !is.na(ExpertAbsence) ~ "E",       # Expert-filled absence
         TRUE ~ "U"                         # Remaining unknown
       )
     ) %>%
-    
     dplyr::select(
       Species,
       GridResolution,
@@ -932,10 +957,23 @@ obsv    <- obsv %>%
 #  pull(Species) %>%
 #  unique()
 
+sensitive_species <- c ("Sarus Crane",
+                        "Finn's Weaver",
+                        "Black-bellied Tern",
+                        "Great Hornbill",
+                        "Asian Houbara",
+                        "Derbyan Parakeet",
+                        "Sociable Lapwing",
+                        "Great Indian Bustard",
+                        "Saker Falcon",
+                        "Lesser Florican",
+                        "Green Avadavat",
+                        "Yellow-breasted Bunting")
 species <- read.csv(file.path(datapath, "species_aoo_prefilter.csv"),
                          stringsAsFactors = FALSE) %>% 
                 dplyr::select (english_name) %>% pull() %>%unique()
 
+species <- c(species, sensitive_species) %>% unique()
 #species <- species [species %in% test_species]
 
 

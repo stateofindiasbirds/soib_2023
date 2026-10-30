@@ -33,9 +33,38 @@ if (nrow(population_data) == 0) {
   
   message("No population data — skipping Criterion C")
   
-
-  return;
 }
+
+# ============================================================
+# 1aa. READ POPULATION DATA
+# ============================================================
+
+subpopulations_data <- if (file.exists(subpopulationsprecentfile)) {
+  read_csv(subpopulationsprecentfile, show_col_types = FALSE) %>%
+    mutate(
+      EnglishName = trimws(Species)
+    ) %>%
+    select(
+      EnglishName,
+      SubPopulations,
+      LargetSupPopPercentage
+    ) %>%
+    distinct(EnglishName, .keep_all = TRUE)
+} else {
+  tibble(
+    EnglishName = character(),
+    SubPopulations = integer(),
+    LargetSupPopPercentage = double()
+  )
+}
+
+if (nrow(subpopulations_data) == 0) {
+  
+  message("No subpopulations data — skipping Criterion C")
+  
+}
+
+
 
 # ============================================================
 # 1b. READ MANUAL DECLINE DATA
@@ -465,6 +494,22 @@ criteriaC_data <- criteriaC_data %>%
   )
 
 # ============================================================
+# MERGE SUBPOPULATION DATA
+# ============================================================
+
+criteriaC_data <- criteriaC_data %>%
+  left_join(
+    subpopulations_data %>%
+      select(
+        EnglishName,
+        SubPopulations,
+        LargetSupPopPercentage
+      ) %>%
+      distinct(EnglishName, .keep_all = TRUE),
+    by = "EnglishName"
+  )
+
+# ============================================================
 # IUCN ASSESSMENTS FOR GLOBAL POPULATION
 # ============================================================
 
@@ -537,6 +582,12 @@ iucn_assessments <- cbind(
 # populationdeclines.csv row that produced the maximum scaled
 # decline for that generation window.
 # ============================================================
+
+get_max_index <- function(x) {
+  valid <- which(!is.na(x) & is.finite(x))
+  if (length(valid) == 0) NA_integer_
+  else valid[which.max(x[valid])]
+}
 
 c1_trends <- manual_trends %>%
   dplyr::filter(C1Eligible & C1Continuing) %>%
@@ -700,6 +751,29 @@ c1_trends <- manual_trends %>%
   )
 
 # ============================================================
+# 4c. PREPARE POPULATION CONTINUING DECLINE BOOLEAN IF AVAILABLE
+# ============================================================
+
+c2_population_boolean <- if (file.exists(continuingdeclineexfile)) {
+  read_csv(continuingdeclineexfile) %>%
+    mutate(
+      EnglishName = trimws(Species),
+      ContinuingDeclineMethod_Boolean = if_else(
+        PopulationChangeBoolean %in% TRUE,
+        "Inferred",
+        NA_character_
+      )
+    ) %>%
+    dplyr::select(
+      EnglishName,
+      PopulationChangeBoolean,
+      ContinuingDeclineMethod_Boolean
+    )
+} else {
+  tibble()
+}
+
+# ============================================================
 # 4b. C2 — MANUAL CONTINUING DECLINE
 #
 # Eligible methods:
@@ -766,20 +840,21 @@ c2_trends <- bind_rows(
 # ============================================================
 # 4e. ADD TREND RESULTS TO POPULATION DATA
 # ============================================================
-
 criteriaC_data <- criteriaC_data %>%
-  left_join(
-    c1_trends,
-    by = "EnglishName"
-  ) %>%
-  left_join(
-    c2_trends,
-    by = "EnglishName"
-  ) %>%
+  left_join(c1_trends, by = "EnglishName") %>%
+  left_join(c2_trends, by = "EnglishName") %>%
+  left_join(c2_population_boolean, by = "EnglishName") %>%
   mutate(
-    ContinuingDecline = coalesce(
-      ContinuingDecline,
-      FALSE
+    ContinuingDecline = case_when(
+      ContinuingDecline %in% TRUE |
+        PopulationChangeBoolean %in% TRUE ~ TRUE,
+      ContinuingDecline %in% FALSE &
+        PopulationChangeBoolean %in% FALSE ~ FALSE,
+      TRUE ~ NA
+    ),
+    ContinuingDeclineMethod = coalesce(
+      ContinuingDeclineMethod,
+      ContinuingDeclineMethod_Boolean
     )
   )
 
@@ -822,29 +897,37 @@ criteriaC_data <- criteriaC_data %>%
         GlobalMaxPopulation
       ),
       
-      EffectiveMinPop = coalesce(
-        MinMaturePop,
-        GlobalMinPopulation
-      ),
-      
-      EffectiveMaxPop = coalesce(
-        MaxMaturePop,
-        GlobalMaxPopulation
-      ),
-      
+
       EffectiveBestPop = coalesce(
         BestMaturePop,
         GlobalBestPopulation
       ),
       
 
+      # --------------------------------------------------------
+      # LARGEST SUBPOPULATION FALLBACK
+      #
+      # Use the directly calculated mature population when
+      # available. Otherwise, apply the supplied percentage
+      # to the effective best population.
+      # --------------------------------------------------------
+      
+      LargestSubPopMature = coalesce(
+        LargestSubPopMature,
+        EffectiveBestPop * LargetSupPopPercentage / 100
+      ),
+      
+      LargestSubPopPercent = coalesce(
+        LargestSubPopPercent,
+        LargetSupPopPercentage
+      ),      
     # -------------------------
     # Population thresholds
     # -------------------------
     
-    CR_pop = EffectiveMaxPop < 250,
-    EN_pop = EffectiveMaxPop < 2500,
-    VU_pop = EffectiveMaxPop < 10000,
+    CR_pop = EffectiveBestPop <= 250,
+    EN_pop = EffectiveBestPop <= 2500,
+    VU_pop = EffectiveBestPop <= 10000,
     
     
     # -------------------------
@@ -1127,9 +1210,9 @@ criteriaC_data <- criteriaC_data %>%
     mutate(
       NT_triggers = paste(
         na.omit(c(
-          if (Near_C1) "C1",
-          if (Near_C2ai) "C2a(i)",
-          if (Near_C2aii) "C2a(ii)",
+          if (isTRUE(as.logical(Near_C1))) "C1",
+          if (isTRUE(as.logical(Near_C2ai))) "C2a(i)",
+          if (isTRUE(as.logical(Near_C2aii))) "C2a(ii)",
           if (isTRUE(as.logical(Near_C2b))) "C2b"
         )),
         collapse = "+"
@@ -1154,6 +1237,11 @@ criteriaC_data <- criteriaC_data %>%
         TRUE ~ NA_character_
       ),
       
+      CriteriaC_String = case_when(
+        CriteriaC_Category == "NT" ~ NT_triggers,
+        TRUE ~ CriteriaC_String
+      ),
+      
       MainCriteriaC = case_when(
         CriteriaC_Category == "NT" ~ NT_triggers,
         TRUE ~ CriteriaC_String
@@ -1166,15 +1254,15 @@ criteriaC_data <- criteriaC_data %>%
 
 # CR assigned but population too large
 CR_population_error <- criteriaC_data %>%
-  filter(CriteriaC_Category == "CR" &  EffectiveMaxPop >= 250)
+  filter(CriteriaC_Category == "CR" &  EffectiveMaxPop > 250)
 
 # EN assigned but population too large
 EN_population_error <- criteriaC_data %>%
-  filter(CriteriaC_Category == "EN" &  EffectiveMaxPop >= 2500)
+  filter(CriteriaC_Category == "EN" &  EffectiveMaxPop > 2500)
 
 # VU assigned but population too large
 VU_population_error <- criteriaC_data %>%
-  filter(CriteriaC_Category == "VU" &  EffectiveMaxPop >= 10000)
+  filter(CriteriaC_Category == "VU" &  EffectiveMaxPop > 10000)
 
 # Impossible subpopulation percentages
 subpop_percent_error <- criteriaC_data %>%
@@ -1293,7 +1381,7 @@ criteriaC_output <- criteriaC_data %>%
     Near_C2aii,
     Near_C2b,
     
-    NT_triggers,
+    NT_triggers
     
   )
 

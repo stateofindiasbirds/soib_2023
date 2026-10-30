@@ -216,10 +216,27 @@ test_species <- c (
   "Kashmir Nuthatch"
 )
 
+sensitive_species <- c ("Sarus Crane",
+                        "Finn's Weaver",
+                        "Black-bellied Tern",
+                        "Great Hornbill",
+                        "Asian Houbara",
+                        "Derbyan Parakeet",
+                        "Sociable Lapwing",
+                        "Great Indian Bustard",
+                        "Saker Falcon",
+                        "Lesser Florican",
+                        "Green Avadavat",
+                        "Yellow-breasted Bunting") %>% as.data.frame()
+colnames(sensitive_species) <- c("Species")
+
 aoo_selected <- read.csv(file.path(datapath, "species_aoo_prefilter.csv"),
                       stringsAsFactors = FALSE) %>% 
                         dplyr::select (english_name)
 colnames(aoo_selected) <- c("Species")
+
+aoo_selected <- rbind(aoo_selected, sensitive_species)
+
                       
 EOO <- readRDS(file.path(datapath,"eoo.RDS"))
 EOO <- EOO %>%

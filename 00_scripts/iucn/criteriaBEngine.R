@@ -199,7 +199,47 @@ ContinuingDeclineExt <- if (file.exists(continuingdeclineexfile)) {
       NoOfLocationYearBandChange,	
       NoOfLocationsChange,	
       NoOfSubPopYearBandChange,	
-      NoOfSubPopulationsChange    )
+      NoOfSubPopulationsChange,
+      AOOChangeBoolean,
+      EOOChangeBoolean,
+      AOHChangeBoolean,
+      EOHChangeBoolean,
+      QOHChangeBoolean,
+      LocationChangeBoolean,
+      SubPopulationChangeBoolean,
+      PopulationChangeBoolean
+      )
+} else {
+  tibble()
+}
+
+# ============================================================
+# 3. PREPARE POPULATION DECLINE DATA IF AVAILABLE
+#    Used for b(v) mature individuals
+# ============================================================
+
+manual_decline <- if (file.exists(popDeclinefile)) {
+  read_csv(popDeclinefile) %>%
+    mutate(
+      EnglishName = trimws(Species),
+      Method = trimws(Method),
+      StartYear = as.numeric(StartYear),
+      EndYear = as.numeric(EndYear),
+      DeclinePercentMean = as.numeric(DeclinePercentMean)
+    ) %>%
+    filter(
+      !is.na(Method),
+      !is.na(StartYear),
+      !is.na(EndYear),
+      !is.na(DeclinePercentMean),
+      DeclinePercentMean > 0,
+      StartYear <= latestYear,
+      EndYear >= latestYear
+    ) %>%
+    distinct(EnglishName) %>%
+    mutate(
+      ManualContinuingDecline = TRUE
+    )
 } else {
   tibble()
 }
@@ -262,10 +302,12 @@ fluctuations <- if (file.exists(extremefluctationsfile)) {
 
 criteriaB_data <- basiceooaoo %>%
                   safe_left_join(soib_decline, by = "EnglishName") %>%
+                  safe_left_join(manual_decline, by = "EnglishName") %>%
                   safe_left_join(ContinuingDeclineExt, by = "EnglishName") %>%
                   safe_left_join(SeverelyFragmented, by = "EnglishName") %>%
                   safe_left_join(NoOfLocations, by = "EnglishName") %>%
                   safe_left_join(fluctuations, by = "EnglishName")
+
 
 # This is to handle fields that may be missing as the source files are optional for analysis
 required_cols <- c(
@@ -276,9 +318,12 @@ required_cols <- c(
   "EOHChange", "EOHYearBandChange", "EOHPercent", "EOOUncertainty",
   "NoOfLocationsChange", "NoOfLocationYearBandChange",
   "NoOfSubPopulationsChange", "NoOfSubPopYearBandChange",
+  "AOOChangeBoolean","EOOChangeBoolean","AOHChangeBoolean","EOHChangeBoolean","QOHChangeBoolean",
+  "LocationChangeBoolean","SubPopulationChangeBoolean","PopulationChangeBoolean",
   "Current.Analysis", "currentsloperci", "mean5km",
   "currentslopemean", "currentslopelci",
   "SoIB.Latest.Current.Status",
+  "ManualContinuingDecline",
   "ExtremeFluctuationsinEOO",
   "ExtremeFluctuationsinAOO",
   "ExtremeFluctuationsinNoOfLocations",
@@ -341,64 +386,77 @@ criteriaB_data <- criteriaB_data %>%
     
     # b(i) EOO
     b_i =
-      !is.na(EOOChange) &
-      EOOChange < 0 &
-      EOOUncertainty <= 2 * abs(EOOChange), # Uncertainity twice the change, then dont hit the threshold
-      !is.na(EOOYearBandChange) &
-      grepl(latestYear, EOOYearBandChange),
-    
+      (!is.na(EOOChange) &
+         EOOChange < 0 &
+         !is.na(EOOUncertainty) &
+         EOOUncertainty <= 2 * abs(EOOChange) & # Uncertainity twice the change, then dont hit the threshold
+         !is.na(EOOYearBandChange) &
+         grepl(latestYear, EOOYearBandChange)) |
+      coalesce(EOOChangeBoolean, FALSE),
+
     # b(ii) AOO
     b_ii =
-      !is.na(AOOChange) &
+      ((!is.na(AOOChange) &
       AOOChange < 0 &
       !is.na(AOOYearBandChange) &
-      grepl(latestYear, AOOYearBandChange),
+      grepl(latestYear, AOOYearBandChange))) |
+      coalesce(AOOChangeBoolean, FALSE),
     
     # b(iii) Habitat (AOH / EOH — combined)
     b_iii =
       (
-        !is.na(AOHChange) &
+        (!is.na(AOHChange) &
           AOHChange < 0 &
           !is.na(AOHYearBandChange) &
-          grepl(latestYear, AOHYearBandChange)
+          grepl(latestYear, AOHYearBandChange)) |
+          coalesce(AOHChangeBoolean, FALSE)
       ) |
       (
-        !is.na(EOHChange) &
+        (!is.na(EOHChange) &
           EOHChange < 0 &
           !is.na(EOHYearBandChange) &
-          grepl(latestYear, EOHYearBandChange)
+          grepl(latestYear, EOHYearBandChange))  |
+          coalesce(EOHChangeBoolean, FALSE) |
+          coalesce(QOHChangeBoolean, FALSE)
       ),
     
     # b(iv) Locations / subpopulations
     b_iv =
       (
-        !is.na(NoOfLocationsChange) &
+        (!is.na(NoOfLocationsChange) &
           NoOfLocationsChange < 0 &
           !is.na(NoOfLocationYearBandChange) &
-          grepl(latestYear, NoOfLocationYearBandChange)
+          grepl(latestYear, NoOfLocationYearBandChange)) |
+          coalesce(LocationChangeBoolean, FALSE)
       ) |
       (
-        !is.na(NoOfSubPopulationsChange) &
+        (!is.na(NoOfSubPopulationsChange) &
           NoOfSubPopulationsChange < 0 &
           !is.na(NoOfSubPopYearBandChange) &
-          grepl(latestYear, NoOfSubPopYearBandChange)
+          grepl(latestYear, NoOfSubPopYearBandChange)) |
+          coalesce(SubPopulationChangeBoolean, FALSE)
       ),
     
     # b(v) Mature individuals (SoIB proxy)
+    # b(v) Mature individuals (SoIB proxy + documented population decline)
     b_v =
-      !is.na(Current.Analysis) &
-      Current.Analysis == "X" &
-      !is.na(currentsloperci) &
-      currentsloperci < 0 &
-      !is.na(mean5km) &
-      mean5km > 8 &
-      !is.na(currentslopemean) &
-      !is.na(currentslopelci) &
-      1.96 * abs(currentslopemean) >
-      abs(currentsloperci - currentslopelci) &
-      (SoIB.Latest.Current.Status %in%
-         c("Stable","Decline","Rapid Decline")),
-    
+      ((
+        !is.na(Current.Analysis) &
+          Current.Analysis == "X" &
+          !is.na(currentsloperci) &
+          currentsloperci < 0 &
+          !is.na(mean5km) &
+          mean5km > 8 &
+          !is.na(currentslopemean) &
+          !is.na(currentslopelci) &
+          1.96 * abs(currentslopemean) >
+          abs(currentsloperci - currentslopelci) &
+          SoIB.Latest.Current.Status %in%
+          c("Stable","Decline","Rapid Decline")
+      )) |
+      coalesce(ManualContinuingDecline, FALSE) |
+      coalesce(PopulationChangeBoolean, FALSE),
+
     Cond_b = b_i | b_ii | b_iii | b_iv | b_v,
     
     
